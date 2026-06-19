@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-PRE-W05",
+  "inspected_at": "2026-06-18T14:42:07Z",
+  "verdict": "BLOCKED_MAT_DEC_08_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "usage_file_count": 1,
+    "current_values_count": 4,
+    "privilege_family_value_decided": false,
+    "closed_value_list_decided": false,
+    "application_boundary_decided": false,
+    "extension_spec_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "mat_dec_08_synthesized": false,
+    "confidentiality_levels_changed_without_decision": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

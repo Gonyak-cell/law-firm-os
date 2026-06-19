@@ -1,0 +1,44 @@
+{
+  "work_package_id": "LT-L5-W06",
+  "title": "Performance and load-test acceptance criteria",
+  "created_at": "2026-06-18T14:51:37Z",
+  "status": "t01_decision_brief_t02_harness_t03_report_draft_blocked_pending_owner_thresholds_staging_load_and_performance_verdict",
+  "phase": "L5",
+  "gate_binding": [
+    "G4",
+    "L5-EXIT"
+  ],
+  "terminal_tuw": "LT-L5-W06-T03",
+  "artifacts": [
+    "docs/launch/perf/performance-acceptance-criteria-decision.md",
+    "tests/launch/perf/datagen/wave1-pilot.synthetic-profile.json",
+    "tests/launch/perf/scenarios/dry-run.mjs",
+    "docs/launch/perf/performance-acceptance-report.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l5-w06/packet.json",
+    "docs/goal-closeout/lt-l5-w06/command-evidence.json",
+    "docs/goal-closeout/lt-l5-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-l5-w06/adjudication.md",
+    "docs/goal-closeout/lt-l5-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "candidate_criteria_rows": 4,
+    "load_profile_rows": 3,
+    "synthetic_only": true,
+    "target_count_match": true,
+    "deterministic_same_seed_verified": true,
+    "scenario_count": 3,
+    "runtime_requests_executed": false,
+    "staging_loaded": false,
+    "approved_thresholds_present": false,
+    "performance_verdict_available": false,
+    "g4_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-114",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-114-claude-review-output-valid.json",
+    "session_id": "943af568-5851-488d-bc8a-7363ddaad865",
+    "uuid": "5f8a5336-9524-4583-adaf-c82adb91ad71",
+    "duration_ms": 180618,
+    "duration_api_ms": 182988,
+    "total_cost_usd": 0.60991475,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Misleading local variable name `invalidSurface` for the non-synthetic surface",
+        "file": "packages/authz/src/api-synthetic-fixture-set.js",
+        "evidence": "In validatePermissionKernelCp114Coverage, `const invalidSurface = matrix.surfaces[2];` is the non-synthetic surface (request {synthetic:false}) and is asserted to include `non_synthetic_request_blocked`. Logic is correct, but the name reads as a generic 'invalid' surface and diverges from the test, which names the same index `nonSynthetic`.",
+        "recommendation": "Rename to `nonSyntheticSurface` for parity with the test and to avoid confusion with `invalidPaginationSurface`. Cosmetic only."
+      },
+      {
+        "severity": "P3",
+        "title": "Contract mirror validation uses subset (requireIncludes), not equality",
+        "file": "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "New CP00-114 checks iterate JS-contract arrays and assert each entry is present in the contract.json arrays (api_synthetic_fixture_set_error_codes, _public_exports, _request/_response_contract_fields, annotation shapes). Extra or divergent entries in contract.json would not be detected. Current values are consistent in this diff.",
+        "recommendation": "Optionally assert length/equality for the mirrored arrays to catch future contract.json drift. Pre-existing convention; non-blocking."
+      }
+    ],
+    "recommendation": "Approve CP00-114 pack closeout. The two P3 items are cosmetic/robustness nits and do not block.",
+    "rationale": "All 10 required surfaces are present and correct: versioning_note (version permission_api_binding.v0.1; schema_version bumped v0.7->v0.8), closeout_handoff, downstream_consumer_note, command_rerun_reference, public_export_map, request_contract, response_contract, error_code_taxonomy, permission_annotation, audit_annotation. Unit math is exact: sourceUnitFor yields RP02.P03.M05.S17-S20 (4) + RP02.P03.M06.S01-S06 (6) = 10, first=S17, last=S06, matching the planned Risk A range and the current_pack/contract bindings. The fixture surface inherits the CP113 fixture via createPermissionKernelCp113ApiPermissionAuditBindingFixture and only layers metadata (versioned request, export map, taxonomy, annotations) — metadata-only inheritance confirmed. No hidden source-field leakage: tests and the validator assert privileged_note, cross_tenant_secret, internal_policy_label, and sealed_audit_hint_payload are undefined in response items and in audit_annotation.hint; leakage scope (response/audit hint) is the request echo's complement, so reflected request input is out of scope. No writes/persistence: no_write_attestation (15 flags) and per-surface flags are all false and validated, and the module is pure frozen-object construction with no I/O, DB, idempotency, or lock code. No external share/export/AI/LDIP implementation — only false flags and descriptive strings. Audit annotations stay preview_only=true / emitted_to_audit_ledger=false. public_export_map is package-level (runtime_route_exported=false, persistence_adapter_exported=false) and its 11 symbols exactly match the file's exports and index.js re-export. HRX remains embedded-only via hrx_embedded_boundary. Handoff is fixed to CP00-115 / RP02.P03.M06.S07 across pack binding, contract, manifest, handoff, README, and validator. Claude packet is read_only, model claude-opus-4-8, exactly_one_valid_pack_review_required=true; Hermes packet binds H02 with covered_unit_count=10. No P0/P1/P2 issues found."
+  }
+}

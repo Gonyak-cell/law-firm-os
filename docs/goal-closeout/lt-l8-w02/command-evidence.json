@@ -1,0 +1,151 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L8-W02",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_current_gate_evidence_survey_recorded",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "waiver_counts_as_valid_review": false
+  },
+  "current_readiness": {
+    "input": "docs/goal-closeout/lt-l8-w02/readiness-input.json",
+    "validator_command": "node scripts/validate-go-live-readiness.mjs --fixtures docs/goal-closeout/lt-l8-w02",
+    "exit_code": 1,
+    "expected_failure": true,
+    "all_pass": false,
+    "failed_gate_ids": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9",
+      "G10"
+    ],
+    "contract_errors": []
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L8-W02-T01",
+      "gate": "G1",
+      "status": "blocked_pending_human_acceptance",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g1.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T02",
+      "gate": "G2",
+      "status": "blocked_pending_runtime_ready_evidence",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g2.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T03",
+      "gate": "G3",
+      "status": "blocked_pending_production_security_rerun",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g3.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T04",
+      "gate": "G4",
+      "status": "blocked_pending_dr_and_performance_evidence",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g4.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T05",
+      "gate": "G5",
+      "status": "blocked_pending_m365_external_evidence",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g5.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T06",
+      "gate": "G6",
+      "status": "blocked_pending_operations_drill_evidence",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g6.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T07",
+      "gate": "G7",
+      "status": "blocked_pending_compliance_state_evidence",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g7.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T08",
+      "gate": "G8",
+      "status": "blocked_pending_migration_evidence",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g8.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T09",
+      "gate": "G9",
+      "status": "blocked_pending_governance_chain",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g9.md"
+    },
+    {
+      "tuw_id": "LT-L8-W02-T10",
+      "gate": "G10",
+      "status": "blocked_pending_owner_signoff",
+      "artifact": "docs/goal-closeout/lt-l8-w02/gate-evidence/g10.md"
+    }
+  ],
+  "commands": [
+    {
+      "id": "w02_readiness_json_parse",
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('docs/goal-closeout/lt-l8-w02/readiness-input.json','utf8'));\"",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "id": "w02_current_readiness_validator",
+      "command": "node scripts/validate-go-live-readiness.mjs --fixtures docs/goal-closeout/lt-l8-w02",
+      "exit_code": 1,
+      "expected_failure": true,
+      "output_summary": {
+        "gate_count": 10,
+        "all_pass": false,
+        "failed_gate_ids": [
+          "G1",
+          "G2",
+          "G3",
+          "G4",
+          "G5",
+          "G6",
+          "G7",
+          "G8",
+          "G9",
+          "G10"
+        ],
+        "contract_errors": []
+      },
+      "writes_product_state": false
+    },
+    {
+      "id": "gate_evidence_file_count",
+      "command": "find docs/goal-closeout/lt-l8-w02/gate-evidence -maxdepth 1 -type f -name 'g*.md' | sort | wc -l",
+      "exit_code": 0,
+      "output": "10",
+      "writes_product_state": false
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L8-W02.",
+    "This record does not satisfy G1-G10.",
+    "This record does not create or imply owner signoff.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ],
+  "phase": "L8"
+}

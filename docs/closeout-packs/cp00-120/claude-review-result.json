@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-120",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-120-claude-review-output-valid.json",
+    "session_id": "ada27a81-6202-4b1f-865b-9cac5efba397",
+    "uuid": "73b5603c-8ace-406f-b521-dffd730645d1",
+    "duration_ms": 318386,
+    "duration_api_ms": 320599,
+    "total_cost_usd": 1.0353295,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "Deny reasons and search-trim outcomes depend on evaluate.js semantics outside this diff",
+        "file": "packages/authz/src/fixture-evidence-permission-matrix.js",
+        "evidence": "legal_hold_interaction/ethical_wall_interaction assert decision.reason equals the rule's custom reason; object_acl_interaction expects reason 'object_acl_deny'; search_decision_binding/security_trimming_proof expect trimSearchResults() to drop the cross-tenant (t_other) and ACL-denied (d_cp120_acl_denied) entries, leaving only d_cp120_document. These outcomes are produced by evaluatePermission/trimSearchResults in ./evaluate.js, which is reused unchanged and is not part of this diff.",
+        "recommendation": "No action required. The expectations are self-consistent and double-enforced by the new node:test cases and scripts/validate-rp02-permission-kernel-contract.mjs, and evaluate.js is the same evaluator already exercised by closed packs CP110-CP119. Flagged only to make the cross-file reliance explicit."
+      }
+    ],
+    "recommendation": "Approve CP00-120 for closeout.",
+    "rationale": "The pack matches the planned Risk C scope. Unit math is exact and self-consistent: CP120_FIXTURE_PHASES (M06 S06-S20=15, M07=22, M08=20, M09=20, M10=8) total 85, and CP120_PERMISSION_MATRIX_PHASES (M00=11, M01=20, M02=20, M03=14) total 65, summing to 150 across 9 micro-phases with first unit RP02.P05.M06.S06 (continuing CP119's RP02.P05.M06.S05) and last unit RP02.P06.M03.S14, handing off to CP00-121/RP02.P06.M03.S15. Deliverable counts independently recompute to the validator's hardcoded targets (fixture 29, claude_review 8, implementation 59, security_audit 22, test 16, hermes_evidence 4, ui 12) and area counts (85/11/20/20/14), so the coverage validator and tests are satisfiable. CP119 inheritance is wired via createPermissionKernelCp119FixtureWorkflowMatrix and the CP119 contract id (inherited_workflow_case_count 9, base_fixture_binding_count 4). All 19 decision bindings route safely: view -> completed_metadata_only, search/security-trimming returns only the authorized id with omitted_result_policy 'do_not_count_or_render_unauthorized_results' and unauthorized_count_exposed=false, mutation/share -> approval_required, export/download/review -> review_required, AI retrieval -> blocked_ai_retrieval_boundary, deny-over-allow -> deny, with audit_hint and audit_event_expectation preview-only (emitted_to_audit_ledger=false) and permission_fixture persisted=false. The file performs no I/O, network, or DB calls; evaluatePermission/trimSearchResults are pure; every result passes through freezeNoWriteResult, and the 16-flag no-write attestation (no runtime UI/API route, policy mutation, audit/product/database write, idempotency/lock persistence, rollback/retry, external share/export, AI/analytics execution) plus ldip_implemented=false and hrx_embedded_boundary are asserted in source, tests, and the JSON contract. Contract public_exports, decision_binding_ids, and hidden_source_fields match the actual module exports and are cross-checked by the validator; listing hidden field names is a redaction spec, not a value leak (hidden_field_names_exposed=false). No P0-P2 issues found.",
+    "raw_result_text": "I've completed a thorough read-only review of the staged CP00-120 diff. Here is the result.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": [\n    {\n      \"severity\": \"p3\",\n      \"title\": \"Deny reasons and search-trim outcomes depend on evaluate.js semantics outside this diff\",\n      \"file\": \"packages/authz/src/fixture-evidence-permission-matrix.js\",\n      \"evidence\": \"legal_hold_interaction/ethical_wall_interaction assert decision.reason equals the rule's custom reason; object_acl_interaction expects reason 'object_acl_deny'; search_decision_binding/security_trimming_proof expect trimSearchResults() to drop the cross-tenant (t_other) and ACL-denied (d_cp120_acl_denied) entries, leaving only d_cp120_document. These outcomes are produced by evaluatePermission/trimSearchResults in ./evaluate.js, which is reused unchanged and is not part of this diff.\",\n      \"recommendation\": \"No action required. The expectations are self-consistent and double-enforced by the new node:test cases and scripts/validate-rp02-permission-kernel-contract.mjs, and evaluate.js is the same evaluator already exercised by closed packs CP110-CP119. Flagged only to make the cross-file reliance explicit.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve CP00-120 for closeout.\",\n  \"rationale\": \"The pack matches the planned Risk C scope. Unit math is exact and self-consistent: CP120_FIXTURE_PHASES (M06 S06-S20=15, M07=22, M08=20, M09=20, M10=8) total 85, and CP120_PERMISSION_MATRIX_PHASES (M00=11, M01=20, M02=20, M03=14) total 65, summing to 150 across 9 micro-phases with first unit RP02.P05.M06.S06 (continuing CP119's RP02.P05.M06.S05) and last unit RP02.P06.M03.S14, handing off to CP00-121/RP02.P06.M03.S15. Deliverable counts independently recompute to the validator's hardcoded targets (fixture 29, claude_review 8, implementation 59, security_audit 22, test 16, hermes_evidence 4, ui 12) and area counts (85/11/20/20/14), so the coverage validator and tests are satisfiable. CP119 inheritance is wired via createPermissionKernelCp119FixtureWorkflowMatrix and the CP119 contract id (inherited_workflow_case_count 9, base_fixture_binding_count 4). All 19 decision bindings route safely: view -> completed_metadata_only, search/security-trimming returns only the authorized id with omitted_result_policy 'do_not_count_or_render_unauthorized_results' and unauthorized_count_exposed=false, mutation/share -> approval_required, export/download/review -> review_required, AI retrieval -> blocked_ai_retrieval_boundary, deny-over-allow -> deny, with audit_hint and audit_event_expectation preview-only (emitted_to_audit_ledger=false) and permission_fixture persisted=false. The file performs no I/O, network, or DB calls; evaluatePermission/trimSearchResults are pure; every result passes through freezeNoWriteResult, and the 16-flag no-write attestation (no runtime UI/API route, policy mutation, audit/product/database write, idempotency/lock persistence, rollback/retry, external share/export, AI/analytics execution) plus ldip_implemented=false and hrx_embedded_boundary are asserted in source, tests, and the JSON contract. Contract public_exports, decision_binding_ids, and hidden_source_fields match the actual module exports and are cross-checked by the validator; listing hidden field names is a redaction spec, not a value leak (hidden_field_names_exposed=false). No P0-P2 issues found.\"\n}\n```\n\nSummary: CP00-120 is a clean pass — scope fully met, counts verified to 150, all decision routes safe, no writes/execution/LDIP/HRX split. The single P3 is informational only and does not block closeout."
+  }
+}

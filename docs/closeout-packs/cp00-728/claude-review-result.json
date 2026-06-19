@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-728",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-728/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-728/review-receipt.json"
+  ],
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "claude_api_529_overloaded",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-728/raw-output-invalid-attempt-01.json",
+      "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-728/review-receipt-invalid-attempt-01.json"
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4effd6de-5509-4da1-a937-7ceaf04385b9",
+    "uuid": "702aae8e-447a-4152-9111-7770c6b2bb82",
+    "total_cost_usd": 1.85535475,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6844,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-728 is a descriptor-only RP24 Korean Legal Depth pack (Risk A, 10 units, RP24.P02.M06.S15-RP24.P02.M07.S02). Verified directly via Read/Grep: (1) manifest included_units match the baseline deliverable_distribution (ui:1, implementation:2, failure_recovery:2, test:4, contract:1) and micro_title_distribution (Synthetic Fixture Set:8, Test And Golden Case Set:2), deviation_from_plan:false; (2) registry/service/validators/index add the CP728 binding, requirements, case set, descriptor, Hermes/Claude/closeout packets, and coverage+descriptor validators following the established CP722-727 pattern, with a sound chain (upstream CP00-727, next CP00-729, next_subphase RP24.P02.M07.S03, flag korean_legal_p02_fixture_test_bridge_descriptor_verified); (3) the regenerated korean-legal-depth-contract.json has latest_pack CP00-728, latest_projection KoreanLegalCp728P02FixtureTestBridgeDescriptor, cp722-727 historical, and top-level validation.valid:true, matching the test assertions; (4) the plan packs[] array begins at the next pack and CP00-728 is the live_state cursor, so the model test correctly falls back to the manifest plan_binding_snapshot, which is internally consistent. No-write/no-real-data/runtime-closed boundaries hold: NO_WRITE_ATTESTATION and the descriptor authority_boundary keep writes_product_state false, every HWPX/clause/litigation/court-filing/corporate/permission/audit runtime surface closed, Claude non-final, and local validation not claiming enterprise trust; Hermes is used only as a deterministic descriptor-evidence packet (emits_runtime_receipt:false), not product runtime. The pack makes no premature production_ready claim - manifest production_ready:false/runtime_ready:false/status in_progress, inspection PENDING_REVIEW, adjudication not-ready-pending-valid-receipt - which is the correct pre-review state. Review hardening is intact: the prior attempt (API 529 Overloaded) was correctly normalized to invalid_review (auth_or_cli_error; parsed_review missing), and validation-report/readiness confirm read-only tools (Read,Grep,Glob), prompt 2443 bytes under the 25600 limit, and a passed auth preflight. One P3 note: raw-output.json currently retains the stale 529 error identical to raw-output-invalid-attempt-01.json, so the closeout normalization must derive the receipt from this PASS run, not the retained error. Provenance: source/structure verified directly in this read-only pass; the command-evidence exit codes (npm test, npm run validate ladder, git diff --check) are agent-reported and were not independently re-executed here. Verdict PASS_WITH_FINDINGS; this review does not block pack closeout or this CP's goal closeout, and the human-final-approval/enterprise-trust authority boundary is outside this receipt and not claimed by the pack.",
+    "findings": [
+      {
+        "id": "CP728-P3-01",
+        "severity": "P3",
+        "title": "raw-output.json retains stale API 529 error identical to invalid-attempt-01",
+        "file": "artifacts/closeout-pack-claude-review/cp00-728/raw-output.json",
+        "line": null,
+        "details": "raw-output.json is byte-identical to raw-output-invalid-attempt-01.json: status 1, api_error_status 529 ('Overloaded'), 0 output tokens, and no parsed_review. The invalid attempt was already correctly normalized to review-receipt-invalid-attempt-01.json (valid_review:false, invalid_reason 'auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing'). The retained 529 content in raw-output.json is the pre-run placeholder state; in the normal flow scripts/run-closeout-pack-claude-review.mjs overwrites raw-output.json with this live review's structured stdout before receipt normalization. This is non-blocking and not a pack implementation defect, but per CP178+ hardening a stale/errored stdout must never be accepted as valid review evidence.",
+        "recommendation": "Before flipping production_ready, confirm the normalized review-receipt.json and raw-output.json reflect THIS PASS run (non-zero structured stdout with parsed_review present and all required schema fields), not the retained 529 content; otherwise the runner would again normalize an invalid_review receipt.",
+        "post_review_disposition": "expected_pre_run_placeholder_state; non_blocking; to be overwritten by this review run during receipt normalization"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

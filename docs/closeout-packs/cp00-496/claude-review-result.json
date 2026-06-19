@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-496",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-496/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-496/review-receipt.json"
+  ],
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "claude_cli_stream_idle_timeout_api_error_no_structured_output",
+      "preserved_under": "artifacts/closeout-pack-claude-review/cp00-496/attempt-01/"
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "38b6c0f4-408f-41cd-a262-15ec88707618",
+    "uuid": "2f178c64-7d70-4807-816d-4955c669d398",
+    "total_cost_usd": 1.5965272500000003,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-496 descriptor-only governance pack (RP16.P05.M05.S13-S22) passes independent read-only review: implementation/contract/tests/validator/command-evidence are fully consistent, no-write and no-real-data boundaries hold, Claude stays read-only and non-final-approver, Hermes is evidence-only, review hardening (invalid attempt-01 rejection, readiness preflight) is correctly applied, and production_ready is appropriately withheld. One trivial non-blocking metadata note; no P0/P1/P2 and no closeout blockers.",
+    "findings": [
+      {
+        "id": "CP00-496-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-classifies new-session-handoff.md as both untracked implementation file and unrelated preserved file",
+        "file": "artifacts/closeout-pack-claude-review/cp00-496/changed-file-scope.json",
+        "line": 152,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed simultaneously in untracked_implementation_files (line 152) and unrelated_dirty_files_preserved (line 159). These two buckets are conceptually mutually exclusive, so the dual listing is internally inconsistent. The impact is nil for this pack: the authoritative active_untracked_implementation_files_omitted is empty (and validation-report.json confirms active_untracked_implementation_files_omitted=[]), the file is not a CP00-496 required artifact (the pack's artifacts live under docs/closeout-packs/cp00-496/), and it is a session-handoff planning note rather than product/descriptor source. No review-scope gap results.",
+        "recommendation": "For metadata hygiene, classify docs/closeout-pack-plan/new-session-handoff.md in exactly one bucket (it is a planning handoff doc, so unrelated_dirty_files_preserved is the better fit) so the scope artifact is unambiguous. No code, contract, test, or closeout change is required.",
+        "post_review_disposition": "Non-blocking cosmetic metadata note; does not affect descriptor correctness, boundaries, tests, or closeout. Safe to defer or fix opportunistically. Does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

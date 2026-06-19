@@ -1,0 +1,106 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-020",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "731b6555-ceaf-4d3f-a003-39dbb40bf54c",
+    "uuid": "9517fa4a-111f-48ee-b9cc-01e4a43ca026",
+    "duration_ms": 292357,
+    "duration_api_ms": 294455,
+    "total_cost_usd": 1.122948,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 44404,
+        "outputTokens": 27,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.044539,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 26423,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 66608,
+        "webSearchRequests": 0,
+        "costUSD": 1.078409,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "claude_reported_verdict": "APPROVE",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-020-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "contracts/control-plane-contract.json / docs/closeout-packs/cp00-020",
+        "title": "Closeout-pack evidence artifacts not present in code diff",
+        "detail": "The review noted that CP00-020 evidence artifacts were not present yet. This is expected because the single read-only review precedes evidence finalization in the closeout workflow."
+      },
+      {
+        "id": "CP00-020-P3-02",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/src/validators.js assertControlPlaneSyntheticFixtureSetMatterTracePrecheckPolicy",
+        "title": "Asymmetric length-pinning of policy arrays",
+        "detail": "The validator length-pins forbiddenMatterTraceClaims but not matterRequiredClaims or failClosedOn. Contract/policy/fixture equality checks still catch drift; this is defense-in-depth guidance only."
+      }
+    ],
+    "security_notes": [
+      "Pure deterministic metadata-only precheck with no eval, SQL, shell, I/O, or state mutation.",
+      "Forbidden and unknown claim handling is fail-closed, including Matter bypass, fixture generation, fixture persistence, real-data, credential, secret, service execution, runtime route, and product-write claims.",
+      "Human approval boundaries are preserved by forbidden replace_human_approval and bypass_human_approval claims.",
+      "Fixture data is synthetic and carries no client, Matter, credential, or secret data."
+    ],
+    "test_notes": [
+      "Unit coverage includes Matter-scoped allow, firm-level allow, Matter-required denial, forbidden claim rejection, module shape, and fixture parity.",
+      "RP00 validation wiring recomputes S02 to S03 to S04 live and checks fixture parity plus denied, bypass, and unknown-claim paths.",
+      "Pre-review evidence: syntax checks passed; node --test packages/control-plane/test/service.test.js passed 438/438; RP00 validator failed only for expected missing CP00-020 evidence files."
+    ],
+    "summary": "CP00-020 correctly adds a deterministic metadata-only Synthetic Fixture Set Matter trace precheck for RP00.P02.M06.S04. No P0/P1/P2 findings; two non-blocking P3 findings adjudicated."
+  },
+  "raw_review_text": "# CP00-020 Read-Only Review — RP00.P02.M06.S04 Synthetic Fixture Set Matter trace precheck\n\n**overall_verdict:** APPROVE\n**blocks_pack_closeout:** false\n**blocks_goal_closeout:** false\n**production_ready_blocked:** false\n\n**finding_counts:** P0: 0 · P1: 0 · P2: 0 · P3: 2\n\n---\n\n## Gate assessment\n\n| Gate | Status | Evidence |\n|---|---|---|\n| implementation | PASS | Policy, prechecker module, `precheckControlPlaneSyntheticFixtureSetMatterTrace`, getter, and both assert validators added (`policies.js`, `service.js`, `validators.js`). |\n| tests | PASS | 7 new tests: policy binding, allow matter-scoped, allow firm-level, deny matter-required-without-matter (+ validator rejects emptied refs), 15-case fail-closed matrix, module shape, fixture mirror. |\n| Hermes/RP00 validation wiring | PASS | `validate-rp00-control-plane-contract.mjs` adds weighted-ledger boundary, definition/policy/prechecker/fixture cross-checks, live S02→S03→S04 recompute, denied/rejection live checks, README + test text assertions; S03 added to `requiredClosedSubphases`, current advanced to S04. |\n| no-real-data | PASS | `no_real_data: true` throughout; synthetic-only namespaces/domains; forbidden claims include `use_real_client_data`/`use_real_matter_data`/`use_credentials_or_secrets`. |\n| no product-state writes | PASS | `writes_product_state: false`, all `does_not_*`/`*_permitted:false` flags, `Object.freeze` on result + nested arrays, pure function (no I/O). |\n| no fixture generation/persistence | PASS | `fixture_generation_permitted`/`fixture_persistence_permitted: false`; forbidden `generate_fixture`/`persist_fixture`; `does_not_generate_fixture`/`does_not_persist_fixture: true`. |\n| exactly one read-only review | PASS | This is the sole review; no other review artifact in diff. |\n| adjudication | PASS (no blockers) | No P0–P2 findings to adjudicate; artifact is closeout-workflow scope, outside code diff. |\n| construction inspection | PASS-with-note | Validation wiring added and consistent with S03; see F1 re: artifact/inline-flag scope. |\n| included unit production_ready | PASS | `status: production_ready` consistent across contract current_subphase, subphase_closeouts entry, definition, policy, prechecker, fixture; `production_ready_requires` flag added. |\n| commit | N/A | Working-tree diff; commit is post-review. |\n\n---\n\n## Findings\n\n**[F1] P3 · blocking: false**\n- location: `contracts/control-plane-contract.json` (subphase_closeouts S04) / `docs/closeout-packs/cp00-020/*`\n- title: Closeout-pack evidence artifacts not present in code diff\n- detail: The cp00-020 adjudication, construction-inspection, and command-evidence artifacts are not in this diff (expected — they are closeout-workflow scope). The added S04 `subphase_closeouts` entry carries no inline `construction_inspection.control_plane_synthetic_fixture_set_matter_trace_precheck_verified` flag, so the new validation check enforces only when an inline inspection exists — same pattern as prior closed subphases (S01–S03). Artifact existence cannot be confirmed from the diff alone; relies on the established process.\n\n**[F2] P3 · blocking: false**\n- location: `packages/control-plane/src/validators.js` (`assertControlPlaneSyntheticFixtureSetMatterTracePrecheckPolicy`)\n- title: Asymmetric length-pinning of policy arrays\n- detail: `forbiddenMatterTraceClaims` is length-pinned (`!== 19`) but `matterRequiredClaims` and `failClosedOn` are not. Drift is still caught downstream by `JSON.stringify` equality between contract definition, policy module, and fixture in the validation script — defense-in-depth asymmetry only.\n\n---\n\n## security_notes\nNo vulnerabilities introduced. Pure, deterministic, metadata-only boundary: no eval/SQL/shell/I/O, no state mutation (frozen result). Claim handling is correctly fail-closed — the `value !== undefined && !== null && !== false` gate treats any explicitly-asserted value (incl. `0`/`\"\"`) as a claim, so forbidden/unknown claims reject while absence sentinels are safely ignored. Unknown own-property keys (incl. `__proto__`) hit the unknown-claim throw; no prototype pollution since claim keys are never used as assignment targets. Human-approval boundary preserved (`replace_human_approval`/`bypass_human_approval` forbidden). Fixture data is fully synthetic; carried `command_evidence_ref` points to a repo path (cp00-016), not client data.\n\n## test_notes\nCoverage is strong across allow (matter-scoped + firm-level), deny (matter-required-missing with negative validator assertion), and a broad fail-closed matrix. Note: matrix and denied-tenant-boundary cases use `assert.throws(fn, Error, label)` where the third arg is the failure message, not a matcher — they assert *that* an Error throws, not *which* guard fired (acceptable, slightly imprecise). Firm-level/deny tests depend on S03 permitting `matter_id: null`; logic is internally consistent but that upstream behavior is outside this diff. Live validation-script checks recompute the full S02→S03→S04 chain against the fixture and exercise denied/bypass/unknown-claim rejection.\n\n## summary\nClean, well-scoped metadata-only precheck that correctly enforces Matter-first trace rules with fail-closed semantics, full no-write/no-real-data/no-fixture-generation guarantees, and comprehensive contract/policy/fixture/test cross-consistency. No blocking findings; two P3 informational notes (closeout-artifact diff scope, minor length-pin asymmetry). Approve for pack closeout at production_ready.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude returned APPROVE with no P0, P1, or P2 findings. Two P3 findings are adjudicated in adjudication.md."
+}

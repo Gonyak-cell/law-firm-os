@@ -1,0 +1,349 @@
+{
+  "wp_id": "LT-L3-W01",
+  "tuw_id": "LT-L3-W01-T01",
+  "title": "docs/ui-reference font license audit and push allowance decision",
+  "status": "blocked_pending_human_signature",
+  "checked_at": "2026-06-18",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "completion_claim": false,
+  "artifacts": [
+    "docs/launch/l3/license-audit-report.md"
+  ],
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "status": "review_waived_by_user",
+    "valid_review_evidence": false,
+    "review_waiver_is_valid_review_evidence": false,
+    "note": "User instructed that full Claude review is skipped from this point forward."
+  },
+  "commands": [
+    {
+      "command": "find docs/ui-reference -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | wc -l",
+      "expected": "90",
+      "actual": "90",
+      "status": "pass"
+    },
+    {
+      "command": "node - <<'NODE' ... count IMG rows in docs/launch/l3/license-audit-report.md ... NODE",
+      "expected": "90",
+      "actual": "{\"find_count\":90,\"report_img_rows\":90,\"missing_count\":0,\"missing\":[]}",
+      "status": "pass"
+    },
+    {
+      "command": "node - <<'NODE' ... check forbidden phrase and Mobbin-derived disposition rows ... NODE",
+      "expected": "forbidden_hits=[], mobbin_rows=86, bad_mobbin_rows=0",
+      "actual": "{\"forbidden_hits\":[],\"mobbin_rows\":86,\"bad_mobbin_rows\":0}",
+      "status": "pass"
+    },
+    {
+      "command": "find apps/web/public/fonts -type f \\( -iname 'OFL*' -o -iname 'LICENSE*' \\) | sort",
+      "expected": "Pretendard and SUITE OFL files present next to OTF directories",
+      "actual": "apps/web/public/fonts/pretendard/OFL.txt; apps/web/public/fonts/suite/OFL.txt",
+      "status": "pass"
+    },
+    {
+      "command": "sed -n '1,70p' apps/web/public/fonts/pretendard/OFL.txt",
+      "expected": "SIL Open Font License Version 1.1 basis present",
+      "actual": "SIL Open Font License Version 1.1 and Reserved Font Name 'Pretendard' present",
+      "status": "pass"
+    },
+    {
+      "command": "sed -n '1,70p' apps/web/public/fonts/suite/OFL.txt",
+      "expected": "SIL Open Font License Version 1.1 basis present",
+      "actual": "SIL Open Font License Version 1.1 and Reserved Font Name SUITE present",
+      "status": "pass"
+    }
+  ],
+  "upstream_sources_checked": [
+    {
+      "name": "Pretendard LICENSE",
+      "url": "https://github.com/orioncactus/pretendard/blob/main/LICENSE",
+      "checked_at": "2026-06-18",
+      "basis": "SIL Open Font License Version 1.1"
+    },
+    {
+      "name": "SUIT LICENSE",
+      "url": "https://github.com/sun-typeface/SUIT/blob/main/LICENSE",
+      "checked_at": "2026-06-18",
+      "basis": "SIL Open Font License Version 1.1"
+    }
+  ],
+  "push_verdict": {
+    "current_push_allowance": "blocked_pending_human_signature",
+    "shared_or_public_remote_push": "prohibited_until_owner_or_legal_signature",
+    "private_remote_push": "conditionally_allowed_only_after_private_remote_confirmation_and_owner_or_legal_signature",
+    "adjudicator_role": "owner/legal reviewer",
+    "adjudicator_date": "not_signed_as_of_2026-06-18"
+  },
+  "notes": [
+    "Mobbin-derived Amplitude reference images are classified private-repo-only_pending_human_signature.",
+    "No human signature or remote privacy confirmation was synthesized."
+  ],
+  "work_package_id": "LT-L3-W01",
+  "phase": "L3",
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L3-W01-T01",
+      "title": "docs/ui-reference·폰트 라이선스 감사 실시 및 push 허용 판정 기록",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "blocked_pending_human_signature",
+      "objective": "원격 저장소 push 전에 제3자 자산(Mobbin 파생 이미지·폰트)의 라이선스 상태가 전수 판정되고, push 허용/제외 자산 목록이 인간 서명과 함께 확정된다.",
+      "deliverables": [
+        "docs/launch/l3/license-audit-report.md",
+        "폰트 OFL 라이선스 텍스트 배치 목록"
+      ],
+      "source_refs": [
+        "docs/ui-workstream-conventions.md:50-56",
+        "docs/ui-reference/README.md",
+        "apps/web/public/fonts/",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/matter-post-cp-launch-plan.md §8-8"
+      ],
+      "acceptance_criteria": [
+        "find docs/ui-reference 이미지 파일 카운트 출력과 보고서 인벤토리 행 수가 일치한다.",
+        "Mobbin 파생 자산 전건에 private-repo-only 또는 제외 판정이 기재되고 보고서 내 '미판정' 검색 결과 0건이다.",
+        "Pretendard·SUITE OTF에 대해 업스트림 SIL OFL 확인 근거(출처 URL·확인일)가 기재되고 OTF 디렉토리별 LICENSE/OFL.txt 배치 목록이 존재한다(현재 라이선스 파일 0개 실측 대비).",
+        "push 허용 조건(private remote 한정 등)이 판정자 실명 역할·일자와 함께 기록된다."
+      ],
+      "verification_contract": {
+        "method": "1) find docs/ui-reference -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | wc -l 출력과 인벤토리 수 대조 2) grep -c '미판정' docs/launch/l3/license-audit-report.md == 0 3) 폰트 배치 목록과 find apps/web/public/fonts -iname 'OFL*' -o -iname 'LICENSE*' 출력 대조",
+        "evidence": "커맨드 출력 work-log 보존, docs/goal-closeout/lt-l3-w01/command-evidence.json 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+        "docs/ui-workstream-conventions.md:50-56",
+        "docs/ui-reference/README.md",
+        "apps/web/public/fonts/",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/matter-post-cp-launch-plan.md §8-8"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L3-W01-T02",
+      "title": "원격 저장소 플랫폼·접근 모델·브랜치 보호 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "blocked_pending_human_signature",
+      "objective": "원격 저장소 플랫폼(L1-6 호스팅 결정과 정합), 저장소 가시성(private), 접근 권한 모델, 브랜치 보호 정책이 결정 기록으로 확정된다.",
+      "deliverables": [
+        "docs/launch/l3/remote-repo-decision.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-6",
+        "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md §H"
+      ],
+      "acceptance_criteria": [
+        "결정 기록에 owner(실명 역할)·결정·근거·일자 4필드가 전부 기재된다.",
+        "보호 브랜치 명·필수 상태 검사 목록·저장소 가시성 값(private)이 명시된다.",
+        "T01 push 허용 조건과 모순되는 항목이 0건이다(가시성 private 대조)."
+      ],
+      "verification_contract": {
+        "method": "수동검증 — 1) 결정 문서 4필드 존재 확인 2) launch-decision-register 항목 ID 상호참조 확인 3) T01 보고서의 push 조건과 대조",
+        "evidence": "결정 문서 + 대조 기록(docs/goal-closeout/lt-l3-w01/)",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-6",
+        "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md §H"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L3-W01-T03",
+      "title": "원격 저장소 프로비저닝·초기 push·브랜치 보호 적용",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "blocked_pending_human_signature",
+      "objective": "단일 로컬 리포 상태(git remote 0건 실측)가 해소되어 원격 사본과 브랜치 보호가 가동된다.",
+      "deliverables": [
+        "원격 저장소(플랫폼 확정 경로)",
+        "로컬 git remote 설정",
+        "브랜치 보호 설정 증적"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/matter-post-cp-launch-plan.md §8-8",
+        "docs/launch/l3/license-audit-report.md(T01 산출)",
+        "docs/launch/l3/remote-repo-decision.md(T02 산출)"
+      ],
+      "acceptance_criteria": [
+        "git remote -v 출력에 origin이 존재하고 git push exit 0.",
+        "git ls-remote origin HEAD 해시가 git rev-parse HEAD와 일치한다.",
+        "브랜치 보호 활성 증적(설정 export 또는 API 응답)이 T02 결정값과 일치한다.",
+        "T01 제외 판정 자산이 원격에 부재한다(.gitignore 반영 후 원격 트리 검사 0건)."
+      ],
+      "verification_contract": {
+        "method": "git remote -v && git push && git ls-remote origin HEAD && git rev-parse HEAD 출력 대조 + 브랜치 보호 설정 export 확인 절차",
+        "evidence": "커맨드 출력 work-log 보존(docs/goal-closeout/lt-l3-w01/)",
+        "vc_bindings": [
+          "VC-LNCH-INF-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/matter-post-cp-launch-plan.md §8-8",
+        "docs/launch/l3/license-audit-report.md(T01 산출)",
+        "docs/launch/l3/remote-repo-decision.md(T02 산출)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L3-W01-T04",
+      "title": "리포 오프사이트 백업 자동화 구축·복원 시연",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "blocked_pending_human_signature",
+      "objective": "원격 저장소와 독립된 오프사이트 백업(git bundle 등)이 주기 자동 생성되고 복원 가능함이 시연되어 사업 연속성 리스크가 이중 통제된다.",
+      "deliverables": [
+        "infra/repo-backup/ 자동화 스크립트·스케줄 정의",
+        "백업 대상·주기·보관처 기록(~/lawos-backups/ 관행 승계 명시)"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "docs/ui-workstream-conventions.md:47-48"
+      ],
+      "acceptance_criteria": [
+        "스케줄 1주기 경과 후 백업 산출물이 자동 생성된다(파일 타임스탬프로 판정).",
+        "git bundle verify <최신 bundle> exit 0.",
+        "백업 사본에서 clone 복원 1회 성공 — 복원 리포 HEAD 해시가 원본과 일치한다.",
+        "백업 보관처가 리포 외부 경로임이 기록된다."
+      ],
+      "verification_contract": {
+        "method": "1) ls -l 백업 산출물 타임스탬프 확인 2) git bundle verify 3) git clone <bundle> /tmp/restore-check && git -C /tmp/restore-check rev-parse HEAD 대조",
+        "evidence": "출력 work-log + 복원 시연 기록(docs/goal-closeout/lt-l3-w01/)",
+        "vc_bindings": [
+          "VC-LNCH-INF-001",
+          "VC-LNCH-DR-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "docs/ui-workstream-conventions.md:47-48"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L3-W01-T05",
+      "title": "W01 완료 게이트 검증·증거 조립(라이선스 감사→push→백업 가동)",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "blocked_pending_human_signature",
+      "objective": "W01 완료 조건(라이선스 감사 → 원격 push → 백업 가동)의 증거 일체가 goal-closeout 형식으로 조립된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l3-w01/ 증거 패키지(command-evidence.json, 백업·복원 시연 기록 동봉)"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md §F-6"
+      ],
+      "acceptance_criteria": [
+        "command-evidence.json에 LT-L3-W01-T01~T04 4개 키가 존재하고 각 값의 실행 출력이 비어 있지 않다.",
+        "증거 패키지 내 상대 경로 참조 전건이 실제 파일로 존재한다(깨진 참조 0건).",
+        "T04의 복원 시연 기록(HEAD 해시 대조 출력)이 패키지에 포함된다."
+      ],
+      "verification_contract": {
+        "method": "node -e \"const e=require('./docs/goal-closeout/lt-l3-w01/command-evidence.json');['T01','T02','T03','T04'].forEach(t=>{if(!e['LT-L3-W01-'+t])process.exit(1)})\" + 참조 경로 존재 검사 절차",
+        "evidence": "증거 패키지 자체",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-LNCH-DR-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-1",
+        "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md §F-6"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 5,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

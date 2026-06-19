@@ -1,0 +1,165 @@
+{
+  "schema_version": "law-firm-os.loop-system-overlay-closeout-pack-map.v0.1",
+  "generated_at": "2026-06-09T00:00:00+09:00",
+  "status": "planning_only",
+  "source_spec": "docs/loop-system-integration/loop-enterprise-harness-update.md",
+  "anchor_map": "docs/loop-system-integration/loop-rp-anchor-map.md",
+  "live_boundary": {
+    "parallel_development_range": "CP00-145-CP00-176",
+    "first_v2_spine_consumption_pack": "CP00-177",
+    "first_loop_governance_pack": "CP00-515",
+    "first_loop_core_pack": "CP00-552",
+    "allowed_edit_scope": [
+      "docs/loop-system-integration/*"
+    ],
+    "forbidden_edit_scope": [
+      "contracts/*",
+      "packages/*",
+      "scripts/*",
+      "docs/closeout-pack-plan/*",
+      "docs/closeout-packs/*",
+      "docs/weighted-implementation-ledger.*"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "LOOP-MISS-CORE-001",
+      "theme": "Loop core lifecycle",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP18",
+      "first_cp": "CP00-552",
+      "dependent_rps": ["RP17", "RP21", "RP27"],
+      "validation_surfaces": ["loop-harness-policy:validate"],
+      "blocking_conditions": ["loop_run_completed_without_verification", "loop_definition_without_stop_condition"]
+    },
+    {
+      "id": "LOOP-MISS-GOAL-001",
+      "theme": "Goal contract",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP18",
+      "first_cp": "CP00-552",
+      "dependent_rps": ["RP05", "RP17"],
+      "validation_surfaces": ["loop-goal-contract:validate"],
+      "blocking_conditions": ["goal_without_done_criteria", "correction_expands_beyond_approved_scope"]
+    },
+    {
+      "id": "LOOP-MISS-VERIFY-001",
+      "theme": "Verification layer",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18"],
+      "validation_surfaces": ["loop-verification:validate"],
+      "blocking_conditions": ["high_risk_uncited_output_allowed", "verifier_without_checked_rules"]
+    },
+    {
+      "id": "LOOP-MISS-VERIFY-002",
+      "theme": "Worker verifier separation",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP18",
+      "first_cp": "CP00-552",
+      "dependent_rps": ["RP17"],
+      "validation_surfaces": ["loop-worker-verifier:validate"],
+      "blocking_conditions": ["worker_self_certifies_high_risk_output", "worker_and_verifier_share_unrestricted_context"]
+    },
+    {
+      "id": "LOOP-MISS-DAG-001",
+      "theme": "DAG workflow plan",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP18",
+      "first_cp": "CP00-552",
+      "dependent_rps": ["RP21", "RP27"],
+      "validation_surfaces": ["loop-dag-plan:validate"],
+      "blocking_conditions": ["unbounded_cycle", "unaudited_branch_decision", "unsafe_dynamic_expansion"]
+    },
+    {
+      "id": "LOOP-MISS-BUDGET-001",
+      "theme": "Budget control",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18", "RP21", "RP29"],
+      "validation_surfaces": ["loop-budget:validate"],
+      "blocking_conditions": ["model_call_without_budget_envelope", "retry_ignores_budget", "budget_overrun_continues_silently"]
+    },
+    {
+      "id": "LOOP-MISS-ROUTING-001",
+      "theme": "Model routing",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18", "RP26", "RP27"],
+      "validation_surfaces": ["loop-model-routing:validate"],
+      "blocking_conditions": ["disallowed_model_selected", "confidential_job_routes_external", "fallback_loses_audit_context"]
+    },
+    {
+      "id": "LOOP-MISS-HARNESS-001",
+      "theme": "Enterprise harness policy",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP18",
+      "first_cp": "CP00-552",
+      "dependent_rps": ["RP17", "RP21", "RP27"],
+      "validation_surfaces": ["loop-harness-policy:validate"],
+      "blocking_conditions": ["harness_missing_emergency_stop", "tool_or_model_policy_not_bound_to_loop"]
+    },
+    {
+      "id": "LOOP-MISS-TRIGGER-001",
+      "theme": "Trigger system",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP22",
+      "first_cp": "CP00-660",
+      "dependent_rps": ["RP08", "RP21", "RP23", "RP27"],
+      "validation_surfaces": ["loop-trigger:validate"],
+      "blocking_conditions": ["duplicate_event_not_deduped", "external_trigger_without_policy_precheck"]
+    },
+    {
+      "id": "LOOP-MISS-CONTEXT-001",
+      "theme": "Permission trimmed context",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP05", "RP06", "RP07", "RP08", "RP18"],
+      "validation_surfaces": ["loop-context-permission:validate"],
+      "blocking_conditions": ["hidden_source_in_context_package", "trimmed_count_not_recorded"]
+    },
+    {
+      "id": "LOOP-MISS-APPROVAL-001",
+      "theme": "Human approval package",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18", "RP21"],
+      "validation_surfaces": ["loop-human-approval:validate"],
+      "blocking_conditions": ["external_action_without_approval", "approval_package_missing_source_or_risk_summary"]
+    },
+    {
+      "id": "LOOP-MISS-SKILL-001",
+      "theme": "Skill registry and playbook manager",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP28",
+      "first_cp": "CP00-839",
+      "dependent_rps": ["RP18", "RP21", "RP27"],
+      "validation_surfaces": ["loop-regression:validate"],
+      "blocking_conditions": ["marketplace_loop_without_golden_case", "tenant_cannot_pin_skill_version"]
+    }
+  ],
+  "coverage_summary": {
+    "requirement_count": 12,
+    "p0_count": 9,
+    "p1_count": 3,
+    "mapped_count": 12,
+    "deferred_count": 0
+  }
+}

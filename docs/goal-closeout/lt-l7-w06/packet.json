@@ -1,0 +1,42 @@
+{
+  "work_package_id": "LT-L7-W06",
+  "title": "UAT scenario and regression coverage",
+  "created_at": "2026-06-18T14:56:20Z",
+  "status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+  "phase": "L7",
+  "gate_binding": [
+    "L7-EXIT"
+  ],
+  "terminal_tuw": "LT-L7-W06-T04",
+  "artifacts": [
+    "docs/goal-closeout/lt-l7-w06/uat-scenario-catalog.md",
+    "docs/goal-closeout/lt-l7-w06/uat-execution-results.md",
+    "docs/goal-closeout/lt-l7-w06/prohibition-bypass-attempt-results.md",
+    "docs/goal-closeout/lt-l7-w06/uat-final-report.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l7-w06/packet.json",
+    "docs/goal-closeout/lt-l7-w06/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-l7-w06/adjudication.md",
+    "docs/goal-closeout/lt-l7-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "uat_scenario_catalog_created": true,
+    "uat_execution_results_template_created": true,
+    "prohibition_bypass_results_template_created": true,
+    "uat_final_report_template_created": true,
+    "runtime_available": false,
+    "pilot_users_available": false,
+    "uat_executed": false,
+    "kpi_before_after_available": false,
+    "audit_reconciliation_complete": false,
+    "owner_acceptance_present": false,
+    "l7_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

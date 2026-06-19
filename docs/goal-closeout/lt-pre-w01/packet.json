@@ -1,0 +1,40 @@
+{
+  "work_package_id": "LT-PRE-W01",
+  "title": "critical-rp-saas-hardening-plan ratification",
+  "created_at": "2026-06-18T14:39:45Z",
+  "status": "blocked_pending_owner_ratification",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W01-T01",
+  "artifacts": [
+    "docs/critical-rp-saas-hardening-plan.md",
+    "workbook/absorption-package/06_오픈_결정_레지스터.md",
+    "docs/launch/critical-rp-saas-hardening-ratification-block.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w01/packet.json",
+    "docs/goal-closeout/lt-pre-w01/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w01/adjudication.md",
+    "docs/goal-closeout/lt-pre-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "adopted_status_count": 0,
+    "proposed_status_count": 1,
+    "ratification_decision_row_present": false,
+    "decision_maker_role_present": false,
+    "decision_value_present": false,
+    "decision_basis_present": false,
+    "decision_date_present": false,
+    "block_record_present": true,
+    "escalation_item_present": true,
+    "pre_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

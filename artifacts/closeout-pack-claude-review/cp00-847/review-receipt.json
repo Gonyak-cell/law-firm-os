@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-847",
+  "normalized_at": "2026-06-16T16:07:21.774Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-847/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-847/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-847/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-847/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "104957a6-9de7-4a47-ba8c-7ec6ed779bde",
+    "uuid": "59d0436d-98d6-4991-99ee-55bba50bdadf",
+    "total_cost_usd": 2.139427,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4945,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-847 read-only review: PASS_WITH_FINDINGS. Descriptor-only RP28 Marketplace bridge (ReviewGate tail + AppPermission slice + relationship-map head), no runtime opened, no real data/secrets, boundaries and authority limits intact, coverage matches the live plan, contract projection consistent. production_ready honestly not yet asserted. One P3: full validation suite still pending (expected sequencing). No P0/P1/P2.",
+    "findings": [
+      {
+        "id": "CP847-P3-01",
+        "severity": "P3",
+        "title": "Full closeout validation suite not executed within read-only review scope",
+        "file": "docs/closeout-packs/cp00-847/command-evidence.json",
+        "line": 5,
+        "details": "command-evidence.json records only two preliminary commands (npm run rp28:marketplace:validate and node --test packages/marketplace/test/*.test.js), both exit_code 0, with status 'pending_full_validation' and gate_outcome 'pending_valid_review_and_full_validation'. The broader closeout suite expected before promotion (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet evidenced. As a read-only reviewer (Read/Grep/Glob, no Bash) I verified code/contract/test/plan consistency by static inspection only and cannot execute these commands; their passing remains a prerequisite for production_ready. The two recorded exit-0 results are agent-reported and were not re-run here.",
+        "recommendation": "Orchestrator must run and capture the full validation command suite at exit 0 before flipping production_ready=true and committing. This static review confirms structural soundness but does not substitute for executing the suite.",
+        "post_review_disposition": "Expected workflow sequencing, not a code defect; production_ready is correctly still false and gate_outcome already records pending_full_validation. Does not block this review gate."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

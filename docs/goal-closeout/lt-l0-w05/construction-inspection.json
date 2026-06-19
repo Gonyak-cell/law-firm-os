@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L0-W05",
+  "inspected_at": "2026-06-18T12:56:50Z",
+  "verdict": "BLOCKED_CONTRACT_SHAPE_RECORDED",
+  "production_ready": false,
+  "quality_gates": {
+    "hardening_coverage_matrix_exists": true,
+    "critical_rp_count": 16,
+    "control_count": 17,
+    "required_cell_count": 272,
+    "cell_level_evidence_complete": false,
+    "sample_links_at_least_20": false,
+    "unmet_dispositions_complete": false,
+    "owner_approval_record_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-619",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T07:28:02.400Z",
+  "finished_at": "2026-06-13T07:36:51.303Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":528173,\"duration_api_ms\":528687,\"ttft_ms\":3553,\"num_turns\":52,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-619 is a sound, internally consistent descriptor-only pack that does not over-claim (everything honestly reports pending/`production_ready:false`), maintains all no-write/no-real-data/no-runtime boundaries, and keeps Claude as a read-only non-final-approver. No P0/P1/P2 issues; two P3 informational notes record that production_ready closeout still depends on the validation-command suite + valid receipt + human approval, and that the pack opens no product runtime by design. This review does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"afc92481-7574-4b09-9a34-751ec7d8a601\",\"total_cost_usd\":3.3619890000000003,\"usage\":{\"input_tokens\":66,\"cache_creation_input_tokens\":147920,\"cache_read_input_tokens\":3053852,\"output_tokens\":36359,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":147920,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":238,\"cache_read_input_tokens\":139934,\"cache_creation_input_tokens\":8713,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":8713},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1153,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001258,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":66,\"outputTokens\":36359,\"cacheReadInputTokens\":3053852,\"cacheCreationInputTokens\":147920,\"webSearchRequests\":0,\"costUSD\":3.3607310000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-619 is a descriptor-only closeout pack (RP20 Data Room/VDR P02 Claude-review tail + P03 API/interface bridge; 150 units; risk C) and is the correct live-queued pack after CP00-618 — its closeout-pack-plan.json entry, source_ledger_sha, range RP20.P02.M09.S09-RP20.P03.M06.S12, risk class, and unit count all match the baseline (deviation_from_plan:false). Static read-only inspection (Read/Grep/Glob) confirms registry binding, service.js descriptor, validators.js, contract projections, model.test.js, the rp20 validator script, manifest, and README are mutually consistent. Coverage reconciles to 150 units / 9 sections with deliverable counts matching the plan, and the no-write/no-real-data/no-runtime attestation chain (freezeCp610Result→freezeCp619Result) supplies every flag the validator asserts; the validator returns production_ready_candidate only after all boundary assertions pass, and tests re-assert the same. Authority boundary holds: Claude is read-only and explicitly not final approver, human final approval is required, and local validation does not claim enterprise trust; Hermes is descriptor-only (no runtime receipts, not embedded in product runtime). The pack does not over-claim: manifest, command-evidence, construction-inspection, and adjudication all honestly report in_progress/pending_review/production_ready:false/runtime_ready:false. Auth preflight passed with valid non-empty JSON; no invalid review attempts or forbidden review evidence are present for this pack; unrelated dirty files (LDIP invalid attempt, workbook docs, progress-control-room) are correctly excluded from scope. No P0/P1/P2 issues found. Two P3 informational notes: (1) production_ready closeout remains gated on the validation-command suite being recorded green plus a valid receipt and human final approval — command-evidence currently records zero commands by design pre-receipt; (2) this descriptor pack opens no product runtime, so closeout here means descriptor_verified, not runtime/enterprise readiness. Verdict: PASS — this read-only review does not itself block pack closeout; final production_ready and the enterprise-trust claim remain a human decision outside this receipt.\",\"findings\":[{\"id\":\"CP619-P3-01\",\"severity\":\"P3\",\"title\":\"Production_ready closeout remains gated after this review (command evidence not yet populated)\",\"file\":\"docs/closeout-packs/cp00-619/command-evidence.json\",\"line\":9,\"details\":\"command-evidence.json records \\\"commands\\\": [] with status \\\"pending\\\" and gate_outcome \\\"pending_pack_evidence_creation\\\"; production_ready is false across manifest.json, command-evidence.json, and construction-inspection.json. The descriptor pack itself is sound and internally consistent, but production_ready closeout still requires the listed validation suite (closeout-pack-plan:validate, closeout-pack:validate, rp05:matter-core:validate, test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) recorded as passing, exactly one valid review receipt from this run, and human final approval for the enterprise-trust claim. As a read-only reviewer (Read/Grep/Glob, no Bash) I verified by static inspection and could not execute those commands; the pack makes no claim that they passed, so no unsupported claim exists.\",\"recommendation\":\"Before any production_ready flip, populate command-evidence.json with the executed validation commands and their pass results, persist exactly one valid review receipt, and obtain human final approval. No source change required.\",\"post_review_disposition\":\"Expected pre-receipt sequencing; not a defect. Informational for adjudication.\"},{\"id\":\"CP619-P3-02\",\"severity\":\"P3\",\"title\":\"Descriptor-only pack opens no product runtime (runtime_ready false) — by design\",\"file\":\"docs/closeout-packs/cp00-619/manifest.json\",\"line\":7,\"details\":\"manifest.json sets implementation_layer \\\"descriptor\\\", runtime_opened false, and runtime_ready false; the descriptor, validators, and tests assert every dispatches_* and executes_* runtime flag is false. CP00-619 closeout therefore means data_room_vdr_core_p02_claude_p03_api_interface_bridge_descriptor_verified (descriptor coverage of the P02 Claude tail and P03 API/interface bridge) and does not make the Data Room/VDR product executable. This is consistent with the program design where runtime opens in later packs.\",\"recommendation\":\"Continue treating production_ready here as descriptor verification only; do not interpret it as runtime or enterprise readiness. No change required.\",\"post_review_disposition\":\"Expected per program design; not a defect. Informational.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":2,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":2}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ddabc653-eded-400e-af85-b90314dbd950\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6975,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "afc92481-7574-4b09-9a34-751ec7d8a601",
+    "uuid": "ddabc653-eded-400e-af85-b90314dbd950",
+    "total_cost_usd": 3.3619890000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

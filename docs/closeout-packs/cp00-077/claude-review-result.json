@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-077",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "fc418f1a-9b08-4983-bce8-e5c1a324c7f7",
+    "uuid": "46210e0a-400b-4a49-ac3e-d5c7be7077db",
+    "total_cost_usd": 1.126571,
+    "duration_ms": 294373,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "p0": [],
+    "p1": [],
+    "p2": [],
+    "p3": [
+      {
+        "area": "validator_coverage",
+        "finding": "Nested required_fields arrays inside audit_event_expectation and matched_rule_capture_case are not deep-compared in assertControlPlanePermissionAuditTestGoldenInteractionSetResult/Policy (only top-level audit_hint_fields/matched_rule_capture_fields are checked). Assembler sources them from shared constants, so live risk is low, but a drifted fixture/contract nested list could pass.",
+        "recommendation": "Add a deepEqual check of result.audit_event_expectation.required_fields and result.matched_rule_capture_case.required_fields against policy.auditHintFields/matchedRuleCaptureFields.",
+        "severity": "P3",
+        "status": "fixed"
+      },
+      {
+        "area": "validator_coverage",
+        "finding": "Result assertion verifies presence of all RESULT_FIELDS but does not reject extra/unexpected keys; consistent with prior packs and low risk given closed-construction assembler.",
+        "recommendation": "Optionally enforce exact key-set equality on the result object.",
+        "severity": "P3",
+        "status": "fixed"
+      },
+      {
+        "area": "evidence_readiness",
+        "finding": "Pack is marked production_ready and the contract/validator require docs/closeout-packs/cp00-077/* evidence (command-evidence, manifest, claude-review-result, adjudication, construction-inspection with control_plane_permission_audit_test_golden_interaction_set_verified=true); those artifacts are outside this diff. Code-side wiring is complete and correct.",
+        "recommendation": "Confirm the cp00-077 evidence pack (including the verified construction-inspection) is committed alongside this change so the contract validator passes.",
+        "severity": "P3",
+        "status": "fixed_by_closeout_evidence"
+      }
+    ],
+    "required_fixes": [],
+    "notes": [
+      "Single CP00-077 Claude Opus 4.8 max read-only review completed with PASS_WITH_FINDINGS and no P0/P1/P2 findings.",
+      "P3 validator coverage findings were adjudicated: nested required_fields and exact result key checks were strengthened; evidence readiness is resolved by CP00-077 closeout artifacts."
+    ]
+  },
+  "raw_result": "## Review: CP00-077 — Permission Audit Test Golden Interaction Set\n\nI reviewed the full diff across the contract, fixtures, policy, service (assembler/module/getter), validators, tests, and the contract-validation script. This is a metadata-only binding pack that consumes the CP00-076 seed and advances the cursor to RP00.P06.M07.S19.\n\n### Correctness & boundary enforcement (strong)\n- The assembler `assembleControlPlanePermissionAuditTestGoldenInteractionSet` validates the upstream seed via `assertControlPlanePermissionAuditSyntheticFixtureTestGoldenSeedResult`, then hard-checks `pack_id`/`planned_pack_id === \"CP00-076\"`, `next_subphase === \"RP00.P06.M07.S09\"`, and the seed's bound/decision/`ldip_implementation_allowed === false` flags. Fail-closed on drift is correct.\n- Every write/execution surface (`runtime_permission_evaluation_permitted`, `audit_event_write_permitted`, `security_trimming_execution_permitted`, `database_write_permitted`, `golden_fixture_*`, `review_queue_write_permitted`, `approval_record_write_permitted`, `runtime_lock_acquisition_permitted`, etc.) is hard-coded `false` in the result — not derived from input, so a tampered upstream cannot leak a write. LDIP implementation stays disallowed.\n- Boundary-claim guard rejects **any** non-false claim (forbidden or unknown), and rejects non-object/array claim bags. Strict and correct.\n- The `forbiddenBoundarySuiteClaims` Set-union with the seed list correctly dedupes the 5 already-present interaction-write claims and appends only the 6 net-new claims; the hand-written contract array matches this exact ordering. Good attention to dedup semantics.\n- Result/fixture/contract/module/policy are mutually consistent; `next_subphase` = `RP00.P06.M07.S19`, `source_micro_phase_completed`/`phase_completed` = false (M07 stays open). Cursor advance (`current_subphase` S08→S18, validator `currentContractSubphaseId`→S18) is coherent.\n\n### Validator coverage (good, with minor gaps)\n- New policy/result asserts, subphase-id set, terminal-id mapping, `requiredClosedSubphases` extension, and the `control_plane_permission_audit_test_golden_interaction_set_verified` inspection gate are all wired in. Tests cover policy binding, metadata-only assembly, fail-closed drift/claims, module no-write, fixture mirror, and contract mirror.\n\n### Regressions\n- Changes are additive; only the cursor fields and the validator's `currentContractSubphaseId` mutate existing values. No signature or prior-test changes. Low regression risk.\n\n### Minor findings (non-blocking)\n- Nested `required_fields` arrays inside `audit_event_expectation` and `matched_rule_capture_case` are not deep-compared in the result/policy asserts (only the top-level `audit_hint_fields`/`matched_rule_capture_fields` are). Assembler builds them from shared constants, so risk is low, but a drifted fixture/contract nested list could pass.\n- Result assertion confirms all required keys are present but does not reject extra/unexpected keys (consistent with prior packs).\n- The `docs/closeout-packs/cp00-077/*` evidence artifacts (command-evidence, manifest, claude-review-result, adjudication, construction-inspection with the verified flag) that the validator requires are referenced but lie outside this diff's scope; code-side readiness is complete.\n\n```json\n{\n  \"overall_verdict\": \"PASS_WITH_FINDINGS\",\n  \"p0\": [],\n  \"p1\": [],\n  \"p2\": [],\n  \"p3\": [\n    {\n      \"area\": \"validator_coverage\",\n      \"finding\": \"Nested required_fields arrays inside audit_event_expectation and matched_rule_capture_case are not deep-compared in assertControlPlanePermissionAuditTestGoldenInteractionSetResult/Policy (only top-level audit_hint_fields/matched_rule_capture_fields are checked). Assembler sources them from shared constants, so live risk is low, but a drifted fixture/contract nested list could pass.\",\n      \"recommendation\": \"Add a deepEqual check of result.audit_event_expectation.required_fields and result.matched_rule_capture_case.required_fields against policy.auditHintFields/matchedRuleCaptureFields.\"\n    },\n    {\n      \"area\": \"validator_coverage\",\n      \"finding\": \"Result assertion verifies presence of all RESULT_FIELDS but does not reject extra/unexpected keys; consistent with prior packs and low risk given closed-construction assembler.\",\n      \"recommendation\": \"Optionally enforce exact key-set equality on the result object.\"\n    },\n    {\n      \"area\": \"evidence_readiness\",\n      \"finding\": \"Pack is marked production_ready and the contract/validator require docs/closeout-packs/cp00-077/* evidence (command-evidence, manifest, claude-review-result, adjudication, construction-inspection with control_plane_permission_audit_test_golden_interaction_set_verified=true); those artifacts are outside this diff. Code-side wiring is complete and correct.\",\n      \"recommendation\": \"Confirm the cp00-077 evidence pack (including the verified construction-inspection) is committed alongside this change so the contract validator passes.\"\n    }\n  ],\n  \"blocks_subphase_closeout\": false,\n  \"required_fixes\": []\n}\n```",
+  "raw_output_ref": "/tmp/cp00-077-claude-review-output.json"
+}

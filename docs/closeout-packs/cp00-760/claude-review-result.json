@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-760",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-760/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-760/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4d0ea0b5-7154-486a-8069-c8c73db155f9",
+    "uuid": "277fe096-330e-4573-a057-20f039113479",
+    "total_cost_usd": 2.3599224999999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6145,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-760 is a descriptor-only RP25 Migration Platform \"primary service\" closeout pack (40 units, risk B, range RP25.P02.M03.S01-RP25.P02.M04.S10). The pack correctly does NOT over-claim: manifest.json, construction-inspection.json, command-evidence.json, and adjudication.md all report production_ready=false, runtime_ready=false, status=in_progress, pending exactly one valid hardened read-only Claude review (this receipt). Direct inspection of registry.js/service.js/validators.js/import-plan.js/mappers.js/index.js confirms descriptor-only, no-real-data, runtime-closed (file server/SharePoint/Drive/iManage/import), no-product-state-write, deny-over-allow, no-cross-tenant, and no-audit-event-body guards; a targeted scan found none of these risk flags set to true in either source or the generated contract. Authority boundary is correct: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, Claude packets read_only=true / promotes_claude_to_final_approval=false; Hermes packets are deterministic evidence-only (emits_runtime_receipt=false), not product runtime. Deliverable distribution (contract2/impl20/security_audit4/ui4/claude_review2/failure_recovery2/test4/fixture1/hermes_evidence1=40) and micro-title split (30/10) reconcile with the unit list and CP760_REQUIREMENTS. Captured evidence is internally consistent: all validation commands exit 0 and the model test suite reports 16/16 passing in TAP output; the migration contract is regenerated with CP00-760 as latest projection and validation.valid=true; all referenced npm scripts exist. Provenance: per the read-only constraint I did not re-execute commands — I verified the captured command-evidence is consistent with the source, manifest plan-binding snapshot, and regenerated contract I read directly. No P0/P1/P2 issues. One non-blocking P3 maintainability note (per-pack validator/descriptor duplication). Recommend PASS so the pack can proceed to adjudication and closeout.",
+    "findings": [
+      {
+        "id": "C760-P3-01",
+        "severity": "P3",
+        "title": "Per-pack coverage/descriptor validators are duplicated across CP756-CP760",
+        "file": "packages/migration/src/validators.js",
+        "line": 414,
+        "details": "The five validateMigrationPlatform*Coverage and validateMigrationPlatform*Descriptor functions are near-identical (~40 lines each), differing only by binding, requirements, and the case-set field name; the create*Descriptor/Hermes/Claude/Handoff families in service.js follow the same copy-per-pack shape. This duplication grows linearly with each RP25 pack and increases drift risk over time. There is no correctness impact for CP00-760: all required checks (descriptor-only, runtime-closed, no sensitive payloads, deny-over-allow, no cross-tenant, no audit body, Hermes/Claude gate, handoff binding, authority boundary) are present and uniformly enforced, and the 16/16 test suite exercises them.",
+        "recommendation": "Optionally parameterize the shared coverage/descriptor validation into a single factory keyed by binding+requirements (and similarly for the service builders) to reduce future drift. Non-blocking; safe to defer.",
+        "post_review_disposition": "Accepted as-is; non-blocking. Duplication appears intentional for per-pack auditability and does not affect descriptor-only/no-write guarantees, authority boundaries, or test coverage. Does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

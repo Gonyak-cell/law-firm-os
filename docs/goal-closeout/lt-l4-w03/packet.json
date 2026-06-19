@@ -1,0 +1,37 @@
+{
+  "work_package_id": "LT-L4-W03",
+  "title": "Official parity constraint release decision",
+  "created_at": "2026-06-18T14:09:10Z",
+  "status": "blocked_pending_owner_parity_release_decision_and_approval_signature",
+  "phase": "L4",
+  "gate_binding": [
+    "L4-EXIT"
+  ],
+  "terminal_tuw": "LT-L4-W03-T01",
+  "artifacts": [
+    "docs/launch/l4/parity-release-decision-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l4-w03/packet.json",
+    "docs/goal-closeout/lt-l4-w03/command-evidence.json",
+    "docs/goal-closeout/lt-l4-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l4-w03/adjudication.md",
+    "docs/goal-closeout/lt-l4-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "launch_decision_register_exists": true,
+    "decision_register_has_decision_rows": false,
+    "owner_real_role_recorded": false,
+    "owner_approval_signature_recorded": false,
+    "parity_release_record_exists": false,
+    "byte_identical_mock_path_still_documented": true,
+    "visual_parity_evidence_preserved": true,
+    "ui_reference_conventions_preserved": true,
+    "l4_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

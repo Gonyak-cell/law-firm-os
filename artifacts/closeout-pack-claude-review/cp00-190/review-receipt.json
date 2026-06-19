@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-190",
+  "normalized_at": "2026-06-09T20:09:33.094Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-190/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-190/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-190/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-190/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "c42c19b6-8da4-4856-b0a1-a76e750c6ed9",
+    "uuid": "66b53d23-1aa0-4395-81ee-bc2d3273f876",
+    "total_cost_usd": 2.9241327499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8677,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-190 (Risk A, 10 units, RP05.P07.M03.S15-RP05.P07.M04.S02) is a descriptor-only Matter Core failure-receipt and taxonomy boundary. Read-only inspection confirms the substrate is review-clean and all required boundaries hold.\n\nImplementation/no-write/no-real-data: createMatterCoreFailureReceiptTaxonomyBoundaryDescriptor (service.js:1852) builds 10 frozen rows from required_controls; every row sets runtime_permission_evaluated/audit_event_written/executes_rollback/executes_retry/dispatches_review_route/dispatches_approval_route/live_dom_rendered/executes_api_handler=false and replay_command_inert=true. A safety grep of packages/matter/src found no fs writes, child_process, network, or DB operations (only \"neo4j\" string literals describing forbidden/future runtime). The no_write_attestation in registry.js:619, the freeze helper (service.js:328), and contract section (matter-core-contract.json:892) all force every write/exec/leak flag false.\n\nTests/local validation: model.test.js has three dedicated CP00-190 blocks (coverage, no-write/fail-closed descriptor, authority boundaries) with substantive assertions; command-evidence.json records node --test model.test.js and npm run rp05:matter-core:validate both exit 0. validate-rp05-matter-core-contract.mjs exercises coverage, boundary, Hermes evidence, Claude packet, and handoff and asserts validity.\n\nDistribution integrity: closeout-pack-plan.json, review-baseline.json, manifest.json, the contract, and the registry requirements all agree on 10 units, risk A, deliverable distribution {hermes_evidence:2,fixture:1,test:2,security_audit:1,claude_review:1,implementation:1,failure_recovery:2} and micro split {M03:8,M04:2}.\n\nFail-closed semantics: missing_tenant_failure -> blocked + MATTER_CORE_MISSING_TENANT; claude_edge_case_prompt -> review_required; human_escalation_note -> approval_required. Only customer-safe error codes are emitted; leak guards confirm no permission-decision detail, audit-event body, raw payload, or unauthorized counts.\n\nAuthority boundary: Claude is read_only with allowed tools exactly Read,Grep,Glob; claude_is_final_approval=false and production_or_enterprise_trust_claim=false in the descriptor's claude_review_packet, registry attestation, and contract (claude_is_final_approval/enterprise_trust_claim_from_local_validation=false throughout). Human final approval remains required and enterprise trust is not claimed from local validation, matching the supplied authority_boundary.\n\nHermes usage: createMatterCoreCp190HermesEvidencePacket returns frozen deterministic metadata (evidence_packet id, gate H05, validity booleans) for review packet/receipt handling only; no product-runtime execution, honoring hermes_runtime_embedded_in_product=false.\n\nReview hardening (CP178+): readiness auth-preflight passed (exit 0, 1455-byte valid JSON); claude-review-result.json shows empty valid_review_receipts and invalid_review_attempts, so no auth-failure/0-byte/malformed/fenced-with-prose/tool-call-shaped/missing-field evidence is being treated as valid; forbidden_review_evidence list is present in contract and requirements.\n\nproduction_ready handling: manifest, command-evidence, adjudication, and construction-inspection all report production_ready=false / pending, which is correct at the read_only_claude_raw_capture stage that precedes adjudication, construction inspection, and final closeout validation in the hardened_review_sequence. The pack does not overclaim. Changed-file scope is respected: 7 active matter implementation refs, no omitted active untracked implementation files, and unrelated dirty/untracked files explicitly preserved and out of scope.\n\nNo P0/P1/P2 issues. One P3 informational note on validator strictness. This read-only review does not itself block pack or goal closeout; the production_ready flip remains gated on the downstream automated steps and human final approval.",
+    "findings": [
+      {
+        "id": "CP00-190-P3-01",
+        "severity": "P3",
+        "title": "Boundary validator does not assert all four required_outcomes are represented",
+        "file": "packages/matter/src/validators.js",
+        "line": 3733,
+        "details": "MATTER_CORE_CP190_FAILURE_RECEIPT_TAXONOMY_BOUNDARY_REQUIREMENTS.required_outcomes (registry.js:1440) lists passed, blocked, review_required, and approval_required. validateMatterCoreCp190FailureReceiptTaxonomyBoundary only asserts three specific control->outcome bindings (missing_tenant_failure->blocked, claude_edge_case_prompt->review_required, human_escalation_note->approval_required) and never iterates required_outcomes, so the 'passed' outcome is not explicitly validated. The generated descriptor does produce all four outcomes (6 passed, 2 blocked, 1 review_required, 1 approval_required), so there is no actual coverage gap today; this is purely a validator-strictness observation, not a defect or boundary violation.",
+        "recommendation": "Optionally tighten the validator to iterate requirements.required_outcomes and assert each appears at least once in descriptor.rows_by_outcome, mirroring the existing per-control checks. No action required for CP00-190 closeout.",
+        "post_review_disposition": "informational_no_action_required_substrate_review_clean"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

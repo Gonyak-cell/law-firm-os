@@ -1,0 +1,407 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-081",
+  "planned_pack_id": "CP00-081",
+  "requested_pack_id": "CP00-080",
+  "planned_risk_class": "C",
+  "planned_unit_count": 6,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-080 shifted to CP00-081 by live sequential cursor",
+  "override_reason": "small C boundary before B",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-081",
+    "planned_pack_id": "CP00-081",
+    "requested_pack_id": "CP00-080",
+    "title": "CP00-081 RP00.P07.M00.S01-RP00.P07.M01.S03 requested_locked_queue",
+    "risk_class": "C",
+    "planned_risk_class": "C",
+    "planned_unit_count": 6,
+    "unit_count": 6,
+    "range": {
+      "first_unit_id": "RP00.P07.M00.S01",
+      "last_unit_id": "RP00.P07.M01.S03",
+      "description": "RP00.P07.M00.S01-RP00.P07.M01.S03"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 6,
+    "correction_reason": "requested CP00-080 shifted to CP00-081 by live sequential cursor",
+    "override_reason": "small C boundary before B",
+    "within_default_risk_range": false,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P07.M00.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M00",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M00",
+        "micro_title": "Scope Inventory",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M00.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M00",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M00",
+        "micro_title": "Scope Inventory",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M00.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M00",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M00",
+        "micro_title": "Scope Inventory",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M01.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M01.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M01.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "failure_recovery"
+      }
+    ]
+  },
+  "status": "production_ready",
+  "production_ready": true,
+  "program_id": "RP00",
+  "risk_class": "C",
+  "unit_count": 6,
+  "primary_subphase_id": "RP00.P07.M01.S03",
+  "source_micro_phase_id": "RP00.P07.M01",
+  "next_subphase": "RP00.P07.M02.S01",
+  "production_ready_flag": "control_plane_failure_edge_recovery_opening_verified",
+  "implementation_surface": "ControlPlaneFailureEdgeRecoveryOpening",
+  "implementation_summary": {
+    "implemented_surface": "ControlPlaneFailureEdgeRecoveryOpening",
+    "implemented_slice": "control_plane_failure_edge_recovery_opening",
+    "policy_ref": "CONTROL_PLANE_FAILURE_EDGE_RECOVERY_OPENING_POLICY",
+    "module_ref": "CONTROL_PLANE_FAILURE_EDGE_RECOVERY_OPENING_MODULE",
+    "assembler_ref": "assembleControlPlaneFailureEdgeRecoveryOpening",
+    "validator_refs": [
+      "assertControlPlaneFailureEdgeRecoveryOpeningPolicy",
+      "assertControlPlaneFailureEdgeRecoveryOpeningResult"
+    ],
+    "upstream_pack_required": "CP00-080",
+    "upstream_next_subphase_required": "RP00.P07.M00.S01",
+    "completed_source_micro_phase_ids": [
+      "RP00.P07.M00",
+      "RP00.P07.M01"
+    ],
+    "open_source_micro_phase_ids": [
+      "RP00.P07.M02"
+    ],
+    "next_subphase": "RP00.P07.M02.S01",
+    "result_fields": 95
+  },
+  "included_unit_ids": [
+    "RP00.P07.M00.S01",
+    "RP00.P07.M00.S02",
+    "RP00.P07.M00.S03",
+    "RP00.P07.M01.S01",
+    "RP00.P07.M01.S02",
+    "RP00.P07.M01.S03"
+  ],
+  "included_units": [
+    {
+      "id": "RP00.P07.M00.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M00",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M00",
+      "micro_title": "Scope Inventory",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-081/manifest.json",
+        "docs/closeout-packs/cp00-081/command-evidence.json",
+        "docs/closeout-packs/cp00-081/claude-review-result.json",
+        "docs/closeout-packs/cp00-081/adjudication.md",
+        "docs/closeout-packs/cp00-081/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M00.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M00",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M00",
+      "micro_title": "Scope Inventory",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-081/manifest.json",
+        "docs/closeout-packs/cp00-081/command-evidence.json",
+        "docs/closeout-packs/cp00-081/claude-review-result.json",
+        "docs/closeout-packs/cp00-081/adjudication.md",
+        "docs/closeout-packs/cp00-081/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M00.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M00",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M00",
+      "micro_title": "Scope Inventory",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-081/manifest.json",
+        "docs/closeout-packs/cp00-081/command-evidence.json",
+        "docs/closeout-packs/cp00-081/claude-review-result.json",
+        "docs/closeout-packs/cp00-081/adjudication.md",
+        "docs/closeout-packs/cp00-081/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M01.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-081/manifest.json",
+        "docs/closeout-packs/cp00-081/command-evidence.json",
+        "docs/closeout-packs/cp00-081/claude-review-result.json",
+        "docs/closeout-packs/cp00-081/adjudication.md",
+        "docs/closeout-packs/cp00-081/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M01.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-081/manifest.json",
+        "docs/closeout-packs/cp00-081/command-evidence.json",
+        "docs/closeout-packs/cp00-081/claude-review-result.json",
+        "docs/closeout-packs/cp00-081/adjudication.md",
+        "docs/closeout-packs/cp00-081/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M01.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-081/manifest.json",
+        "docs/closeout-packs/cp00-081/command-evidence.json",
+        "docs/closeout-packs/cp00-081/claude-review-result.json",
+        "docs/closeout-packs/cp00-081/adjudication.md",
+        "docs/closeout-packs/cp00-081/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os",
+    "planned_pack_count": 1173,
+    "planned_unit_count": 53812,
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "dirty_untracked_files_preserved": [
+      ".DS_Store",
+      "Law Firm OS UI/",
+      "docs/.DS_Store",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "exactly_one_valid_pack_level_review": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-081/claude-review-result.json"
+  },
+  "closeout_gates": {
+    "implementation": true,
+    "tests": true,
+    "hermes_evidence": true,
+    "claude_review": true,
+    "adjudication": true,
+    "construction_inspection": true,
+    "included_units_production_ready": true,
+    "final_validation": true,
+    "commit": false
+  },
+  "final_validation_status": "passed",
+  "final_validation_summary": {
+    "syntax_checks": "node --check passed for policies, service, validators, service tests, RP00 validator, and closeout-pack validator.",
+    "targeted_tests": "Failure Edge Recovery Opening targeted suite passed: 7/7 before and after P3 test hardening.",
+    "service_tests": "packages/control-plane/test/service.test.js passed: 757/757 before evidence creation.",
+    "full_tests": "npm test passed: 841/841 before evidence creation.",
+    "validators": "npm run validate, weighted:validate, spec:requirements:validate, fullplan:validate, goal:closeout:validate, closeout-pack-plan:validate, closeout-pack:validate, and git diff --check passed before evidence creation; RP00 and CP00-081 pack gates passed after evidence creation in final validation.",
+    "diff_check": "git diff --check passed.",
+    "plan_generation": "Generated docs/closeout-pack-plan/closeout-pack-plan.json with 1172 packs and 53806 units; generated docs/closeout-pack-plan/next-pack-queue.json with 13 locked/corrected next-queue packs; queue starts after CP00-081."
+  },
+  "commit_policy": {
+    "required": true,
+    "preferred_message": "Close CP00-081 failure edge recovery opening pack",
+    "commit_after_final_validation": true
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-081/manifest.json",
+    "docs/closeout-packs/cp00-081/command-evidence.json",
+    "docs/closeout-packs/cp00-081/claude-review-result.json",
+    "docs/closeout-packs/cp00-081/adjudication.md",
+    "docs/closeout-packs/cp00-081/construction-inspection.json"
+  ],
+  "notes": [
+    "CP00-081 consumes CP00-080, opens Failure Edge And Recovery with metadata-only failure taxonomy and missing tenant/missing actor contracts, completes RP00.P07.M00 and RP00.P07.M01, and hands off to RP00.P07.M02.S01.",
+    "No runtime error response emission, retry, rollback, compensation, incident creation, observability write, permission engine execution, AuthZ evaluator call, security trimming, audit write, product-state write, or LDIP implementation is introduced by this pack."
+  ]
+}

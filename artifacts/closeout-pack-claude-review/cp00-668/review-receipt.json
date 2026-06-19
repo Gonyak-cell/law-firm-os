@@ -1,0 +1,86 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-668",
+  "normalized_at": "2026-06-14T09:06:18.370Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-668/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-668/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-668/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-668/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "91173776-f9a0-4207-beb4-667eda90cd84",
+    "uuid": "1df09dbf-9a23-44a8-9201-99ed55ad4446",
+    "total_cost_usd": 2.27955025,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9246,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-668 (RP22 External Integrations I permission/audit/fixture bridge, Risk B, 40 units RP22.P01.M04.S07-RP22.P01.M06.S04) is a descriptor-only continuation pack with a sound evidence chain supporting eventual production_ready promotion. Verified via Read/Grep/Glob: (1) Scope/distribution match across review-baseline, registry requirements, and manifest plan_binding_snapshot - deliverables impl 22/ui 6/fixture 2/test 6/hermes 2/claude 2 and micro-titles Secondary Workflow Slice 14 / Permission And Audit Binding 22 / Synthetic Fixture Set 4 (sum 40). (2) Implementation is deterministic and consistent: createExternalIntegrationsICp668PermissionAuditFixtureBridgeDescriptor, validateExternalIntegrationsICp668PermissionAuditFixtureBridgeDescriptor, and validateExternalIntegrationsICp668Coverage are internally aligned; required public exports are reachable through index.js (export * from registry/service/validators); model.test.js asserts coverage, runtime-closed descriptor, and on-disk contract equality. (3) Both contract files carry generated_from_pack_id CP00-668 with runtime boundaries closed on disk (permission_runtime_opened/audit_runtime_opened/external_api/hermes all false; claude_final_approval_claimed false). (4) Boundaries verified: tenant_id required on every entity, matter trace required, permission_decision_required_before_runtime + audit_hint_required true, cross_tenant_access_allowed false, serialization_hides_raw_external_payload true, blocked-claim routing for token_exposure/overbroad_sync/webhook_spoof; a secret/credential pattern grep across changed .js/.mjs/.json files returned no real tokens, keys, or payloads. (5) Authority boundary intact: Claude is read_only and not final approver, human approval required for runtime/enterprise-trust, Hermes packets are descriptor-only (hermes_runtime_opened false) and not embedded in product runtime. (6) No overclaim: manifest/construction-inspection/adjudication/command-evidence honestly report production_ready false and runtime_ready false pending this receipt, while command-evidence records the full validation matrix at exit_code 0. CP178+ hardening checks pass: readiness auth_preflight passed, and the prior raw-output.json (status 143 SIGTERM, 0-byte stdout) was correctly NOT promoted to a valid receipt (exactly_one_valid_pack_level_claude_review_run false, valid_review_receipts empty). No P0/P1 defects found. Three P3 informational observations are recorded below; none block pack or this-CP goal closeout.",
+    "findings": [
+      {
+        "id": "CP00-668-P3-01",
+        "severity": "P3",
+        "title": "Descriptor validator falls back to a freshly generated case set when the passed case set is missing",
+        "file": "packages/integrations-core/src/validators.js",
+        "line": 341,
+        "details": "validateExternalIntegrationsICp668PermissionAuditFixtureBridgeDescriptor resolves caseSet via `descriptor.permission_audit_fixture_bridge_case_set ?? createExternalIntegrationsICp668PermissionAuditFixtureBridgeDescriptor().permission_audit_fixture_bridge_case_set`. If a caller passed a descriptor whose case set was stripped, the validator would validate a regenerated (always-valid) case set rather than the supplied one, so the section/row guards could pass on an incomplete descriptor. Risk is low: descriptors are deterministic factory outputs with no external input (input is void-ed), the same pattern is used by the already-closed CP666/CP667 validators, and the contract-projection validator performs a full JSON.stringify deep-equality against expectedProjection (exercised by the validator script and the on-disk contract test), which would catch a stripped case set.",
+        "recommendation": "Optional hardening: when a descriptor argument is provided, validate its own case_set (treat a missing case_set as an error) rather than substituting a freshly generated one. Track consistently across the CP666/CP667/CP668 validators if adopted.",
+        "post_review_disposition": "Informational only; mitigated by deterministic factory construction and full projection equality check. No production_ready or closeout impact."
+      },
+      {
+        "id": "CP00-668-P3-02",
+        "severity": "P3",
+        "title": "CP00-668 coverage validates the manifest self-snapshot because the live plan packs[] no longer lists CP00-668",
+        "file": "packages/integrations-core/test/model.test.js",
+        "line": 50,
+        "details": "The live docs/closeout-pack-plan/closeout-pack-plan.json now references CP00-668 only under live_state (pack_number 668, primary_subphase RP22.P01.M06.S04); the forward-looking packs[] queue starts at CP00-669 / RP22.P01.M06.S05. Consequently `plan.packs.find(p => p.pack_id === 'CP00-668')` is undefined and the coverage check falls back to cp668Manifest.plan_binding_snapshot, making the coverage assertion self-referential against the pack's own snapshot rather than the live plan array. This matches the generator model (live pack moves to live_state once current) and the snapshot is bound to source_ledger_sha 13c7ed6..., so distribution integrity is still anchored to the ledger.",
+        "recommendation": "No change required. If stronger cross-checking is desired later, validate the live_state pointer plus the manifest snapshot against the ledger SHA explicitly.",
+        "post_review_disposition": "Informational; expected by design for the live/current pack. No closeout impact."
+      },
+      {
+        "id": "CP00-668-P3-03",
+        "severity": "P3",
+        "title": "Prior timed-out review run left a stale 0-byte raw-output not logged under invalid_review_attempts",
+        "file": "artifacts/closeout-pack-claude-review/cp00-668/raw-output.json",
+        "line": 24,
+        "details": "raw-output.json records an earlier review attempt with status 143 (SIGTERM, ~10 min) and stdout_bytes 0 — one of the CP178+ conditions that must not count as valid review evidence. The hardening behaved correctly: claude-review-result.json keeps status pending_pack_level_review with exactly_one_valid_pack_level_claude_review_run false, valid_review_receipts empty, review_receipt_ref null, and readiness-report auth_preflight passed. However, invalid_review_attempts is empty rather than recording the timed-out 0-byte run, so the failed attempt is not explicitly enumerated. This artifact will be superseded by the current read-only run's output.",
+        "recommendation": "Consider recording timeout/SIGTERM 0-byte runs in invalid_review_attempts for a complete audit trail, so non-counted failed attempts are explicit rather than only implied by a null receipt.",
+        "post_review_disposition": "Informational; confirms hardening did not promote invalid evidence. No P0/P1 and no closeout impact; superseded by the current review receipt."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "subphase_id": "RP00.P02.M05.S04",
+  "source_micro_phase_id": "RP00.P02.M05",
+  "title": "Matter trace precheck",
+  "micro_title": "Permission And Audit Binding",
+  "created_at": "2026-06-06T01:15:31.000Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "self_reported_effort": "high",
+  "permission_mode": "bypassPermissions",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "invalid_partial_claude_attempt_notes": [],
+  "raw_review_file": "/tmp/lfos-rp00-p02-m05-s04-claude-review.stream.jsonl",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m05-s04-review-packet.diff",
+  "session_id": "7c8c3f17-9b3b-450b-85df-d382721932e9",
+  "uuid": "cf20e0f6-02d0-4842-872f-40cc690d02f6",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.4587985,
+  "duration_ms": 174310,
+  "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 127952,
+    "cache_read_input_tokens": 594757,
+    "output_tokens": 14422,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 127952,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "APPROVE",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "advisory_findings": [
+    {
+      "id": "INFO-1",
+      "severity": "info",
+      "status": "adjudicated_non_blocking",
+      "area": "contracts/control-plane-contract.json",
+      "issue": "Claude noted blocked_claim_refs key casing differs between contract snake_case keys and policy/fixture camelCase keys.",
+      "adjudication": "Accepted as non-blocking. All consumers compare blocked ref values through Object.values(), the values are identical, and runtime behavior, validator behavior, and closeout correctness are unaffected. No code change required for S04 closeout."
+    }
+  ],
+  "review_text": "safe_to_close. No P0/P1/P2 findings. The S04 Matter trace precheck accepts only S03 allow_metadata_only permission_audit_binding tenant-boundary results, references RP00.P00.M04.S01 Matter-first trace rules, allows aligned Matter-scoped and no-Matter firm-level metadata, denies Matter-required claims without Matter and matter_tenant_id without matter_id, rejects unsafe claims, carries S01/S02/S03/S14 refs and canonical contexts, keeps no-write/no-runtime flags false, keeps RP00.P02.M05 open, and hands off to S05.",
+  "required_fixes": [],
+  "deferred_or_informational": [
+    "INFO-1 blocked_claim_refs key casing observation accepted as cosmetic and non-blocking."
+  ],
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "requested_effort": "max",
+    "self_reported_effort": "high",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "7c8c3f17-9b3b-450b-85df-d382721932e9",
+    "uuid": "cf20e0f6-02d0-4842-872f-40cc690d02f6",
+    "total_cost_usd": 1.4587985,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m05-s04-claude-review.stream.jsonl",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m05-s04-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "production_ready_verdict": "APPROVE",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "INFO",
+        "title": "blocked_claim_refs key casing differs between contract and policy fixture",
+        "file": "contracts/control-plane-contract.json",
+        "status": "adjudicated_non_blocking"
+      }
+    ],
+    "advisory_findings": [
+      "INFO-1 blocked_claim_refs key casing observation"
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "advisory": 1
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-06T01:15:31.000Z",
+  "production_ready": true
+}

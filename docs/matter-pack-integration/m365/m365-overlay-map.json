@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.m365-overlay-map.v0.1",
+  "status": "planning_only",
+  "source_sha256": "05a03499ad30fd47abb508482a04611cbecad8d8d62d9caffb9496feebb7e218",
+  "coverage_summary": {
+    "named_object_checklist_count": 74,
+    "requirement_count": 17
+  },
+  "implementation_admission_gate": {
+    "m365_planning_gate_complete": true,
+    "storage_decision_resolved": false,
+    "internal_vs_saas_decision_resolved": true,
+    "m365_runtime_implementation_allowed": false,
+    "review_execution": {
+      "C-MPACK-M365-01": "user_waived_2026-06-11_once",
+      "C-MPACK-M365-02": "user_waived_2026-06-11_once",
+      "waiver_ref": "docs/matter-pack-integration/adjudications/one-time-claude-review-waiver-2026-06-11.md"
+    }
+  },
+  "forbidden_edit_scope": [
+    "contracts/email-dms-core-contract.json",
+    "packages/email-dms/**",
+    "docs/closeout-packs/**"
+  ]
+}

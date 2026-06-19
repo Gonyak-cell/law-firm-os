@@ -1,0 +1,135 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L9-W05",
+  "title": "Wave 3 opening gate",
+  "phase": "L9",
+  "gate": "L9-EXIT",
+  "status": "t01_wave3_opening_gate_definition_draft_blocked_pending_external_identity_hr_sensitivity_oq006_and_owner_signoff",
+  "recorded_at": "2026-06-18T11:25:09Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L9-W05-T01",
+      "title": "Wave 3 opening gate definition",
+      "status": "draft_blocked_pending_wave2_gate_owner_decisions_external_identity_hr_sensitivity_and_feature_signoff",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/wave3-opening-gate.md",
+        "docs/goal-closeout/lt-l9-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "feature_group_rows": 5,
+        "portal_precondition_rows": 5,
+        "hr_precondition_rows": 5,
+        "rejudgment_rows": 3,
+        "evidence_contract_rows": 5,
+        "out_of_scope_phrase_present": true,
+        "real_employee_data_authorized": false,
+        "external_portal_enabled": false,
+        "owner_signoff_present": false
+      },
+      "commands": [
+        {
+          "command": "grep -c \"^| W3-GROUP-\" docs/launch/wave3-opening-gate.md && grep -c \"^| W3-PORTAL-\" docs/launch/wave3-opening-gate.md && grep -c \"^| W3-HR-\" docs/launch/wave3-opening-gate.md && grep -c \"Wave 3 기능 구현은 본 게이트 범위 밖\" docs/launch/wave3-opening-gate.md",
+          "exit_code": 0,
+          "output": "5\n5\n5\n1",
+          "purpose": "Verify the Wave 3 gate defines five feature groups, Portal preconditions, HR preconditions, and explicit implementation out-of-scope boundary"
+        },
+        {
+          "command": "grep -c \"^| W3-REJUDGE-\" docs/launch/wave3-opening-gate.md && grep -c \"^| W3-EVID-\" docs/launch/wave3-opening-gate.md",
+          "exit_code": 0,
+          "output": "3\n5",
+          "purpose": "Verify G3/G6/G7 rejudgment and evidence package contract rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a gate definition draft only and does not implement or activate Wave 3 features.",
+        "External identity, portal link controls, HR sensitivity verification, deterministic rule engine evidence, OQ-006, and owner signoff remain pending.",
+        "LT-L9-W05 remains open pending T02 feature-group rejudgment/signoff."
+      ]
+    },
+    {
+      "tuw_id": "LT-L9-W05-T02",
+      "title": "Wave 3 기능군별 개방 재판정·사인오프·증거 조립",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_wave3_opening_gate_definition_draft_blocked_pending_external_identity_hr_sensitivity_oq006_and_owner_signoff",
+      "objective": "기능군별 G3/G6/G7 차원 재판정이 수행되고, HR 직원 실데이터 투입 전 HR sensitivity 검증·deterministic rule engine 확인 증적이 통과 조건으로 판정되며, 기능군별 사인오프와 wave 게이트 통과 기록·W05 증거가 조립된다. Wave 3 기능군 구현은 본 TUW 범위 밖이다.",
+      "deliverables": [
+        "docs/launch/wave3-gate-verdict.md",
+        "docs/goal-closeout/lt-l9-w05/"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L9-5",
+        "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md",
+        "workbook/matter_dev_docs/10_Portal_Platform_Spec.md"
+      ],
+      "acceptance_criteria": [
+        "기능군별 재판정 기록 5건(각각 G3/G6/G7 증거 링크 포함, pass 또는 보류 판정)이 존재한다.",
+        "HR 기능군 판정에 HR sensitivity 검증 결과·deterministic rule engine 확인·OQ-006 결정 링크가 전부 존재하고, 실데이터 투입 승인이 그 충족 후에만 기록되어 있다.",
+        "기능군별 사인오프 아티팩트(승인자·일자) 또는 보류 finding이 5건 전부에 존재한다.",
+        "docs/goal-closeout/lt-l9-w05/에 증거 5종이 전부 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) 판정 기록 기능군 카운트(=5)·증거 링크 해석 확인 2) HR 판정의 선행 증적 3종 링크 확인 3) 사인오프/finding 카운트(=5) 4) 증거 5종 ls 확인",
+        "evidence": "카운트·존재 판정을 docs/goal-closeout/lt-l9-w05/command-evidence.json에 T02 키로 보존",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-HR-001",
+          "VC-PORT-001",
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l9-w05/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L9-5",
+        "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md",
+        "workbook/matter_dev_docs/10_Portal_Platform_Spec.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L9-W05 or LT-L9-W05-T01 is complete.",
+    "This record does not enable portal access, HR real data, Obsidian export, billing automation, or DLP enforcement.",
+    "This record does not provide feature-level owner signoff or G3/G6/G7 rejudgment evidence.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 2,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W01",
+  "title": "critical-rp-saas-hardening-plan ratification",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "blocked_pending_owner_ratification",
+  "recorded_at": "2026-06-18T10:01:45Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:01:45Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W01-T01",
+      "title": "Ratify critical-rp-saas-hardening-plan as Adopted and update document/register",
+      "status": "blocked_pending_owner_ratification",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/critical-rp-saas-hardening-plan.md",
+        "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "docs/launch/critical-rp-saas-hardening-ratification-block.md",
+        "docs/goal-closeout/lt-pre-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "adopted_status_count": 0,
+        "proposed_status_count": 1,
+        "ratification_decision_row_present": false,
+        "decision_maker_role_present": false,
+        "decision_value_present": false,
+        "decision_basis_present": false,
+        "decision_date_present": false,
+        "block_record_present": true,
+        "escalation_item_present": true,
+        "final_state": "blocked_pending_owner_ratification"
+      },
+      "commands": [
+        {
+          "command": "grep -c \"^Status: Adopted\" docs/critical-rp-saas-hardening-plan.md",
+          "exit_code": 0,
+          "output": "0",
+          "purpose": "Verify the plan has not been ratified as Adopted"
+        },
+        {
+          "command": "grep -c \"^Status: Proposed\" docs/critical-rp-saas-hardening-plan.md",
+          "exit_code": 0,
+          "output": "1",
+          "purpose": "Verify the plan remains Proposed pending owner decision"
+        },
+        {
+          "command": "grep -n \"결정을 대신 내리지 않는다\" workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "exit_code": 0,
+          "output": "3:본 패키지의 어떤 워크스트림도 **결정을 대신 내리지 않는다.** 각 계획서는 결정 전 가능한 작업과 결정 후 작업을 분리해 두었다. 아래는 마스터 결정 9건 + 워크스트림 로컬 결정의 매핑이다.",
+          "purpose": "Confirm owner-decision boundary before refusing to synthesize ratification"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "LT-PRE-W01 cannot be closed by Codex because the required Adopted state is an owner ratification decision.",
+        "The blocker is preserved in docs/launch/critical-rp-saas-hardening-ratification-block.md with an explicit escalation item.",
+        "The plan document remains Proposed; no synthetic owner approval or decision-register row was created.",
+        "Full Claude review is waived by user instruction and is not counted as valid review evidence."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim the critical RP hardening plan is Adopted.",
+    "This record does not claim owner ratification exists.",
+    "This record does not claim PRE-EXIT is satisfied for LT-PRE-W01.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "next_required_action": {
+    "owner_role": "Launch owner / critical RP hardening plan approver",
+    "decision_needed": "Adopt, conditionally adopt, or reject docs/critical-rp-saas-hardening-plan.md",
+    "evidence_to_add_after_decision": [
+      "Decision row in workbook/absorption-package/06_오픈_결정_레지스터.md",
+      "Status line update in docs/critical-rp-saas-hardening-plan.md",
+      "Updated grep evidence showing Adopted=1 and Proposed=0"
+    ]
+  }
+}

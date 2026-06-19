@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M03.S01",
+  "source_micro_phase_id": "RP00.P00.M03",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Define contract-level lifecycle gates for plan authoring, AI implementation handoff, Hermes validation, Claude review, human approval, blocked-claim handling, and subphase closeout.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m03-s01/packet.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal-closeout-protocol-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-spec-requirement-ledger.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands.rp00_control_plane_contract_validate",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids"
+  ],
+  "requirement_refs": [],
+  "risk_focus": [
+    "missing_entry_review_approval_blocked_closeout_state",
+    "human_approval_state_outcome_confusion",
+    "blocked_claim_without_owner_or_correction_route",
+    "deferred_blocked_claim_closed_without_future_anchor",
+    "lifecycle_gate_claimed_as_runtime_workflow_engine",
+    "subphase_closeout_without_H00_C00_or_construction_inspection"
+  ],
+  "claude_questions": [
+    "Do the lifecycle gate groups lock entry, review, approval, blocked, and closeout states for plan authoring, AI implementation handoff, Hermes validation, Claude review, human approval, blocked-claim handling, and subphase closeout?",
+    "Does the lifecycle definition preserve Hermes as evidence-only, Claude as read-only review, and HumanApproval as non-delegable?",
+    "Do blocked-claim policies keep P0/P1 from reaching production_ready and require P2/P3 disposition?",
+    "Does the contract avoid claiming a runtime workflow engine, deploy automation, production data mutation, or human approval?",
+    "Is anything missing before RP00.P00.M03.S01 can be promoted from implemented to production_ready?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run spec:requirements:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate",
+    "npm test"
+  ]
+}

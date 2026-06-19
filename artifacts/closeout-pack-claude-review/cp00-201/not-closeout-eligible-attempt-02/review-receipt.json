@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-201",
+  "normalized_at": "2026-06-10T00:27:48.884Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": false,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-201/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-201/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-201/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-201/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "c1e6a75b-94ab-4c75-8026-5acbf46b9adb",
+    "uuid": "68cbb1b5-272f-437a-b18e-dca3f6e9a7b5",
+    "total_cost_usd": 2.60752125,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6003,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-201 (RP06 \"DMS Core\" service-contract pack, risk_class C, 150 units RP06.P01.M06.S05-RP06.P02.M02.S22) passes read-only independent review with one P2 finding. (a) No production_ready overclaim: manifest.json, command-evidence.json, construction-inspection.json, adjudication.md and claude-review-result.json all correctly report production_ready=false / status in_progress / pending — the pack-level claim gate (dms_core_service_contract_golden_case_descriptor_verified) is encoded in source, the contract snapshot, the validators, and the node:test suite, all internally consistent and descriptor-only (no writes, no real client/matter/document/billing/settlement/credential data, no runtime API execution). (b) CP178+ review hardening holds: the prior failed attempt (API ConnectionRefused, is_error:true, num_turns 28) was correctly normalized to invalid_review / closeout_eligible:false / parsed_review:null with invalid_reason 'auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing', so an auth/CLI failure is not accepted as valid evidence; the forbidden_review_evidence list (auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim) is encoded in both registry.js and manifest.json. (c) Authority boundary preserved: claude_not_final_approver:true, required_mode read_only, allowed_tools Read/Grep/Glob, human_final_approval_required_for_enterprise_trust_claim. (d) Hermes (H06) is used only as a deterministic control-plane gate for review packet/receipt handling — hermes_runtime_embedded_in_product:false, no_runtime_api_handler_execution:true — not for product runtime. Unrelated dirty/untracked files (UI/amplitude scripts, .DS_Store, etc.) were treated as out-of-scope per changed-file-scope.json. The single P2 is that local-validation execution receipts are not yet captured (command-evidence.json commands:[]), which a read-only reviewer cannot run; it is a downstream closeout prerequisite, not a source defect, and does not block this review. No P0 or P1 issues; nothing from this review blocks pack or goal closeout, and final human approval remains required for any enterprise-trust claim.",
+    "findings": [
+      {
+        "id": "CP201-R01",
+        "severity": "P2",
+        "title": "Local validation execution evidence not yet captured (command-evidence.json commands array empty)",
+        "file": "docs/closeout-packs/cp00-201/command-evidence.json",
+        "line": null,
+        "details": "command-evidence.json is status 'in_progress' with commands:[] and the H06 Hermes gate gate_outcome 'pending'. The 11 baseline validation_commands plus validate-rp06-dms-core-contract.mjs and the node:test suite have no recorded passing-run receipts. As a read-only reviewer (Read/Grep/Glob only, no Bash) I verified local-validation support at the descriptor/source/contract/test-encoding level — registry.js, model.js, service.js, validators.js, contracts/dms-core-contract.json (service_contract_descriptor DmsCoreCp201ServiceGoldenCaseDescriptor) and packages/dms/test/model.test.js are internally consistent — but could not confirm captured execution output. The pack correctly marks production_ready:false and status:in_progress, so this is an expected pre-review pipeline state, not an overclaim or a source defect.",
+        "recommendation": "Before flipping the production_ready_flag (dms_core_service_contract_golden_case_descriptor_verified) and closing the pack, populate command-evidence.json with passing runs of validate-rp06-dms-core-contract.mjs, `node --test`, and the 11 baseline validation_commands, and let the H06 Hermes gate resolve to a non-pending outcome. No source changes required.",
+        "post_review_disposition": "defer_to_closeout_pipeline"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 1,
+      "reported_p3": 0
+    }
+  }
+}

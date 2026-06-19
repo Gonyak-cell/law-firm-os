@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-673",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T10:14:44.441Z",
+  "finished_at": "2026-06-14T10:20:06.832Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":321509,\"duration_api_ms\":319412,\"ttft_ms\":3799,\"num_turns\":54,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0–P3 all zero), and neither pack closeout nor this CP's goal closeout is blocked.\\n\\nCP00-673 is a descriptor-only RP22 External Integrations I boundary-precheck binding pack that is internally consistent across its manifest, plan/queue, contract descriptor, source (registry/service/validators/index), and tests, with all runtime closed, comprehensive no-write/no-real-data attestations, Claude held as non-final read-only reviewer, and Hermes used only for review-packet/evidence handling. The pack makes no runtime or enterprise-trust claim (production_ready/runtime_ready both false, state files pending), so it is correctly positioned for descriptor-level closeout pending this review plus adjudication.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ec7b4ef6-480d-4c3a-b083-f32f8e71f19c\",\"total_cost_usd\":2.6252765000000005,\"usage\":{\"input_tokens\":3120,\"cache_creation_input_tokens\":123770,\"cache_read_input_tokens\":2550302,\"output_tokens\":22390,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":123770,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":325,\"cache_read_input_tokens\":119833,\"cache_creation_input_tokens\":4393,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4393},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1113,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001213,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3120,\"outputTokens\":22390,\"cacheReadInputTokens\":2550302,\"cacheCreationInputTokens\":123770,\"webSearchRequests\":0,\"costUSD\":2.6240635000000005,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-673 is a clean descriptor-only RP22 External Integrations I \\\"Test And Golden Case Set\\\" boundary-precheck binding pack (risk A, 10 units, RP22.P02.M07.S03-S12) following the established CP666-672 pattern. Direct read-only inspection confirms full internal consistency: pack binding agrees across manifest.json, review-baseline.json, the live closeout-pack-plan.json (live_state.pack_id=CP00-673), and next-pack-queue.json (live_latest_pack_id=CP00-673), with matching source_ledger_sha and deliverable distribution {implementation:6,security_audit:2,ui:2}. The contract cp673_descriptor/cp673_requirements/cp673_no_write_attestation match registry.js exports, service.js descriptor/case-set/hermes/claude/handoff builders, and the validators.js coverage + descriptor + projection deep-equal checks; index.js re-exports all five required public exports; model.test.js covers CP673 coverage and descriptor binding and validates both contract files against the projection (the two contract files are intentionally identical, written from one projection by the --write validator). Boundaries hold: descriptor_only=true, all runtime flags false, claude_is_final_approval=false (validator-asserted), Hermes used only for review-packet/evidence handling (hermes_runtime_opened=false, runtime_receipt_emitted=false), comprehensive no-write/no-real-data attestations, and no token/secret/raw-payload values present. State files correctly show no over-claim (manifest production_ready=false/runtime_ready=false; construction-inspection PENDING_PACK_LEVEL_REVIEW; adjudication/claude-review-result pending), and the readiness auth preflight passed (exit 0, non-empty valid-JSON stdout). Provenance: source/contract/test consistency verified by direct read; the reported 22/22 validation-command passes in command-evidence.json were not re-executed under this read-only review. The pack claims neither runtime nor enterprise trust, so this CP closeout goal is not blocked. No P0-P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"32ab378d-1242-4948-8202-2c37db024055\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4449,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ec7b4ef6-480d-4c3a-b083-f32f8e71f19c",
+    "uuid": "32ab378d-1242-4948-8202-2c37db024055",
+    "total_cost_usd": 2.6252765000000005,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

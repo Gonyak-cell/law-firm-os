@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-694",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T00:58:27.425Z",
+  "finished_at": "2026-06-15T01:03:55.988Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":327748,\"duration_api_ms\":328449,\"ttft_ms\":5806,\"num_turns\":48,\"result\":\"Review complete — verdict **PASS** (1 non-blocking P3, no P0/P1/P2).\\n\\nCP00-694 is a sound descriptor-only RP23 finance-integrations foundation. It honestly claims `production_ready=false`/`runtime_ready=false` pending this review; distributions, validators, no-write/no-real-data boundaries, Claude read-only/non-final authority, and Hermes receipt-only bounds all verify. It does not block pack or goal closeout.\\n\\nProvenance caveat: the 25 commands in `command-evidence.json` are recorded as exit 0 and are consistent with the source I inspected via Read/Grep/Glob, but I did not independently re-execute them (read-only/no-Bash constraint) — so that portion is evidence-consistent, not directly re-verified. The single P3 mirrors the accepted CP00-690→693 topology (live pack resolved via manifest `plan_binding_snapshot`, anchored by frozen constants and a matching ledger SHA).\",\"stop_reason\":\"end_turn\",\"session_id\":\"871c79f3-f366-4b04-93b4-09af49b747df\",\"total_cost_usd\":1.7647192500000002,\"usage\":{\"input_tokens\":103,\"cache_creation_input_tokens\":82797,\"cache_read_input_tokens\":1291270,\"output_tokens\":23991,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":82797,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":502,\"cache_read_input_tokens\":78923,\"cache_creation_input_tokens\":4218,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4218},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1208,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0013130000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":103,\"outputTokens\":23991,\"cacheReadInputTokens\":1291270,\"cacheCreationInputTokens\":82797,\"webSearchRequests\":0,\"costUSD\":1.76340625,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-694 read-only review: PASS with one non-blocking P3. The pack is an honest descriptor-only RP23 finance-integrations foundation (150 units, risk C) that claims production_ready=false/runtime_ready=false pending this review; all distributions, validators, no-write/no-real-data boundaries, Claude read-only/non-final authority, and Hermes control-plane-only bounds verify cleanly, and review-hardening preconditions (valid auth preflight, allowed tools, prompt size, no invalid prior attempts) are met. The single P3 is the accepted live-pack-via-manifest-snapshot coverage topology shared with CP00-690→693, mitigated by frozen requirement constants and a matching ledger SHA.\",\"findings\":[{\"id\":\"CP694-P3-01\",\"severity\":\"P3\",\"title\":\"Live pack coverage resolved via manifest plan_binding_snapshot rather than an independent plan-array entry\",\"file\":\"packages/finance-integrations/test/model.test.js\",\"line\":28,\"details\":\"The live docs/closeout-pack-plan/closeout-pack-plan.json carries CP00-694 only in live_state (lines 35-41); its packs[] array begins at CP00-695 (line 401). As a result both the model test (packages/finance-integrations/test/model.test.js:23-30, cp694PlanPack) and the contract-validation script (scripts/validate-rp23-external-integrations-ii-contract.mjs:30) resolve the CP00-694 plan pack through the `?? manifest?.plan_binding_snapshot` fallback, so the live pack's coverage is validated against a snapshot embedded in the pack's own manifest rather than an independent plan-array entry. Risk is low: validateFinanceIntegrationsCp694Coverage (validators.js:44-78) checks that snapshot against the frozen FINANCE_INTEGRATIONS_CP694_REQUIREMENTS constants hard-coded in registry.js:55-96 (deliverable/phase/micro-phase/micro-title counts, independently re-verified here to sum to 150), which serve as the code-reviewed anchor, and the manifest plan_binding_snapshot shares the live plan's source_ledger_sha (13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32; manifest line 4990 == closeout-pack-plan.json line 7 == next-pack-queue.json line 7), indicating common generator provenance. This is the same topology recorded as a non-blocking P3 in the CP00-690, CP00-691, CP00-692, and CP00-693 reviews.\",\"recommendation\":\"No change required for closeout. Optionally, a future generator run could emit the current/live pack into plan.packs[] (or a dedicated closed-packs array) so the live pack's coverage is cross-validated against a plan-level entry independent of its own manifest.\",\"post_review_disposition\":\"Accepted as expected, low-risk design; non-blocking. The frozen FINANCE_INTEGRATIONS_CP694_REQUIREMENTS constants in registry.js are the independent coverage anchor and the manifest snapshot shares the live plan's ledger SHA, so the verification chain remains sound.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e5bc24da-b0c3-4f94-aae3-4bc67b78bee4\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5400,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "871c79f3-f366-4b04-93b4-09af49b747df",
+    "uuid": "e5bc24da-b0c3-4f94-aae3-4bc67b78bee4",
+    "total_cost_usd": 1.7647192500000002,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

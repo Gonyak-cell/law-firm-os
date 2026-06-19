@@ -1,0 +1,28 @@
+{
+  "work_package_id": "LT-L3-W07",
+  "inspected_at": "2026-06-18T13:22:14Z",
+  "verdict": "BLOCKED_ENTRA_GRAPH_ADMIN_CONSENT_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "tenant_admin_confirmation_exists": false,
+    "graph_scope_register_exists": false,
+    "entra_app_registration_exists": false,
+    "admin_consent_evidence_exists": false,
+    "w07_m365_evidence_file_count": 0,
+    "msal_naa_auth_config_file_count": 0,
+    "m365_runtime_implementation_allowed": false,
+    "admin_consent_granted": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "m365_admin_action_executed": false,
+    "graph_scope_approval_synthesized": false,
+    "admin_consent_synthesized": false,
+    "credentials_created_or_committed": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

@@ -1,0 +1,2692 @@
+{
+  "schema_version": "law-firm-os.launch-owner-action-deferral-request.v0.1",
+  "generated_at": "2026-06-18T15:00:41.879Z",
+  "source_refs": [
+    "docs/launch/launch-tuw-status-audit.json",
+    "contracts/go-live-gate-contract.json",
+    "docs/launch/launch-deferral-coverage-audit.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "boundary": {
+    "go_live_approved": false,
+    "owner_deferrals_approved_by_this_package": false,
+    "launch_decision_register_modified_by_this_package": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "work_package_count": 72,
+    "tuw_count": 344,
+    "standard_five_present_count": 72,
+    "command_evidence_present_count": 72,
+    "blocked_work_package_count": 70,
+    "recorded_work_package_count": 2,
+    "request_only_blocked_work_package_count": 70,
+    "approved_by_package_blocked_work_package_count": 0,
+    "missing_evidence_count": 0,
+    "go_live_all_pass": false,
+    "failed_gate_ids": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9",
+      "G10"
+    ],
+    "owner_approved_deferrals_present": false,
+    "decision_register_valid_decided_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "decision_register_coverage_eligible_valid_deferred_rows": 0,
+    "decision_register_non_coverage_valid_deferred_rows": 0,
+    "decision_register_invalid_rows": 0
+  },
+  "accepted_decision_id_patterns": [
+    {
+      "domain": "go_live_gate_evidence",
+      "accepted_decision_ids": [
+        "ACC-GL-<gate>-<evidence>",
+        "COVERAGE-GATE-<gate>",
+        "COVERAGE-ALL-GO-LIVE"
+      ],
+      "use": "Exact failed G1-G10 evidence slot, one failed gate, or all failed go-live slots."
+    },
+    {
+      "domain": "l9_stabilization_closure",
+      "accepted_decision_ids": [
+        "ACC-L9-C##",
+        "COVERAGE-L9-STABILIZATION"
+      ],
+      "use": "Exact L9 stabilization criterion or all L9 stabilization criteria."
+    },
+    {
+      "domain": "blocked_work_package",
+      "accepted_decision_ids": [
+        "WP-<wp_id>",
+        "COVERAGE-PHASE-<phase>",
+        "COVERAGE-ALL-BLOCKED-WP"
+      ],
+      "use": "Exact blocked work package, phase-level blocked-WP group, or all blocked work packages."
+    },
+    {
+      "domain": "phase_exit",
+      "accepted_decision_ids": [
+        "PHASE-<phase>",
+        "PHASE-<exit_gate>",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "use": "Exact phase exit, exact exit gate, or all PRE-L9 phase exits."
+    }
+  ],
+  "failed_gate_actions": [
+    {
+      "gate_id": "G1",
+      "dimension": "completion",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G1-E02",
+          "gate_id": "G1",
+          "dimension": "completion",
+          "slot": "deferred_item_rejudgment_register",
+          "required_state": "blocking_remaining_count_zero"
+        },
+        {
+          "id": "G1-E03",
+          "gate_id": "G1",
+          "dimension": "completion",
+          "slot": "hardening_coverage_matrix",
+          "required_state": "all_missing_cells_adjudicated_or_zero"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G2",
+      "dimension": "runtime",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G2-E01",
+          "gate_id": "G2",
+          "dimension": "runtime",
+          "slot": "wave1_runtime_ready_matrix",
+          "required_state": "approved_wave1_runtime_ready_completeness_rule_satisfied"
+        },
+        {
+          "id": "G2-E02",
+          "gate_id": "G2",
+          "dimension": "runtime",
+          "slot": "runtime_integration_test_output",
+          "required_state": "all_tests_pass_with_timestamp"
+        },
+        {
+          "id": "G2-E03",
+          "gate_id": "G2",
+          "dimension": "runtime",
+          "slot": "rtg_001_005_attestation_links",
+          "required_state": "all_links_resolve"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G3",
+      "dimension": "security",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G3-E01",
+          "gate_id": "G3",
+          "dimension": "security",
+          "slot": "verification_gate_production_rerun",
+          "required_state": "seven_of_seven_pass"
+        },
+        {
+          "id": "G3-E02",
+          "gate_id": "G3",
+          "dimension": "security",
+          "slot": "ethical_wall_blocking_results",
+          "required_state": "five_of_five_pass_with_audit"
+        },
+        {
+          "id": "G3-E03",
+          "gate_id": "G3",
+          "dimension": "security",
+          "slot": "penetration_test_adjudication",
+          "required_state": "open_p0_p1_zero"
+        },
+        {
+          "id": "G3-E04",
+          "gate_id": "G3",
+          "dimension": "security",
+          "slot": "bypass_mapping_results",
+          "required_state": "all_rows_green"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G4",
+      "dimension": "infrastructure_dr",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G4-E01",
+          "gate_id": "G4",
+          "dimension": "infrastructure_dr",
+          "slot": "backup_restore_rehearsal",
+          "required_state": "meets_approved_rpo_rto"
+        },
+        {
+          "id": "G4-E02",
+          "gate_id": "G4",
+          "dimension": "infrastructure_dr",
+          "slot": "worm_chain_operation",
+          "required_state": "hash_verify_mutation_block_and_hold_purge_block"
+        },
+        {
+          "id": "G4-E03",
+          "gate_id": "G4",
+          "dimension": "infrastructure_dr",
+          "slot": "deployment_rollback_roundtrip",
+          "required_state": "start_end_timestamp_pairs_present"
+        },
+        {
+          "id": "G4-E04",
+          "gate_id": "G4",
+          "dimension": "infrastructure_dr",
+          "slot": "performance_acceptance_report",
+          "required_state": "all_metrics_within_approved_thresholds"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G5",
+      "dimension": "m365",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G5-E01",
+          "gate_id": "G5",
+          "dimension": "m365",
+          "slot": "admin_consent_scope_reconciliation",
+          "required_state": "mismatch_count_zero"
+        },
+        {
+          "id": "G5-E02",
+          "gate_id": "G5",
+          "dimension": "m365",
+          "slot": "addin_release_gate_production_results",
+          "required_state": "six_of_six_pass"
+        },
+        {
+          "id": "G5-E03",
+          "gate_id": "G5",
+          "dimension": "m365",
+          "slot": "permission_sync_checker_log",
+          "required_state": "injected_mismatch_detected"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G6",
+      "dimension": "operations",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G6-E01",
+          "gate_id": "G6",
+          "dimension": "operations",
+          "slot": "slo_dashboard_and_alert_fire",
+          "required_state": "dashboard_capture_and_alert_timestamp_pair"
+        },
+        {
+          "id": "G6-E02",
+          "gate_id": "G6",
+          "dimension": "operations",
+          "slot": "runbook_tabletop_records",
+          "required_state": "incident_breakglass_rollback_each_at_least_once"
+        },
+        {
+          "id": "G6-E03",
+          "gate_id": "G6",
+          "dimension": "operations",
+          "slot": "break_glass_effective_record",
+          "required_state": "approved_approver_and_time_limit_present"
+        },
+        {
+          "id": "G6-E04",
+          "gate_id": "G6",
+          "dimension": "operations",
+          "slot": "support_channel_roundtrip",
+          "required_state": "test_request_received_and_resolved"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G7",
+      "dimension": "compliance",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G7-E01",
+          "gate_id": "G7",
+          "dimension": "compliance",
+          "slot": "pipa_retention_policy_setting_reconciliation",
+          "required_state": "mismatch_count_zero"
+        },
+        {
+          "id": "G7-E02",
+          "gate_id": "G7",
+          "dimension": "compliance",
+          "slot": "ai_disabled_state_or_wave2_gate",
+          "required_state": "all_wave1_ai_off_or_wave2_gate_pass"
+        },
+        {
+          "id": "G7-E03",
+          "gate_id": "G7",
+          "dimension": "compliance",
+          "slot": "hr_sensitive_store_count",
+          "required_state": "real_record_count_zero"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G8",
+      "dimension": "data",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G8-E01",
+          "gate_id": "G8",
+          "dimension": "data",
+          "slot": "backfill_reconciliation_report",
+          "required_state": "approved_reconciliation_completeness_rule_satisfied_and_unexplained_diff_zero"
+        },
+        {
+          "id": "G8-E02",
+          "gate_id": "G8",
+          "dimension": "data",
+          "slot": "delta_sync_latest_log",
+          "required_state": "latest_run_timestamp_and_count_present"
+        },
+        {
+          "id": "G8-E03",
+          "gate_id": "G8",
+          "dimension": "data",
+          "slot": "rollback_ready_attestation",
+          "required_state": "current_owner_and_date_present"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G9",
+      "dimension": "governance",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G9-E01",
+          "gate_id": "G9",
+          "dimension": "governance",
+          "slot": "goal_closeout_chain_links",
+          "required_state": "all_links_resolve"
+        },
+        {
+          "id": "G9-E03",
+          "gate_id": "G9",
+          "dimension": "governance",
+          "slot": "g1_through_g8_readiness_report",
+          "required_state": "g1_to_g8_all_pass"
+        }
+      ],
+      "missing_evidence": []
+    },
+    {
+      "gate_id": "G10",
+      "dimension": "human_approval",
+      "status": "fail",
+      "failed_evidence": [
+        {
+          "id": "G10-E01",
+          "gate_id": "G10",
+          "dimension": "human_approval",
+          "slot": "joint_signoff_artifact",
+          "required_state": "two_required_signatures_present"
+        },
+        {
+          "id": "G10-E02",
+          "gate_id": "G10",
+          "dimension": "human_approval",
+          "slot": "g1_through_g9_decision_table",
+          "required_state": "nine_rows_and_decision_date_present"
+        },
+        {
+          "id": "G10-E03",
+          "gate_id": "G10",
+          "dimension": "human_approval",
+          "slot": "launch_decision_register_entry",
+          "required_state": "linked_and_resolvable"
+        }
+      ],
+      "missing_evidence": []
+    }
+  ],
+  "blocked_work_package_actions": [
+    {
+      "wp_id": "LT-PRE-W01",
+      "phase": "PRE",
+      "title": "critical-rp-saas-hardening-plan 비준",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "blocked_pending_owner_ratification",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-pre-w01",
+      "terminal_tuw": "LT-PRE-W01-T01",
+      "packet_status": "blocked_pending_owner_ratification",
+      "inspection_verdict": "BLOCKED_OWNER_RATIFICATION_REQUIRED",
+      "next_required_action": {
+        "owner_role": "Launch owner / critical RP hardening plan approver",
+        "decision_needed": "Adopt, conditionally adopt, or reject docs/critical-rp-saas-hardening-plan.md",
+        "evidence_to_add_after_decision": [
+          "Decision row in workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "Status line update in docs/critical-rp-saas-hardening-plan.md",
+          "Updated grep evidence showing Adopted=1 and Proposed=0"
+        ]
+      },
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-PRE-W02",
+      "phase": "PRE",
+      "title": "runtime/mixed 팩 인터리브 결정(RP25/26/29 의무화 권고)",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "blocked_missed_cp_interleave_window",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-pre-w02",
+      "terminal_tuw": "LT-PRE-W02-T01",
+      "packet_status": "blocked_missed_cp_interleave_window",
+      "inspection_verdict": "BLOCKED_CP_INTERLEAVE_WINDOW_MISSED",
+      "next_required_action": {
+        "owner_role": "Launch owner / runtime rebaseline approver",
+        "decision_needed": "Approve treating the missed CP interleave as a post-CP L2/L4 runtime rebaseline, or approve a separate scope revision path.",
+        "evidence_to_add_after_decision": [
+          "Decision row in the launch decision register or absorption decision register",
+          "Updated runtime gap/rebaseline approval evidence",
+          "Updated LT-PRE-W02 command evidence with owner decision"
+        ]
+      },
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-PRE-W03",
+      "phase": "PRE",
+      "title": "MAT-DEC-03(문서 원본 소재/M365) 해소",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "blocked_pending_storage_decision",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-pre-w03",
+      "terminal_tuw": "LT-PRE-W03-T02",
+      "packet_status": "blocked_pending_storage_decision",
+      "inspection_verdict": "BLOCKED_STORAGE_DECISION_REQUIRED",
+      "next_required_action": {
+        "owner_role": "Launch owner / document storage architecture approver",
+        "decision_needed": "Choose SharePoint/OneDrive original storage or object storage for document originals, with basis and date.",
+        "evidence_to_add_after_decision": [
+          "MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "docs/launch/mat-dec-03-unseal-referral.md",
+          "Scope revision judgment after the chosen storage path is known"
+        ]
+      },
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-PRE-W04",
+      "phase": "PRE",
+      "title": "갭 5영역 커버리지 대조(+overlay admission 회부)",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "blocked_pending_owner_disposition",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-pre-w04",
+      "terminal_tuw": "LT-PRE-W04-T02",
+      "packet_status": "blocked_pending_owner_disposition",
+      "inspection_verdict": "BLOCKED_OWNER_GAP_DISPOSITION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-PRE-W05",
+      "phase": "PRE",
+      "title": "privilege·HR 기밀분류 enum 확장 결정",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "blocked_pending_mat_dec_08",
+      "blocker_categories": [
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-pre-w05",
+      "terminal_tuw": "LT-PRE-W05-T02",
+      "packet_status": "blocked_pending_mat_dec_08",
+      "inspection_verdict": "BLOCKED_MAT_DEC_08_REQUIRED",
+      "next_required_action": {
+        "owner_role": "Launch owner / data classification approver",
+        "decision_needed": "Choose the closed confidentiality enum list and application boundary, including whether privilege and HR-sensitive values are added.",
+        "evidence_to_add_after_decision": [
+          "MAT-DEC-08 decision row update",
+          "docs/launch/confidentiality-enum-extension-spec.md",
+          "Updated LT-PRE-W05 command evidence with decided value list and implementation boundary"
+        ]
+      },
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-PRE-W06",
+      "phase": "PRE",
+      "title": "외부 리드타임 착수(M365 권한·AI 법적 검토·침투테스트 섭외)",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "blocked_pending_external_actions",
+      "blocker_categories": [
+        "external_dependency"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-pre-w06",
+      "terminal_tuw": "LT-PRE-W06-T04",
+      "packet_status": "blocked_pending_external_actions",
+      "inspection_verdict": "BLOCKED_EXTERNAL_ACTIONS_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L0-W01",
+      "phase": "L0",
+      "title": "Final Product Completion Gate 검증기+계약 신설",
+      "gate_binding": [
+        "G1",
+        "L0-EXIT"
+      ],
+      "command_status": "blocked_pending_human_acceptance",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l0-w01",
+      "terminal_tuw": "LT-L0-W01-T05",
+      "packet_status": "blocked_pending_human_acceptance",
+      "inspection_verdict": "BLOCKED_HUMAN_ACCEPTANCE_REQUIRED_FOR_MANUAL_FPCG_ITEMS",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L0-W02",
+      "phase": "L0",
+      "title": "implementation-layer ledger 재생성 + 런타임 격차 보고서",
+      "gate_binding": [
+        "G1",
+        "G2",
+        "L0-EXIT"
+      ],
+      "command_status": "blocked_pending_human_approval",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l0-w02",
+      "terminal_tuw": "LT-L0-W02-T04",
+      "packet_status": "blocked_pending_human_approval",
+      "inspection_verdict": "BLOCKED_RUNTIME_GAP_REPORT_HUMAN_APPROVAL_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L0-W03",
+      "phase": "L0",
+      "title": "이연 항목 전수 재심·차단성 재판정",
+      "gate_binding": [
+        "G1",
+        "L0-EXIT"
+      ],
+      "command_status": "blocked_pending_owner_rejudgment",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l0-w03",
+      "terminal_tuw": "LT-L0-W03-T03",
+      "packet_status": "blocked_pending_owner_rejudgment",
+      "inspection_verdict": "BLOCKED_SOURCE_COUNTS_RECORDED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L0-W04",
+      "phase": "L0",
+      "title": "리스크 통제 실재성 점검(Critical 리스크 7건)",
+      "gate_binding": [
+        "G3",
+        "L0-EXIT"
+      ],
+      "command_status": "blocked_pending_human_acceptance",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l0-w04",
+      "terminal_tuw": "LT-L0-W04-T04",
+      "packet_status": "blocked_pending_human_acceptance",
+      "inspection_verdict": "BLOCKED_HUMAN_ACCEPTANCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L0-W05",
+      "phase": "L0",
+      "title": "하드닝 충족 집계(16 RP × 17 control)",
+      "gate_binding": [
+        "G1",
+        "L0-EXIT"
+      ],
+      "command_status": "blocked_pending_owner_ratification_and_cell_evidence",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l0-w05",
+      "terminal_tuw": "LT-L0-W05-T02",
+      "packet_status": "blocked_pending_owner_ratification_and_cell_evidence",
+      "inspection_verdict": "BLOCKED_CONTRACT_SHAPE_RECORDED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W01",
+      "phase": "L1",
+      "title": "go-live 범위 컷라인 선언(Wave 1/2/3, HR 분리)",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "t01_passed_wp_open",
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w01",
+      "terminal_tuw": "LT-L1-W01-T03",
+      "packet_status": "t01_passed_wp_open",
+      "inspection_verdict": "BLOCKED_WP_OPEN_OWNER_SCOPE_DECISION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W02",
+      "phase": "L1",
+      "title": "Critical OQ 6건+PRD §8 6건 결정 라운드",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w02",
+      "terminal_tuw": "LT-L1-W02-T09",
+      "packet_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "inspection_verdict": "BLOCKED_OWNER_DECISION_ROUND_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W03",
+      "phase": "L1",
+      "title": "PIPA·보존정책 비준",
+      "gate_binding": [
+        "G7",
+        "L1-EXIT"
+      ],
+      "command_status": "t01_draft_blocked_pending_external_legal_review_result",
+      "blocker_categories": [
+        "external_dependency"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w03",
+      "terminal_tuw": "LT-L1-W03-T03",
+      "packet_status": "t01_draft_blocked_pending_external_legal_review_result",
+      "inspection_verdict": "BLOCKED_EXTERNAL_LEGAL_REVIEW_AND_RATIFICATION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W04",
+      "phase": "L1",
+      "title": "production-data-policy 계약 신설(비약화 논증 동봉)",
+      "gate_binding": [
+        "G7",
+        "L1-EXIT"
+      ],
+      "command_status": "t01_t02_passed_wp_open_pending_human_ratification",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w04",
+      "terminal_tuw": "LT-L1-W04-T04",
+      "packet_status": "t01_t02_passed_wp_open_pending_human_ratification",
+      "inspection_verdict": "BLOCKED_HUMAN_RATIFICATION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W05",
+      "phase": "L1",
+      "title": "승인 거버넌스 확정(인간 승인자·사인오프 형식)",
+      "gate_binding": [
+        "G10",
+        "L1-EXIT"
+      ],
+      "command_status": "t01_brief_blocked_pending_owner_approval",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w05",
+      "terminal_tuw": "LT-L1-W05-T02",
+      "packet_status": "t01_brief_blocked_pending_owner_approval",
+      "inspection_verdict": "BLOCKED_OWNER_APPROVAL_GOVERNANCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W06",
+      "phase": "L1",
+      "title": "호스팅·스택 결정 + RP26 스코핑",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "decision_brief_blocked_pending_owner_hosting_decision",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w06",
+      "terminal_tuw": "LT-L1-W06-T03",
+      "packet_status": "decision_brief_blocked_pending_owner_hosting_decision",
+      "inspection_verdict": "BLOCKED_OWNER_HOSTING_DECISION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W07",
+      "phase": "L1",
+      "title": "예산 수립",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "draft_completed_pending_l1_w06_quotes",
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w07",
+      "terminal_tuw": "LT-L1-W07-T02",
+      "packet_status": "draft_completed_pending_l1_w06_quotes",
+      "inspection_verdict": "BLOCKED_QUOTES_AND_OWNER_BUDGET_APPROVAL_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W08",
+      "phase": "L1",
+      "title": "인력·역할 계획",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "draft_completed_pending_l0_w02_approval",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w08",
+      "terminal_tuw": "LT-L1-W08-T02",
+      "packet_status": "draft_completed_pending_l0_w02_approval",
+      "inspection_verdict": "BLOCKED_L0_W02_AND_STAFFING_APPROVAL_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W09",
+      "phase": "L1",
+      "title": "로드맵 권위 문서 지정(conflict check 포함 판정)",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "t01_passed_wp_open_pending_human_authority_decision",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w09",
+      "terminal_tuw": "LT-L1-W09-T02",
+      "packet_status": "t01_passed_wp_open_pending_human_authority_decision",
+      "inspection_verdict": "BLOCKED_ROADMAP_AUTHORITY_DECISION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L1-W10",
+      "phase": "L1",
+      "title": "파일럿 그룹 지명",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "command_status": "draft_completed_pending_l1_w01_scope_decision",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l1-w10",
+      "terminal_tuw": "LT-L1-W10-T02",
+      "packet_status": "draft_completed_pending_l1_w01_scope_decision",
+      "inspection_verdict": "BLOCKED_SCOPE_DECISION_AND_ROSTER_APPROVAL_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W01",
+      "phase": "L2",
+      "title": "영속성 계층(audit 해시체인 영속 이식 최우선)",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "command_status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w01",
+      "terminal_tuw": "LT-L2-W01-T11",
+      "packet_status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "inspection_verdict": "BLOCKED_PERSISTENCE_FOUNDATION_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W02",
+      "phase": "L2",
+      "title": "신뢰 경계 재구축(Entra+MSAL/NAA, 서버측 권한 컨텍스트)",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "command_status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w02",
+      "terminal_tuw": "LT-L2-W02-T14",
+      "packet_status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+      "inspection_verdict": "BLOCKED_TRUST_BOUNDARY_RUNTIME_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W03",
+      "phase": "L2",
+      "title": "쓰기 경로 구축(write API+이벤트, non-bypassable audit)",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "command_status": "blocked_pending_l2_w01_w02_and_write_runtime",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w03",
+      "terminal_tuw": "LT-L2-W03-T18",
+      "packet_status": "blocked_pending_l2_w01_w02_and_write_runtime",
+      "inspection_verdict": "BLOCKED_WRITE_RUNTIME_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W04",
+      "phase": "L2",
+      "title": "도메인 런타임화(Wave 1 bounded context 기동)",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "command_status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w04",
+      "terminal_tuw": "LT-L2-W04-T23",
+      "packet_status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+      "inspection_verdict": "BLOCKED_WAVE1_CONTEXT_RUNTIME_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W05",
+      "phase": "L2",
+      "title": "리스크 통제 실재화(sync checker·QC gate·Ethical Wall 등)",
+      "gate_binding": [
+        "G3",
+        "L2-EXIT"
+      ],
+      "command_status": "blocked_pending_runtime_risk_controls_and_predecessors",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w05",
+      "terminal_tuw": "LT-L2-W05-T07",
+      "packet_status": "blocked_pending_runtime_risk_controls_and_predecessors",
+      "inspection_verdict": "BLOCKED_RISK_CONTROL_RUNTIME_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W06",
+      "phase": "L2",
+      "title": "enum·명명 정합화(Matter 상태·ID·기밀분류·제품명)",
+      "gate_binding": [
+        "L2-EXIT"
+      ],
+      "command_status": "t01_draft_blocked_t05_passed_wp_open",
+      "blocker_categories": [
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w06",
+      "terminal_tuw": "LT-L2-W06-T06",
+      "packet_status": "t01_draft_blocked_t05_passed_wp_open",
+      "inspection_verdict": "BLOCKED_CANONICAL_ENUM_DECISIONS_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L2-W07",
+      "phase": "L2",
+      "title": "런타임 통합 테스트 체계(RTG-005 정렬)",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "command_status": "blocked_pending_runtime_integration_harness_and_predecessors",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l2-w07",
+      "terminal_tuw": "LT-L2-W07-T08",
+      "packet_status": "blocked_pending_runtime_integration_harness_and_predecessors",
+      "inspection_verdict": "BLOCKED_RUNTIME_INTEGRATION_SYSTEM_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W01",
+      "phase": "L3",
+      "title": "원격 저장소+백업 체계(push 전 라이선스 감사 선행)",
+      "gate_binding": [
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_human_signature",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w01",
+      "terminal_tuw": "LT-L3-W01-T05",
+      "packet_status": "blocked_pending_human_signature",
+      "inspection_verdict": "BLOCKED_HUMAN_LICENSE_SIGNATURE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W02",
+      "phase": "L3",
+      "title": "CI/CD·컨테이너·staging/production 파이프라인",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w02",
+      "terminal_tuw": "LT-L3-W02-T04",
+      "packet_status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+      "inspection_verdict": "BLOCKED_CICD_DEPLOYMENT_PIPELINE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W03",
+      "phase": "L3",
+      "title": "네트워크·신뢰 경계(TLS·프록시·CORS·비밀관리)",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w03",
+      "terminal_tuw": "LT-L3-W03-T04",
+      "packet_status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "inspection_verdict": "BLOCKED_NETWORK_TRUST_BOUNDARY_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W04",
+      "phase": "L3",
+      "title": "WORM Audit Store + 영속 스토어 군(Ledger·Index·Cache)",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w04",
+      "terminal_tuw": "LT-L3-W04-T04",
+      "packet_status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "inspection_verdict": "BLOCKED_WORM_AND_PERSISTENT_STORES_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W05",
+      "phase": "L3",
+      "title": "백업/DR(RPO/RTO 수치 합의·리허설)",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "command_status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w05",
+      "terminal_tuw": "LT-L3-W05-T05",
+      "packet_status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+      "inspection_verdict": "BLOCKED_RPO_RTO_APPROVAL_AND_RESTORE_REHEARSAL_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W06",
+      "phase": "L3",
+      "title": "모니터링/SLO(감사 체인 일일 검증 job 포함)",
+      "gate_binding": [
+        "G6",
+        "L3-EXIT"
+      ],
+      "command_status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w06",
+      "terminal_tuw": "LT-L3-W06-T05",
+      "packet_status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+      "inspection_verdict": "BLOCKED_MONITORING_STACK_RUNTIME_AND_ALERT_PROOF_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W07",
+      "phase": "L3",
+      "title": "Entra 앱 등록·Graph scope 확정·admin consent",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "blocker_categories": [
+        "external_dependency",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w07",
+      "terminal_tuw": "LT-L3-W07-T04",
+      "packet_status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "inspection_verdict": "BLOCKED_ENTRA_GRAPH_ADMIN_CONSENT_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W08",
+      "phase": "L3",
+      "title": "SharePoint/OneDrive 프로비저닝+file_ref 규약",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w08",
+      "terminal_tuw": "LT-L3-W08-T04",
+      "packet_status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "inspection_verdict": "BLOCKED_SHAREPOINT_FILE_REF_PROVISIONING_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W09",
+      "phase": "L3",
+      "title": "Outlook Add-in 배포 파이프라인(파일럿→전사 2단계)",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w09",
+      "terminal_tuw": "LT-L3-W09-T05",
+      "packet_status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+      "inspection_verdict": "BLOCKED_OUTLOOK_ADDIN_DEPLOYMENT_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L3-W10",
+      "phase": "L3",
+      "title": "SSO/MFA(조건부 액세스)+사용자↔Employee 매핑",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "command_status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l3-w10",
+      "terminal_tuw": "LT-L3-W10-T04",
+      "packet_status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+      "inspection_verdict": "BLOCKED_SSO_MFA_EMPLOYEE_MAPPING_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L4-W01",
+      "phase": "L4",
+      "title": "Wave 1 화면군 구축(Matter Home 외 6화면)",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "command_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "blocker_categories": [
+        "external_dependency",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l4-w01",
+      "terminal_tuw": "LT-L4-W01-T21",
+      "packet_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "inspection_verdict": "BLOCKED_RUNTIME_IMPLEMENTATION_SCOPE_STORAGE_AND_M365_DECISIONS_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L4-W02",
+      "phase": "L4",
+      "title": "wiring order 승격(contract-screen-map 0→5)",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "command_status": "blocked_pending_official_wiring_roadmap_live_client_runtime_and_gap_tracker",
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l4-w02",
+      "terminal_tuw": "LT-L4-W02-T05",
+      "packet_status": "blocked_pending_official_wiring_roadmap_live_client_runtime_and_gap_tracker",
+      "inspection_verdict": "BLOCKED_WIRING_ROADMAP_AND_LIVE_CLIENT_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L4-W03",
+      "phase": "L4",
+      "title": "패리티 제약 공식 해제 결정",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "command_status": "blocked_pending_owner_parity_release_decision_and_approval_signature",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l4-w03",
+      "terminal_tuw": "LT-L4-W03-T01",
+      "packet_status": "blocked_pending_owner_parity_release_decision_and_approval_signature",
+      "inspection_verdict": "BLOCKED_OWNER_PARITY_RELEASE_DECISION_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L4-W04",
+      "phase": "L4",
+      "title": "UI 회귀 테스트 체계",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "command_status": "t01_ui_harness_passed_t02_t03_t04_blocked_pending_w01_w02",
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l4-w04",
+      "terminal_tuw": "LT-L4-W04-T04",
+      "packet_status": "t01_ui_harness_passed_t02_t03_t04_blocked_pending_w01_w02",
+      "inspection_verdict": "PARTIAL_T01_PASS_REMAINDER_BLOCKED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L4-W05",
+      "phase": "L4",
+      "title": "i18n 정책+용어집·제품명 반영",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "command_status": "t01_i18n_policy_t02_glossary_t03_app_copy_audit_blocked_pending_owner_policy_and_source_cleanup",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l4-w05",
+      "terminal_tuw": "LT-L4-W05-T03",
+      "packet_status": "t01_i18n_policy_t02_glossary_t03_app_copy_audit_blocked_pending_owner_policy_and_source_cleanup",
+      "inspection_verdict": "BLOCKED_OWNER_I18N_POLICY_SOURCE_CLEANUP_AND_RENDERED_COPY_VALIDATION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L4-W06",
+      "phase": "L4",
+      "title": "교육 자료 원천 정리",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "command_status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l4-w06",
+      "terminal_tuw": "LT-L4-W06-T03",
+      "packet_status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+      "inspection_verdict": "BLOCKED_RUNTIME_VALIDATION_WALKTHROUGH_CAPTURES_AND_FINAL_LINK_CHECK_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W01",
+      "phase": "L5",
+      "title": "보안 Verification Gate 7항목 수락 테스트화",
+      "gate_binding": [
+        "G3",
+        "L5-EXIT"
+      ],
+      "command_status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w01",
+      "terminal_tuw": "LT-L5-W01-T10",
+      "packet_status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "inspection_verdict": "BLOCKED_SECURITY_ACCEPTANCE_SUITE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W02",
+      "phase": "L5",
+      "title": "Ethical Wall 5경로+emergency override 검증",
+      "gate_binding": [
+        "G3",
+        "L5-EXIT"
+      ],
+      "command_status": "blocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w02",
+      "terminal_tuw": "LT-L5-W02-T02",
+      "packet_status": "blocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls",
+      "inspection_verdict": "BLOCKED_ETHICAL_WALL_ACCEPTANCE_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W03",
+      "phase": "L5",
+      "title": "금지사항 5건·비목표 8건 우회 불가 검증",
+      "gate_binding": [
+        "G3",
+        "L5-EXIT"
+      ],
+      "command_status": "blocked_pending_bypass_test_suites_addin_scope_check_bypass_matrix_and_runtime_predecessors",
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w03",
+      "terminal_tuw": "LT-L5-W03-T05",
+      "packet_status": "blocked_pending_bypass_test_suites_addin_scope_check_bypass_matrix_and_runtime_predecessors",
+      "inspection_verdict": "BLOCKED_PROHIBITION_BYPASS_MATRIX_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W04",
+      "phase": "L5",
+      "title": "외부 침투테스트+PIPA 점검",
+      "gate_binding": [
+        "G3",
+        "G7",
+        "L5-EXIT"
+      ],
+      "command_status": "blocked_pending_external_pentest_roe_report_adjudication_pipa_review_and_evidence_map",
+      "blocker_categories": [
+        "external_dependency",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w04",
+      "terminal_tuw": "LT-L5-W04-T05",
+      "packet_status": "blocked_pending_external_pentest_roe_report_adjudication_pipa_review_and_evidence_map",
+      "inspection_verdict": "BLOCKED_EXTERNAL_PENTEST_AND_PIPA_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W05",
+      "phase": "L5",
+      "title": "감사 체인 운영 검증(WORM)",
+      "gate_binding": [
+        "G4",
+        "L5-EXIT"
+      ],
+      "command_status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w05",
+      "terminal_tuw": "LT-L5-W05-T02",
+      "packet_status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+      "inspection_verdict": "BLOCKED_OPERATIONAL_WORM_AUDIT_CHAIN_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W06",
+      "phase": "L5",
+      "title": "성능·부하 테스트+정량 수락 기준",
+      "gate_binding": [
+        "G4",
+        "L5-EXIT"
+      ],
+      "command_status": "t01_decision_brief_t02_harness_t03_report_draft_blocked_pending_owner_thresholds_staging_load_and_performance_verdict",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w06",
+      "terminal_tuw": "LT-L5-W06-T03",
+      "packet_status": "t01_decision_brief_t02_harness_t03_report_draft_blocked_pending_owner_thresholds_staging_load_and_performance_verdict",
+      "inspection_verdict": "BLOCKED_OWNER_THRESHOLDS_STAGING_LOAD_AND_PERFORMANCE_VERDICT_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L5-W07",
+      "phase": "L5",
+      "title": "장애 시나리오 리허설",
+      "gate_binding": [
+        "G4",
+        "L5-EXIT"
+      ],
+      "command_status": "blocked_pending_dr_runbooks_staging_rehearsals_rpo_rto_audit_verify_and_index_resync_evidence",
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l5-w07",
+      "terminal_tuw": "LT-L5-W07-T03",
+      "packet_status": "blocked_pending_dr_runbooks_staging_rehearsals_rpo_rto_audit_verify_and_index_resync_evidence",
+      "inspection_verdict": "BLOCKED_DR_REHEARSAL_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L6-W01",
+      "phase": "L6",
+      "title": "장애 대응 체계(S1~S4·SLA·incident runbook)",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "command_status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l6-w01",
+      "terminal_tuw": "LT-L6-W01-T03",
+      "packet_status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+      "inspection_verdict": "BLOCKED_INCIDENT_APPROVAL_STAFFING_MONITORING_AND_REHEARSAL_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L6-W02",
+      "phase": "L6",
+      "title": "지원 체계(채널·FAQ·권한 요청 절차)",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "command_status": "t01_permission_procedure_t02_faq_onboarding_drafts_blocked_pending_runtime_support_channel_and_training_source",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l6-w02",
+      "terminal_tuw": "LT-L6-W02-T02",
+      "packet_status": "t01_permission_procedure_t02_faq_onboarding_drafts_blocked_pending_runtime_support_channel_and_training_source",
+      "inspection_verdict": "BLOCKED_SUPPORT_CHANNEL_PERMISSION_DEMO_AND_TRAINING_SOURCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L6-W03",
+      "phase": "L6",
+      "title": "break-glass 런북",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "command_status": "t01_draft_blocked_pending_l1_w05_approval_governance_and_l5_w02_validation",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l6-w03",
+      "terminal_tuw": "LT-L6-W03-T02",
+      "packet_status": "t01_draft_blocked_pending_l1_w05_approval_governance_and_l5_w02_validation",
+      "inspection_verdict": "BLOCKED_BREAK_GLASS_APPROVAL_GOVERNANCE_AND_VALIDATION_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L6-W04",
+      "phase": "L6",
+      "title": "AI 인간검토 운영 준비(Wave 2 대비)",
+      "gate_binding": [
+        "G7",
+        "L6-EXIT"
+      ],
+      "command_status": "t01_reviewer_roster_decision_brief_t02_operations_draft_blocked_pending_owner_approval_sla_disable_authority_and_dry_run",
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l6-w04",
+      "terminal_tuw": "LT-L6-W04-T02",
+      "packet_status": "t01_reviewer_roster_decision_brief_t02_operations_draft_blocked_pending_owner_approval_sla_disable_authority_and_dry_run",
+      "inspection_verdict": "BLOCKED_AI_REVIEW_OWNER_APPROVAL_SLA_DISABLE_AUTHORITY_AND_DRY_RUN_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L6-W05",
+      "phase": "L6",
+      "title": "변경관리 절차",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "command_status": "t01_runbook_t02_tabletop_scaffold_blocked_pending_real_change_pipeline_deploy_regression_and_rollback_evidence",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l6-w05",
+      "terminal_tuw": "LT-L6-W05-T02",
+      "packet_status": "t01_runbook_t02_tabletop_scaffold_blocked_pending_real_change_pipeline_deploy_regression_and_rollback_evidence",
+      "inspection_verdict": "BLOCKED_REAL_CHANGE_CI_DEPLOY_REGRESSION_AND_ROLLBACK_EVIDENCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L6-W06",
+      "phase": "L6",
+      "title": "KPI 측정 인프라(PRD §7 7종)",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "command_status": "t01_definitions_t02_target_brief_t03_synthetic_collector_blocked_pending_staging_dashboard_targets_and_24h_refresh",
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l6-w06",
+      "terminal_tuw": "LT-L6-W06-T03",
+      "packet_status": "t01_definitions_t02_target_brief_t03_synthetic_collector_blocked_pending_staging_dashboard_targets_and_24h_refresh",
+      "inspection_verdict": "BLOCKED_KPI_TARGETS_STAGING_DASHBOARD_AND_24H_REFRESH_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L7-W01",
+      "phase": "L7",
+      "title": "인벤토리·매핑",
+      "gate_binding": [
+        "G8",
+        "L7-EXIT"
+      ],
+      "command_status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l7-w01",
+      "terminal_tuw": "LT-L7-W01-T10",
+      "packet_status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+      "inspection_verdict": "BLOCKED_L7_INVENTORY_MAPPING_ENTRY_AND_SOURCE_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L7-W02",
+      "phase": "L7",
+      "title": "시범 마이그레이션(dry-run·rollback 리허설)",
+      "gate_binding": [
+        "G8",
+        "L7-EXIT"
+      ],
+      "command_status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l7-w02",
+      "terminal_tuw": "LT-L7-W02-T06",
+      "packet_status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+      "inspection_verdict": "BLOCKED_PILOT_MIGRATION_DRYRUN_AND_ROLLBACK_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L7-W03",
+      "phase": "L7",
+      "title": "전체 백필+델타 전략(freeze 설계)",
+      "gate_binding": [
+        "G8",
+        "L7-EXIT"
+      ],
+      "command_status": "blocked_pending_gl_mig_02_delta_freeze_design_production_backfill_preflight_execution_verification_and_g8_package",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l7-w03",
+      "terminal_tuw": "LT-L7-W03-T07",
+      "packet_status": "blocked_pending_gl_mig_02_delta_freeze_design_production_backfill_preflight_execution_verification_and_g8_package",
+      "inspection_verdict": "BLOCKED_FULL_BACKFILL_DELTA_AND_G8_PACKAGE_EVIDENCE_ABSENT",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L7-W04",
+      "phase": "L7",
+      "title": "교육(파일럿 시작 전)",
+      "gate_binding": [
+        "L7-EXIT"
+      ],
+      "command_status": "t01_t02_t03_t04_training_package_templates_blocked_pending_l4_w01_l4_w06_staging_runtime_pilot_roster_sessions_and_100_percent_completion",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l7-w04",
+      "terminal_tuw": "LT-L7-W04-T04",
+      "packet_status": "t01_t02_t03_t04_training_package_templates_blocked_pending_l4_w01_l4_w06_staging_runtime_pilot_roster_sessions_and_100_percent_completion",
+      "inspection_verdict": "BLOCKED_RUNTIME_PILOT_ROSTER_TRAINING_SESSIONS_AND_COMPLETION_EVIDENCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L7-W05",
+      "phase": "L7",
+      "title": "파일럿 운영(2~4주, AI off)",
+      "gate_binding": [
+        "L7-EXIT"
+      ],
+      "command_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l7-w05",
+      "terminal_tuw": "LT-L7-W05-T04",
+      "packet_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "inspection_verdict": "BLOCKED_PILOT_READINESS_TELEMETRY_OPERATION_AND_ACCEPTANCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L7-W06",
+      "phase": "L7",
+      "title": "UAT(시나리오+Regression Map)",
+      "gate_binding": [
+        "L7-EXIT"
+      ],
+      "command_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l7-w06",
+      "terminal_tuw": "LT-L7-W06-T04",
+      "packet_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "inspection_verdict": "BLOCKED_UAT_RUNTIME_EXECUTION_RECONCILIATION_AND_OWNER_ACCEPTANCE_REQUIRED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L8-W02",
+      "phase": "L8",
+      "title": "G1~G10 게이트 증거 조립(게이트당 1 TUW)",
+      "gate_binding": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "L8-EXIT"
+      ],
+      "command_status": "blocked_current_gate_evidence_survey_recorded",
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l8-w02",
+      "terminal_tuw": "LT-L8-W02-T10",
+      "packet_status": "blocked_current_gate_evidence_survey_recorded",
+      "inspection_verdict": "BLOCKED_SURVEY_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L8-W03",
+      "phase": "L8",
+      "title": "컷오버 런북·go/no-go 운영·전사 개방",
+      "gate_binding": [
+        "G9",
+        "G10",
+        "L8-EXIT"
+      ],
+      "command_status": "blocked_cutover_templates_and_boundaries_recorded",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l8-w03",
+      "terminal_tuw": "LT-L8-W03-T07",
+      "packet_status": "blocked_cutover_templates_and_boundaries_recorded",
+      "inspection_verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L9-W01",
+      "phase": "L9",
+      "title": "하이퍼케어 체제(4주)",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "command_status": "blocked_hypercare_templates_recorded",
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l9-w01",
+      "terminal_tuw": "LT-L9-W01-T03",
+      "packet_status": "blocked_hypercare_templates_recorded",
+      "inspection_verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L9-W02",
+      "phase": "L9",
+      "title": "KPI 베이스라인 실측",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "command_status": "blocked_kpi_baseline_templates_recorded",
+      "blocker_categories": [
+        "policy_or_scope_decision"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l9-w02",
+      "terminal_tuw": "LT-L9-W02-T02",
+      "packet_status": "blocked_kpi_baseline_templates_recorded",
+      "inspection_verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L9-W03",
+      "phase": "L9",
+      "title": "레거시 소스 처분(동결→보존 연계 폐기)",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "command_status": "blocked_legacy_disposition_templates_recorded",
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l9-w03",
+      "terminal_tuw": "LT-L9-W03-T03",
+      "packet_status": "blocked_legacy_disposition_templates_recorded",
+      "inspection_verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L9-W04",
+      "phase": "L9",
+      "title": "Wave 2 개방 게이트(AI 활성화)",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "command_status": "t01_wave2_opening_gate_definition_draft_blocked_pending_l6_w04_external_ai_prerequisites_and_runtime_verdict",
+      "blocker_categories": [
+        "external_dependency",
+        "runtime_or_operational_evidence"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l9-w04",
+      "terminal_tuw": "LT-L9-W04-T03",
+      "packet_status": "blocked_wave2_gate_definition_and_verdict_recorded",
+      "inspection_verdict": "BLOCKED_GATE_DEFINITION_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    },
+    {
+      "wp_id": "LT-L9-W05",
+      "phase": "L9",
+      "title": "Wave 3 개방 게이트(Portal·HR·Obsidian 등)",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "command_status": "t01_wave3_opening_gate_definition_draft_blocked_pending_external_identity_hr_sensitivity_oq006_and_owner_signoff",
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency"
+      ],
+      "evidence_base": "docs/goal-closeout/lt-l9-w05",
+      "terminal_tuw": "LT-L9-W05-T02",
+      "packet_status": "blocked_wave3_gate_definition_and_verdict_recorded",
+      "inspection_verdict": "BLOCKED_GATE_DEFINITION_ACCEPTED",
+      "next_required_action": null,
+      "standard_evidence_files_present": {
+        "packet.json": true,
+        "command-evidence.json": true,
+        "claude-review-result.json": true,
+        "adjudication.md": true,
+        "construction-inspection.json": true
+      },
+      "owner_deferral_request_status": "not_approved_request_only",
+      "required_deferral_fields": [
+        "owner role/name",
+        "decision or deferral basis",
+        "target date or revisit gate",
+        "approval signature reference"
+      ]
+    }
+  ],
+  "recorded_work_packages": [
+    {
+      "wp_id": "LT-PRE-W07",
+      "phase": "PRE",
+      "title": "제품명 matter 전파",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "command_status": "passed",
+      "evidence_base": "docs/goal-closeout/lt-pre-w07"
+    },
+    {
+      "wp_id": "LT-L8-W01",
+      "phase": "L8",
+      "title": "go-live readiness 검증기+계약 구축",
+      "gate_binding": [
+        "G9",
+        "L8-EXIT"
+      ],
+      "command_status": "local_acceptance_satisfied_review_waived_go_live_not_approved",
+      "evidence_base": "docs/goal-closeout/lt-l8-w01"
+    }
+  ]
+}

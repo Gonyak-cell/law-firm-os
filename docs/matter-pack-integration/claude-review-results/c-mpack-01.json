@@ -1,0 +1,21 @@
+{
+  "overall_verdict": "PASS",
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "findings": [],
+  "notes": [
+    "All 25 source docs (00-24) present in workbook/matter_dev_docs and classified in §2.1; the combined doc matter_개발문서_통합본.md is correctly excluded as duplicate.",
+    "Actual ATX heading counts (^#{1,3} ) per doc match the §2.1 per-doc breakdown exactly and sum to 201; m365_doc08_rows=11 confirmed.",
+    "Each heading classified exactly once: rows run sequentially #1..#N per doc with no gaps or duplicates, N equals true heading count.",
+    "No h4+ headings (0 matches) and no malformed headings (0 matches), so h1-h3 scoping hides nothing; silent_omission_count=0 holds.",
+    "All classifications used are within the §2 allowed set; no out-of-vocabulary value.",
+    "Anchor faithfulness spot-checked on docs 04, 05, 08, 15, 18, 22 - all table anchors map to real headings in document order.",
+    "Freeze-table integrity secondary check: §1 line counts sum to 2,415 as claimed; docs 00 (68) and 11 (125) match actual lengths.",
+    "SHA256 values not verifiable with Read/Grep/Glob in read-only mode; the source index defers machine SHA re-verification to immediately before commit 1, so it is out of scope here.",
+    "Classification correctness (whether each disposition is the right one) is beyond this packet's completeness scope; this review confirms only single classification with an allowed value."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-080",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "0e45f139-3706-4602-afcc-d817bc466f76",
+    "uuid": "6772b03a-bfa9-462b-8141-ca6d691bbbe7",
+    "total_cost_usd": 1.0842255,
+    "duration_ms": 269526,
+    "permission_denials": []
+  },
+  "invalid_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "p0": [],
+    "p1": [],
+    "p2": [],
+    "p3": [
+      {
+        "id": "F1",
+        "severity": "P3",
+        "title": "Assembler output not asserted deep-equal to published fixture/contract result",
+        "status": "fixed",
+        "finding": "The assembler result was validated but not directly compared with the published fixture/contract result.",
+        "recommendation": "Fixed by adding the assembler matches published evidence test for CP00-080."
+      },
+      {
+        "id": "F2",
+        "severity": "P3",
+        "title": "command_evidence_ref validated only as nonblank string",
+        "status": "fixed",
+        "finding": "The result validator did not pin command_evidence_ref to docs/closeout-packs/cp00-080/command-evidence.json.",
+        "recommendation": "Fixed by adding the exact command_evidence_ref expectation to the result validator."
+      },
+      {
+        "id": "F3",
+        "severity": "P3",
+        "title": "Assembler upstream boundary-field checks not independently test-covered",
+        "status": "adjudicated_not_blocking",
+        "finding": "The CP00-080 assembler validates a strict CP00-079 result before redundant CP00-080 boundary checks, so override-based tests are caught upstream first.",
+        "recommendation": "Adjudicated as intentional defense-in-depth; the strict upstream validator and CP00-080 tests preserve fail-closed behavior without weakening the boundary."
+      }
+    ],
+    "required_fixes": [],
+    "notes": [
+      "Single valid CP00-080 Claude Opus 4.8 max read-only review completed with PASS_WITH_FINDINGS and no P0/P1/P2 findings.",
+      "P3 F1/F2 were fixed after review; P3 F3 was adjudicated as non-blocking defense-in-depth."
+    ]
+  },
+  "raw_result": "{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"findings\":[{\"id\":\"F1\",\"severity\":\"P3\"},{\"id\":\"F2\",\"severity\":\"P3\"},{\"id\":\"F3\",\"severity\":\"P3\"}]}",
+  "raw_output_ref": "Codex tool output for CP00-080 Claude review session 0e45f139-3706-4602-afcc-d817bc466f76; prompt at /tmp/cp00-080-review-prompt.txt"
+}

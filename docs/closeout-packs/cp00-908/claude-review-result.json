@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-908",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-908/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-908/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e554956d-48c4-48c3-9f01-5bc8389d1f31",
+    "uuid": "67484149-5c5d-4156-a838-3134078bf203",
+    "total_cost_usd": 2.16009775,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6417,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-908 binds the RP30 HRX AttendanceWorkflow tail (RP30.P02.M02.S03-RP30.P02.M02.S12, risk A, 10 implementation units) as descriptor-only evidence. Directly verified via Read/Grep/Glob: pack identity, range, unit_count, and binding chain (CP907->CP908->CP909, next_subphase RP30.P02.M02.S13) are consistent across manifest, review-baseline, live closeout-pack-plan.json, HRX_CP908_PACK_BINDING (registry.js:270), the generated contract, and the validate script (140-148). The descriptor is built from deep-frozen rows with every attendance runtime/write/real-data flag set false (registry.js:1017-1022) and spreads HRX_NO_WRITE_ATTESTATION (registry.js:2622); validators.js:1906-2015 rejects any drift in no-write, no-real-data, attendance-runtime-closed, authority-boundary, hermes/claude packet, capability, safety-gate, and no-leak-guard fields, and validateHrxPeopleContract pins latest_pack=CP00-908 (validators.js:2022-2023). Grep across packages/hrx/src and the validate script found zero write/exec/spawn/fetch/http/child_process primitives, confirming pure metadata + read-only validation. Three CP908 tests assert errors==[] and the descriptor-only boundaries (test/model.test.js:643-700). Authority boundary is honored: Claude is read-only reviewer (not final approver), Hermes packet emits_runtime_receipt=false (deterministic review evidence, not product runtime), and the manifest honestly claims production_ready=false, runtime_ready=false, descriptor_only, opens_runtime=false, writes_product_state=false, uses_real_client_data=false with no runtime or enterprise-trust over-claim. The pending adjudication/inspection/claude-review-result are expected placeholders awaiting this required review. One non-blocking informational finding: command-evidence.json records only an initial 6-command subset and self-notes the full closeout validation ladder + git diff --check must be re-run by the deterministic harness before commit, which a read-only reviewer cannot execute. No P0/P1/P2 findings; the hrx_attendance_workflow_tail_descriptor_verified claim is well-supported.",
+    "findings": [
+      {
+        "id": "CP00-908-P3-01",
+        "severity": "P3",
+        "title": "Full closeout validation ladder pending re-execution before commit (outside read-only purview)",
+        "file": "docs/closeout-packs/cp00-908/command-evidence.json",
+        "line": 17,
+        "details": "command-evidence.json records only an initial 6-command subset (hrx_syntax_check_initial, hrx_model_test_initial, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate), all exit_code 0, and its notes (line 49-52) explicitly state the full validation ladder must be re-run before commit. The prompt's required closeout ladder (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded as executed. As a read-only reviewer I cannot run Bash, so this final deterministic-harness gate evidence is pending and could not be directly confirmed. Implementation, descriptor, validator, and test inspection are all sound, so this is an evidence-provenance note, not an implementation defect.",
+        "recommendation": "Before commit, have the deterministic harness execute the full validation ladder and git diff --check, capturing exit codes into command-evidence.json, so the closeout receipt reflects the complete gate rather than the initial subset. No implementation change required.",
+        "post_review_disposition": "Non-blocking informational. By design this ladder is the deterministic harness's responsibility prior to commit (per command-evidence.json note), outside the read-only reviewer's purview; does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

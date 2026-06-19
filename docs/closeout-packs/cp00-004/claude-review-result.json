@@ -1,0 +1,57 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-004",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": [],
+    "session_id": "d0ef32d5-3237-49cf-9eac-4e48e8d734c3",
+    "uuid": "c9f093aa-d4c4-43f2-bc90-75f762f76090",
+    "total_cost_usd": 1.2347855,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "pass",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-004-P2-001",
+        "severity": "p2",
+        "file": "docs/closeout-packs/cp00-004/construction-inspection.json",
+        "line": 10,
+        "title": "Pack-level evidence still pending; full contract validator not yet captured",
+        "details": "Claude confirmed the implementation is in scope and internally consistent, while noting the expected pre-finalization state of pending inspection, adjudication, and command evidence.",
+        "required_action": "record this review, finalize pack evidence, run RP00 validator green before commit"
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-004.",
+    "Raw P2 CP00-004-P2-001 is handled by finalizing the pack evidence, adjudication, construction inspection, and requiring closeout-pack plus RP00 validators before commit.",
+    "No unresolved P0, P1, or P2 findings remain after adjudication."
+  ]
+}

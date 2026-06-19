@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-282",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T21:50:32.341Z",
+  "finished_at": "2026-06-10T21:55:12.868Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":279885,\"duration_api_ms\":280559,\"ttft_ms\":3165,\"num_turns\":40,\"result\":\"Review complete. **Verdict: PASS** — CP00-282 does not block pack or goal closeout, with no unresolved P0/P1 findings (zero findings at any severity).\\n\\nThe descriptor-only pack is internally consistent and honestly scoped: it correctly reports `production_ready: false` (preserving the gate rather than weakening it), keeps Claude as a read-only non-final-approver, uses Hermes patterns only for descriptor evidence (not product runtime), and enforces no-write/no-real-data boundaries that are validated by both the test suite and the validator script (via `deepEqual` to the source registry). CP178+ review hardening is in place, all 20 gate commands passed, and the changed-file scope is accurate. Final approval remains with the human per the stated authority boundary.\",\"stop_reason\":\"end_turn\",\"session_id\":\"4f5ed445-60c5-4125-af5d-fca284c9988e\",\"total_cost_usd\":2.55541075,\"usage\":{\"input_tokens\":3102,\"cache_creation_input_tokens\":105203,\"cache_read_input_tokens\":2748562,\"output_tokens\":20274,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":105203,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":315,\"cache_read_input_tokens\":141498,\"cache_creation_input_tokens\":3187,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3187},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1151,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001251,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3102,\"outputTokens\":20274,\"cacheReadInputTokens\":2748562,\"cacheCreationInputTokens\":105203,\"webSearchRequests\":0,\"costUSD\":2.55415975,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-282 is a descriptor-only RP08 Email/Office-Native DMS closeout pack (150 units, risk C, range RP08.P03.M06.S13-RP08.P04.M03.S20) that closes the RP08.P03 descriptor scope and opens P04 UI foundation descriptors. Read-only review (Read/Grep/Glob) of the review packet, changed-file scope, registry/service/validators source, test suite, contract, validator script, manifest, and live plan found the pack internally consistent and the pack-level claims honestly scoped. The pack does NOT claim production_ready=true: manifest.json and command-evidence.json both set production_ready:false with status implemented_pending_review / pending_final_closeout, so the production_ready gate is preserved rather than weakened. The authority boundary holds: descriptor.authority_boundary.claude_is_final_approval=false, no_write_attestation.promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false, with allowed Claude tools limited to Read/Grep/Glob — all asserted by the validator (deepEqual to source registry) and the test suite. Hermes patterns are descriptor-only (emits_hermes_runtime_receipt:false, all dispatch/runtime flags false; receipt shape descriptor_only_no_write), not product runtime. No-write/no-real-data boundaries are comprehensively enforced (no_real_data:true, writes_product_state:false, loads_real_fixture_data:false, synthetic_only:true). CP178+ review hardening is present: forbidden_review_evidence covers auth failures, zero-byte output, malformed JSON, fenced JSON, tool-call-shaped output, and missing required fields; readiness report shows auth preflight passed (exit 0, 1436-byte stdout) with no invalid attempts for this pack. Internal consistency verified: deliverable counts, phase counts (80+70), and micro-title counts each sum to 150; first/last unit IDs, source_ledger_sha, and next-pack pointers (CP00-283 / RP08.P04.M03.S21) match across baseline, manifest, contract, registry, and the live plan where CP00-282 sits at the queue head. Changed-file scope is accurate and unrelated dirty files are correctly excluded. All 20 recorded gate commands exit 0. No findings at any severity. This PASS is a read-only reviewer recommendation; human final approval is retained per the authority boundary.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"139ef5f5-4ec4-4197-9b2f-4921b3f1f119\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4732,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "4f5ed445-60c5-4125-af5d-fca284c9988e",
+    "uuid": "139ef5f5-4ec4-4197-9b2f-4921b3f1f119",
+    "total_cost_usd": 2.55541075,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

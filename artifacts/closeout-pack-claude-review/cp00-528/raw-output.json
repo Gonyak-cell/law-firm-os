@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-528",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T16:38:01.439Z",
+  "finished_at": "2026-06-12T16:44:16.441Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":374445,\"duration_api_ms\":375185,\"ttft_ms\":4647,\"num_turns\":53,\"result\":\"PASS — CP00-528 reviewed clean with zero findings. The descriptor-only AI-governance implementation-slice pack is internally consistent across registry binding, requirements, service/validator code, contract projection, tests, and plan; no-write/no-real-data and read-only-reviewer/authority boundaries all hold; production_ready/runtime_ready remain correctly false (gate not weakened). Pack does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d342d7c2-2503-4b4b-a0fd-65f925b458be\",\"total_cost_usd\":2.4372967500000002,\"usage\":{\"input_tokens\":62,\"cache_creation_input_tokens\":112513,\"cache_read_input_tokens\":2130593,\"output_tokens\":26692,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":112513,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":179,\"cache_read_input_tokens\":110165,\"cache_creation_input_tokens\":3238,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3238},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1079,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011840000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":62,\"outputTokens\":26692,\"cacheReadInputTokens\":2130593,\"cacheCreationInputTokens\":112513,\"webSearchRequests\":0,\"costUSD\":2.43611275,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-528 is a clean, descriptor-only AI-governance (RP17.P04.M03.S09–S18) implementation-slice pack that passes independent read-only review. Pack binding (registry.js:239), requirements/deliverable distribution (registry.js:1342: security_audit 2, implementation 3, ui 2, fixture 1, test 1, hermes_evidence 1 = 10), descriptor/case-set builders (service.js:1849,1882), validators (validators.js:2650,2685), the contract projection (ai-governance-core-contract.json current_pack:16, descriptor:14078, requirements:2529, historical tail:14635), tests (model.test.js:975–1023), the plan pack (closeout-pack-plan.json:407), and next-pack-queue all agree with the stated baseline and with each other. The descriptor builders are pure frozen-object construction wrapped by freezeCp528Result, which stamps every no-write/no-runtime/no-real-data attestation; no child_process/fetch/fs-write/network/process.env appears in the source modules, so the no-write and no-real-data boundaries hold. Security/audit rows (permission_badge, audit_hint_display) remain descriptor-only with permission_decision_detail/audit_event_body/blocked_claim leak guards. The validate script (validate-rp17…mjs:346–819) deep-equals the stored contract projection against the freshly built descriptor and asserts coverage.valid, descriptor-only rows, handoff to CP00-529/S19, and that Claude is not promoted to final approval and local validation does not claim enterprise trust. Authority boundary is intact: Claude is read-only (Read/Grep/Glob), not the final approver; Hermes patterns are confined to deterministic review-packet/receipt descriptors (emits_hermes_runtime_receipt=false), not product runtime. The pack does not overclaim — manifest production_ready=false and runtime_ready=false, so the production_ready gate is preserved rather than weakened. CP178+ hardening is satisfied: the readiness auth-preflight passed with valid non-empty JSON (exit 0, 1436-byte stdout), and changed-file-scope correctly isolates unrelated dirty UI/workbook files. Downstream artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are appropriately absent because they are gated on this review. No P0/P1/P2/P3 defects were identified; the pack is clear to proceed to normalization, receipt validation, adjudication, construction inspection, final closeout validation, and commit.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"2d50aa36-83f4-423d-b626-43ad3e804206\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4518,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d342d7c2-2503-4b4b-a0fd-65f925b458be",
+    "uuid": "2d50aa36-83f4-423d-b626-43ad3e804206",
+    "total_cost_usd": 2.4372967500000002,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

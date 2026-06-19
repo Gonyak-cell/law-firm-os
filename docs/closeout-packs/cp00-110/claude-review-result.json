@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-110",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-110-claude-review-output-valid.json",
+    "session_id": "558c3471-7c8b-4e4e-8958-db3f52e5510d",
+    "uuid": "54d8f72e-704d-4185-ad84-6e6fbd083731",
+    "duration_ms": 117908,
+    "duration_api_ms": 119649,
+    "total_cost_usd": 0.4899442499999999,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "SERVICE_TITLES template is index-cycled per micro-phase, producing repeated placeholder titles across phases",
+        "file": "packages/authz/src/service-workflow.js",
+        "evidence": "buildRowsFor() sets title = SERVICE_TITLES[index - 1]; RP02.P02.M04 starts at start_index 7 (\"Primary happy path\") while RP02.P02.M05 and RP02.P02.M06 start at index 1 (\"Service entrypoint contract\"), so titles like \"Service entrypoint contract\" and \"State transition enforcement\" recur in multiple micro-phases (distinct catalog_id and source_unit_ids).",
+        "recommendation": "No action required for closeout; titles are synthetic catalog stand-ins, not literal unit descriptions. Optionally note this in README so future readers do not treat per-row titles as authoritative unit names."
+      },
+      {
+        "severity": "P3",
+        "title": "Matter-trace precheck only blocks when both matter ids are present",
+        "file": "packages/authz/src/service-workflow.js",
+        "evidence": "executePermissionKernelCp110Workflow gates with `if (normalized.matter_id && normalized.resource.matter_id && normalized.matter_id !== normalized.resource.matter_id)`; a null on either side bypasses the drift check, though normalize defaults can produce null resource.matter_id.",
+        "recommendation": "Acceptable for synthetic, evaluation-only scope (cannot compare a missing matter). Tighten in RP03+ if real matter binding is enforced; the matter_trace_blocks_before_permission_evaluation boundary is otherwise satisfied for the both-present case and covered by tests."
+      }
+    ],
+    "recommendation": "Approve and close CP00-110.",
+    "rationale": "All in-scope requirements are met. evaluatePermission() is invoked only after synthetic, tenant-boundary, and matter-trace guards pass; non-synthetic, cross-tenant, and matter-drift requests return status blocked_before_permission_evaluation with evaluator_invoked=false. decision_routes map allow/deny/review_required/approval_required to completed_metadata_only/blocked_claim_output/review_required_routing/approval_required_routing in both the contract JSON and source, and match the executed-workflow tests. Idempotency, lock, persistence, rollback, and retry are emitted as metadata-only receipts (persisted/acquired/executed=false, mode metadata_only|reference_only); audit_hint is preview_only_until_rp03 with emitted_to_audit_ledger=false. The no_write_attestation (source and contract) sets all 15 flags false, including writes_audit_event, writes_product_state, creates_database_rows, executes_ai_retrieval, executes_export_download, executes_external_share, executes_claude_review, and implements_ldip; no actual write, share, export, AI, or LDIP code is present. HRX stays embedded (hrx_embedded_boundary='embedded_people_hr_evidence_module_inside_law_firm_os'). Coverage is 40 units RP02.P02.M04.S07 to RP02.P02.M06.S02 (16/22/2 across M04/M05/M06) with deliverable counts (contract 2, implementation 16, security_audit 2, ui 6, claude_review 2, failure_recovery 4, test 8) matching validators, and handoff is fixed to CP00-111 / RP02.P02.M06.S03. The two P3 items are cosmetic/non-blocking.",
+    "notes": [
+      "No P0/P1/P2 findings were reported by the valid CP00-110 pack-level Claude review.",
+      "P3 finding about repeated service template titles was documented in packages/authz/README.md.",
+      "P3 finding about missing matter trace handling was fixed by fail-closed normalization plus tests and validator assertions.",
+      "No second valid Claude review was run."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [],
+    "p3_fixed_or_documented": [
+      {
+        "title": "SERVICE_TITLES template is index-cycled per micro-phase, producing repeated placeholder titles across phases",
+        "disposition": "documented_in_readme_as_synthetic_template_label_behavior",
+        "evidence_refs": [
+          "packages/authz/README.md"
+        ]
+      },
+      {
+        "title": "Matter-trace precheck only blocks when both matter ids are present",
+        "disposition": "fixed_by_fail_closed_matter_trace_normalization_and_validation",
+        "evidence_refs": [
+          "packages/authz/src/service-workflow.js",
+          "packages/authz/test/authz.test.js",
+          "scripts/validate-rp02-permission-kernel-contract.mjs"
+        ]
+      }
+    ],
+    "no_second_valid_review_run": true
+  }
+}

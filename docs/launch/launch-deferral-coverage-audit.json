@@ -1,0 +1,1676 @@
+{
+  "schema_version": "law-firm-os.launch-deferral-coverage-audit.v0.1",
+  "generated_at": "2026-06-18T15:56:12.657Z",
+  "source_refs": [
+    "docs/launch/launch-decision-register.md",
+    "docs/launch/launch-decision-register-validation.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-phase-exit-readiness-audit.json",
+    "docs/launch/launch-evidence-acceptance-matrix.json",
+    "docs/launch/owner-action-deferral-request.json",
+    "docs/launch/launch-closure-dependency-graph.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "validates_deferral_coverage_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_created_or_approved_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "valid_deferred_decision_count": 0,
+    "coverage_eligible_valid_deferred_decision_count": 0,
+    "non_coverage_valid_deferred_decision_count": 0,
+    "all_required_deferrals_covered": false,
+    "go_live_deferral_coverage_complete": false,
+    "l9_deferral_coverage_complete": false,
+    "blocked_wp_deferral_coverage_complete": false,
+    "phase_exit_deferral_coverage_complete": false,
+    "go_live_missing_deferral_count": 31,
+    "l9_missing_deferral_count": 5,
+    "blocked_wp_missing_deferral_count": 70,
+    "phase_exit_missing_deferral_count": 11,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "coverage_domains": [
+    {
+      "domain": "go_live_gate_evidence",
+      "total": 31,
+      "covered": 0,
+      "missing": 31,
+      "complete": false
+    },
+    {
+      "domain": "l9_stabilization_closure",
+      "total": 5,
+      "covered": 0,
+      "missing": 5,
+      "complete": false
+    },
+    {
+      "domain": "blocked_work_package",
+      "total": 70,
+      "covered": 0,
+      "missing": 70,
+      "complete": false
+    },
+    {
+      "domain": "phase_exit",
+      "total": 11,
+      "covered": 0,
+      "missing": 11,
+      "complete": false
+    }
+  ],
+  "coverage_rows": {
+    "go_live_gate_evidence": [
+      {
+        "coverage_id": "ACC-GL-G1-G1-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G1",
+        "evidence_id": "G1-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G1-G1-E02",
+          "COVERAGE-GATE-G1",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G1-G1-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G1",
+        "evidence_id": "G1-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G1-G1-E03",
+          "COVERAGE-GATE-G1",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G2-G2-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G2",
+        "evidence_id": "G2-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G2-G2-E01",
+          "COVERAGE-GATE-G2",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G2-G2-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G2",
+        "evidence_id": "G2-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G2-G2-E02",
+          "COVERAGE-GATE-G2",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G2-G2-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G2",
+        "evidence_id": "G2-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G2-G2-E03",
+          "COVERAGE-GATE-G2",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G3-G3-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G3",
+        "evidence_id": "G3-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G3-G3-E01",
+          "COVERAGE-GATE-G3",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G3-G3-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G3",
+        "evidence_id": "G3-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G3-G3-E02",
+          "COVERAGE-GATE-G3",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G3-G3-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G3",
+        "evidence_id": "G3-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G3-G3-E03",
+          "COVERAGE-GATE-G3",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G3-G3-E04",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G3",
+        "evidence_id": "G3-E04",
+        "accepted_decision_ids": [
+          "ACC-GL-G3-G3-E04",
+          "COVERAGE-GATE-G3",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G4-G4-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G4",
+        "evidence_id": "G4-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G4-G4-E01",
+          "COVERAGE-GATE-G4",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G4-G4-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G4",
+        "evidence_id": "G4-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G4-G4-E02",
+          "COVERAGE-GATE-G4",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G4-G4-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G4",
+        "evidence_id": "G4-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G4-G4-E03",
+          "COVERAGE-GATE-G4",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G4-G4-E04",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G4",
+        "evidence_id": "G4-E04",
+        "accepted_decision_ids": [
+          "ACC-GL-G4-G4-E04",
+          "COVERAGE-GATE-G4",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G5-G5-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G5",
+        "evidence_id": "G5-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G5-G5-E01",
+          "COVERAGE-GATE-G5",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G5-G5-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G5",
+        "evidence_id": "G5-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G5-G5-E02",
+          "COVERAGE-GATE-G5",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G5-G5-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G5",
+        "evidence_id": "G5-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G5-G5-E03",
+          "COVERAGE-GATE-G5",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G6-G6-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G6",
+        "evidence_id": "G6-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G6-G6-E01",
+          "COVERAGE-GATE-G6",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G6-G6-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G6",
+        "evidence_id": "G6-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G6-G6-E02",
+          "COVERAGE-GATE-G6",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G6-G6-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G6",
+        "evidence_id": "G6-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G6-G6-E03",
+          "COVERAGE-GATE-G6",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G6-G6-E04",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G6",
+        "evidence_id": "G6-E04",
+        "accepted_decision_ids": [
+          "ACC-GL-G6-G6-E04",
+          "COVERAGE-GATE-G6",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G7-G7-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G7",
+        "evidence_id": "G7-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G7-G7-E01",
+          "COVERAGE-GATE-G7",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G7-G7-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G7",
+        "evidence_id": "G7-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G7-G7-E02",
+          "COVERAGE-GATE-G7",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G7-G7-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G7",
+        "evidence_id": "G7-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G7-G7-E03",
+          "COVERAGE-GATE-G7",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G8-G8-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G8",
+        "evidence_id": "G8-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G8-G8-E01",
+          "COVERAGE-GATE-G8",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G8-G8-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G8",
+        "evidence_id": "G8-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G8-G8-E02",
+          "COVERAGE-GATE-G8",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G8-G8-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G8",
+        "evidence_id": "G8-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G8-G8-E03",
+          "COVERAGE-GATE-G8",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G9-G9-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G9",
+        "evidence_id": "G9-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G9-G9-E01",
+          "COVERAGE-GATE-G9",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G9-G9-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G9",
+        "evidence_id": "G9-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G9-G9-E03",
+          "COVERAGE-GATE-G9",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G10-G10-E01",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G10",
+        "evidence_id": "G10-E01",
+        "accepted_decision_ids": [
+          "ACC-GL-G10-G10-E01",
+          "COVERAGE-GATE-G10",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G10-G10-E02",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G10",
+        "evidence_id": "G10-E02",
+        "accepted_decision_ids": [
+          "ACC-GL-G10-G10-E02",
+          "COVERAGE-GATE-G10",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-GL-G10-G10-E03",
+        "domain": "go_live_gate_evidence",
+        "gate_id": "G10",
+        "evidence_id": "G10-E03",
+        "accepted_decision_ids": [
+          "ACC-GL-G10-G10-E03",
+          "COVERAGE-GATE-G10",
+          "COVERAGE-ALL-GO-LIVE"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      }
+    ],
+    "l9_stabilization_closure": [
+      {
+        "coverage_id": "ACC-L9-C01",
+        "domain": "l9_stabilization_closure",
+        "intake_id": "L9-C01",
+        "closure_criterion": "Last 14 days P0/P1 count equals zero",
+        "accepted_decision_ids": [
+          "ACC-L9-C01",
+          "COVERAGE-L9-STABILIZATION"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-L9-C02",
+        "domain": "l9_stabilization_closure",
+        "intake_id": "L9-C02",
+        "closure_criterion": "Four consecutive weeks SLO met",
+        "accepted_decision_ids": [
+          "ACC-L9-C02",
+          "COVERAGE-L9-STABILIZATION"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-L9-C03",
+        "domain": "l9_stabilization_closure",
+        "intake_id": "L9-C03",
+        "closure_criterion": "Four weeks audit completeness green",
+        "accepted_decision_ids": [
+          "ACC-L9-C03",
+          "COVERAGE-L9-STABILIZATION"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-L9-C04",
+        "domain": "l9_stabilization_closure",
+        "intake_id": "L9-C04",
+        "closure_criterion": "Every incident has post-analysis link",
+        "accepted_decision_ids": [
+          "ACC-L9-C04",
+          "COVERAGE-L9-STABILIZATION"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "ACC-L9-C05",
+        "domain": "l9_stabilization_closure",
+        "intake_id": "L9-C05",
+        "closure_criterion": "Owner signoff",
+        "accepted_decision_ids": [
+          "ACC-L9-C05",
+          "COVERAGE-L9-STABILIZATION"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      }
+    ],
+    "blocked_work_package": [
+      {
+        "coverage_id": "WP-LT-PRE-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-PRE-W01",
+        "phase": "PRE",
+        "command_status": "blocked_pending_owner_ratification",
+        "accepted_decision_ids": [
+          "WP-LT-PRE-W01",
+          "COVERAGE-PHASE-PRE",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-PRE-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-PRE-W02",
+        "phase": "PRE",
+        "command_status": "blocked_missed_cp_interleave_window",
+        "accepted_decision_ids": [
+          "WP-LT-PRE-W02",
+          "COVERAGE-PHASE-PRE",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-PRE-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-PRE-W03",
+        "phase": "PRE",
+        "command_status": "blocked_pending_storage_decision",
+        "accepted_decision_ids": [
+          "WP-LT-PRE-W03",
+          "COVERAGE-PHASE-PRE",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-PRE-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-PRE-W04",
+        "phase": "PRE",
+        "command_status": "blocked_pending_owner_disposition",
+        "accepted_decision_ids": [
+          "WP-LT-PRE-W04",
+          "COVERAGE-PHASE-PRE",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-PRE-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-PRE-W05",
+        "phase": "PRE",
+        "command_status": "blocked_pending_mat_dec_08",
+        "accepted_decision_ids": [
+          "WP-LT-PRE-W05",
+          "COVERAGE-PHASE-PRE",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-PRE-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-PRE-W06",
+        "phase": "PRE",
+        "command_status": "blocked_pending_external_actions",
+        "accepted_decision_ids": [
+          "WP-LT-PRE-W06",
+          "COVERAGE-PHASE-PRE",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L0-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L0-W01",
+        "phase": "L0",
+        "command_status": "blocked_pending_human_acceptance",
+        "accepted_decision_ids": [
+          "WP-LT-L0-W01",
+          "COVERAGE-PHASE-L0",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L0-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L0-W02",
+        "phase": "L0",
+        "command_status": "blocked_pending_human_approval",
+        "accepted_decision_ids": [
+          "WP-LT-L0-W02",
+          "COVERAGE-PHASE-L0",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L0-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L0-W03",
+        "phase": "L0",
+        "command_status": "blocked_pending_owner_rejudgment",
+        "accepted_decision_ids": [
+          "WP-LT-L0-W03",
+          "COVERAGE-PHASE-L0",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L0-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L0-W04",
+        "phase": "L0",
+        "command_status": "blocked_pending_human_acceptance",
+        "accepted_decision_ids": [
+          "WP-LT-L0-W04",
+          "COVERAGE-PHASE-L0",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L0-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L0-W05",
+        "phase": "L0",
+        "command_status": "blocked_pending_owner_ratification_and_cell_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L0-W05",
+          "COVERAGE-PHASE-L0",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W01",
+        "phase": "L1",
+        "command_status": "t01_passed_wp_open",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W01",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W02",
+        "phase": "L1",
+        "command_status": "decision_round_brief_blocked_pending_owner_decisions",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W02",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W03",
+        "phase": "L1",
+        "command_status": "t01_draft_blocked_pending_external_legal_review_result",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W03",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W04",
+        "phase": "L1",
+        "command_status": "t01_t02_passed_wp_open_pending_human_ratification",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W04",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W05",
+        "phase": "L1",
+        "command_status": "t01_brief_blocked_pending_owner_approval",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W05",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W06",
+        "phase": "L1",
+        "command_status": "decision_brief_blocked_pending_owner_hosting_decision",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W06",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W07",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W07",
+        "phase": "L1",
+        "command_status": "draft_completed_pending_l1_w06_quotes",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W07",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W08",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W08",
+        "phase": "L1",
+        "command_status": "draft_completed_pending_l0_w02_approval",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W08",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W09",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W09",
+        "phase": "L1",
+        "command_status": "t01_passed_wp_open_pending_human_authority_decision",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W09",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L1-W10",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L1-W10",
+        "phase": "L1",
+        "command_status": "draft_completed_pending_l1_w01_scope_decision",
+        "accepted_decision_ids": [
+          "WP-LT-L1-W10",
+          "COVERAGE-PHASE-L1",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W01",
+        "phase": "L2",
+        "command_status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W01",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W02",
+        "phase": "L2",
+        "command_status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W02",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W03",
+        "phase": "L2",
+        "command_status": "blocked_pending_l2_w01_w02_and_write_runtime",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W03",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W04",
+        "phase": "L2",
+        "command_status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W04",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W05",
+        "phase": "L2",
+        "command_status": "blocked_pending_runtime_risk_controls_and_predecessors",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W05",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W06",
+        "phase": "L2",
+        "command_status": "t01_draft_blocked_t05_passed_wp_open",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W06",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L2-W07",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L2-W07",
+        "phase": "L2",
+        "command_status": "blocked_pending_runtime_integration_harness_and_predecessors",
+        "accepted_decision_ids": [
+          "WP-LT-L2-W07",
+          "COVERAGE-PHASE-L2",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W01",
+        "phase": "L3",
+        "command_status": "blocked_pending_human_signature",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W01",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W02",
+        "phase": "L3",
+        "command_status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W02",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W03",
+        "phase": "L3",
+        "command_status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W03",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W04",
+        "phase": "L3",
+        "command_status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W04",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W05",
+        "phase": "L3",
+        "command_status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W05",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W06",
+        "phase": "L3",
+        "command_status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W06",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W07",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W07",
+        "phase": "L3",
+        "command_status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W07",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W08",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W08",
+        "phase": "L3",
+        "command_status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W08",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W09",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W09",
+        "phase": "L3",
+        "command_status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W09",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L3-W10",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L3-W10",
+        "phase": "L3",
+        "command_status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L3-W10",
+          "COVERAGE-PHASE-L3",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L4-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L4-W01",
+        "phase": "L4",
+        "command_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+        "accepted_decision_ids": [
+          "WP-LT-L4-W01",
+          "COVERAGE-PHASE-L4",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L4-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L4-W02",
+        "phase": "L4",
+        "command_status": "blocked_pending_official_wiring_roadmap_live_client_runtime_and_gap_tracker",
+        "accepted_decision_ids": [
+          "WP-LT-L4-W02",
+          "COVERAGE-PHASE-L4",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L4-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L4-W03",
+        "phase": "L4",
+        "command_status": "blocked_pending_owner_parity_release_decision_and_approval_signature",
+        "accepted_decision_ids": [
+          "WP-LT-L4-W03",
+          "COVERAGE-PHASE-L4",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L4-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L4-W04",
+        "phase": "L4",
+        "command_status": "t01_ui_harness_passed_t02_t03_t04_blocked_pending_w01_w02",
+        "accepted_decision_ids": [
+          "WP-LT-L4-W04",
+          "COVERAGE-PHASE-L4",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L4-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L4-W05",
+        "phase": "L4",
+        "command_status": "t01_i18n_policy_t02_glossary_t03_app_copy_audit_blocked_pending_owner_policy_and_source_cleanup",
+        "accepted_decision_ids": [
+          "WP-LT-L4-W05",
+          "COVERAGE-PHASE-L4",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L4-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L4-W06",
+        "phase": "L4",
+        "command_status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+        "accepted_decision_ids": [
+          "WP-LT-L4-W06",
+          "COVERAGE-PHASE-L4",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W01",
+        "phase": "L5",
+        "command_status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W01",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W02",
+        "phase": "L5",
+        "command_status": "blocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W02",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W03",
+        "phase": "L5",
+        "command_status": "blocked_pending_bypass_test_suites_addin_scope_check_bypass_matrix_and_runtime_predecessors",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W03",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W04",
+        "phase": "L5",
+        "command_status": "blocked_pending_external_pentest_roe_report_adjudication_pipa_review_and_evidence_map",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W04",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W05",
+        "phase": "L5",
+        "command_status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W05",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W06",
+        "phase": "L5",
+        "command_status": "t01_decision_brief_t02_harness_t03_report_draft_blocked_pending_owner_thresholds_staging_load_and_performance_verdict",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W06",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L5-W07",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L5-W07",
+        "phase": "L5",
+        "command_status": "blocked_pending_dr_runbooks_staging_rehearsals_rpo_rto_audit_verify_and_index_resync_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L5-W07",
+          "COVERAGE-PHASE-L5",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L6-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L6-W01",
+        "phase": "L6",
+        "command_status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+        "accepted_decision_ids": [
+          "WP-LT-L6-W01",
+          "COVERAGE-PHASE-L6",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L6-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L6-W02",
+        "phase": "L6",
+        "command_status": "t01_permission_procedure_t02_faq_onboarding_drafts_blocked_pending_runtime_support_channel_and_training_source",
+        "accepted_decision_ids": [
+          "WP-LT-L6-W02",
+          "COVERAGE-PHASE-L6",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L6-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L6-W03",
+        "phase": "L6",
+        "command_status": "t01_draft_blocked_pending_l1_w05_approval_governance_and_l5_w02_validation",
+        "accepted_decision_ids": [
+          "WP-LT-L6-W03",
+          "COVERAGE-PHASE-L6",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L6-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L6-W04",
+        "phase": "L6",
+        "command_status": "t01_reviewer_roster_decision_brief_t02_operations_draft_blocked_pending_owner_approval_sla_disable_authority_and_dry_run",
+        "accepted_decision_ids": [
+          "WP-LT-L6-W04",
+          "COVERAGE-PHASE-L6",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L6-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L6-W05",
+        "phase": "L6",
+        "command_status": "t01_runbook_t02_tabletop_scaffold_blocked_pending_real_change_pipeline_deploy_regression_and_rollback_evidence",
+        "accepted_decision_ids": [
+          "WP-LT-L6-W05",
+          "COVERAGE-PHASE-L6",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L6-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L6-W06",
+        "phase": "L6",
+        "command_status": "t01_definitions_t02_target_brief_t03_synthetic_collector_blocked_pending_staging_dashboard_targets_and_24h_refresh",
+        "accepted_decision_ids": [
+          "WP-LT-L6-W06",
+          "COVERAGE-PHASE-L6",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L7-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L7-W01",
+        "phase": "L7",
+        "command_status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+        "accepted_decision_ids": [
+          "WP-LT-L7-W01",
+          "COVERAGE-PHASE-L7",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L7-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L7-W02",
+        "phase": "L7",
+        "command_status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+        "accepted_decision_ids": [
+          "WP-LT-L7-W02",
+          "COVERAGE-PHASE-L7",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L7-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L7-W03",
+        "phase": "L7",
+        "command_status": "blocked_pending_gl_mig_02_delta_freeze_design_production_backfill_preflight_execution_verification_and_g8_package",
+        "accepted_decision_ids": [
+          "WP-LT-L7-W03",
+          "COVERAGE-PHASE-L7",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L7-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L7-W04",
+        "phase": "L7",
+        "command_status": "t01_t02_t03_t04_training_package_templates_blocked_pending_l4_w01_l4_w06_staging_runtime_pilot_roster_sessions_and_100_percent_completion",
+        "accepted_decision_ids": [
+          "WP-LT-L7-W04",
+          "COVERAGE-PHASE-L7",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L7-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L7-W05",
+        "phase": "L7",
+        "command_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+        "accepted_decision_ids": [
+          "WP-LT-L7-W05",
+          "COVERAGE-PHASE-L7",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L7-W06",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L7-W06",
+        "phase": "L7",
+        "command_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+        "accepted_decision_ids": [
+          "WP-LT-L7-W06",
+          "COVERAGE-PHASE-L7",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L8-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L8-W02",
+        "phase": "L8",
+        "command_status": "blocked_current_gate_evidence_survey_recorded",
+        "accepted_decision_ids": [
+          "WP-LT-L8-W02",
+          "COVERAGE-PHASE-L8",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L8-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L8-W03",
+        "phase": "L8",
+        "command_status": "blocked_cutover_templates_and_boundaries_recorded",
+        "accepted_decision_ids": [
+          "WP-LT-L8-W03",
+          "COVERAGE-PHASE-L8",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L9-W01",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L9-W01",
+        "phase": "L9",
+        "command_status": "blocked_hypercare_templates_recorded",
+        "accepted_decision_ids": [
+          "WP-LT-L9-W01",
+          "COVERAGE-PHASE-L9",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L9-W02",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L9-W02",
+        "phase": "L9",
+        "command_status": "blocked_kpi_baseline_templates_recorded",
+        "accepted_decision_ids": [
+          "WP-LT-L9-W02",
+          "COVERAGE-PHASE-L9",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L9-W03",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L9-W03",
+        "phase": "L9",
+        "command_status": "blocked_legacy_disposition_templates_recorded",
+        "accepted_decision_ids": [
+          "WP-LT-L9-W03",
+          "COVERAGE-PHASE-L9",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L9-W04",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L9-W04",
+        "phase": "L9",
+        "command_status": "t01_wave2_opening_gate_definition_draft_blocked_pending_l6_w04_external_ai_prerequisites_and_runtime_verdict",
+        "accepted_decision_ids": [
+          "WP-LT-L9-W04",
+          "COVERAGE-PHASE-L9",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "WP-LT-L9-W05",
+        "domain": "blocked_work_package",
+        "wp_id": "LT-L9-W05",
+        "phase": "L9",
+        "command_status": "t01_wave3_opening_gate_definition_draft_blocked_pending_external_identity_hr_sensitivity_oq006_and_owner_signoff",
+        "accepted_decision_ids": [
+          "WP-LT-L9-W05",
+          "COVERAGE-PHASE-L9",
+          "COVERAGE-ALL-BLOCKED-WP"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      }
+    ],
+    "phase_exit": [
+      {
+        "coverage_id": "PHASE-PRE",
+        "domain": "phase_exit",
+        "phase": "PRE",
+        "exit_gate": "PRE-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-PRE",
+          "PHASE-PRE-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L0",
+        "domain": "phase_exit",
+        "phase": "L0",
+        "exit_gate": "L0-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L0",
+          "PHASE-L0-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L1",
+        "domain": "phase_exit",
+        "phase": "L1",
+        "exit_gate": "L1-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L1",
+          "PHASE-L1-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L2",
+        "domain": "phase_exit",
+        "phase": "L2",
+        "exit_gate": "L2-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L2",
+          "PHASE-L2-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L3",
+        "domain": "phase_exit",
+        "phase": "L3",
+        "exit_gate": "L3-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L3",
+          "PHASE-L3-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L4",
+        "domain": "phase_exit",
+        "phase": "L4",
+        "exit_gate": "L4-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L4",
+          "PHASE-L4-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L5",
+        "domain": "phase_exit",
+        "phase": "L5",
+        "exit_gate": "L5-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L5",
+          "PHASE-L5-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L6",
+        "domain": "phase_exit",
+        "phase": "L6",
+        "exit_gate": "L6-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L6",
+          "PHASE-L6-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L7",
+        "domain": "phase_exit",
+        "phase": "L7",
+        "exit_gate": "L7-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L7",
+          "PHASE-L7-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L8",
+        "domain": "phase_exit",
+        "phase": "L8",
+        "exit_gate": "L8-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L8",
+          "PHASE-L8-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      },
+      {
+        "coverage_id": "PHASE-L9",
+        "domain": "phase_exit",
+        "phase": "L9",
+        "exit_gate": "L9-EXIT",
+        "status": "blocked_missing_owner_approved_deferrals",
+        "accepted_decision_ids": [
+          "PHASE-L9",
+          "PHASE-L9-EXIT",
+          "COVERAGE-ALL-PHASE-EXITS"
+        ],
+        "coverage_status": "missing_owner_deferral",
+        "covering_decision_id": null
+      }
+    ]
+  },
+  "findings": []
+}

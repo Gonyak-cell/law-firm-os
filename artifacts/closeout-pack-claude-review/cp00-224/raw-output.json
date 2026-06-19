@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-224",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T09:34:40.794Z",
+  "finished_at": "2026-06-10T09:41:32.497Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":411125,\"duration_api_ms\":411906,\"ttft_ms\":4859,\"num_turns\":53,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0/P1/P2/P3 all 0); does not block pack or goal closeout.\\n\\nCP00-224 (descriptor-only failure-recovery slice, 40 RP06 units, risk B) holds up across every dimension in the review focus:\\n\\n- **production_ready claim is correct, not overclaimed** — `false` / `implemented_pending_review` / review `pending`; post-review-gated commands properly deferred.\\n- **Coverage is data-driven** and matches the live plan (40 units; 10+25+5 rows; deliverable distribution exact) — not vacuous.\\n- **No-write/no-real-data boundaries** hard-frozen in `freezeCp224Result`; validators assert them per row.\\n- **Authority model intact** — Claude read-only/non-final-approver, human final approval required, enterprise trust not claimed from local validation.\\n- **Hermes** confined to deterministic descriptor packet/receipt evidence, not product runtime.\\n- **CP178+ hardening** blockers comprehensively defined; schema enforces required fields.\\n\\nOne transparency note carried in the summary: command-execution results are trusted from `command-evidence.json` (all exit 0) since execution is out of scope for a read-only review; the assertions I traced statically are consistent with those passing.\",\"stop_reason\":\"end_turn\",\"session_id\":\"37e46117-eff7-40af-af66-1e601f63bd70\",\"total_cost_usd\":2.959603,\"usage\":{\"input_tokens\":1759,\"cache_creation_input_tokens\":96936,\"cache_read_input_tokens\":3345612,\"output_tokens\":26838,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":96936,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":436,\"cache_read_input_tokens\":131620,\"cache_creation_input_tokens\":3882,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3882},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1102,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001202,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1759,\"outputTokens\":26838,\"cacheReadInputTokens\":3345612,\"cacheCreationInputTokens\":96936,\"webSearchRequests\":0,\"costUSD\":2.9584010000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-224 is a descriptor-only failure-recovery slice pack (40 RP06 units, RP06.P07.M02.S13-RP06.P07.M04.S05, risk B). Full source inspection via Read/Grep/Glob confirms the pack-level claims are supported and no production_ready overclaim exists (manifest production_ready=false, status=implemented_pending_review, review status=pending; command-evidence production_ready=false). Coverage is data-driven and validated against the LIVE closeout plan: unit_count 40, micro-phase rows 10+25+5, and deliverable distribution {failure_recovery:18, implementation:7, hermes_evidence:4, fixture:2, test:4, security_audit:3, claude_review:2} all match across registry binding, requirements, contract projection, and plan. All 7 required public exports exist and are surfaced via index.js wildcard re-export and the validate script. Validators are substantive (not vacuous): they assert descriptor_only/runtime_execution=false/customer-safe/no-raw-payload per row, plus no silent success, no data leak, no cross-tenant access, no rollback/retry runtime, no-write attestation drift, Claude-not-final-approver, human-escalation-required, and contract/handoff drift. freezeCp224Result hard-freezes ~40 no-write/no-real-data boundary flags. Tests bind cp224PlanPack to the live plan and dmsContract to the real contract, asserting valid===true with error surfacing and the security boundaries. CP178+ review hardening is enforced: forbidden_review_evidence covers auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim, and the schema requires all fields. Hermes patterns are confined to deterministic descriptor review-packet/receipt evidence (receipt_shape descriptor_only..._no_write), not product runtime. Authority boundary (read-only reviewer, human final approval required, enterprise trust not claimed from local validation) holds across code, validators, manifest, and baseline. No TODO/FIXME/stub markers in scope; no-leak guards present on all permission/audit/hermes/fixture/lock rows. The post-review artifacts (raw-output, receipt, claude-review-result, adjudication, construction-inspection) are correctly absent for the pre-review state. No P0/P1/P2/P3 defects identified. Note: actual command execution results are taken from command-evidence.json (all exit_code 0) since execution is out of scope for a read-only review; static inspection of the traced assertions is consistent with those passing. This verdict is advisory; human final approval remains required for the enterprise trust claim.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"51200564-7c0b-48d8-a266-b3fcd148b899\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5557,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "37e46117-eff7-40af-af66-1e601f63bd70",
+    "uuid": "51200564-7c0b-48d8-a266-b3fcd148b899",
+    "total_cost_usd": 2.959603,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

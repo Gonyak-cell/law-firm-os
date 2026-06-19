@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M07.S04",
+  "source_micro_phase_id": "RP00.P00.M07",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Define the target file map for validation command matrix evidence across contracts, validators, package manifest, Hermes wiring, tests, and M07 closeout evidence roots.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m07-s04/packet.json",
+    "docs/goal-closeout/rp00-p00-m07-s04/command-evidence.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal-closeout-protocol-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-spec-requirement-ledger.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-full-microphase-plan.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs",
+    "packages/domain/test/domain.test.js",
+    "packages/authz/test/authz.test.js",
+    "packages/audit/test/audit.test.js"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids",
+    "docs/goal-closeout/rp00-p00-m07-s04/command-evidence.json"
+  ],
+  "requirement_refs": [],
+  "risk_focus": [
+    "target_map_includes_runtime_or_ui_mutation",
+    "target_map_omits_required_validator",
+    "target_map_omits_Hermes_or_package_manifest",
+    "target_map_uses_generated_output_as_evidence",
+    "target_map_claims_all_M07_or_RP00_closeout"
+  ],
+  "claude_questions": [
+    "Does validation_command_matrix_target_file_map bind to RP00.P00.M07.S04 and define target files only?",
+    "Does it include the required contracts, README, hermes/project.json, package.json, validator scripts, test files, and M07 evidence roots?",
+    "Does it forbid apps/web, production_export, real client/matter/document/billing data, and generated plan output as closeout evidence?",
+    "Does it preserve metadata-only, no-real-data, no product runtime mutation, no H00/C00 expansion, H00 Hermes evidence, C00 Claude review, and next boundary RP00.P00.M08.S01?",
+    "Does it avoid production mutation, runtime target writes, generation output approval, real-data import, all M07 completion, or RP00 completion claims?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run spec:requirements:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run fullplan:validate",
+    "npm run goal:closeout:validate",
+    "npm test"
+  ]
+}

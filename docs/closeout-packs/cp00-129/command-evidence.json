@@ -1,0 +1,149 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-129",
+  "subphase_id": "RP02.P08.M05.S19",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H02",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "git status --short",
+      "exit_code": 0,
+      "summary": "latest committed pack CP00-128; CP00-129 implementation staged; unrelated untracked files preserved"
+    },
+    {
+      "command": "git log --all --format='%h %aI %s' --grep='^Close CP00' -n 8",
+      "exit_code": 0,
+      "summary": "latest Close CP00 commit before this pack was CP00-128"
+    },
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "node --check packages/authz/src/hermes-evidence-workflow-binding.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/authz/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/authz/test/authz.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp02-permission-kernel-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/permission-kernel-contract.json','utf8')); console.log('contract json ok')\"",
+      "exit_code": 0,
+      "summary": "permission-kernel-contract.json parsed"
+    },
+    {
+      "command": "node --test packages/authz/test/*.test.js",
+      "exit_code": 0,
+      "summary": "92 authz tests passed"
+    },
+    {
+      "command": "npm run rp02:permission-kernel:validate",
+      "exit_code": 0,
+      "summary": "CP00-129, 40 units, permission_kernel_cp129_hermes_evidence_workflow_binding_contract"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-129-claude-review-output-valid.json",
+      "exit_code": 0,
+      "summary": "valid read-only Claude review completed; P0/P1/P2/P3 all 0 and non-blocking PASS verdict"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "regenerates plan cursor after CP00-129 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-129"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-129",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "all packs through CP00-129 passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full test suite passed: 1064 tests after CP00-129 adds 4 authz tests"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-129 is synthetic-only, metadata-only, and Risk B scoped to Hermes evidence workflow binding for operator summary, secondary workflow evidence, and permission/audit evidence binding rows.",
+    "CP00-129 inherits CP128 failure taxonomy evidence harness behavior without executing runtime harnesses or writing state.",
+    "Operator summaries remain reference-only and do not render hidden source fields or real data.",
+    "Hermes evidence rows remain preview/reference-only and do not write Hermes runtime or audit ledgers.",
+    "Permission and audit summaries are reference-only; command result and changed-file receipts do not disclose raw output or raw diffs.",
+    "Claude dependency markers are read-only references and do not execute Claude review.",
+    "Human approval markers do not grant approval.",
+    "PASS, PASS_WITH_FINDINGS, and BLOCK semantics are metadata-only, with BLOCK preventing production_ready.",
+    "Closeout handoff rows do not commit, approve, or mark production_ready; production_ready is recorded only by this pack evidence set.",
+    "No runtime UI/API route, permission policy mutation, product/database write, idempotency persistence, lock acquisition, retry, rollback, compensation, external share/export, AI/analytics execution, LDIP implementation, or HRX split was added.",
+    "Unrelated dirty/untracked files were preserved and not included in the active pack."
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-284",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-284/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-284/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "c4d76f98-7dae-4144-ace8-4b7b5b77cb02",
+    "uuid": "f01e23b3-e522-45ac-869b-4b117f5a9e3d",
+    "total_cost_usd": 2.429533,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-284 is a descriptor-only email-DMS UI binding-tail pack (RP08.P04.M05.S17-RP08.P04.M06.S04, risk A, 10 units) whose production_ready claim is correctly NOT asserted (manifest production_ready=false, status implemented_pending_review, flag email_dms_core_ui_binding_tail_descriptor_verified). Implementation, validators, contract projection, tests, and command-evidence are mutually consistent: the CP284 pack binding and requirements (registry.js:217,1205) match the baseline exactly (10 units, deliverable distribution {test:1,hermes_evidence:1,claude_review:1,implementation:3,ui:4}, micro-title split {Permission And Audit Binding:6,Synthetic Fixture Set:4}); all 7 required public exports exist (createEmailDmsCoreCp284UiBindingTailCaseSet/Descriptor in service.js plus 5 validators in validators.js:2737-2906) and are re-surfaced via export * in index.js. freezeCp284Result (service.js:1699) stamps every no-write/no-runtime/no-leak attestation false, and the inherited row-extras chain supplies every field the descriptor validator asserts (state_snapshot_descriptor_only, no_unauthorized_count_leak, permission_decision_detail_included:false). The contract ui_binding_tail_descriptor is deep-equaled by the validate script and carries the correct authority boundary (claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, runtime_opening_pack_id CP00-285) and the full CP178+ invalid_review_blockers list (failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, claude_final_approval_claim, production_enterprise_trust_claim). Three CP284 tests (model.test.js:801-848) validate coverage, descriptor-only rows, and evidence packets/handoff against the live closeout plan; command-evidence shows the full validation suite, npm test, npm run build, and git diff --check all exit 0, and no conflict markers exist in the package. Claude remains a read-only reviewer (allowed_tools Read/Grep/Glob) and is not final approver; Hermes patterns are confined to deterministic review-packet/receipt handling (emits_hermes_runtime_receipt:false, hermes_runtime_embedded_in_product:false). Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly absent because this review precedes them and review status is pending. Auth preflight passed (exit 0, 1432-byte stdout, ok:true) so the review evidence is valid under hardening rules. One non-blocking P3: the changed-file-scope.json lists the pack's own evidence dir docs/closeout-packs/cp00-284/ and new-session-handoff.md in both untracked_implementation_files and unrelated_dirty_files_preserved, a cosmetic mislabel that omits no active file and does not weaken any gate. No P0/P1/P2 issues; the pack is sound for closeout pending the human final approval the pack itself defers to.",
+    "findings": [
+      {
+        "id": "CP00-284-P3-01",
+        "severity": "P3",
+        "title": "Pack's own evidence directory double-listed as unrelated in changed-file-scope.json",
+        "file": "artifacts/closeout-pack-claude-review/cp00-284/changed-file-scope.json",
+        "line": 100,
+        "details": "In changed-file-scope.json, docs/closeout-packs/cp00-284/ and docs/closeout-pack-plan/new-session-handoff.md appear in BOTH untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). The cp00-284/ directory is this pack's own evidence (manifest.json + command-evidence.json), so labeling it 'unrelated' is contradictory. This appears to stem from an overloaded field name ('preserved' = left in worktree, not reverted) rather than a real scoping error: active_untracked_implementation_files_omitted is empty, no required active implementation file is dropped, and the manifest's own worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json:524-527) correctly lists only the .docx and the ldip c-ldip-01 file. It does not affect the production_ready claim, any validation gate, or the no-write/no-real-data boundary.",
+        "recommendation": "Cosmetic only: have the scope generator exclude the active pack's own evidence directory (docs/closeout-packs/<pack>/) and its handoff doc from unrelated_dirty_files_preserved so the two categories are mutually exclusive, matching the manifest's worktree_transition_policy. No action required for CP00-284 closeout.",
+        "post_review_disposition": "non_blocking_informational_traceability_note_no_action_required_for_closeout"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

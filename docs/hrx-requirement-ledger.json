@@ -1,0 +1,229 @@
+{
+  "schema_version": "law-firm-os.hrx-requirement-ledger.v0.1",
+  "generated_from": "scripts/hrx-requirement-catalog.mjs",
+  "status": "planning_only",
+  "law_firm_os_requirement_count_unchanged": 227,
+  "requirement_count": 22,
+  "requirements": [
+    {
+      "id": "HRX-CORE-001",
+      "title": "Employee",
+      "priority": "P0",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "Employee",
+      "user_decision_ref": "MAT-DEC-02",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-002",
+      "title": "Employment Profile",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "EmploymentProfile",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-003",
+      "title": "HR Document",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "HRDocument",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-004",
+      "title": "Employment Contract",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "EmploymentContract",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-005",
+      "title": "Compensation Record",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "CompensationRecord",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-006",
+      "title": "Leave Balance",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "LeaveBalance",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-007",
+      "title": "Leave Request",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "LeaveRequest",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-008",
+      "title": "Attendance Record",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "AttendanceRecord",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-009",
+      "title": "Overtime Record",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "OvertimeRecord",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-010",
+      "title": "HR Policy",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "HRPolicy",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-011",
+      "title": "Candidate",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "Candidate",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-012",
+      "title": "Job Opening",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "JobOpening",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-013",
+      "title": "Interview",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "Interview",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-014",
+      "title": "Onboarding Plan",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "OnboardingPlan",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-015",
+      "title": "Offboarding Plan",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "OffboardingPlan",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-CORE-016",
+      "title": "HR Risk Event",
+      "priority": "P1",
+      "source_ref": "docs/matter-pack-integration/matter-pack-requirement-candidates.md#MAT-REQ-HR",
+      "primary_anchor": "RP30.P01",
+      "required_data_model": "HRRiskEvent",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-GATE-001",
+      "title": "HRX-GATE-001 User/Employee separation",
+      "priority": "P0",
+      "source_ref": "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md#9-hr-verification-gate",
+      "primary_anchor": "RP30.P09",
+      "required_data_model": "HRXGateEvidence",
+      "user_decision_ref": "MAT-DEC-02",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-GATE-002",
+      "title": "HRX-GATE-002 HR sensitive guard",
+      "priority": "P0",
+      "source_ref": "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md#9-hr-verification-gate",
+      "primary_anchor": "RP30.P09",
+      "required_data_model": "HRXGateEvidence",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-GATE-003",
+      "title": "HRX-GATE-003 HR Assistant source scope",
+      "priority": "P0",
+      "source_ref": "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md#9-hr-verification-gate",
+      "primary_anchor": "RP30.P09",
+      "required_data_model": "HRXGateEvidence",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-GATE-004",
+      "title": "HRX-GATE-004 deterministic rule engine",
+      "priority": "P0",
+      "source_ref": "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md#9-hr-verification-gate",
+      "primary_anchor": "RP30.P09",
+      "required_data_model": "HRXGateEvidence",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-GATE-005",
+      "title": "HRX-GATE-005 AI no final judgment",
+      "priority": "P0",
+      "source_ref": "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md#9-hr-verification-gate",
+      "primary_anchor": "RP30.P09",
+      "required_data_model": "HRXGateEvidence",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    },
+    {
+      "id": "HRX-GATE-006",
+      "title": "HRX-GATE-006 audit of query source response approval action",
+      "priority": "P0",
+      "source_ref": "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md#9-hr-verification-gate",
+      "primary_anchor": "RP30.P09",
+      "required_data_model": "HRXGateEvidence",
+      "user_decision_ref": "MAT-DEC-06",
+      "status": "planned"
+    }
+  ]
+}

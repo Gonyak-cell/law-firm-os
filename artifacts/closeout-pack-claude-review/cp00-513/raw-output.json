@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-513",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T14:36:49.501Z",
+  "finished_at": "2026-06-12T14:43:27.115Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":396972,\"duration_api_ms\":397927,\"ttft_ms\":3722,\"num_turns\":56,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0–P3 all zero), does not block pack or goal closeout.\\n\\nCP00-513 is a clean, descriptor-only RP16.P09 closeout-handoff slice (80 units, M06 tail through M10) that closes RP16 and routes to RP17.P00.M00.S01. Every cross-artifact projection (registry ↔ contract ↔ manifest ↔ plan ↔ tests ↔ validator) is consistent; all boundary attestations hold (no writes, no real data, no runtime, Claude read-only/not-final-approver, enterprise trust not claimed from local validation, Hermes used only for deterministic descriptor evidence). The `production_ready: false` / pending-review status is appropriately conservative, correctly leaving this review as the gate with human approval still required downstream.\",\"stop_reason\":\"end_turn\",\"session_id\":\"38643f9b-504c-4e27-bd68-0ac758c1820d\",\"total_cost_usd\":2.4927555000000003,\"usage\":{\"input_tokens\":153,\"cache_creation_input_tokens\":110162,\"cache_read_input_tokens\":2113222,\"output_tokens\":29826,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":110162,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":315,\"cache_read_input_tokens\":106128,\"cache_creation_input_tokens\":4900,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4900},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1117,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001217,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":153,\"outputTokens\":29826,\"cacheReadInputTokens\":2113222,\"cacheCreationInputTokens\":110162,\"webSearchRequests\":0,\"costUSD\":2.4915385000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-513 is a descriptor-only governance closeout-handoff slice covering 80 RP16.P09 units (RP16.P09.M06.S13–RP16.P09.M10.S10): the M06 Synthetic Fixture Set tail (8 rows) plus the full M07 (22), M08 (20), M09 (20), and M10 (10) cycles, closing RP16 Governance DLP Retention and routing to RP17.P00.M00.S01. Independent read-only inspection confirms the pack binding (registry.js:562), contract current_pack (governance-core-contract.json:16), p09_closeout_handoff_slice_descriptor projection (governance-core-contract.json:33834), manifest, and closeout-pack-plan.json are mutually consistent on id/risk/unit-count/range/upstream/next, and the CP00-514 plan entry confirms RP17 begins at P00.M00.S01. Distribution integrity holds across deliverable counts (claude_review 12, implementation 51, security_audit 8, test 4, ui 4, hermes_evidence 1 = 80), micro-phase row counts (8/22/20/20/10), and per-section row titles in registry, contract cp513_requirements, manifest, and baseline included_units. All 7 required public exports exist and are correctly wired (createGovernanceCoreCp513P09CloseoutHandoffSliceCaseSet/Descriptor in service.js; validateGovernanceCoreCp513Coverage, validateGovernanceCoreCp513P09CloseoutHandoffSliceDescriptor, createGovernanceCoreCp513HermesEvidencePacket/ClaudeReviewPacket/CloseoutHandoff in validators.js), with imports resolved across registry→service→validators and re-exported via index.js. Tests (model.test.js:2230-2282) and the contract validator (validate-rp16-governance-core-contract.mjs, deepEqual on current_pack, cp513_requirements, cp513_no_write_attestation, and descriptor projection) assert the boundaries; command-evidence.json shows all gates exit 0 including npm test, npm run validate, npm run rp16:governance-core:validate, and git diff --check. Boundary integrity is sound: grep found no write/exec/network/env usage in packages/governance/src; attestations and freezeCp513Result set all runtime/write/leak flags false; every descriptor row carries descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false. The authority boundary is preserved — Claude is read-only and explicitly not final approver, enterprise trust is not claimed from local validation, human final approval is required for runtime opening, and the Hermes packet is deterministic descriptor evidence (receipt_shape descriptor_only...no_write) rather than embedded product runtime. The pack-level production_ready claim is false (status implemented_pending_review, runtime_ready false), which is appropriately conservative and correctly leaves this review as the gate; the forbidden_review_evidence set covers auth failures, zero-byte, malformed/fenced JSON, tool-call-shaped output, and final-approval/enterprise-trust claims per CP178+ hardening. Unrelated dirty files (progress-control-room, workbook docs) are correctly excluded from pack scope, and post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, review-receipt.json) are absent as expected for this pre-receipt stage of the hardened sequence. No P0–P3 defects were identified.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"988e0c9f-1c48-41dc-8e66-5a950b3cc61b\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5648,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "38643f9b-504c-4e27-bd68-0ac758c1820d",
+    "uuid": "988e0c9f-1c48-41dc-8e66-5a950b3cc61b",
+    "total_cost_usd": 2.4927555000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

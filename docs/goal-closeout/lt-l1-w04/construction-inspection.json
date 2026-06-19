@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L1-W04",
+  "inspected_at": "2026-06-18T14:46:00Z",
+  "verdict": "BLOCKED_HUMAN_RATIFICATION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "contract_json_parse": "passed",
+    "new_contract_files_added": 1,
+    "existing_contract_files_modified": 0,
+    "non_weakening_argument_exists": true,
+    "contract_effective": false,
+    "human_ratification_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "real_data_permission_claimed": false,
+    "rtg_004_or_hermes_weakened": false,
+    "human_ratification_synthesized": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

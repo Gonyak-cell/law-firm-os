@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-646",
+  "normalized_at": "2026-06-13T16:23:51.739Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-646/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-646/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-646/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-646/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e563e7dd-eb04-404e-b496-d96dcf8a55bb",
+    "uuid": "5820072e-bc9b-4baa-b76c-b5896ec71883",
+    "total_cost_usd": 2.52112,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9139,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-646 is a descriptor-only RP21 Admin Console domain/service-bridge pack (150 units, risk C, range RP21.P01.M08.S06-RP21.P02.M07.S06) extending CP00-645. Independent read-only inspection (Read/Grep/Glob) confirms the pack-level production_ready candidate (admin_console_domain_service_bridge_descriptor_verified) is supported and correctly scoped as a descriptor-verification claim, not a runtime/enterprise-trust claim. (1) Implementation: packages/admin/src/{registry,service,validators,index}.js are the only source files; a Grep for writeFile/fs/child_process/network/process.env returned no matches — the code is pure frozen-object construction. freezeCp646Result pins all 26 runtime/write flags false (writes_product_state, executes_*_mutation_runtime, evaluates_runtime_permission, writes_permission_decision, emits/persists_audit_event, create/update/delete DB rows, read/write object storage, opens_ui_runtime, exposes_blocked_claim_detail, persists_idempotency_key, persists_workflow_attempt, acquires_runtime_lock, leak_detected, permission_bypass_detected), and validateAdminConsoleCp646DomainServiceBridgeDescriptor enforces the identical false-set plus service_bridge runtime_handler_opened:false. (2) No-write/no-real-data: synthetic_only/no_real_data true and raw_payload_included false throughout; the validator script writes only behind --write, and npm rp21:admin-console:validate invokes it without --write (non-mutating). (3) Authority: claude_is_final_approver false, promotes_claude_to_final_approval false (validator-enforced), human_final_approval_required true, claude review packets read_only:true and blocks_pack_on_p0_p1_p2:true; manifest makes no enterprise-trust or runtime claim. (4) Hermes: gate-label H21 plus evidence descriptors with runtime_receipt_emitted:false and no_real_data:true — deterministic packet/receipt handling only, not embedded product runtime. (5) Live queue: plan live_state pack_id CP00-645 / next_subphase RP21.P01.M08.S06 equals CP00-646's first unit; CP00-645 (last unit RP21.P01.M08.S05) was just closed in git log, so CP00-646 is the contiguous live head; deviation_from_plan false, unit_count/range/distributions match and are asserted by model.test.js. (6) Validation evidence: command-evidence.json records 23 commands (node --check set, rp21 validators, npm test/validate, weighted/spec/fullplan/goal:closeout/rp00 control-plane validate, build, git diff --check) all exit 0. (7) Review-evidence integrity (CP178+ hardening): closeout-pack-claude-review-hardening.mjs robustly detects auth failure, 0-byte stdout, malformed JSON, fenced JSON/prose, tool-call-shaped output, permission denials, and missing required fields, and closeout_eligible requires verdict PASS/PASS_WITH_FINDINGS with blocks_pack_closeout/blocks_goal_closeout != true and p0=p1=p2=0; readiness auth-preflight passed (exit 0, 1449B valid JSON); prompt_bytes 2739 < 25600; prompt_contains_full_diff_or_source false; forbidden_tools_present false; active_untracked_implementation_files_omitted empty. (8) Pre-promotion artifacts correctly avoid premature promotion: manifest in_progress/production_ready:false, construction-inspection PENDING_REVIEW, adjudication pending, claude-review-result pending_review with no accepted receipt. The prior attempt-01 was correctly held not-closeout-eligible for setting blocks_goal_closeout=true despite zero blocking findings; I independently confirmed its two P3 findings were inaccurate (the current baseline/prompt contain no rp05:matter-core:validate command, and the cp00-646 evidence dir is not double-classified as unrelated), so they are not carried forward. No P0/P1/P2 issues found; two non-blocking P3 documentation/traceability observations remain. Pack closeout is not blocked; this CP closeout goal is not blocked (the pack makes no runtime/enterprise-trust claim, so the standing human-final-approval boundary does not block this receipt); Claude remains a read-only reviewer and not the final approval authority.",
+    "findings": [
+      {
+        "id": "CP646-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists the handoff doc in both the untracked-implementation and unrelated-preserved buckets",
+        "file": "artifacts/closeout-pack-claude-review/cp00-646/changed-file-scope.json",
+        "line": 186,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 186) and unrelated_dirty_files_preserved (line 192). Inspecting the generator (scripts/generate-closeout-pack-claude-review-baseline.mjs) shows this is by design: untracked_implementation_files is the set of untracked files matching the broad isImplementationLikePath net (which includes docs/closeout-pack-plan/), while unrelated_dirty_files_preserved is the set of dirty files that are not active for this pack (not in manifest source_refs). new-session-handoff.md is genuinely not pack-active (absent from active_pack_implementation_refs and active_pack_required_untracked_files), so it legitimately satisfies both predicates. The cp00-646 evidence dir is correctly NOT in unrelated_dirty_files_preserved. This is cosmetic and does not affect review scope: the operative safety gate active_untracked_implementation_files_omitted is empty, so no pack-active implementation file was excluded from review.",
+        "recommendation": "Optionally annotate untracked_implementation_files as an awareness superset, or make the two buckets mutually exclusive, to avoid the appearance of contradictory classification. Non-blocking — does not affect the production_ready determination.",
+        "post_review_disposition": "open_non_blocking"
+      },
+      {
+        "id": "CP646-P3-02",
+        "severity": "P3",
+        "title": "Preserved not-closeout-eligible attempt-01 is not referenced from the manifest/review-result attempt lists",
+        "file": "docs/closeout-packs/cp00-646/manifest.json",
+        "line": 5976,
+        "details": "A prior valid-but-not-closeout-eligible review (attempt-01, blocks_goal_closeout=true with p0=p1=p2=0) is preserved on disk at artifacts/closeout-pack-claude-review/cp00-646/not-closeout-eligible-attempt-01.json (and raw-output-attempt-01-not-closeout-eligible.json) and acknowledged in command-evidence.json notes, but manifest pack_level_claude_review.invalid_review_attempts (line 5976) and claude-review-result.json invalid_review_attempts are both empty []. This is defensible because attempt-01 was valid_review (syntactically valid, not an 'invalid' attempt) and is tracked under a dedicated not-accepted record schema, but a reader of only the manifest would not see that a prior attempt occurred. Minor audit-traceability gap; the current review-receipt.json on disk remains closeout_eligible:false, so the pre-promotion state is safe.",
+        "recommendation": "Optionally surface the preserved not-closeout-eligible attempt in the manifest/claude-review-result attempt history for full audit traceability. Non-blocking — does not affect the production_ready determination.",
+        "post_review_disposition": "open_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

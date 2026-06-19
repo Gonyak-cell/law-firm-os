@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-696",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "7fba792b-f4c3-45ee-9ff6-87659875f148",
+    "uuid": "232f28f9-ed47-44b9-a7f1-29a33b77a12b",
+    "total_cost_usd": 1.7100700000000002,
+    "permission_denials": []
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-696/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-696/review-receipt.json",
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-696 is a clean descriptor-only RP23 External Integrations II closeout pack in the expected pending_review state. Independent read-only inspection (Read/Grep/Glob) confirms: (1) scope/coverage integrity — 40 units RP23.P01.M04.S07->RP23.P01.M06.S04 with deliverable (impl22/ui6/fixture2/test6/hermes2/claude2) and micro-title (14/22/4) distributions matching across prompt baseline, review-baseline.json, manifest.json, registry.js requirements, and next-pack-queue.json (live_latest_pack_id CP00-696, next RP23.P01.M06.S05); (2) implementation coherence — registry/service/validators/index form a self-consistent descriptor build, all exported functions referenced by tests and the contract generator exist, and contracts/external-integrations-ii-contract.json regenerated with validation.valid=true, latest_pack CP00-696, latest_projection FinanceIntegrationsCp696WorkflowPermissionFixtureDescriptor; (3) no-write/no-real-data — only negative attestations and leak-guard names present, no credentials/secrets/real financial data; (4) authority boundary — claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false, Hermes emits_runtime_receipt=false (control-plane packet shape only, not product runtime); (5) hardening — auth preflight passed with non-empty valid JSON, no pre-existing/forged raw-output.json or review-receipt.json, invalid_review_attempts empty, and no premature production_ready:true/PASS/final-approval claims in any pack doc. Command-evidence reports the 23/23 validation matrix plus review scaffolding all exit 0 (agent-reported, not re-executed here; underlying source verified consistent with those results). Claude remains a read-only, non-final reviewer; the pack makes no runtime or enterprise-trust claim, so blocks_goal_closeout=false. One non-blocking P3 metadata observation only.",
+    "findings": [
+      {
+        "id": "CP00-696-R01",
+        "severity": "P3",
+        "title": "new-session-handoff.md dual-classified in changed-file-scope.json",
+        "file": "artifacts/closeout-pack-claude-review/cp00-696/changed-file-scope.json",
+        "line": 187,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed under untracked_implementation_files (line 187) while also appearing under unrelated_dirty_files_preserved (line 194) and being absent from active_pack_required_untracked_files (which contains only the five docs/closeout-packs/cp00-696/* evidence files). active_untracked_implementation_files_omitted is empty, so the scoping logic correctly treats the plan-tooling-generated handoff doc as out of CP00-696 pack scope and does not flag any omitted active file. This is a cosmetic classification overlap from the broad untracked-file scanner, not an evidence gap; the pack's closeout handoff is carried in the descriptor/manifest, not this file.",
+        "recommendation": "Optionally exclude docs/closeout-pack-plan/ session-tooling artifacts from the untracked_implementation_files scan, or document the precedence so the raw scan does not double-list files already preserved as unrelated. No closeout action required.",
+        "post_review_disposition": "non-blocking; out of pack scope; pack closeout unaffected"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

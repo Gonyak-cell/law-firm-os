@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-081",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "12613014-5bd4-4f4c-877a-c2eb62845ae8",
+    "uuid": "e7ac4c41-d550-48a1-935d-da28a92ea524",
+    "duration_ms": 326025,
+    "duration_api_ms": 330915,
+    "total_cost_usd": 1.19098225,
+    "permission_denials": []
+  },
+  "invalid_claude_attempts": [
+    {
+      "source": "claude_cli_sandbox",
+      "session_id": "099f0e5c-0c4f-4eae-8a50-793159cfa75a",
+      "uuid": "d5fdc324-c2f9-41fa-a029-5b062307c9c5",
+      "result": "Not logged in - Please run /login",
+      "counted_as_valid_pack_review": false
+    }
+  ],
+  "parsed_review": {
+    "review": "Law Firm OS Closeout Pack CP00-081 - Failure Edge Recovery Opening (Claude C00 read-only)",
+    "scope_confirmed": [
+      "contracts/control-plane-contract.json",
+      "packages/control-plane/README.md",
+      "packages/control-plane/fixtures/synthetic-control-plane.json",
+      "packages/control-plane/src/policies.js",
+      "packages/control-plane/src/service.js",
+      "packages/control-plane/src/validators.js",
+      "packages/control-plane/test/service.test.js",
+      "scripts/validate-rp00-control-plane-contract.mjs"
+    ],
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Clean, internally consistent metadata-only opening pack. It consumes the CP00-080 result via the real upstream assembler, opens and closes RP00.P07.M00.S01-S03 and RP00.P07.M01.S01-S03, and binds missing-tenant/missing-actor failure contracts plus recovery-path and incident-traceability contracts. All runtime, recovery, incident, observability, audit, permission-engine, product-state, and LDIP boundaries are encoded as false and enforced via a fail-closed claim gate and forbidden-claim list. No P0/P1; only P3 observations.",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "CP00-081-C00-001",
+        "severity": "P3",
+        "title": "CP00-080 README bullet rewritten to reflect P06 completion / handoff to RP00.P07.M00.S01",
+        "evidence": "README diff corrects stale CP00-080 next boundary text to RP00.P07.M00.S01, aligning with CP00-080 module and CP00-081 start.",
+        "recommended_action": "Confirm in closeout-pack-plan that RP00.P06.M10 terminates at S03 so no subphases are skipped."
+      },
+      {
+        "id": "CP00-081-C00-002",
+        "severity": "P3",
+        "title": "Plan alignment for CP00-081 not independently verifiable from diff",
+        "evidence": "Policy/contract assert plan values, while plan JSON is not in the review diff and final evidence gates were not yet created pre-review.",
+        "recommended_action": "Ensure rp00:control-plane:validate and closeout-pack:validate CP00-081 pass green after evidence creation."
+      },
+      {
+        "id": "CP00-081-C00-003",
+        "severity": "P3",
+        "title": "Duplicated contract-definition blocks; only nested result and a field subset are asserted",
+        "evidence": "Top-level descriptive fields could silently drift from policy/result without additional assertions.",
+        "recommended_action": "Add equality assertions for duplicated top-level definition blocks against policy."
+      }
+    ],
+    "production_ready_assessment": "Acceptable for this gate. production_ready denotes a metadata-only contract/planning artifact, not runtime failure recovery; no runtime behavior, real data, or secrets are introduced."
+  }
+}

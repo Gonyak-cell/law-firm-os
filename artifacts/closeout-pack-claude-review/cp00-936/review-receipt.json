@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-936",
+  "normalized_at": "2026-06-18T01:40:31.433Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-936/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-936/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-936/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-936/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "8adee809-24fd-44b6-a8d8-5856555407f9",
+    "uuid": "09b1b0db-ae83-4807-b49a-90dcc7593338",
+    "total_cost_usd": 1.8723797499999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4005,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-936 is a clean descriptor-only EmployeeFixture/CandidateFixture HRX bridge pack (RP30.P05.M01.S08-RP30.P05.M02.S08, risk A, 10 units) and its modest claim (production_ready=false, runtime_ready=false, descriptor_only) is fully supported. The HRX_CP936_PACK_BINDING, required-section rows, and requirements (registry.js) match the live closeout-pack-plan entry exactly with deviation_from_plan=false. The descriptor factory and generated domain rows hold every runtime/record-write/real-data/permission-bypass/identity-link flag at false, spread HRX_NO_WRITE_ATTESTATION and HRX_BLOCKED_CLAIMS, and the validators (validators.js) plus three CP936 tests (model.test.js) enforce and assert these boundaries, with the regenerated contract pinned to CP00-936 as latest projection. Authority boundary is correctly maintained: Claude is read-only and not promoted to final approval, human approval is required for any runtime opening (deferred to CP00-937), and the Hermes packet is deterministic review-packet metadata (emits_runtime_receipt=false), not embedded product runtime. Manifest, construction-inspection, adjudication, command-evidence, and claude-review-result are consistently staged pending-review with no real data, no writes, and no invalid review evidence passed off as valid (readiness auth-preflight passed with non-empty valid JSON). Changed-file scope is respected; unrelated dirty/untracked files are segregated and not attributed to this pack. blocks_goal_closeout=false because the pack claims neither runtime nor enterprise trust, and the expected human/enterprise-trust approval authority boundary lies outside this receipt. Provenance note: this verdict rests on direct read-only source inspection (Read/Grep/Glob) as the packet mandates; the full npm validation ladder is orchestrator-run and recorded as command evidence, not re-executed in this review. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

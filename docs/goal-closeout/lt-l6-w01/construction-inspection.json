@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L6-W01",
+  "inspected_at": "2026-06-18T14:53:52Z",
+  "verdict": "BLOCKED_INCIDENT_APPROVAL_STAFFING_MONITORING_AND_REHEARSAL_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "severity_sections": 4,
+    "alert_mapping_rows": 7,
+    "candidate_sla_rows": 4,
+    "oncall_assignment_slots": 6,
+    "approved_sla_values": false,
+    "named_oncall_assigned": false,
+    "live_alert_channels_opened": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "sla_values_synthesized": false,
+    "oncall_staff_synthesized": false,
+    "alert_delivery_claimed": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

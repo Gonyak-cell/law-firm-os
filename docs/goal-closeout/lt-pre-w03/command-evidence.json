@@ -1,0 +1,125 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W03",
+  "title": "MAT-DEC-03 document storage decision",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "blocked_pending_storage_decision",
+  "recorded_at": "2026-06-18T10:10:01Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:10:01Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W03-T01",
+      "title": "Decide MAT-DEC-03 document original storage",
+      "status": "blocked_pending_storage_decision",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/mat-dec-03-storage-decision-brief.md",
+        "contracts/email-dms-m365-runtime-contract.json",
+        "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "docs/goal-closeout/lt-pre-w03/command-evidence.json"
+      ],
+      "acceptance": {
+        "sealed_storage_item_count": 5,
+        "raw_blocked_until_storage_decision_grep_count": 6,
+        "decision_register_mat_dec_03_decided": false,
+        "decision_value_present": false,
+        "decision_maker_present": false,
+        "decision_date_present": false,
+        "remaining_rp22_23_pack_count": 0,
+        "closed_rp22_23_pack_count": 56,
+        "block_record_present": true,
+        "final_state": "blocked_pending_storage_decision"
+      },
+      "commands": [
+        {
+          "command": "grep -c '\"blocked_until_storage_decision\": true' contracts/email-dms-m365-runtime-contract.json",
+          "exit_code": 0,
+          "output": "5",
+          "purpose": "Count sealed storage-dependent items"
+        },
+        {
+          "command": "grep -c \"blocked_until_storage_decision\" contracts/email-dms-m365-runtime-contract.json",
+          "exit_code": 0,
+          "output": "6",
+          "purpose": "Record raw verification-contract grep drift caused by one additional policy flag"
+        },
+        {
+          "command": "node - <<'NODE' ... inspect closeout plan, next queue, and implementation-layer ledger for RP22/RP23 timing ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "closeout_complete": true,
+            "live_latest_pack_id": "CP00-987",
+            "live_next_unit_id": null,
+            "remaining_rp22_23_pack_count": 0,
+            "closed_rp22_23_pack_distribution": {
+              "RP22": 28,
+              "RP23": 28
+            }
+          },
+          "purpose": "Verify the RP22/RP23 deadline anchor has already passed in CP closeout state"
+        },
+        {
+          "command": "grep -n \"MAT-DEC-03\" workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "exit_code": 0,
+          "output": "13:| MAT-DEC-03 | ⏸ 보류 확정 | 스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지 |\n26:| **MAT-DEC-03** | 문서 원본 스토리지: SharePoint/OneDrive vs object storage | RP06/08 런타임 계약 신설 전, RP22/23 착수 전 | M365 계약의 storage_dependent 5항목 봉인 해제 | 결정 자체는 보류 가능 — 계약 설계가 결정 무관 항목을 분리해 둠. 단 Outlook 런타임 착수 전 필수 |",
+          "purpose": "Record current MAT-DEC-03 deferred state"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The decision brief lists all five sealed storage-dependent items and compares SharePoint/OneDrive versus object storage.",
+        "The actual storage choice is not synthesized because MAT-DEC-03 is an owner architecture decision.",
+        "The RP22/RP23 deadline anchor has already passed; this is preserved as a blocker rather than retroactively rewritten."
+      ]
+    },
+    {
+      "tuw_id": "LT-PRE-W03-T02",
+      "title": "Propagate MAT-DEC-03 decision and judge scope revision need",
+      "status": "blocked_pending_storage_decision",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/mat-dec-03-storage-decision-brief.md",
+        "docs/goal-closeout/lt-pre-w03/command-evidence.json"
+      ],
+      "acceptance": {
+        "unseal_referral_present": false,
+        "scope_revision_judgment_present": false,
+        "decision_dependency_satisfied": false,
+        "final_state": "blocked_pending_storage_decision"
+      },
+      "blocked_reason": "LT-PRE-W03-T02 depends on the MAT-DEC-03 storage decision. Without that decision, Codex cannot identify the unseal path or scope revision outcome."
+    }
+  ],
+  "blocked_claims": [
+    "This record does not decide MAT-DEC-03.",
+    "This record does not unseal M365 storage-dependent items.",
+    "This record does not add units or approve a scope revision.",
+    "This record does not rewrite closed CP evidence.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "next_required_action": {
+    "owner_role": "Launch owner / document storage architecture approver",
+    "decision_needed": "Choose SharePoint/OneDrive original storage or object storage for document originals, with basis and date.",
+    "evidence_to_add_after_decision": [
+      "MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md",
+      "docs/launch/mat-dec-03-unseal-referral.md",
+      "Scope revision judgment after the chosen storage path is known"
+    ]
+  }
+}

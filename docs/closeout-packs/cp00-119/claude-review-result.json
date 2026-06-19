@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-119",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-119-claude-review-output-valid.json",
+    "session_id": "3e35bb19-5d7f-490f-a2fa-216225b54432",
+    "uuid": "66b442b2-aac4-4ec9-b452-fa73ced78d38",
+    "duration_ms": 188826,
+    "duration_api_ms": 190754,
+    "total_cost_usd": 0.68041925,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [],
+    "recommendation": "Approve CP00-119 for closeout. The fixture workflow binding pack closes the planned Risk B range RP02.P05.M04.S08-RP02.P05.M06.S05 as a metadata-only, no-write synthetic pack with all required deliverables and boundaries intact.",
+    "rationale": "Unit coverage is internally consistent: buildRowsFromPhases emits 13 (M04 S08-S20) + 22 (M05 S01-S22) + 5 (M06 S01-S05) = 40 rows, first unit RP02.P05.M04.S08, last RP02.P05.M06.S05, three micro-phases. Deliverable counts recomputed from title→type mapping match the contract/validator (implementation 14, security_audit 4, fixture 13, test 6, hermes_evidence 2, claude_review 1 = 40), and P05.M05 permission/audit-binding (22) and P05.M06 synthetic-fixture-opening (5) areas are present. CP118 inheritance is wired via createPermissionKernelCp118UiSyntheticFixtureMatrix (9 golden cases, 4 base fixtures bound as metadata-only receipts) and the inherited contract id/hidden_source_fields. Fail-closed ordering is correct: precheckFixtureRequest blocks AI/analytics, cross-tenant, and missing-context BEFORE evaluatePermission (evaluator_invoked=false on those paths); denied routes to blocked_claim_output, review to review_required_routing, allow to completed_metadata_only. Security trimming returns only the authorized id (d_cp119_document) with omitted_result_policy='do_not_count_or_render_unauthorized_results' and unauthorized_count_exposed=false — no count/field leakage. Audit hints carry preview_only=true and emitted_to_audit_ledger=false everywhere. Stable IDs derive deterministically from case_id with persisted=false; replay commands are reference strings (replay_persists_state=false, replay_acquires_lock=false). The new module only calls the pure evaluatePermission/trimSearchResults helpers and exports frozen data — no route registration, policy mutation, audit/product/database writes, idempotency/lock persistence, rollback/retry, export/external-share, AI/analytics execution, LDIP, or HRX split; CP119_NO_WRITE_ATTESTATION and the per-profile no-write loop in the validator/tests assert all sixteen flags false. Handoff is fixed to CP00-120 / RP02.P05.M06.S06 and the Claude packet declares read_only=true with exactly_one_valid_pack_review_required=true. Golden and failure paths (including the unknown_case block) are exercised by the four added tests, and the contract validator mirrors every assertion. Correctness of object_acl_allow reason, function-based objectAcl trimming, and tenant filtering depends on evaluate.js, which is outside this diff but is established CP108+ infrastructure and is pinned by the in-diff assertions. No P0-P3 defects identified.",
+    "raw_result_text": "I reviewed the staged CP00-119 diff in full, tracing the unit arithmetic, case routing, boundary prechecks, and no-write attestations against the pack's stated scope.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 0 },\n  \"findings\": [],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve CP00-119 for closeout. The fixture workflow binding pack closes the planned Risk B range RP02.P05.M04.S08-RP02.P05.M06.S05 as a metadata-only, no-write synthetic pack with all required deliverables and boundaries intact.\",\n  \"rationale\": \"Unit coverage is internally consistent: buildRowsFromPhases emits 13 (M04 S08-S20) + 22 (M05 S01-S22) + 5 (M06 S01-S05) = 40 rows, first unit RP02.P05.M04.S08, last RP02.P05.M06.S05, three micro-phases. Deliverable counts recomputed from title→type mapping match the contract/validator (implementation 14, security_audit 4, fixture 13, test 6, hermes_evidence 2, claude_review 1 = 40), and P05.M05 permission/audit-binding (22) and P05.M06 synthetic-fixture-opening (5) areas are present. CP118 inheritance is wired via createPermissionKernelCp118UiSyntheticFixtureMatrix (9 golden cases, 4 base fixtures bound as metadata-only receipts) and the inherited contract id/hidden_source_fields. Fail-closed ordering is correct: precheckFixtureRequest blocks AI/analytics, cross-tenant, and missing-context BEFORE evaluatePermission (evaluator_invoked=false on those paths); denied routes to blocked_claim_output, review to review_required_routing, allow to completed_metadata_only. Security trimming returns only the authorized id (d_cp119_document) with omitted_result_policy='do_not_count_or_render_unauthorized_results' and unauthorized_count_exposed=false — no count/field leakage. Audit hints carry preview_only=true and emitted_to_audit_ledger=false everywhere. Stable IDs derive deterministically from case_id with persisted=false; replay commands are reference strings (replay_persists_state=false, replay_acquires_lock=false). The new module only calls the pure evaluatePermission/trimSearchResults helpers and exports frozen data — no route registration, policy mutation, audit/product/database writes, idempotency/lock persistence, rollback/retry, export/external-share, AI/analytics execution, LDIP, or HRX split; CP119_NO_WRITE_ATTESTATION and the per-profile no-write loop in the validator/tests assert all sixteen flags false. Handoff is fixed to CP00-120 / RP02.P05.M06.S06 and the Claude packet declares read_only=true with exactly_one_valid_pack_review_required=true. Golden and failure paths (including the unknown_case block) are exercised by the four added tests, and the contract validator mirrors every assertion. Correctness of object_acl_allow reason, function-based objectAcl trimming, and tenant filtering depends on evaluate.js, which is outside this diff but is established CP108+ infrastructure and is pinned by the in-diff assertions. No P0-P3 defects identified.\"\n}\n```\n\nNo defects found; the pack is internally consistent and honors all stated synthetic, fail-closed, and no-write boundaries."
+  }
+}

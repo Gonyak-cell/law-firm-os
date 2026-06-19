@@ -1,0 +1,97 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-017",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "1037a823-bb3e-44e3-801b-2daa54710445",
+    "uuid": "1bb0f76f-70cb-4698-9d96-1627bdf3ee9d",
+    "duration_ms": 220385,
+    "duration_api_ms": 222625,
+    "total_cost_usd": 0.866142,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 31817,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.031911999999999996,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 20457,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 51648,
+        "webSearchRequests": 0,
+        "costUSD": 0.83423,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-017-N1",
+        "severity": "P3",
+        "area": "tests",
+        "blocking": false,
+        "title": "Drift-rejection test covers a representative subset of validator branches, not every field",
+        "detail": "The drift test asserts validator rejection for wrong entrypoint, missing S20/synthetic/P01-layout dependencies, boundary booleans, and context/evidence/schema/acceptance-gate/next-subphase drift, but does not separately assert every remaining field branch.",
+        "impact": "No correctness/security/test gap: the validator anchors all remaining fields to literal expected values with length guards, the RP validator invokes that assertion against the canonical contract, and cross-checks definition/module/fixture surfaces."
+      }
+    ],
+    "security_notes": [
+      "Metadata/contract declaration only; no executable runtime path, no real data, and no I/O beyond the test reading the synthetic fixture JSON.",
+      "Reserved allowed domains example.test and lawfirm-os.invalid plus synthetic-only namespace prefixes avoid real external data exposure.",
+      "No-DB/storage/product-state-write, no-runtime-route, no-service-execution, and no-fixture-generation/persistence boundaries are declared and validator-enforced."
+    ],
+    "test_notes": [
+      "node --check clean on policies/service/validators/test/validator script.",
+      "node --test packages/control-plane/test/service.test.js passed with 421 tests.",
+      "RP validator failed before evidence creation only on the expected missing CP00-017 evidence files."
+    ],
+    "summary": "RP00.P02.M06.S01 is correctly bound as the metadata-only Synthetic Fixture Set service entrypoint contract following RP00.P02.M05.S20. All required boundaries and upstream dependencies are consistently declared and validator-enforced across contract, policy, service module, validator, README, and fixture. Targeted tests and RP validator checks are sufficient for this one-unit Risk A pack. No P0/P1/P2 blockers; one non-blocking P3 test-completeness note. Closeout is gated only on assembling the standard CP00-017 evidence artifacts, including this review."
+  },
+  "raw_review_text": "Review complete. PASS_WITH_FINDINGS. No blockers: 0 P0/P1/P2, 1 P3 note. CP00-017 / RP00.P02.M06.S01 is internally consistent across contract, policy/module, fixture, test, README, and RP validator; boundaries and upstream dependencies are consistently declared; targeted tests and RP validator checks are sufficient for this one-unit Risk A metadata pack. Closeout is clear after evidence assembly and final validation.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude returned PASS_WITH_FINDINGS with no P0, P1, or P2 findings. One P3 finding is deferred in adjudication.md."
+}

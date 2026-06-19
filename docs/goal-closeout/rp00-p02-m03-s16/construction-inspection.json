@@ -1,0 +1,55 @@
+{
+  "subphase_id": "RP00.P02.M03.S16",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Blocked-claim output",
+  "created_at": "2026-06-05T12:21:46Z",
+  "verdict": "PASS",
+  "production_ready": true,
+  "control_plane_hermes_validation_blocked_claim_output_verified": true,
+  "scope": {
+    "implements_only_control_plane_hermes_validation_blocked_claim_output": true,
+    "depends_on_RP00_P02_M03_S15": true,
+    "next_subphase": "RP00.P02.M03.S17",
+    "source_micro_phase_completed": false
+  },
+  "quality_gates": {
+    "implementation_complete": true,
+    "tests_passed": true,
+    "hermes_validation_passed_after_evidence": "passed",
+    "claude_review_completed": true,
+    "claude_p0_unresolved": 0,
+    "claude_p1_unresolved": 0,
+    "claude_p2_unresolved": 0,
+    "adjudication_complete": true
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "service_logic_execution_permitted": false,
+    "runtime_route_created": false,
+    "hermes_validation_execution_permitted": false,
+    "hermes_evidence_creation_permitted": false,
+    "audit_event_write_permitted": false,
+    "database_write_permitted": false,
+    "storage_write_permitted": false,
+    "product_state_persistence_permitted": false,
+    "blocked_claim_output_write_permitted": false,
+    "blocked_claim_record_write_permitted": false,
+    "blocked_claim_notification_permitted": false,
+    "review_queue_write_permitted": false,
+    "approval_record_write_permitted": false,
+    "ui_created": false
+  },
+  "claude_findings": {
+    "p0_count": 0,
+    "p0_status": "none",
+    "p1_count": 0,
+    "p1_status": "none",
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 2,
+    "p3_status": "informational_no_code_change"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S16 is production_ready as a non-terminal blocked-claim output boundary and explicitly hands off to RP00.P02.M03.S17 Rollback behavior.",
+  "inspected_at": "2026-06-05T12:21:46Z"
+}

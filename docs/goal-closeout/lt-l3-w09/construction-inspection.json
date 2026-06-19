@@ -1,0 +1,27 @@
+{
+  "work_package_id": "LT-L3-W09",
+  "inspected_at": "2026-06-18T13:26:48Z",
+  "verdict": "BLOCKED_OUTLOOK_ADDIN_DEPLOYMENT_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "outlook_addin_app_exists": false,
+    "addin_manifest_file_count": 0,
+    "addin_release_gate_precheck_exists": false,
+    "graph_failure_rehearsal_exists": false,
+    "addin_deployment_runbook_exists": false,
+    "w09_launch_evidence_file_count": 0,
+    "m365_runtime_implementation_allowed": false,
+    "admin_center_deployment_export_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "m365_admin_action_executed": false,
+    "addin_deployment_synthesized": false,
+    "mailbox_accessed": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

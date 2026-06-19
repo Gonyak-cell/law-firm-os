@@ -1,0 +1,37 @@
+{
+  "work_package_id": "LT-L1-W07",
+  "title": "launch budget draft",
+  "created_at": "2026-06-18T14:47:32Z",
+  "status": "draft_completed_pending_l1_w06_quotes",
+  "phase": "L1",
+  "gate_binding": [
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W07-T02",
+  "artifacts": [
+    "docs/launch/launch-budget.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w07/packet.json",
+    "docs/goal-closeout/lt-l1-w07/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w07/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w07/adjudication.md",
+    "docs/goal-closeout/lt-l1-w07/construction-inspection.json"
+  ],
+  "current_status": {
+    "budget_draft_exists": true,
+    "implementation_layer_pack_count": 987,
+    "historical_cp_review_unit_usd": 3,
+    "historical_cp_review_benchmark_usd": 2961,
+    "budgeted_numeric_subtotal_usd": 0,
+    "quote_pending_lines": 9,
+    "l1_w06_quotes_pending": true,
+    "owner_budget_approval_present": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

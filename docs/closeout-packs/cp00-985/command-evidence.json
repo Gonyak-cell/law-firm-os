@@ -1,0 +1,125 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-985",
+  "subphase_id": "RP30.P09.M07.S05",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "validation_summary": {
+    "descriptor_only": true,
+    "runtime_ready": false,
+    "latest_pack_id": "CP00-985",
+    "next_pack_id": "CP00-986",
+    "review_receipt_ref": null,
+    "p0_p1_p2_clear": true,
+    "claude_review_waived_by_user": true
+  },
+  "commands": [
+    {
+      "command": "node --check packages/hrx/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/hrx/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp30-hrx-people-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/hrx/test/*.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp30:hrx:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp30:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run hrx:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run hrx:weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-985",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run critical-rps:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-985 is descriptor-only production-ready under explicit user waiver of full Claude review; Claude review runtime, security review runtime, bypass override runtime, missing-test completion runtime, final approval runtime, policy execution, decision emission, record writes, permission bypass, runtime receipts, enterprise trust, separate HRX product claims, real sensitive HR/review data, credentials, secrets, and final human approval remain closed until CP00-986/RP30.P09.M09.S05 or later human-approved packs.",
+    "Full Claude review was explicitly waived by the user and is not counted as valid review evidence; closeout relies on deterministic local/Hermes validation evidence plus the recorded waiver boundary."
+  ]
+}

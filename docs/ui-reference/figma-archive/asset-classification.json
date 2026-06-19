@@ -1,0 +1,293 @@
+﻿{
+  "updatedAt": "2026-06-05",
+  "assetCount": 21,
+  "scoring": {
+    "scale": "0-10",
+    "criteria": [
+      "화면과 모듈 수",
+      "업무 플로우 깊이",
+      "컴포넌트 재사용성",
+      "Law Firm OS 적용도"
+    ]
+  },
+  "bestByCategory": {
+    "HR": "11-hr-management-ats-tool",
+    "DMS": "15-enterprise-document-management-dashboard",
+    "ERP": "06-erp-b2b-design-kit",
+    "CRM": "18-twilio-crm-template"
+  },
+  "assets": [
+    {
+      "id": "01-cms-template",
+      "title": "CMS Template Community",
+      "primaryCategory": "ERP",
+      "secondaryCategories": ["CMS", "Admin"],
+      "featureScore": 5.0,
+      "rankTags": ["ERP:6"],
+      "notableFeatures": ["CMS 테이블", "사이드바", "상단 내비게이션", "필터/목록 패턴"],
+      "strengths": ["간결한 CMS 관리 화면", "테이블과 필터 구조 참고 가능"],
+      "weaknesses": ["복잡한 ERP 업무 플로우 부족"]
+    },
+    {
+      "id": "02-atomic-design-system-uikit-saas-erp-crm",
+      "title": "Atomic DesignSystem UIkit SaaS ERP CRM Community",
+      "primaryCategory": "ERP",
+      "secondaryCategories": ["CRM", "Design System"],
+      "featureScore": 7.0,
+      "rankTags": ["ERP:4", "CRM:4"],
+      "notableFeatures": ["SaaS UI kit", "ERP/CRM 공용 컴포넌트", "디자인 토큰"],
+      "strengths": ["통합 SaaS 제품의 공통 컴포넌트 참고 가치가 큼", "테이블/폼/상태 패턴 재사용 가능"],
+      "weaknesses": ["완성된 업무 화면보다 UI kit 성격이 강함"]
+    },
+    {
+      "id": "03-prototipo-erp-joshua",
+      "title": "Prototipo de um ERP by Joshua Community",
+      "primaryCategory": "ERP",
+      "secondaryCategories": ["Admin"],
+      "featureScore": 4.0,
+      "rankTags": ["ERP:7"],
+      "notableFeatures": ["ERP 레이아웃", "어드민 화면"],
+      "strengths": ["ERP 화면 무드와 기본 레이아웃 참고 가능"],
+      "weaknesses": ["기능 분해와 실제 업무 플로우가 약함"]
+    },
+    {
+      "id": "04-crm-erp-wms-part-1",
+      "title": "CRM ERP WMS Part 1 Community",
+      "primaryCategory": "CRM",
+      "secondaryCategories": ["ERP", "WMS"],
+      "featureScore": 7.3,
+      "rankTags": ["CRM:3", "ERP:3"],
+      "notableFeatures": ["CRM 대시보드", "ERP/WMS 테이블", "통합 운영 화면"],
+      "strengths": ["CRM, ERP, WMS가 섞인 통합 OS 느낌을 참고하기 좋음", "운영형 대시보드와 테이블 패턴이 있음"],
+      "weaknesses": ["법률 CRM 전용 객체와 고객 접점 흐름은 부족"]
+    },
+    {
+      "id": "05-construction-erp-software-ui",
+      "title": "Construction ERP Software UI Community",
+      "primaryCategory": "ERP",
+      "secondaryCategories": ["Operations"],
+      "featureScore": 7.6,
+      "rankTags": ["ERP:2"],
+      "notableFeatures": ["건설 ERP", "운영 대시보드", "현장/자원 관리"],
+      "strengths": ["프로젝트성 운영 화면 참고에 좋음", "업무형 대시보드 밀도가 높음"],
+      "weaknesses": ["건설 도메인 특화가 강해 법무법인 업무로 재해석 필요"]
+    },
+    {
+      "id": "06-erp-b2b-design-kit",
+      "title": "ERP B2B Design Kit Community",
+      "primaryCategory": "ERP",
+      "secondaryCategories": ["Manufacturing", "Inventory"],
+      "featureScore": 9.4,
+      "rankTags": ["ERP:1"],
+      "notableFeatures": ["Dashboard", "Orders", "Production", "Forecast", "Plan", "BOM", "Inventory Request", "Notification", "Manufacturing"],
+      "strengths": ["ERP 후보 중 모듈 수와 업무 깊이가 가장 큼", "주문/계획/재고/알림 구조를 법무 운영으로 변환하기 좋음"],
+      "weaknesses": ["제조 중심이라 사건, 청구, 비용, 인력 배정 모델로 재설계 필요"]
+    },
+    {
+      "id": "07-uiuxotor-erp-hr-module",
+      "title": "UiUxOtor ERP System HR Module Community",
+      "primaryCategory": "HR",
+      "secondaryCategories": ["ERP-HR"],
+      "featureScore": 3.5,
+      "rankTags": ["HR:4"],
+      "notableFeatures": ["HR 모듈 커버", "기초 레이아웃"],
+      "strengths": ["HR 모듈 분위기와 기본 구조 참고 가능"],
+      "weaknesses": ["실제 화면과 기능 구성이 가장 적음"]
+    },
+    {
+      "id": "08-web-administrativa-cms-2024",
+      "title": "Web administrativa CMS 2024 Community",
+      "primaryCategory": "ERP",
+      "secondaryCategories": ["CMS", "Admin"],
+      "featureScore": 5.5,
+      "rankTags": ["ERP:5"],
+      "notableFeatures": ["관리형 CMS", "목록 관리", "어드민 패널"],
+      "strengths": ["CMS/어드민 목록 화면 참고에 좋음"],
+      "weaknesses": ["ERP 핵심 업무 모듈은 부족"]
+    },
+    {
+      "id": "09-hr-dashboard-responsive",
+      "title": "HR Dashboard Responsive Community",
+      "primaryCategory": "HR",
+      "secondaryCategories": ["Dashboard"],
+      "featureScore": 6.5,
+      "rankTags": ["HR:3"],
+      "notableFeatures": ["반응형 HR 대시보드", "KPI", "요약 카드"],
+      "strengths": ["반응형 HR 요약 화면 참고에 좋음"],
+      "weaknesses": ["CRUD와 상세 업무 처리는 약함"]
+    },
+    {
+      "id": "10-hr-management-dashboard-uikit",
+      "title": "HRDashboard HR Management Dashboard UI Kit Community",
+      "primaryCategory": "HR",
+      "secondaryCategories": ["UI Kit"],
+      "featureScore": 6.7,
+      "rankTags": ["HR:2"],
+      "notableFeatures": ["HR 대시보드", "UI kit", "컴포넌트"],
+      "strengths": ["시각 완성도와 UI kit 재사용성이 좋음"],
+      "weaknesses": ["실제 인사 운영 플로우는 얕음"]
+    },
+    {
+      "id": "11-hr-management-ats-tool",
+      "title": "HR Management ATS Tool Community",
+      "primaryCategory": "HR",
+      "secondaryCategories": ["ATS", "Recruiting"],
+      "featureScore": 8.2,
+      "rankTags": ["HR:1"],
+      "notableFeatures": ["Login", "SignUp", "Dashboard", "Candidate Profile", "Components"],
+      "strengths": ["HR 후보 중 ATS와 후보자 프로필 흐름이 가장 뚜렷함", "채용/프로필 관리에 바로 전환 가능"],
+      "weaknesses": ["급여, 근태, 조직도, 평가 같은 HRIS 전체 기능은 부족"]
+    },
+    {
+      "id": "12-enterprise-document-management-screen",
+      "title": "Enterprise Document Management Screen Community",
+      "primaryCategory": "DMS",
+      "secondaryCategories": ["Enterprise Admin"],
+      "featureScore": 8.5,
+      "rankTags": ["DMS:4"],
+      "notableFeatures": ["문서 목록", "문서 상세", "엔터프라이즈 DMS UI"],
+      "strengths": ["문서 관리 화면 코드와 에셋이 풍부함", "엔터프라이즈 관리 화면 참고성이 높음"],
+      "weaknesses": ["단일 화면 중심이라 전체 DMS 흐름은 보강 필요"]
+    },
+    {
+      "id": "13-document-management",
+      "title": "Document Management Community",
+      "primaryCategory": "DMS",
+      "secondaryCategories": ["Service Provider"],
+      "featureScore": 7.0,
+      "rankTags": ["DMS:6"],
+      "notableFeatures": ["DMS 서비스형 화면", "정보 구조"],
+      "strengths": ["기본 DMS 정보 구조와 화면 방향 참고 가능"],
+      "weaknesses": ["내부 구현 세부와 업무 플로우는 제한적"]
+    },
+    {
+      "id": "14-corporate-document-management-dashboard",
+      "title": "Corporate Document Management Dashboard Community",
+      "primaryCategory": "DMS",
+      "secondaryCategories": ["Workflow", "Tasks"],
+      "featureScore": 8.8,
+      "rankTags": ["DMS:3"],
+      "notableFeatures": ["Documents", "Document Detail", "Tasks", "Departments", "Workflow", "Approval"],
+      "strengths": ["문서, 태스크, 부서, 승인 워크플로우가 잘 연결됨"],
+      "weaknesses": ["권한, 감사, 버전 깊이는 15번보다 약함"]
+    },
+    {
+      "id": "15-enterprise-document-management-dashboard",
+      "title": "Enterprise Document Management Dashboard Community",
+      "primaryCategory": "DMS",
+      "secondaryCategories": ["Governance"],
+      "featureScore": 9.6,
+      "rankTags": ["DMS:1"],
+      "notableFeatures": ["Dashboard", "List/Grid", "Detail", "Upload", "Share Link", "Permissions", "Version History", "Roles", "Audit Trail", "Delete"],
+      "strengths": ["DMS 후보 중 권한, 버전, 감사, 공유, 역할 체계가 가장 풍부함", "법무 문서 거버넌스에 가장 적합"],
+      "weaknesses": ["Figma Make 본문 직접 저장은 권한 제한으로 URI 인덱스 중심"]
+    },
+    {
+      "id": "16-document-management-system-prototype",
+      "title": "Document Management System Prototype Community",
+      "primaryCategory": "DMS",
+      "secondaryCategories": ["Prototype"],
+      "featureScore": 7.4,
+      "rankTags": ["DMS:5"],
+      "notableFeatures": ["Document Card", "Stats", "Viewer", "Upload", "Search"],
+      "strengths": ["카드, 뷰어, 업로드, 검색의 프로토타입 뼈대가 좋음"],
+      "weaknesses": ["엔터프라이즈 권한과 감사 체계는 부족"]
+    },
+    {
+      "id": "17-document-management-system-ui",
+      "title": "Document Management System UI Community",
+      "primaryCategory": "DMS",
+      "secondaryCategories": ["Enterprise", "SAP-style"],
+      "featureScore": 9.2,
+      "rankTags": ["DMS:2"],
+      "notableFeatures": ["Dashboard", "Document List", "Upload", "Version History", "Edit Metadata", "Advanced Search", "Activity Log", "Config Diagnostics", "Delete"],
+      "strengths": ["고급 검색, 메타데이터, 버전, 활동 로그가 풍부함", "15번과 결합하면 강한 DMS 설계 기준이 됨"],
+      "weaknesses": ["엔터프라이즈 톤이 강해 SaaS UX로 정돈 필요"]
+    },
+    {
+      "id": "18-twilio-crm-template",
+      "title": "Twilio CRM Template Community",
+      "primaryCategory": "CRM",
+      "secondaryCategories": ["Client Intake", "Communications"],
+      "featureScore": 9.7,
+      "rankTags": ["CRM:1"],
+      "notableFeatures": ["View Prospect", "View Lead", "View Client", "Accounts", "Channels", "Calls", "SMS", "Email", "Account Details", "Account Coverage", "Account History", "Admin Call Log", "Transcript", "Call States"],
+      "strengths": ["새 CRM 중 실제 CRM/컨택센터 플로우가 가장 풍부함", "잠재고객, 리드, 고객, 통화, SMS, 이메일, 콜 로그를 법률 상담 접수로 전환하기 좋음"],
+      "weaknesses": ["Twilio/컨택센터 도메인 특화가 강해 법률 용어와 사건 중심 모델로 재설계 필요"]
+    },
+    {
+      "id": "19-crm-system",
+      "title": "CRM system Community",
+      "primaryCategory": "CRM",
+      "secondaryCategories": ["Admin", "Project", "HR"],
+      "featureScore": 5.8,
+      "rankTags": ["CRM:6"],
+      "notableFeatures": ["Dashboard", "Projects", "Calendar", "Employees", "Vacations", "Messenger", "Info Portal", "Workload"],
+      "strengths": ["모바일/반응형 어드민과 프로젝트 카드, 직원/일정 패턴 참고 가능"],
+      "weaknesses": ["CRM이라는 제목과 달리 고객, 리드, 거래 관리 깊이가 약함"]
+    },
+    {
+      "id": "20-crm-woorkroom",
+      "title": "CRM Woorkroom Community",
+      "primaryCategory": "CRM",
+      "secondaryCategories": ["Admin Workroom", "Project", "HR"],
+      "featureScore": 6.2,
+      "rankTags": ["CRM:5"],
+      "notableFeatures": ["Dashboard", "Projects", "Calendar", "Vacations", "Employees", "Messenger", "Info Portal", "Activity Stream"],
+      "strengths": ["데스크톱 내부 운영 대시보드, 프로젝트, 캘린더, 직원, 활동 스트림 참고에 좋음"],
+      "weaknesses": ["핵심 CRM 객체인 고객, 리드, 거래 파이프라인이 약함"]
+    },
+    {
+      "id": "21-crm-customers-deals-tasks-filtering",
+      "title": "CRM app with customers deals nested data tasks and menu filtering Community",
+      "primaryCategory": "CRM",
+      "secondaryCategories": ["Customers", "Deals", "Tasks"],
+      "featureScore": 9.4,
+      "rankTags": ["CRM:2"],
+      "notableFeatures": ["Customers", "Deals", "Tasks To Do", "Next Appointment", "Recent Deals", "Activity", "Filtering", "Empty States"],
+      "strengths": ["고객, 거래, 태스크, 약속, 활동, 필터링이 한 흐름으로 연결됨", "법무법인 영업/수임 파이프라인 설계에 매우 적합"],
+      "weaknesses": ["통화, SMS, 이메일 같은 커뮤니케이션 센터 깊이는 18번보다 약함"]
+    }
+  ],
+  "rankings": {
+    "CRM": [
+      {"rank": 1, "id": "18-twilio-crm-template", "featureScore": 9.7},
+      {"rank": 2, "id": "21-crm-customers-deals-tasks-filtering", "featureScore": 9.4},
+      {"rank": 3, "id": "04-crm-erp-wms-part-1", "featureScore": 7.3},
+      {"rank": 4, "id": "02-atomic-design-system-uikit-saas-erp-crm", "featureScore": 7.0},
+      {"rank": 5, "id": "20-crm-woorkroom", "featureScore": 6.2},
+      {"rank": 6, "id": "19-crm-system", "featureScore": 5.8}
+    ],
+    "DMS": [
+      {"rank": 1, "id": "15-enterprise-document-management-dashboard", "featureScore": 9.6},
+      {"rank": 2, "id": "17-document-management-system-ui", "featureScore": 9.2},
+      {"rank": 3, "id": "14-corporate-document-management-dashboard", "featureScore": 8.8},
+      {"rank": 4, "id": "12-enterprise-document-management-screen", "featureScore": 8.5},
+      {"rank": 5, "id": "16-document-management-system-prototype", "featureScore": 7.4},
+      {"rank": 6, "id": "13-document-management", "featureScore": 7.0}
+    ],
+    "ERP": [
+      {"rank": 1, "id": "06-erp-b2b-design-kit", "featureScore": 9.4},
+      {"rank": 2, "id": "05-construction-erp-software-ui", "featureScore": 7.6},
+      {"rank": 3, "id": "04-crm-erp-wms-part-1", "featureScore": 7.3},
+      {"rank": 4, "id": "02-atomic-design-system-uikit-saas-erp-crm", "featureScore": 7.0},
+      {"rank": 5, "id": "08-web-administrativa-cms-2024", "featureScore": 5.5},
+      {"rank": 6, "id": "01-cms-template", "featureScore": 5.0},
+      {"rank": 7, "id": "03-prototipo-erp-joshua", "featureScore": 4.0}
+    ],
+    "HR": [
+      {"rank": 1, "id": "11-hr-management-ats-tool", "featureScore": 8.2},
+      {"rank": 2, "id": "10-hr-management-dashboard-uikit", "featureScore": 6.7},
+      {"rank": 3, "id": "09-hr-dashboard-responsive", "featureScore": 6.5},
+      {"rank": 4, "id": "07-uiuxotor-erp-hr-module", "featureScore": 3.5}
+    ]
+  },
+  "recommendedLawFirmOsStack": {
+    "CRM": ["18-twilio-crm-template", "21-crm-customers-deals-tasks-filtering"],
+    "DMS": ["15-enterprise-document-management-dashboard", "17-document-management-system-ui"],
+    "ERP": ["06-erp-b2b-design-kit"],
+    "HR": ["11-hr-management-ats-tool"],
+    "DesignSystem": ["02-atomic-design-system-uikit-saas-erp-crm"]
+  }
+}
+

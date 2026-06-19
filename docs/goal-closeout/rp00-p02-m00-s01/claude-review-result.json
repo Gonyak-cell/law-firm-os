@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P02.M00.S01",
+  "source_micro_phase_id": "RP00.P02.M00",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only_no_tools",
+    "session_id": "58f8eca1-fa09-4677-9b1b-1db00fa2d53f",
+    "uuid": "786fa001-0ea7-46fb-8eb8-3163378f6c0b",
+    "total_cost_usd": 0.7354685000000001,
+    "duration_ms": 232925,
+    "duration_api_ms": 235166,
+    "num_turns": 1,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "session_continuation_used_to_complete_review": false,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m00-s01-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true,
+    "records_service_entrypoint_contract_only": true,
+    "declares_three_entrypoints": true,
+    "exports_required_symbols": true,
+    "defers_request_normalization_to_RP00_P02_M00_S02": true,
+    "defers_tenant_boundary_precheck_to_RP00_P02_M00_S03": true,
+    "requires_permission_audit_context_before_execution": true,
+    "does_not_execute_service_logic": true,
+    "does_not_create_runtime_routes": true,
+    "does_not_mutate_states_js": true,
+    "does_not_mutate_entity_registry": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_claim_RP00_or_RP00_P02_completion": true,
+    "handoff_to_next_subphase": "RP00.P02.M00.S02",
+    "findings": [
+      {
+        "id": "P1-01",
+        "severity": "P1",
+        "title": "Core implementation and test deliverables were untracked and absent from the reviewed diff",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "The four files are now staged for the final commit as shown by git diff --cached --name-only, and local syntax/tests plus the RP00 validator exercise their exports and behavior. No second Claude review was run per the one-review policy for this subphase."
+      },
+      {
+        "id": "P2-01",
+        "severity": "P2",
+        "title": "production_ready and C00 review outcome were pre-declared before evidence materialization",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "The S01 evidence root now contains packet.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json; final validation is rerun after materialization."
+      },
+      {
+        "id": "P2-02",
+        "severity": "P2",
+        "title": "listControlPlaneServiceEntrypoints was not behaviorally validated",
+        "status": "fixed",
+        "disposition": "scripts/validate-rp00-control-plane-contract.mjs now calls listControlPlaneServiceEntrypoints() and verifies it returns exactly the three canonical entrypoints; service.test.js also covers the export."
+      },
+      {
+        "id": "P3-01",
+        "severity": "P3",
+        "title": "README export summary omitted three required exports",
+        "status": "fixed",
+        "disposition": "The README S01 bullet now lists CONTROL_PLANE_SERVICE_ENTRYPOINT_REQUIRED_CONTEXT_FIELDS, CONTROL_PLANE_SERVICE_ENTRYPOINT_OPTIONAL_CONTEXT_FIELDS, and listControlPlaneServiceEntrypoints."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude reviewed the S01 diff once with claude-opus-4-8 effort=max, read-only, no tools. It found one P1 caused by untracked implementation/test files being absent from the reviewed diff, two P2 findings about predeclared evidence and listControlPlaneServiceEntrypoints behavior coverage, and one P3 README export omission. P1 is resolved by staged final commit evidence and local validators; P2/P3 are fixed by evidence materialization and validator/README changes. No P0 remains, no P1 remains unresolved, and no second Claude review was run."
+}

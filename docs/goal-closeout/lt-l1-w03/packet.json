@@ -1,0 +1,38 @@
+{
+  "work_package_id": "LT-L1-W03",
+  "title": "PIPA and retention policy ratification package",
+  "created_at": "2026-06-18T14:44:26Z",
+  "status": "t01_draft_blocked_pending_external_legal_review_result",
+  "phase": "L1",
+  "gate_binding": [
+    "G7",
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W03-T03",
+  "artifacts": [
+    "docs/launch/pipa-retention-policy-draft.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w03/packet.json",
+    "docs/goal-closeout/lt-l1-w03/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w03/adjudication.md",
+    "docs/goal-closeout/lt-l1-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "retention_section_present": true,
+    "legal_hold_section_present": true,
+    "candidate_destruction_section_present": true,
+    "ai_prompt_output_retention_section_present": true,
+    "numeric_or_conditional_periods_present": true,
+    "external_legal_review_result_artifact_id_present": false,
+    "human_policy_ratification_synthesized": false,
+    "g7_satisfied": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

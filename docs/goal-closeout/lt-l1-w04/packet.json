@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L1-W04",
+  "title": "production data policy additive contract draft",
+  "created_at": "2026-06-18T14:46:00Z",
+  "status": "t01_t02_passed_wp_open_pending_human_ratification",
+  "phase": "L1",
+  "gate_binding": [
+    "G7",
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W04-T04",
+  "artifacts": [
+    "contracts/production-data-policy-contract.json",
+    "docs/launch/production-data-policy-non-weakening-argument.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w04/packet.json",
+    "docs/goal-closeout/lt-l1-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w04/adjudication.md",
+    "docs/goal-closeout/lt-l1-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "contract_json_parse": "passed",
+    "new_contract_files_added": 1,
+    "existing_contract_files_modified": 0,
+    "non_weakening_argument_exists": true,
+    "contract_effective": false,
+    "t01_t02_passed": true,
+    "human_ratification_present": false,
+    "g7_satisfied": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

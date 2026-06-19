@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-623",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-623/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-623/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "29c4832d-e13f-4c70-a1bc-1b52a66234c9",
+    "uuid": "f4994770-9549-4743-8966-75cc3cae0cea",
+    "total_cost_usd": 2.7045399999999997,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-623 is a descriptor-only Risk-A closeout pack (RP20.P05.M01.S11-S20, 10 units, micro 'Contract Draft') for the Data Room/VDR P05 fixture contract draft tail. Read-only inspection (Read/Grep/Glob) confirms it is internally consistent and boundary-clean. Identity/plan binding match across manifest, baseline, registry (DATA_ROOM_VDR_CORE_CP623_*), contract projections, and the RP20 validate script (range, unit_count=10, upstream CP00-622, next CP00-624 / RP20.P05.M02.S01). Deliverable distribution security_audit:2 / implementation:3 / fixture:1 / test:3 / hermes_evidence:1 = 10 is correctly derived from row-title classification (verified 'Claude missing-test prompt' -> test, 'Audit hint case'+'Security trimming case' -> security_audit, 'Fixture manifest' -> fixture). Implementation is descriptor-only: each row carries descriptor_only/runtime_execution:false/raw_payload_included:false; the freeze chain plus CP623 no-write attestation set all writes_*/dispatches_*/executes_*_runtime/emits_hermes_runtime_receipt to false; validators.js enforces ~35 assertions including synthetic_only, no_real_data, no object-storage, and the authority boundary (claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true). Three tests and the validate script cover coverage, descriptor-only flags, contract-projection equality, and pack-to-pack handoff continuity (CP622->CP623->CP624). No secret/real-data patterns found in source. Claude remains read-only (request: read_only, tools Read/Grep/Glob, model claude-opus-4-8); Hermes appears only as deterministic descriptor evidence shape, not product runtime. CP178+ forbidden_review_evidence list is present. The pack correctly reports production_ready:false / runtime_ready:false (descriptor-only) and the 'descriptor_verified' flag is supported by the evidence. No P0/P1/P2 issues. Two P3 notes only: (1) command-evidence/adjudication/construction-inspection are in sequence-appropriate pending state and the 11 validation commands run in the harness's later final_closeout_validation step, outside read-only scope, so closeout remains contingent on those passing; (2) changed-file-scope.json lists this pack's own evidence dir under unrelated_dirty_files_preserved, a minor classification overlap.",
+    "findings": [
+      {
+        "id": "CP623-P3-01",
+        "severity": "P3",
+        "title": "Closeout validation/adjudication/inspection finalized in later harness steps, outside read-only review scope",
+        "file": "docs/closeout-packs/cp00-623/command-evidence.json",
+        "line": 9,
+        "details": "At this review step (read_only_claude_run_raw_capture) the pre-review evidence is correctly pending: command-evidence.json has commands:[] with gate_outcome 'pending_pack_evidence_creation', construction-inspection.json verdict is PENDING_REVIEW, adjudication.md is pending, and claude-review-result.json is pending_review. The 11 validation commands (npm run closeout-pack-plan:validate, closeout-pack:validate, rp05:matter-core:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) execute in the harness's later final_closeout_validation step and cannot be run in this read-only review. This PASS attests to code-level correctness and boundary integrity of the descriptor pack; it does not attest to command execution results.",
+        "recommendation": "Proceed with the documented hardening_sequence: ensure final_closeout_validation runs all 11 commands green and that adjudication/construction-inspection are regenerated from this receipt before commit. Do not flip production_ready until those gates pass and human final approval is recorded.",
+        "post_review_disposition": "informational_no_code_change_required_harness_gate_must_complete_before_commit"
+      },
+      {
+        "id": "CP623-P3-02",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists this pack's own evidence directory under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-623/changed-file-scope.json",
+        "line": 187,
+        "details": "docs/closeout-packs/cp00-623/ (this pack's evidence directory) and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (lines 180-181) and unrelated_dirty_files_preserved (lines 186-187). The cp00-623/ evidence dir is genuinely in-scope for this pack and is correctly captured in the manifest's worktree_transition_policy.active_pack_required_untracked_files, so its appearance under 'unrelated' is a minor classification overlap in the generated scope artifact, not a content defect. No implementation, boundary, or closeout-correctness impact.",
+        "recommendation": "Optionally tighten the changed-file-scope generator so a pack's own docs/closeout-packs/<pack>/ evidence dir is not also emitted under unrelated_dirty_files_preserved, to avoid downstream-reviewer confusion. The authoritative manifest classification already treats it as in-scope.",
+        "post_review_disposition": "informational_minor_tooling_metadata_overlap_no_action_required_for_this_pack"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

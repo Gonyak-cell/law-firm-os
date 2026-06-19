@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-717",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d6b49451-aaf3-45b2-97ac-ec22df4eff2b",
+    "uuid": "f2e545bd-f180-4814-9b9d-f076cd655d07",
+    "total_cost_usd": 2.1125452499999997,
+    "permission_denials": []
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-717/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-717/review-receipt.json",
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-717 (RP23 External Integrations II finance-integrations P08 workflow/permission/fixture bridge, risk B, 40 units RP23.P08.M04.S13-RP23.P08.M06.S08) is a faithful descriptor-only continuation of the established CP694-CP716 pattern and is supported for closeout. Verified read-only via Read/Grep/Glob: (1) registry.js CP717 binding and requirements match the baseline/prompt (unit_count 40, first/last unit IDs, next_pack CP00-718 / RP23.P08.M06.S09, deliverable counts impl 18 / hermes 19 / test 2 / claude_review 1, micro-title 10/22/8) and reconcile against the manifest included_units; (2) service.js/validators.js apply the shared frozen descriptor-only generators and validators, index.js re-exports all CP717 symbols; (3) model.test.js:62-64 cover CP717 binding/coverage, runtime-closed descriptor/packets (claude_is_final_approval=false, human_final_approval_required=true, runtime_opening_pack_id=CP00-718, hermes emits_runtime_receipt=false, claude read_only=true, handoff to CP00-718) and the latest contract projection with CP694-716 historical; (4) no-write/no-real-data boundaries hold (NO_WRITE_ATTESTATION and contract projection all runtime/write/leak flags false, no_real_data=true, descriptor_only=true, no-leak guards present); (5) authority boundary keeps Claude non-final and requires human approval for runtime opening, local_validation_claims_enterprise_trust=false; (6) Hermes packet is descriptor_only_finance_integrations_no_write with emits_hermes_runtime_receipt=false, i.e. deterministic control-plane review/receipt handling only, not product runtime. The pack correctly does NOT over-claim: manifest production_ready=false, runtime_ready=false, status pending_review; inspection verdict PENDING_REVIEW awaiting this receipt. Review-hardening preconditions for this run are satisfied (auth preflight exit 0 with valid JSON, tools limited to Read/Grep/Glob, no forbidden tools, schema present, no pre-populated raw-output/receipt). Validation command outcomes are taken as recorded in command-evidence.json (all exit 0); they were not independently re-executed under the read-only constraint, and out-of-scope dirty files (closeout-pack-plan.json, next-pack-queue.json, workbook/*) were not attributed to this pack per changed-file-scope. No P0-P3 findings; Claude remains a read-only independent reviewer and not the final approval authority.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

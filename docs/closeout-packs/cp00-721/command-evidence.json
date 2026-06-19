@@ -1,0 +1,240 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-721",
+  "subphase_id": "RP23.P09.M10.S10",
+  "status": "passed",
+  "production_ready": true,
+  "writes_product_state": false,
+  "no_real_data": true,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-721 remains descriptor-only and synthetic-evidence only.",
+    "CP00-721 keeps bank, card, WEHAGO, Douzone, tax export, DART, permission decision, audit body, Hermes runtime, and product-state writes closed.",
+    "Review and final production_ready transition are pending exactly one valid hardened read-only Claude review receipt."
+  ],
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.393Z",
+      "finished_at": "2026-06-15T05:53:25.422Z"
+    },
+    {
+      "command": "node --check packages/finance-integrations/src/registry.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.422Z",
+      "finished_at": "2026-06-15T05:53:25.448Z"
+    },
+    {
+      "command": "node --check packages/finance-integrations/src/service.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.448Z",
+      "finished_at": "2026-06-15T05:53:25.478Z"
+    },
+    {
+      "command": "node --check packages/finance-integrations/src/validators.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.478Z",
+      "finished_at": "2026-06-15T05:53:25.505Z"
+    },
+    {
+      "command": "node --check packages/finance-integrations/src/index.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.505Z",
+      "finished_at": "2026-06-15T05:53:25.530Z"
+    },
+    {
+      "command": "node --check packages/finance-integrations/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.530Z",
+      "finished_at": "2026-06-15T05:53:25.560Z"
+    },
+    {
+      "command": "node --check scripts/validate-rp23-external-integrations-ii-contract.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.560Z",
+      "finished_at": "2026-06-15T05:53:25.586Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.586Z",
+      "finished_at": "2026-06-15T05:53:25.783Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:25.783Z",
+      "finished_at": "2026-06-15T05:53:26.932Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:26.932Z",
+      "finished_at": "2026-06-15T05:53:28.054Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:28.054Z",
+      "finished_at": "2026-06-15T05:53:34.377Z"
+    },
+    {
+      "command": "npm run rp23:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:34.377Z",
+      "finished_at": "2026-06-15T05:53:34.561Z"
+    },
+    {
+      "command": "npm run rp23:external-integrations-ii:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:34.561Z",
+      "finished_at": "2026-06-15T05:53:35.270Z"
+    },
+    {
+      "command": "node --test packages/finance-integrations/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:35.271Z",
+      "finished_at": "2026-06-15T05:53:36.039Z"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:36.040Z",
+      "finished_at": "2026-06-15T05:53:36.213Z"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:36.214Z",
+      "finished_at": "2026-06-15T05:53:36.997Z"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:36.998Z",
+      "finished_at": "2026-06-15T05:53:37.806Z"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:37.806Z",
+      "finished_at": "2026-06-15T05:53:37.997Z"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:37.998Z",
+      "finished_at": "2026-06-15T05:53:38.155Z"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:38.156Z",
+      "finished_at": "2026-06-15T05:53:39.896Z"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:39.897Z",
+      "finished_at": "2026-06-15T05:53:39.955Z"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:39.956Z",
+      "finished_at": "2026-06-15T05:53:45.751Z"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:45.752Z",
+      "finished_at": "2026-06-15T05:53:46.858Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:57.620Z",
+      "finished_at": "2026-06-15T05:53:57.911Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:53:57.911Z",
+      "finished_at": "2026-06-15T05:54:01.238Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-721 --timeout_ms=900000",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:54:01.239Z",
+      "finished_at": "2026-06-15T05:59:30.464Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:59:30.464Z",
+      "finished_at": "2026-06-15T05:59:30.675Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T05:59:30.675Z",
+      "finished_at": "2026-06-15T05:59:30.840Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:08.130Z",
+      "finished_at": "2026-06-15T06:00:08.332Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-721",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:08.332Z",
+      "finished_at": "2026-06-15T06:00:08.512Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:08.513Z",
+      "finished_at": "2026-06-15T06:00:09.770Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:09.771Z",
+      "finished_at": "2026-06-15T06:00:10.948Z"
+    },
+    {
+      "command": "npm run rp23:external-integrations-ii:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:10.949Z",
+      "finished_at": "2026-06-15T06:00:11.700Z"
+    },
+    {
+      "command": "node --test packages/finance-integrations/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:11.701Z",
+      "finished_at": "2026-06-15T06:00:12.485Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:12.485Z",
+      "finished_at": "2026-06-15T06:00:19.816Z"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-15T06:00:19.817Z",
+      "finished_at": "2026-06-15T06:00:19.907Z"
+    }
+  ]
+}

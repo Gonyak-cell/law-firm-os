@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-348",
+  "normalized_at": "2026-06-11T16:47:10.391Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-348/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-348/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-348/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-348/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "14102ee1-6635-41b5-aa00-24f43d36196e",
+    "uuid": "b114ab2d-1e99-463e-8774-841ed072ce27",
+    "total_cost_usd": 1.7060217500000001,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7042,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Independent read-only review of CP00-348 (RP11.P04.M05.S06-S15, risk A, 10 units, \"Permission And Audit Binding\" UI binding slice). The pack is a descriptor-only slice and is internally consistent across registry binding, requirements, contract, tests, validator script, manifest, baseline, and prompt. The pack-level production_ready claim is correctly FALSE (runtime_ready:false, implementation_layer:descriptor, status:implemented_pending_review); the production_ready_flag is a descriptor-verification token, not a runtime/enterprise-trust claim, so the production gate is not weakened. Scope and all distributions (deliverable {claude_review:1,ui:4,security_audit:2,implementation:3}, micro_title {Permission And Audit Binding:10}, range, unit count, risk class) match across every layer and the 10 included units. New exports flow through index.js via wildcard re-export; README #cp00-348 anchor present; contract current_pack/ui_binding_slice_descriptor (10 descriptor-only rows with permission_decision/audit_hint/validation_error detail flags all false)/public exports/historical_pack_bindings tail all reflect CP00-348; CP00-348 is the live pack in closeout-pack-plan.json. A negative grep across changed files found no boundary-violating flags (no runtime_execution:true, production_ready:true, leak_detected:true, writes_product_state:true, or *detail_included:true). Authority boundary is enforced uniformly: Claude is read-only and not final approver, no enterprise trust from local validation, human approval required for runtime opening. Hermes patterns are confined to deterministic evidence packet/receipt handling (emits_hermes_runtime_receipt:false, receipt_shape descriptor_only..._no_write), not product runtime. Review-evidence integrity holds: readiness auth-preflight passed with valid non-empty JSON, no prior invalid review attempts, and the unrelated ldip invalid-attempt file is correctly scoped out. Two non-blocking P3 observations are recorded; no P0/P1/P2 defects. Note: adjudication and construction-inspection are downstream hardening-sequence steps and are correctly not yet present at review time. This verdict is a read-only review recommendation feeding adjudication, not final approval.",
+    "findings": [
+      {
+        "id": "CP00-348-R01",
+        "severity": "P3",
+        "title": "Internal case_set_id uses cp305 label inside CP00-348 artifacts",
+        "file": "packages/time-expense/src/service.js",
+        "line": 991,
+        "details": "createTimeExpenseCoreCp348UiBindingSliceCaseSet sets case_set_id 'time-expense-core-cp305-ui-binding-slice-case-set', and the same cp305 label is mirrored in contracts/time-expense-core-contract.json (line 9021). The numeric token (cp305) does not match the pack id (CP00-348). This follows a consistent established convention across all RP11 packs where the case-set token is the pack number minus 43 (CP342->cp299, CP343->cp300, CP344->cp301, CP345->cp302, CP346->cp303, CP347->cp304, CP348->cp305), and no validator or test asserts a relationship between case_set_id and pack id, so it does not affect coverage, boundary, or production_ready gating.",
+        "recommendation": "No action required for closeout. Optionally add a brief comment or a derivation rule documenting the -43 case-set offset so future maintainers are not confused by a cp305 label embedded in CP00-348 artifacts.",
+        "post_review_disposition": "Non-blocking. Confirmed intentional convention consistent across 7 packs and unenforced by validators; recorded for maintainability transparency only."
+      },
+      {
+        "id": "CP00-348-R02",
+        "severity": "P3",
+        "title": "Three manifest-required pack artifacts correctly absent at read-only review time",
+        "file": "docs/closeout-packs/cp00-348/manifest.json",
+        "line": 503,
+        "details": "manifest.required_pack_artifacts lists five files; only manifest.json and command-evidence.json currently exist. claude-review-result.json, adjudication.md, and construction-inspection.json are not yet present. This is expected and correct per the documented hardening_sequence (baseline -> readiness -> read_only_claude_run_raw_capture -> normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit): this read-only review run produces the raw output that becomes claude-review-result.json, and adjudication/construction-inspection are explicitly later steps. command-evidence.json notes confirm post-review gated commands are executed and recorded before commit. Not a missing-artifact defect.",
+        "recommendation": "Ensure all five required artifacts exist and validate (closeout-pack:validate, git diff --check --cached) before the final commit step closes CP00-348; no change needed at review time.",
+        "post_review_disposition": "Non-blocking. Verified that the three absent artifacts are downstream of this review step, not omissions; documented to pre-empt a false 'missing required artifacts' alarm."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

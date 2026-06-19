@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M05.S06",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Ownership metadata",
+  "entity": "HumanApproval",
+  "inspected_at": "2026-06-04T01:47:32Z",
+  "verdict": "PASS",
+  "status": "PASS",
+  "production_ready": true,
+  "human_approval_ownership_metadata_verified": true,
+  "owner_role_values_verified": true,
+  "synthetic_steward_ref_verified": true,
+  "blocked_claim_correction_route_verified": true,
+  "required_reference_boundaries_verified": true,
+  "required_mutation_boundaries_verified": true,
+  "human_approval_decision_mutation_forbidden": true,
+  "human_approval_actor_identity_mutation_forbidden": true,
+  "registry_exposes_human_approval_ownership_policy": true,
+  "registry_keeps_human_approval_model_future": true,
+  "synthetic_fixture_ownership_metadata_verified": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "cannot_synthesize_human_approval": true,
+  "reference_relationship_map_deferred_to": "RP00.P01.M05.S07",
+  "required_field_registry_deferred_to": "RP00.P01.M05.S08",
+  "state_transition_map_deferred_to": "RP00.P01.M05.S10",
+  "validation_helper_deferred_to": "RP00.P01.M05.S11",
+  "human_acceptance_or_explicit_next_goal_boundary": "Next boundary recorded as RP00.P01.M05.S07 Reference relationship map; no sensitive production action approved by this subphase.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed",
+    "findings": [
+      {
+        "id": "HA-S06-001",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Protective may_not_mutate entries are allow-listed but not required in validated instances",
+        "file": "packages/control-plane/src/model.js",
+        "line": 1234,
+        "details": "validateHumanApprovalOwnershipMetadata enforces that present may_reference/may_not_mutate entries fall within the policy allowlist and are non-empty, but does not require the protective boundaries (human_approval_decisions, human_approval_actor_identity) to actually be present in a given instance. A conforming object could omit them and still pass. The HUMAN_APPROVAL_OWNERSHIP_POLICY allowlist, the contract definition, and the synthetic fixture all include them, and the validator script asserts the fixture validates, so the documented protection is intact for this slice.",
+        "recommendation": "Acceptable for the ownership-metadata slice. Required-field presence enforcement is explicitly deferred to the HumanApproval Required field registry (RP00.P01.M05.S08); confirm the protective boundaries become mandatory there.",
+        "status": "fixed"
+      },
+      {
+        "id": "HA-S06-002",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Closeout evidence files not present in this diff (expected)",
+        "file": "docs/goal-closeout/rp00-p01-m05-s06",
+        "line": null,
+        "details": "The contract validation_command_matrix and construction-inspection checks reference docs/goal-closeout/rp00-p01-m05-s06/claude-review-result.json and construction-inspection.json (with human_approval_ownership_metadata_verified), which are not part of the implementation diff. This C00 read-only review is itself the input to that evidence record.",
+        "recommendation": "Record this review's adjudication plus the construction inspection under the S06 evidence root before promoting to production_ready; the validator already enforces their presence/shape at closeout.",
+        "status": "fixed_by_closeout_evidence"
+      }
+    ]
+  }
+}

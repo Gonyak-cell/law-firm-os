@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-838",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-16T11:44:46.854Z",
+  "finished_at": "2026-06-16T11:50:29.009Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":341443,\"duration_api_ms\":342092,\"ttft_ms\":3826,\"num_turns\":48,\"result\":\"Review complete. **Verdict: PASS** — CP00-838's descriptor-only Hermes evidence secondary workflow bridge is fully supported by the implementation, tests, validation wiring, and no-write/no-real-data boundaries, with the authority boundary (Claude read-only, human-gated enterprise trust, runtime deferred to CP00-839) intact. No P0/P1/P2 findings; one non-blocking P3 traceability nit in `command-evidence.json`. Does not block pack or this-CP goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"8ac76a9b-a5ee-4757-981e-61d5ca560a38\",\"total_cost_usd\":2.0965535,\"usage\":{\"input_tokens\":58,\"cache_creation_input_tokens\":102572,\"cache_read_input_tokens\":1717445,\"output_tokens\":23810,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":102572,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":230,\"cache_read_input_tokens\":95400,\"cache_creation_input_tokens\":7687,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7687},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1116,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001216,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":58,\"outputTokens\":23810,\"cacheReadInputTokens\":1717445,\"cacheCreationInputTokens\":102572,\"webSearchRequests\":0,\"costUSD\":2.0953375000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-838 (RP27 Platform Extensibility — Hermes evidence secondary workflow bridge, descriptor-only, risk A, 10 units RP27.P08.M04.S06-S15) is supported by its implementation, tests, local validation evidence, and no-write/no-real-data boundaries. Verified through Read/Grep/Glob only: (1) Plan, manifest, baseline, contract latest_projection, contract projections.cp838, and registry all agree on the 10 units, micro_title \\\"Secondary Workflow Slice\\\", and deliverable distribution {hermes_evidence:5, claude_review:1, implementation:4}; deviation_from_plan:false. Registry builds the rows from HERMES_VALIDATION_ROWS.slice(5,15), which yields exactly the 10 expected titles (blocked-claim, permission/audit/no-real-data receipts, Claude dependency marker, human approval marker, PASS / PASS_WITH_FINDINGS / BLOCK semantics, evidence template). (2) Descriptor-only and runtime-closed: PLATFORM_EXTENSIBILITY_NO_WRITE_ATTESTATION (all-false flags) is spread into the descriptor and every case-set row carries descriptor_only:true / runtime_execution:false with all leak flags false; validators.js rejects any api_key_issued/webhook_delivered/workflow_executed/permission_decision_written/audit_event_written/writes_product_state and enforces the no-secret/no-real-data/no-audit-body guards. (3) Authority boundary intact: claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true, runtime opening deferred to CP00-839; this matches the receipt's authority boundary and keeps Claude a read-only reviewer, not final approver. (4) Hermes control-plane pattern used only for deterministic review packet/receipt: hermes_packet.emits_runtime_receipt:false and command_matrix is validation-only; fixture_summary states no runtime command execution/permission/audit/extension behavior is opened. (5) Claude packet read_only:true, promotes_claude_to_final_approval:false, tools Read/Grep/Glob, with hardening blockers (not_logged_in, malformed_json, usage_limit_error, permission_denial, write_tool_used, runtime_receipt_claim). (6) Closeout handoff routes to CP00-839 / RP27.P08.M04.S16 with runtime_opening_allowed:false. Tests bind the registry to the live plan and assert runtime-closed descriptor + projection currency + CP00-837 historical preservation; the validate script checks upstream lineage to CP00-837. The pending-review placeholders (production_ready:false, runtime_ready:false, PENDING_REVIEW in adjudication/inspection/claude-review-result) are the correct pre-receipt state, with valid_review_receipts:[] and invalid_review_attempts:[] — no invalid evidence is presented as valid, and no auth-failure/0-byte/malformed/fenced/tool-call-shaped output is being relied upon. The production_ready claim here is the descriptor-verified flag only; runtime_ready stays false and enterprise trust remains human-gated, so the layered claim is sound. Note: under the read-only constraint I did not independently re-execute the validation commands; I confirmed the implementation is internally consistent with the recorded exit_code 0 results. One non-blocking P3 traceability nit in command-evidence.json (gate command_ids vs recorded commands mismatch). No P0/P1/P2 findings. Verdict: PASS; does not block pack or this-CP goal closeout.\",\"findings\":[{\"id\":\"CP838-P3-01\",\"severity\":\"P3\",\"title\":\"command-evidence hermes_gate.command_ids do not match the recorded commands\",\"file\":\"docs/closeout-packs/cp00-838/command-evidence.json\",\"line\":12,\"details\":\"hermes_gate.command_ids lists control-plane identifiers (rp00_control_plane_contract_validate, spec_requirement_validate) that do not correspond to the executed commands array, which records only rp27_platform_extensibility_validate and platform_model_tests (both exit_code 0). The evidence file therefore does not self-document which gate commands produced the recorded exit codes. This is purely a traceability/documentation nit in a pack whose subject matter is evidence receipts; it does not affect the descriptor-only, no-write, no-real-data, authority-boundary, or runtime-closed claims, all of which are independently verified in the contract, registry, validators, and tests.\",\"recommendation\":\"Align hermes_gate.command_ids with the commands actually recorded, or add the referenced control-plane/spec-requirements command results, so the evidence file is internally traceable.\",\"post_review_disposition\":\"Noted as non-blocking P3. Does not affect any gate or the production_ready (descriptor-verified) claim; no change required for this pack to close. Recommend tidying in a future evidence-template pass.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"05aa918e-a5a3-49af-8e48-b97e529f3cf6\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6784,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "8ac76a9b-a5ee-4757-981e-61d5ca560a38",
+    "uuid": "05aa918e-a5a3-49af-8e48-b97e529f3cf6",
+    "total_cost_usd": 2.0965535,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-051",
+  "subphase_id": "RP00.P02.M08.S11",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "9e65b74b-316b-4c24-b3c0-9c8e6738558f",
+    "uuid": "8b598898-01de-4f3d-8f53-cdb96727f7a4",
+    "duration_ms": 691238,
+    "duration_api_ms": 693457,
+    "total_cost_usd": 2.328889,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-051-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_result_form": "json_result_body",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [
+        {
+          "id": "P1-1",
+          "severity": "P1",
+          "title": "Evidence artifacts not yet present during Claude review",
+          "file": "docs/closeout-packs/cp00-051/",
+          "line_or_area": "contracts/control-plane-contract.json (current_subphase, subphase_closeouts S03-S11); scripts/validate-rp00-control-plane-contract.mjs (subphase_closeouts construction-inspection loop); docs/closeout-packs/cp00-051/*",
+          "issue": "Contract asserts completion not yet backed by evidence. current_subphase and subphase_closeouts S03-S11 are marked status=production_ready with closeout_pack_ref CP00-051 and evidence_root docs/closeout-packs/cp00-051, and the validator requires a per-subphase construction-inspection file with control_plane_hermes_evidence_packet_boundary_suite_verified===true for each of the 9 units. Those files do not exist yet, so rp00:control-plane:validate fails and the closeout is not actually complete.",
+          "recommendation": "Known/expected remaining workflow step per the preliminary validation result, not a code defect. It is the single blocker to full closeout.",
+          "status": "fixed_by_closeout_evidence",
+          "adjudication": "Resolved by creating CP00-051 manifest, command evidence, Claude review result, adjudication, and construction inspection with control_plane_hermes_evidence_packet_boundary_suite_verified=true, followed by final validators."
+        }
+      ],
+      "p2": [
+        {
+          "id": "P2-1",
+          "severity": "P2",
+          "title": "Plan and weighted ledger confirmation required",
+          "file": "docs/closeout-pack-plan/closeout-pack-plan.json and docs/weighted-implementation-ledger.json",
+          "line_or_area": "scripts/validate-rp00-control-plane-contract.mjs (plannedCp00051 and weighted-boundary loops); docs/closeout-pack-plan/closeout-pack-plan.json; docs/weighted-implementation-ledger.json",
+          "issue": "New validator logic hard-depends on files not present in this diff: docs/closeout-pack-plan/closeout-pack-plan.json must contain a CP00-051 entry (risk_class A, planned_unit_count/unit_count 9, deviation_from_plan false, source live_correction_before_requested_locked_queue, non-empty correction_reason, included_units S03-S11), and docs/weighted-implementation-ledger.json must contain S03-S11 with terminal=true only on S11 and correct nextSubphaseId chaining.",
+          "recommendation": "Diff is only self-consistent if these pre-existing scaffolded files already match. The reported preliminary result (validate failing solely on missing evidence files) indicates they do; explicitly confirm before merge.",
+          "status": "fixed_by_closeout_evidence",
+          "adjudication": "Resolved by closeout-pack-plan validation, weighted validation, and RP00 validator checks confirming CP00-051 plan binding and RP00.P02.M08.S03-S11 weighted boundaries."
+        }
+      ],
+      "p3": [
+        {
+          "id": "P3-1",
+          "severity": "P3",
+          "title": "Cross-tenant denied path still returns source_micro_phase_completed===true and next_subphase===RP00.P02.M09.S01",
+          "file": "packages/control-plane/src/service.js (assembleControlPlaneHermesEvidencePacketBoundarySuite); packages/control-plane/src/validators.js (assertControlPlaneHermesEvidencePacketBoundarySuiteResult)",
+          "issue": "Cross-tenant denied path still returns source_micro_phase_completed===true and next_subphase===RP00.P02.M09.S01; the result validator hard-requires both, so the boundary suite always 'completes' and hands off even when tenant_boundary_decision is deny_cross_tenant_boundary.",
+          "impact": "Defensible for a metadata-only boundary suite with no runtime enforcement, but completion semantics do not reflect the precheck denial and could surprise a future reader. No security impact since nothing is executed or persisted.",
+          "status": "deferred_with_explicit_boundary",
+          "adjudication": "Accepted as non-blocking because CP00-051 is a metadata-only no-write boundary suite; future semantic hardening can split denial-completion nuance and explicit Matter requirements without blocking this pack."
+        },
+        {
+          "id": "P3-2",
+          "severity": "P3",
+          "title": "matter_id and matter_tenant_id fall back to synthetic defaults (matter.synthetic.control-plane / tenant_id) when absent ",
+          "file": "packages/control-plane/src/service.js (assembleControlPlaneHermesEvidencePacketBoundarySuite)",
+          "issue": "matter_id and matter_tenant_id fall back to synthetic defaults (matter.synthetic.control-plane / tenant_id) when absent from the normalized request; matter_id is not in the required input field set.",
+          "impact": "Acceptable in synthetic metadata-only context, but matter-trace precheck (S04) may operate on a defaulted identifier rather than a request-supplied one.",
+          "status": "deferred_with_explicit_boundary",
+          "adjudication": "Accepted as non-blocking because CP00-051 is a metadata-only no-write boundary suite; future semantic hardening can split denial-completion nuance and explicit Matter requirements without blocking this pack."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "no_runtime_route": "PASS - runtime_route_created:false; doesNotCreateRuntimeRoute:true; no route registration in assembler",
+      "no_service_logic_execution": "PASS - service_logic_execution_permitted:false; doesNotExecuteServiceLogic:true; assembler is a pure metadata function returning a frozen object",
+      "no_hermes_validation_runtime_evidence": "PASS - hermes_runtime/validation/evidence_creation permitted all false; no Hermes calls; create/run/persist evidence-packet claims forbidden",
+      "no_database_storage_product_state_writes": "PASS - database/storage/product_state permitted all false; no_write_scope all false; result frozen and returned, never persisted",
+      "no_idempotency_lock_audit_writes": "PASS - idempotency_record/runtime_lock/audit_event write permitted all false; idempotency_key and audit_hint_ref are metadata strings only; lock_not_acquired_metadata_boundary_only",
+      "no_real_data": "PASS - no_real_data:true; fixture_integrity synthetic_only/no_real_client_data/no_real_matter_data/no_credentials_or_secrets",
+      "human_approval_preserved": "PASS - replace_human_approval and authorize_request in forbidden claims; doesNotReplaceHumanApproval:true",
+      "fail_closed": "PASS - rejects non-hermes_evidence_packet entrypoint, non-S02 normalization, non-RP00.P02.M08 source, forbidden claims, and unknown claims (any non-false claim value throws); cross-tenant drift records denial and appends blocked_claim_ref",
+      "plan_binding": "PASS - deviation_from_plan:false; packId/plannedPackId CP00-051; exactly 9 units S03-S11 enforced; correction_reason recorded referencing live CP00-050",
+      "handoff": "PASS - completes_source_micro_phase RP00.P02.M08; next_subphase RP00.P02.M09.S01; current_subphase advanced to S11; production_ready flag added to closeout_requirements"
+    },
+    "recommendation": "PASS_WITH_FINDINGS. The code and contract diff is internally consistent, fail-closed, and preserves every required boundary (no runtime route, no service logic, no Hermes runtime/validation/evidence, no database/storage/product-state/idempotency/lock/audit writes, synthetic-only data, human approval intact); preliminary node --check, 597 unit tests, and the contract/code validator cross-checks all pass. Before final closeout: (1) create the docs/closeout-packs/cp00-051 evidence so each S03-S11 construction-inspection sets control_plane_hermes_evidence_packet_boundary_suite_verified:true and rp00:control-plane:validate passes (P1, the only blocker); (2) confirm the pre-existing closeout-pack-plan.json CP00-051 entry and weighted-ledger S03-S11 boundaries match, since neither file is in this diff (P2). The denied-path completion semantics and matter_id defaulting (P3) are acceptable as-is given the metadata-only scope."
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":691238,\"duration_api_ms\":693457,\"ttft_ms\":329286,\"num_turns\":1,\"result\":\"{\\n  \\\"overall_verdict\\\": \\\"PASS_WITH_FINDINGS\\\",\\n  \\\"p0\\\": [],\\n  \\\"p1\\\": [\\n    {\\n      \\\"finding\\\": \\\"Contract asserts completion not yet backed by evidence. current_subphase and subphase_closeouts S03-S11 are marked status=production_ready with closeout_pack_ref CP00-051 and evidence_root docs/closeout-packs/cp00-051, and the validator requires a per-subphase construction-inspection file with control_plane_hermes_evidence_packet_boundary_suite_verified===true for each of the 9 units. Those files do not exist yet, so rp00:control-plane:validate fails and the closeout is not actually complete.\\\",\\n      \\\"location\\\": \\\"contracts/control-plane-contract.json (current_subphase, subphase_closeouts S03-S11); scripts/validate-rp00-control-plane-contract.mjs (subphase_closeouts construction-inspection loop); docs/closeout-packs/cp00-051/*\\\",\\n      \\\"impact\\\": \\\"production_ready is claimed without backing evidence; 9 construction-inspection (and pack) files must be created before validation passes.\\\",\\n      \\\"note\\\": \\\"Known/expected remaining workflow step per the preliminary validation result, not a code defect. It is the single blocker to full closeout.\\\"\\n    }\\n  ],\\n  \\\"p2\\\": [\\n    {\\n      \\\"finding\\\": \\\"New validator logic hard-depends on files not present in this diff: docs/closeout-pack-plan/closeout-pack-plan.json must contain a CP00-051 entry (risk_class A, planned_unit_count/unit_count 9, deviation_from_plan false, source live_correction_before_requested_locked_queue, non-empty correction_reason, included_units S03-S11), and docs/weighted-implementation-ledger.json must contain S03-S11 with terminal=true only on S11 and correct nextSubphaseId chaining.\\\",\\n      \\\"location\\\": \\\"scripts/validate-rp00-control-plane-contract.mjs (plannedCp00051 and weighted-boundary loops); docs/closeout-pack-plan/closeout-pack-plan.json; docs/weighted-implementation-ledger.json\\\",\\n      \\\"impact\\\": \\\"Diff is only self-consistent if these pre-existing scaffolded files already match. The reported preliminary result (validate failing solely on missing evidence files) indicates they do; explicitly confirm before merge.\\\"\\n    }\\n  ],\\n  \\\"p3\\\": [\\n    {\\n      \\\"finding\\\": \\\"Cross-tenant denied path still returns source_micro_phase_completed===true and next_subphase===RP00.P02.M09.S01; the result validator hard-requires both, so the boundary suite always 'completes' and hands off even when tenant_boundary_decision is deny_cross_tenant_boundary.\\\",\\n      \\\"location\\\": \\\"packages/control-plane/src/service.js (assembleControlPlaneHermesEvidencePacketBoundarySuite); packages/control-plane/src/validators.js (assertControlPlaneHermesEvidencePacketBoundarySuiteResult)\\\",\\n      \\\"impact\\\": \\\"Defensible for a metadata-only boundary suite with no runtime enforcement, but completion semantics do not reflect the precheck denial and could surprise a future reader. No security impact since nothing is executed or persisted.\\\"\\n    },\\n    {\\n      \\\"finding\\\": \\\"matter_id and matter_tenant_id fall back to synthetic defaults (matter.synthetic.control-plane / tenant_id) when absent from the normalized request; matter_id is not in the required input field set.\\\",\\n      \\\"location\\\": \\\"packages/control-plane/src/service.js (assembleControlPlaneHermesEvidencePacketBoundarySuite)\\\",\\n      \\\"impact\\\": \\\"Acceptable in synthetic metadata-only context, but matter-trace precheck (S04) may operate on a defaulted identifier rather than a request-supplied one.\\\"\\n    }\\n  ],\\n  \\\"boundary_checks\\\": {\\n    \\\"no_runtime_route\\\": \\\"PASS - runtime_route_created:false; doesNotCreateRuntimeRoute:true; no route registration in assembler\\\",\\n    \\\"no_service_logic_execution\\\": \\\"PASS - service_logic_execution_permitted:false; doesNotExecuteServiceLogic:true; assembler is a pure metadata function returning a frozen object\\\",\\n    \\\"no_hermes_validation_runtime_evidence\\\": \\\"PASS - hermes_runtime/validation/evidence_creation permitted all false; no Hermes calls; create/run/persist evidence-packet claims forbidden\\\",\\n    \\\"no_database_storage_product_state_writes\\\": \\\"PASS - database/storage/product_state permitted all false; no_write_scope all false; result frozen and returned, never persisted\\\",\\n    \\\"no_idempotency_lock_audit_writes\\\": \\\"PASS - idempotency_record/runtime_lock/audit_event write permitted all false; idempotency_key and audit_hint_ref are metadata strings only; lock_not_acquired_metadata_boundary_only\\\",\\n    \\\"no_real_data\\\": \\\"PASS - no_real_data:true; fixture_integrity synthetic_only/no_real_client_data/no_real_matter_data/no_credentials_or_secrets\\\",\\n    \\\"human_approval_preserved\\\": \\\"PASS - replace_human_approval and authorize_request in forbidden claims; doesNotReplaceHumanApproval:true\\\",\\n    \\\"fail_closed\\\": \\\"PASS - rejects non-hermes_evidence_packet entrypoint, non-S02 normalization, non-RP00.P02.M08 source, forbidden claims, and unknown claims (any non-false claim value throws); cross-tenant drift records denial and appends blocked_claim_ref\\\",\\n    \\\"plan_binding\\\": \\\"PASS - deviation_from_plan:false; packId/plannedPackId CP00-051; exactly 9 units S03-S11 enforced; correction_reason recorded referencing live CP00-050\\\",\\n    \\\"handoff\\\": \\\"PASS - completes_source_micro_phase RP00.P02.M08; next_subphase RP00.P02.M09.S01; current_subphase advanced to S11; production_ready flag added to closeout_requirements\\\"\\n  },\\n  \\\"recommendation\\\": \\\"PASS_WITH_FINDINGS. The code and contract diff is internally consistent, fail-closed, and preserves every required boundary (no runtime route, no service logic, no Hermes runtime/validation/evidence, no database/storage/product-state/idempotency/lock/audit writes, synthetic-only data, human approval intact); preliminary node --check, 597 unit tests, and the contract/code validator cross-checks all pass. "
+}

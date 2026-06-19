@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-617",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T06:50:52.458Z",
+  "finished_at": "2026-06-13T06:55:31.179Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":278147,\"duration_api_ms\":278932,\"ttft_ms\":4198,\"num_turns\":44,\"result\":\"CP00-617 review complete: **PASS** with zero findings.\\n\\nThe pack is a clean descriptor-only continuation of the RP20 Data Room/VDR series. I verified consistency end-to-end (registry binding, S03–S12 section slice, 6/2/2 deliverable split, no-write attestation with the new `test_golden_case_core_runtime_opened` field, validators, tests, validator script, contract projections, README anchor, index re-export), confirmed the authority boundary is preserved (Claude read-only/not final approver, human approval required, Hermes evidence-only), and confirmed CP178+ evidence hardening (auth preflight passed, valid prompt, read-only tools, no omitted files). Nothing blocks pack or goal closeout; `runtime_ready` correctly remains false, and final validation execution plus human approval stay as gates outside this read-only review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2d3017c2-609e-4cee-b803-9f78cb6454ad\",\"total_cost_usd\":1.9888002499999995,\"usage\":{\"input_tokens\":426,\"cache_creation_input_tokens\":105313,\"cache_read_input_tokens\":1718498,\"output_tokens\":18722,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":105313,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":289,\"cache_read_input_tokens\":102799,\"cache_creation_input_tokens\":3376,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3376},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1065,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001165,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":426,\"outputTokens\":18722,\"cacheReadInputTokens\":1718498,\"cacheCreationInputTokens\":105313,\"webSearchRequests\":0,\"costUSD\":1.9876352499999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Read-only static review of CP00-617 (RP20 Data Room & VDR, P02.M07.S03-S12; risk A; 10 units; 6 implementation / 2 security_audit / 2 ui; all micro \\\"Test And Golden Case Set\\\"). The descriptor-only implementation is internally consistent and complete: registry CP617 binding and PROGRAM_CONTRACT pointers are correct (upstream CP00-616, next CP00-618, next_subphase RP20.P02.M07.S13); section rows P02_SERVICE_ROWS.slice(2,12) map exactly to S03-S12, and the 6/2/2 deliverable split is verified against the actual title-classification sets (Permission/Audit precheck -> security_audit; State transition/Lock -> ui). freezeCp617Result forces all runtime-dispatch/write/persistence flags false and references CP617_NO_WRITE_ATTESTATION, which extends the CP616 attestation with test_golden_case_core_runtime_opened:false; validators enforce coverage, descriptor-only boundaries, and the authority boundary; tests cover coverage, descriptor-only, and contract-projection deepEqual; the validator .mjs script is fully wired; contract projections (cp617_pack_binding/requirements/no_write_attestation incl. the new field at line 1577, and packs.cp617_*) match package code; README has the #cp00-617 anchor and index.js re-exports via export *. No-write/no-real-data boundaries are attested and tested. Authority boundary is preserved: Claude is read-only and not final approver, human final approval is required for enterprise trust/runtime opening, local validation does not claim enterprise trust, and Hermes is used only for a deterministic evidence-packet/receipt descriptor (emits_hermes_runtime_receipt:false), not product runtime. CP178+ review-evidence hardening is satisfied: auth preflight passed (exit 0, valid JSON, non-zero stdout), prompt is 2135B with no embedded full diff/source, read tools were used, no forbidden tools, and no active untracked implementation files were omitted; the unrelated dirty files (progress-control-room, workbook/*, ldip-integration, docx) are correctly recorded as preserved and out of pack scope. The pack is in the expected pre-review pending_review state (manifest production_ready:false/in_progress; command-evidence, adjudication, construction-inspection all pending_review; claude-review-result.json is the PENDING_REVIEW placeholder) awaiting normalization of this review. production_ready denotes descriptor-verified only; runtime_ready remains false (no runtime opened). Final closeout validation execution and human approval remain gates outside this read-only review. No P0-P3 findings identified; this review does not block pack closeout and does not block goal closeout.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"1dbead2a-c40e-4919-8bda-ed835d7dae00\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5159,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "2d3017c2-609e-4cee-b803-9f78cb6454ad",
+    "uuid": "1dbead2a-c40e-4919-8bda-ed835d7dae00",
+    "total_cost_usd": 1.9888002499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@law-firm-os/control-plane",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Contract-first Product Constitution And AI Control Plane package for Law Firm OS.",
+  "files": [
+    "src",
+    "fixtures",
+    "README.md"
+  ]
+}

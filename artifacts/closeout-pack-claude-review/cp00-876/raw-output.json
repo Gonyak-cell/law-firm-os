@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-876",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T09:30:25.597Z",
+  "finished_at": "2026-06-17T09:36:18.917Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":352596,\"duration_api_ms\":352796,\"ttft_ms\":5431,\"num_turns\":39,\"result\":\"Review complete. CP00-876 passes as a clean descriptor-only RP29 service-tail pack: all 10 units have matching descriptor/test evidence, no-write/no-real-data boundaries are enforced in code, contract, and tests, the CP00-875 P3 (`unsafe_deploy`/`customer_plan_mismatch`) is genuinely closed, and the read-only/authority/Hermes boundaries hold. Verdict **PASS_WITH_FINDINGS** with one non-blocking P3 (alias `latest_subphase_id` naming); no P0/P1/P2, pack and CP-goal closeout are not blocked.\",\"stop_reason\":\"end_turn\",\"session_id\":\"1dbf5278-14d6-47ab-a532-0dccb928236b\",\"total_cost_usd\":2.2145649999999995,\"usage\":{\"input_tokens\":1491,\"cache_creation_input_tokens\":137158,\"cache_read_input_tokens\":1318679,\"output_tokens\":27572,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":137158,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":255,\"cache_read_input_tokens\":122426,\"cache_creation_input_tokens\":15184,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":15184},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1128,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012330000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1491,\"outputTokens\":27572,\"cacheReadInputTokens\":1318679,\"cacheCreationInputTokens\":137158,\"webSearchRequests\":0,\"costUSD\":2.2133319999999994,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-876 is a descriptor-only RP29 Commercial Readiness service-tail closeout pack (RP29.P02.M03.S15-RP29.P02.M04.S02, risk A, 10 units). Read-only inspection confirms the descriptor-level production_ready claim (commercial_readiness_service_tail_descriptor_verified) is supported by implementation, tests, contract projection, local validation evidence, adjudication, inspection, and no-write/no-real-data boundaries. All 10 planned units map to concrete descriptor and/or test evidence: approval-required routing (createApprovalRequiredDescriptor -> approval_required), blocked-claim output (policy.blocked_claims surfaced as validation_errors), rollback/retry behavior descriptors (rollback_executes_now/retry_executes_now=false), happy/denied/review unit tests, contract-projection integration smoke, service-entrypoint contract (service_matrix + required_capabilities), and request normalization. The live plan (closeout-pack-plan.json:395), manifest plan_binding_snapshot, and review baseline agree exactly on unit IDs, deliverable distribution {ui:1,implementation:2,failure_recovery:2,test:4,contract:1}, and micro-title distribution {Primary:8,Secondary:2}. The CP00-875 non-blocking P3 is genuinely resolved: unsafe_deploy and customer_plan_mismatch are present across states.js (COMMERCIAL_RISK_CLAIMS), policies.js (deploy_safe/customer_plan_matches checks), service.js matrix rows, validators.js required keys + review-required assertions, and assert-backed tests in service.test.js, all routing to review_required. No-write/no-real-data boundaries are rigorously enforced: COMMERCIAL_NO_WRITE_ATTESTATION pins every runtime/write/real-data/secret flag to false, validators reject any row that flips them, and the generated 417KB readiness contract carries validation.valid=true with matching no_leak_guards, safety_gates (incl. approval_required_does_not_write_permission_decision, rollback_retry_do_not_execute_runtime, all_risky_release_claims_review_required), and required_capabilities (incl. the 5 new CP876 descriptors). Authority boundary holds: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, enterprise trust closed, runtime_opening deferred to CP00-877; Claude packet read_only=true / promotes_claude_to_final_approval=false. Hermes patterns are used only for deterministic control-plane evidence (hermes_packet.emits_runtime_receipt=false; command-evidence hermes_gate command_ids = rp00 control-plane + spec requirement validation), not product runtime. Review hardening checks pass: auth preflight succeeded (1446-byte valid JSON result, exit 0), prompt is 2450B with no inlined source/diff, tools restricted to Read/Grep/Glob, the inherited CP00-875 receipt is correctly excluded from valid_review_receipts, and no prior invalid attempts exist to reject. The current manifest production_ready=false / status=pending_review is the expected pre-review posture; this review is the gate and the full deterministic validation ladder runs post-adjudication before commit (command-evidence documents this sequencing; initial rp29:commercial:validate and commercial tests passed exit 0). One non-blocking P3 observation on an unvalidated compatibility-alias field. No P0/P1/P2 issues; pack closeout is not blocked and this CP goal closeout is not blocked.\",\"findings\":[{\"id\":\"CP876-P3-01\",\"severity\":\"P3\",\"title\":\"Compatibility alias latest_subphase_id holds pack entry subphase rather than final subphase\",\"file\":\"contracts/commercial-contract.json\",\"line\":7,\"details\":\"latest_subphase_id is RP29.P02.M03.S15 (the pack's first/primary unit) while the pack range ends at RP29.P02.M04.S02. The field name reads as 'most advanced subphase reached' but stores the pack entry subphase. The value is internally consistent with manifest.primary_subphase_id and the subphase_id used across docs/closeout-packs/cp00-876/command-evidence.json and construction-inspection.json (both RP29.P02.M03.S15), and the field is not consumed by scripts/validate-rp29-commercial-readiness-contract.mjs, which only validates canonical_contract_ref and latest_pack_id. No boundary, no-write, or gate impact.\",\"recommendation\":\"Optionally rename to primary_subphase_id or document that latest_subphase_id denotes the pack entry/representative subphase, to remove future ambiguity. No change required for CP00-876 closeout.\",\"post_review_disposition\":\"Acknowledged as non-blocking; value matches the pack's representative-subphase convention and is not gate-consuming. Acceptable as-is.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"be3360d2-08a6-4502-a295-8dc9eab4ac5f\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6732,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "1dbf5278-14d6-47ab-a532-0dccb928236b",
+    "uuid": "be3360d2-08a6-4502-a295-8dc9eab4ac5f",
+    "total_cost_usd": 2.2145649999999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

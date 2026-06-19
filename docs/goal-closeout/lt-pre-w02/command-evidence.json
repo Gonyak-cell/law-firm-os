@@ -1,0 +1,106 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W02",
+  "title": "runtime/mixed pack interleave decision",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "blocked_missed_cp_interleave_window",
+  "recorded_at": "2026-06-18T10:08:41Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:08:41Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W02-T01",
+      "title": "Decide runtime/mixed interleave for RP25/RP26/RP29 and refer queue policy changes",
+      "status": "blocked_missed_cp_interleave_window",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/runtime-mixed-interleave-decision-brief.md",
+        "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "docs/closeout-pack-plan/next-pack-queue.json",
+        "docs/closeout-pack-plan/implementation-layer-ledger.json",
+        "docs/goal-closeout/lt-pre-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "remaining_rp25_26_29_pack_count": 0,
+        "decision_record_present": false,
+        "decision_value_present": false,
+        "policy_referral_applicable": false,
+        "closed_rp25_26_29_pack_count": 88,
+        "runtime_ready_pack_count": 0,
+        "block_record_present": true,
+        "final_state": "blocked_missed_cp_interleave_window"
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count remaining RP25/RP26/RP29 packs in closeout-pack-plan.json and inspect next-pack-queue.json ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "closeout_complete": true,
+            "planned_pack_count": 0,
+            "rp25_26_29_remaining_pack_count": 0,
+            "live_latest_pack_id": "CP00-987",
+            "live_next_unit_id": null,
+            "next_queue_pack_count": 0
+          },
+          "purpose": "Verify the CP interleave decision window has no remaining queue to affect"
+        },
+        {
+          "command": "node - <<'NODE' ... summarize RP25/RP26/RP29 closed-pack distribution and runtime_ready count from implementation-layer ledger ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "pack_count": 987,
+            "rp25_26_29_closed_pack_distribution": {
+              "RP25": 32,
+              "RP26": 32,
+              "RP29": 24
+            },
+            "runtime_ready_pack_count": 0
+          },
+          "purpose": "Verify RP25/RP26/RP29 are closed descriptor-layer evidence rather than remaining interleave targets"
+        },
+        {
+          "command": "grep -n \"CP 완료 후에는 내릴 수 없는 결정\" workbook/launch-tuw/10_PRE.md",
+          "exit_code": 0,
+          "output": "29:CP 완료 후에는 내릴 수 없는 결정 — go-live 시점을 수개월 단위로 좌우.",
+          "purpose": "Record the planning authority for blocking this decision after CP completion"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The required decision values {mandatory adoption, partial adoption, rejection} are not synthesized because the CP interleave window has already passed and an owner decision is required.",
+        "The only honest machine-actionable result is a missed-window blocker with escalation to runtime rebaseline/scope revision.",
+        "Full Claude review is waived by user instruction and is not counted as valid review evidence."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim the runtime/mixed interleave decision was made before CP completion.",
+    "This record does not rewrite closed CP evidence.",
+    "This record does not reinterpret descriptor packs as runtime_ready.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "next_required_action": {
+    "owner_role": "Launch owner / runtime rebaseline approver",
+    "decision_needed": "Approve treating the missed CP interleave as a post-CP L2/L4 runtime rebaseline, or approve a separate scope revision path.",
+    "evidence_to_add_after_decision": [
+      "Decision row in the launch decision register or absorption decision register",
+      "Updated runtime gap/rebaseline approval evidence",
+      "Updated LT-PRE-W02 command evidence with owner decision"
+    ]
+  }
+}

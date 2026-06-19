@@ -1,0 +1,39 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M06.S01",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Package directory layout",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "status": "production_ready",
+  "production_ready_at": "2026-06-04T04:06:07Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "next_subphase": "RP00.P01.M06.S02",
+  "summary": "Implements the control-plane synthetic fixture set package layout with fixture directory binding, target file/test/fixture surfaces, required synthetic markers, allowed namespace prefixes and reserved domains, registry exposure, and no-real-data/no-write boundaries before fixture identifier and tenant-scope slices.",
+  "acceptance": {
+    "implementation_complete": true,
+    "tests_passed": true,
+    "hermes_evidence_recorded": true,
+    "claude_review_completed_once": true,
+    "claude_findings_adjudicated": true,
+    "construction_inspection_passed": true,
+    "production_ready_marked": true
+  },
+  "boundaries": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "layout_only": true,
+    "fixture_directory_bound": true,
+    "target_files_bound": true,
+    "target_tests_bound": true,
+    "fixture_files_bound": true,
+    "required_fixture_markers_listed": true,
+    "allowed_namespace_prefixes_listed": true,
+    "allowed_domains_listed": true,
+    "synthetic_only_policy_referenced": "RP00.P00.M06.S01",
+    "fixture_identifier_deferred_to": "RP00.P01.M06.S02",
+    "fixture_tenant_scope_deferred_to": "RP00.P01.M06.S03",
+    "does_not_create_real_fixture_data": true,
+    "does_not_close_RP00_P01": true
+  }
+}

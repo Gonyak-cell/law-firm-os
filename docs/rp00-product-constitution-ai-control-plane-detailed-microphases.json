@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+  "ai_owner": "Codex",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP00.P00.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates requirements and identify scope drift, AI write without review, and validation theater as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Product Constitution And AI Control Plane contract shape for ProductContract, AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, BlockedClaim.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns ProductContract, AIControlRule, and HermesGate, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for plan authoring, AI implementation handoff, and Hermes validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Product Constitution And AI Control Plane records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Product Constitution And AI Control Plane behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Product Constitution And AI Control Plane examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Product Constitution And AI Control Plane planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H00 preflight",
+      "objective": "Define the fields Hermes records before Product Constitution And AI Control Plane implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C00 design brief",
+      "objective": "Prepare Claude Code questions around scope drift, AI write without review, validation theater, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P00.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP00.P00 handoff",
+      "objective": "Hand off a contract-first Product Constitution And AI Control Plane implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "contracts/law-firm-os.product-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/control-plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement ProductContract model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for ProductContract.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement AIControlRule model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for AIControlRule.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement HermesGate model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for HermesGate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement ClaudeReviewGate model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for ClaudeReviewGate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement HumanApproval model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for HumanApproval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among ProductContract, AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, BlockedClaim and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Product Constitution And AI Control Plane model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P01.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Product Constitution And AI Control Plane model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/model.js",
+        "packages/control-plane/src/states.js",
+        "packages/control-plane/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for plan authoring, AI implementation handoff, and Hermes validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement plan authoring",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for plan authoring.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement AI implementation handoff",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for AI implementation handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement Hermes validation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for Hermes validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement Claude review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for Claude review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement human approval",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for human approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for scope drift, AI write without review, and validation theater.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Product Constitution And AI Control Plane operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H00.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Product Constitution And AI Control Plane outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P02.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Product Constitution And AI Control Plane services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Product Constitution And AI Control Plane models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define plan authoring API",
+      "objective": "Lock request, response, permission, audit, and error shape for plan authoring.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define AI implementation handoff API",
+      "objective": "Lock request, response, permission, audit, and error shape for AI implementation handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define Hermes validation API",
+      "objective": "Lock request, response, permission, audit, and error shape for Hermes validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define Claude review API",
+      "objective": "Lock request, response, permission, audit, and error shape for Claude review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define human approval API",
+      "objective": "Lock request, response, permission, audit, and error shape for human approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Product Constitution And AI Control Plane API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for scope drift, AI write without review, validation theater, missing approval, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H00 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C00 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P03.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Product Constitution And AI Control Plane public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/index.js",
+        "packages/control-plane/src/api-contract.js",
+        "packages/control-plane/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify operator dashboard, gate status strip, review queue, and approval summary in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan operator dashboard",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for operator dashboard.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan gate status strip",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for gate status strip.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan review queue",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for review queue.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan approval summary",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for approval summary.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Product Constitution And AI Control Plane outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Product Constitution And AI Control Plane rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Product Constitution And AI Control Plane context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Product Constitution And AI Control Plane service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P04.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp00-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define contract passes golden case",
+      "objective": "Create a synthetic golden case proving contract passes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define mutation blocked golden case",
+      "objective": "Create a synthetic golden case proving mutation blocked.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define Hermes detached golden case",
+      "objective": "Create a synthetic golden case proving Hermes detached.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define Claude review missing golden case",
+      "objective": "Create a synthetic golden case proving Claude review missing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define scope drift failure fixture",
+      "objective": "Create a synthetic failing case that proves scope drift is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define AI write without review failure fixture",
+      "objective": "Create a synthetic failing case that proves AI write without review is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define validation theater failure fixture",
+      "objective": "Create a synthetic failing case that proves validation theater is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Product Constitution And AI Control Plane fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Product Constitution And AI Control Plane appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P05.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Product Constitution And AI Control Plane fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/fixtures.js",
+        "packages/control-plane/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for plan authoring, AI implementation handoff, Hermes validation, and Claude review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Product Constitution And AI Control Plane view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Product Constitution And AI Control Plane mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Product Constitution And AI Control Plane export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Product Constitution And AI Control Plane where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Product Constitution And AI Control Plane obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H00 audit evidence",
+      "objective": "Record which Product Constitution And AI Control Plane decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P06.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Product Constitution And AI Control Plane cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/src/security-contract.js",
+        "packages/control-plane/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define scope drift failure",
+      "objective": "Fail closed or require review when scope drift appears in Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define AI write without review failure",
+      "objective": "Fail closed or require review when AI write without review appears in Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define validation theater failure",
+      "objective": "Fail closed or require review when validation theater appears in Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define missing approval failure",
+      "objective": "Fail closed or require review when missing approval appears in Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define harness/product boundary confusion failure",
+      "objective": "Fail closed or require review when harness/product boundary confusion appears in Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Product Constitution And AI Control Plane operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Product Constitution And AI Control Plane operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Product Constitution And AI Control Plane micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P07.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Product Constitution And AI Control Plane ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "packages/control-plane/test/failure-cases.test.js",
+        "docs/rp00-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/control-plane/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H00 command matrix",
+      "objective": "Record exact product commands Hermes should run for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H00 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H00 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H00 no-real-data evidence",
+      "objective": "Record that Product Constitution And AI Control Plane fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H00 blocked-claim evidence",
+      "objective": "Record unsafe Product Constitution And AI Control Plane claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H00 Claude dependency",
+      "objective": "Mark C00 review mandatory before Product Constitution And AI Control Plane closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H00 human approval note",
+      "objective": "Record what the human must approve for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H00 command availability",
+      "objective": "Ensure npm scripts required by H00 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H00 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Product Constitution And AI Control Plane implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H00 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H00.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P08.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Product Constitution And AI Control Plane behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp00-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M00",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP00 architecture review questions",
+      "objective": "Ask whether Product Constitution And AI Control Plane module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M01",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP00 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M02",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP00 bypass review questions",
+      "objective": "Ask Claude to find scope drift, AI write without review, validation theater, missing approval, and harness/product boundary confusion bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M03",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP00 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Product Constitution And AI Control Plane.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M04",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP00 downstream readiness questions",
+      "objective": "Ask whether Product Constitution And AI Control Plane is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M05",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP00 risk register",
+      "objective": "List unresolved Product Constitution And AI Control Plane risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M06",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Product Constitution And AI Control Plane findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M07",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Product Constitution And AI Control Plane closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M08",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP00.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M09",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Product Constitution And AI Control Plane can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP00.P09.M10",
+      "program_id": "RP00",
+      "program_title": "Product Constitution And AI Control Plane",
+      "program_scope": "product contract, AI-led development rules, Hermes attachment, Claude cross-validation, human approval gates",
+      "phase_id": "RP00.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP00 detailed plan",
+      "objective": "Confirm Product Constitution And AI Control Plane is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H00",
+      "claude_gate": "C00",
+      "target_files": [
+        "docs/rp00-claude-cross-validation-brief.md",
+        "docs/rp00-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H00 evidence or blocked reason can be recorded.",
+        "Claude C00 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

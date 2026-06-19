@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M07.S11",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "title": "Validation helper",
+  "status": "production_ready",
+  "created_at": "2026-06-04T08:04:41.000Z",
+  "implemented_entity": "ControlPlaneStateEnumRegistry",
+  "implemented_slice": "validation_helper",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m07-s11/packet.json",
+    "docs/goal-closeout/rp00-p01-m07-s11/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m07-s11/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m07-s11/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m07-s11/construction-inspection.json"
+  ],
+  "implementation_summary": [
+    "Added CONTROL_PLANE_STATE_ENUM_REGISTRY_VALIDATION_HELPER for RP00.P01.M07.S11.",
+    "Added validateControlPlaneStateEnumRegistry to compose required field, optional field, tenant, Matter, lifecycle status, and reference relationship validation for complete registry records.",
+    "Added assertControlPlaneStateEnumRegistryTransitionEvidence to enforce per-edge transition evidence from the S10 transition map.",
+    "Exposed the validation helper through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY and advanced nextSubphase to RP00.P01.M08.S01.",
+    "Extended the synthetic fixture, model tests, README, contract definition, and RP00 validator for S11 closeout gates."
+  ],
+  "scope_boundaries": {
+    "completes_control_plane_state_enum_registry_model_slice": true,
+    "does_not_define_new_enum_values": true,
+    "cannot_define_enum_values": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_create_ui": true
+  },
+  "gates": {
+    "hermes": "H00",
+    "claude": "C00",
+    "claude_review_count": 1,
+    "construction_inspection": "PASS",
+    "next_subphase": "RP00.P01.M08.S01"
+  }
+}

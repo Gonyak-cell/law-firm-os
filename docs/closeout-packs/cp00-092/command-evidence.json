@@ -1,0 +1,137 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-092",
+  "subphase_id": "RP00.P09.M05.S10",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-092",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test --test-name-pattern \"Review Closeout Permission Audit Binding\" packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    }
+  ],
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "reason": "Expected before CP00-092 evidence artifacts existed; validator failed only on missing docs/closeout-packs/cp00-092 files."
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 1,
+      "reason": "Expected immediately after CP00-092 implementation before queue regeneration; validator required live_latest_pack_id CP00-092 and next pack CP00-093."
+    }
+  ],
+  "claude_review_command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-092-claude-review-prompt-strict.md > /tmp/cp00-092-claude-review-output-valid.json",
+  "invalid_claude_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-092-claude-review-prompt.md > /tmp/cp00-092-claude-review-output.json",
+      "exit_code": 0,
+      "counted_as_valid_review": false,
+      "reason": "Result body was not the required JSON review; it attempted to begin tool-based exploration in prose.",
+      "session_id": "276651ab-0069-4123-a6ba-a159124e91ef",
+      "uuid": "61939c85-484d-40af-9bcd-43631bbb21c3"
+    }
+  ],
+  "evidence_summary": {
+    "implemented_surface": "ControlPlaneReviewCloseoutPermissionAuditBinding",
+    "included_unit_count": 10,
+    "included_range": "RP00.P09.M05.S01-S10",
+    "upstream_pack_consumed": "CP00-091",
+    "source_micro_phase_completed": false,
+    "phase_completed": false,
+    "next_subphase": "RP00.P09.M05.S11",
+    "ldip_boundary": "planning gate referenced only; no LDIP implementation in CP00-092",
+    "no_real_data": true,
+    "writes_product_state": false,
+    "final_validation_completed": true,
+    "final_validation_commands_include_build": true
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; all CP00-092 data is synthetic metadata.",
+    "CP00-092 is metadata-only and performs no runtime permission evaluation, audit ledger append, Claude runtime invocation, human approval synthesis, or product-state write."
+  ]
+}

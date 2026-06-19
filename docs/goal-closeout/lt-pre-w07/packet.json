@@ -1,0 +1,41 @@
+{
+  "work_package_id": "LT-PRE-W07",
+  "title": "matter product naming propagation",
+  "created_at": "2026-06-18T14:39:45Z",
+  "status": "passed",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W07-T02",
+  "artifacts": [
+    "docs/product-strategy-declaration.md",
+    "workbook/absorption-package/06_오픈_결정_레지스터.md",
+    "docs/launch/matter-naming-rules.md",
+    "apps/web/src/components/MatterLogo.jsx"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w07/packet.json",
+    "docs/goal-closeout/lt-pre-w07/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w07/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w07/adjudication.md",
+    "docs/goal-closeout/lt-pre-w07/construction-inspection.json"
+  ],
+  "current_status": {
+    "product_strategy_mat_dec_04_decided": true,
+    "decision_register_mat_dec_04_decided": true,
+    "naming_rules_present": true,
+    "machine_identifier_rename_ban_present": true,
+    "l2_6_intake_present": true,
+    "matter_logo_aria_label_exact_count": 1,
+    "checklist_completed_rows": 5,
+    "npm_test_exit_code": 0,
+    "web_build_exit_code": 0,
+    "work_package_passed": true
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,1814 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-354",
+  "planned_pack_id": "CP00-354",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "time_expense_core_permission_slice_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "runtime_ready": false,
+  "program_id": "RP11",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "delivery_counts": {
+    "implementation": 14,
+    "security_audit": 10,
+    "ui": 8,
+    "claude_review": 2,
+    "test": 6
+  },
+  "micro_phase_row_counts": {
+    "RP11.P06.M04": 15,
+    "RP11.P06.M05": 22,
+    "RP11.P06.M06": 3
+  },
+  "primary_subphase_id": "RP11.P06.M06.S03",
+  "next_subphase": "RP11.P06.M06.S04",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-354",
+    "planned_pack_id": "CP00-354",
+    "title": "CP00-354 RP11.P06.M04.S06-RP11.P06.M06.S03 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP11.P06.M04.S06",
+      "last_unit_id": "RP11.P06.M06.S03",
+      "description": "RP11.P06.M04.S06-RP11.P06.M06.S03"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP11.P06.M04.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M04.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M04.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M04.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M04.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M04.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M04.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M04.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M04.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP11.P06.M04.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M04.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M04.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M04.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M04.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP11.P06.M04.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP11.P06.M04",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP11.P06.M05.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M05.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M05.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M05.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M05.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M05.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M05.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP11.P06.M05.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP11.P06.M05.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M05.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M05.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M05.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP11.P06.M05.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP11.P06.M05.S21",
+        "title": "Cross-tenant test",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP11.P06.M05.S22",
+        "title": "Leak prevention test",
+        "source_micro_phase_id": "RP11.P06.M05",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP11.P06.M06.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP11.P06.M06",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP11.P06.M06.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP11.P06.M06",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP11.P06.M06.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP11.P06.M06",
+        "program_id": "RP11",
+        "phase_id": "RP11.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP11.P06.M04.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M04.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP11.P06.M04",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S21",
+      "title": "Cross-tenant test",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M05.S22",
+      "title": "Leak prevention test",
+      "source_micro_phase_id": "RP11.P06.M05",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M06.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP11.P06.M06",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M06.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP11.P06.M06",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP11.P06.M06.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP11.P06.M06",
+      "program_id": "RP11",
+      "phase_id": "RP11.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/time-expense-core-contract.json",
+        "packages/time-expense/README.md",
+        "packages/time-expense/src/index.js",
+        "packages/time-expense/src/registry.js",
+        "packages/time-expense/src/service.js",
+        "packages/time-expense/src/validators.js",
+        "packages/time-expense/test/model.test.js",
+        "scripts/validate-rp11-time-expense-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-354/manifest.json",
+        "docs/closeout-packs/cp00-354/command-evidence.json",
+        "docs/closeout-packs/cp00-354/claude-review-result.json",
+        "docs/closeout-packs/cp00-354/adjudication.md",
+        "docs/closeout-packs/cp00-354/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-354 implements descriptor-only coverage of the RP11.P06 permission slice: the M04 Secondary Workflow Slice tail (15 permission matrix rows), the full M05 Permission And Audit Binding 22-row permission cycle, and the M06 Synthetic Fixture Set 3-row head across three sections over 40 planned rows with a pack-local row-extras constant, Hermes evidence (H11), Claude review packet (C11), and CP00-355 handoff, without opening runtime permission evaluation or any other closed runtime surface.",
+    "source_refs": [
+      "contracts/time-expense-core-contract.json",
+      "packages/time-expense/README.md",
+      "packages/time-expense/src/index.js",
+      "packages/time-expense/src/registry.js",
+      "packages/time-expense/src/service.js",
+      "packages/time-expense/src/validators.js",
+      "packages/time-expense/test/model.test.js",
+      "scripts/validate-rp11-time-expense-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_time_entry_runtime": true,
+    "no_rate_card_runtime": true,
+    "no_expense_runtime": true,
+    "no_disbursement_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_api_handler_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_unauthorized_count_leak": true,
+    "no_permission_bypass_detected": true,
+    "no_leak_detected": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_validation_error_detail_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-354/manifest.json",
+    "docs/closeout-packs/cp00-354/command-evidence.json",
+    "docs/closeout-packs/cp00-354/claude-review-result.json",
+    "docs/closeout-packs/cp00-354/adjudication.md",
+    "docs/closeout-packs/cp00-354/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-354/manifest.json",
+    "docs/closeout-packs/cp00-354/command-evidence.json",
+    "docs/closeout-packs/cp00-354/claude-review-result.json",
+    "docs/closeout-packs/cp00-354/adjudication.md",
+    "docs/closeout-packs/cp00-354/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "\"workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-354/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-354/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "9a5fb71a-6da6-413c-a1c0-37b273bde0f7",
+      "uuid": "b5a1d596-8ed4-438e-a882-4e7026753aa2",
+      "total_cost_usd": 1.9025115000000001,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-354 is a descriptor-only closeout pack (13th in the CP342–CP354 RP11 Time Expense series) covering the permission slice RP11.P06.M04.S06–RP11.P06.M06.S03 (40 units). All evidence supports the pending-closeout posture and the production_ready *candidate* claim, while the actual pack-level production_ready is correctly false. Pack binding (registry.js:217), requirements/distributions (registry.js:1282), and the live closeout-pack-plan entry all match the baseline exactly: deliverables {implementation:14, security_audit:10, ui:8, claude_review:2, test:6}, micro-titles {Secondary Workflow Slice:15, Permission And Audit Binding:22, Synthetic Fixture Set:3}; section rows align one-to-one with the planned included units. All 7 required public exports exist. freezeCp354Result (service.js:1751) hard-codes descriptor-only/no-write/no-leak flags and an authority boundary that keeps Claude non-final and disclaims enterprise trust from local validation. The validators (validators.js:2666/2701) and the contract validator script comprehensively check coverage, section rows, descriptor-only flags, permission guards, no-write attestation, authority boundary, and contract-vs-source drift via deepEqual; three CP354 tests assert coverage.valid, slice.valid, descriptor-only rows, permission guards, authority boundary, hermes production_ready_candidate, and handoff targets. No fs/network/exec/eval/require appears in any changed source (purely Object.freeze descriptors). Contract and manifest are consistent (production_ready:false, runtime_ready:false, status implemented_pending_review, claude review pending with empty receipts, all boundary attestations true). CP178+ review hardening definitions (forbidden_review_evidence, hardened_review_sequence) are complete and correct; readiness auth-preflight passed with valid non-empty JSON. Claude remains a read-only independent reviewer (not final approver) and Hermes/H11 is used only for deterministic descriptor evidence/review-packet handling, not product runtime. One non-blocking P3 informational note: the downstream closeout artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) referenced in the manifest are not yet on disk, which is expected at this pre-review stage. No P0/P1/P2 issues found; the pack is sound and closeout may proceed through the normal post-review gates and human final approval.",
+      "findings": [
+        {
+          "id": "CP00-354-INFO-01",
+          "severity": "P3",
+          "title": "Downstream closeout artifacts not yet present (expected at pre-review stage)",
+          "file": "docs/closeout-packs/cp00-354/manifest.json",
+          "line": 1677,
+          "details": "manifest.json required_pack_artifacts and evidence_refs reference docs/closeout-packs/cp00-354/claude-review-result.json, adjudication.md, and construction-inspection.json, none of which exist on disk yet (Glob shows only manifest.json and command-evidence.json). This is consistent with the documented hardening sequence (read_only_claude_run_raw_capture -> normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit): this very review is the step that produces claude-review-result.json, and adjudication/construction-inspection are generated afterward. command-evidence.json explicitly records these as post-review gated commands run before commit. production_ready is correctly false and status is implemented_pending_review, so there is no overclaim. This is informational, not a defect.",
+          "recommendation": "At the closeout gate, ensure the three referenced artifacts are generated and validated (closeout-pack:validate / receipt:validate) before the commit step, and keep production_ready false until human final approval per the authority boundary. No code or descriptor change required.",
+          "post_review_disposition": "expected_pending_by_design_non_blocking"
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 1,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 1
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-354 time expense core permission slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-354/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-354/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-354/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-354/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "production_ready_at": "2026-06-11T17:39:35.079Z"
+}

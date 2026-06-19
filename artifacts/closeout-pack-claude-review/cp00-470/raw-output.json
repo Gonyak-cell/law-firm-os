@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-470",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T08:37:31.213Z",
+  "finished_at": "2026-06-12T08:42:18.257Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":285843,\"duration_api_ms\":286202,\"ttft_ms\":4232,\"num_turns\":39,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — no P0/P1/P2 issues; the pack-level descriptor-verified claim is fully supported and `production_ready:false`/`runtime_ready:false` is not overclaimed.\\n\\nCP00-470 (Risk A, 10 units, RP15.P07.M03.S11–S20) is internally consistent across registry/service/validators, the analytics contract, the live plan, README, tests, and the RP15 validator script; it is pure descriptor-only code (no runtime dispatch, no real-data load, no writes, no fs/network/eval), Claude is held to read-only non-approver, and Hermes is used only as a deterministic evidence/gate descriptor. The single P3 is informational and by-design: the post-review artifacts (`claude-review-result.json`, `adjudication.md`, `construction-inspection.json`) and the post-review gated validations must be generated and pass before commit — none of which blocks pack or goal closeout from this read-only review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2d0ce963-5c24-4e90-b08a-8d7a60ee52d8\",\"total_cost_usd\":1.6331959999999999,\"usage\":{\"input_tokens\":42,\"cache_creation_input_tokens\":95458,\"cache_read_input_tokens\":1034885,\"output_tokens\":20710,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":95458,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":366,\"cache_read_input_tokens\":81489,\"cache_creation_input_tokens\":8317,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":8317},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1081,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001181,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":42,\"outputTokens\":20710,\"cacheReadInputTokens\":1034885,\"cacheCreationInputTokens\":95458,\"webSearchRequests\":0,\"costUSD\":1.632015,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-470 is a Risk-A, 10-unit descriptor-only closeout pack covering RP15.P07.M03.S11-S20 (Primary Implementation Slice). Verified end-to-end consistency across registry.js (CP470 pack binding, requirements, no-write attestation), service.js (descriptor/case-set generators), validators.js (coverage + slice validation), the analytics contract, the live closeout-pack plan, next-pack-queue, README, model.test.js, and the RP15 validator script. Pack binding, range, upstream/next pack, next_subphase S21, deliverable distribution {failure_recovery:3, implementation:1, hermes_evidence:2, fixture:1, test:2, security_audit:1}=10, and micro_title distribution {Primary Implementation Slice:10} all match with deviation_from_plan:false confirmed against the actual plan block. Every generated row is descriptor-only (descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false); freezeCp470Result asserts no runtime dispatch, no real-data load, no state/audit writes, no Hermes runtime receipt, and no leaks. A targeted scan found no fs/child_process/fetch/eval/process.env usage in packages/analytics/src, confirming pure descriptor code. Authority boundary holds: claude_is_final_approval:false, promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false (enforced by validators and tests). Hermes appears only as a deterministic evidence-packet/gate (H15) descriptor with emits_hermes_runtime_receipt:false, not product runtime. The pack does not overclaim: production_ready:false / runtime_ready:false with a descriptor-verified flag. Review-hardening preflight passed with valid parseable JSON (no auth failure, no 0-byte/malformed/fenced/tool-call output); tools limited to Read/Grep/Glob; no invalid review attempts; unrelated dirty files correctly excluded from pack scope. One informational finding: the post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) and post-review gated validations (closeout-pack:validate, git diff --check --cached) are by-design not yet present and must be generated and pass before commit. No P0/P1/P2 issues; Claude remains a read-only reviewer and not the final approval authority.\",\"findings\":[{\"id\":\"CP00-470-R01\",\"severity\":\"P3\",\"title\":\"Post-review artifacts and gated validations pending by design\",\"file\":\"docs/closeout-packs/cp00-470/manifest.json\",\"line\":507,\"details\":\"manifest.required_pack_artifacts and evidence_refs list docs/closeout-packs/cp00-470/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in that directory. command-evidence.json (notes) also defers npm run closeout-pack:validate, the review run/normalize/receipt validations, and git diff --check --cached to post-review. This is consistent with the documented hardening_sequence (read_only_claude_run -> normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit): these artifacts are produced AFTER this read-only review step, so their absence now is expected and is not a defect in the pack implementation. It is flagged only so the human adjudicator confirms the gate is satisfied before closeout is marked complete.\",\"recommendation\":\"Before committing CP00-470, generate the normalized review result, receipt, adjudication, and construction-inspection artifacts from this accepted review, run the post-review gated validations (npm run closeout-pack:validate and git diff --check --cached), and confirm exactly one valid pack review receipt is recorded in pack_level_claude_review.valid_review_receipts.\",\"post_review_disposition\":\"Expected by design; not blocking. To be satisfied by the post-review steps of the hardening sequence prior to commit.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"fec4e72d-f87f-4dfb-9bb8-a54bbfb1d4d9\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6458,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "2d0ce963-5c24-4e90-b08a-8d7a60ee52d8",
+    "uuid": "fec4e72d-f87f-4dfb-9bb8-a54bbfb1d4d9",
+    "total_cost_usd": 1.6331959999999999,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

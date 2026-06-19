@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-032",
+  "subphase_id": "RP00.P02.M07.S04",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "3513de6d-7462-46ba-a230-53716e8a5c9c",
+    "uuid": "3513de6d-7462-46ba-a230-53716e8a5c9c",
+    "command_output_ref": "/tmp/cp00-032-claude-review-output.json",
+    "total_cost_usd": 0,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_verdict": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P3",
+        "area": "service.js / precheck semantics",
+        "finding": "A denied (deny_blocked_claim_required) matter-trace result still carries permission_precheck_required:true and next_subphase:\"RP00.P02.M07.S05\"; the deny is expressed only via matter_trace_satisfied=false and blocked_claim_refs, while the static plan-boundary handoff fields are unchanged.",
+        "evidence": "precheckControlPlaneTestAndGoldenCaseSetMatterTrace builds the result with constant permission_precheck_required:true / next_subphase:\"RP00.P02.M07.S05\" regardless of matterTraceSatisfied; the deny path only differs in matter_trace_decision, matter_trace_satisfied, matter_trace_scope, and blocked_claim_refs.",
+        "recommendation": "Confirm (at S05) that downstream consumers gate on matter_trace_satisfied / blocked_claim_refs rather than treating next_subphase as an authorization to proceed. Consistent with sibling prechecks and harmless in this metadata-only, no-runtime pack, so no change required here."
+      },
+      {
+        "id": "F2",
+        "severity": "P3",
+        "area": "service.js / claim presence test",
+        "finding": "Claim presence is detected with `value !== undefined && value !== null && value !== false`, so non-boolean truthy-ish values (e.g., 0, \"\", NaN) are treated as a set claim.",
+        "evidence": "for (const [claim, value] of Object.entries(matterTraceClaims)) { if (value !== undefined && value !== null && value !== false) { ... } }",
+        "recommendation": "Optional clarity only: all such values still resolve to a fail-closed outcome (throw for forbidden/unknown, deny for matter-required). Consider normalizing to strict `=== true` if explicit boolean semantics are desired."
+      },
+      {
+        "id": "F3",
+        "severity": "P3",
+        "area": "validator dependencies / verification scope",
+        "finding": "The S04 weighted-ledger boundary assertion, the S01 service-entrypoint arrays (requiredEvidenceRefs/schemaExpectationFields/acceptanceGateIds), the S03 fixture tenant_boundary_result, and helpers (getWeightedSubphaseBoundary, requireArrayIncludesAll, requireIncludes, requireText, uniqueFrozenStrings) are referenced but not present in the diff; their correctness is corroborated only by the supplied validation summary.",
+        "evidence": "validate-rp00-control-plane-contract.mjs references weightedLedger/getWeightedSubphaseBoundary and expectedTestAndGoldenTenantBoundaryResultFields/fixtureTestAndGoldenTenantBoundary without adding them in this diff; the contract weighted ledger is not modified for S04.",
+        "recommendation": "Adjudicator should confirm the evidence pack contains the actual `node --test packages/control-plane/test/service.test.js` and `npm run rp00:control-plane:validate` outputs (validator clean apart from the expected missing cp00-032 evidence files)."
+      }
+    ],
+    "summary": "CP00-032 adds the metadata-only Test And Golden Case Set Matter trace precheck (RP00.P02.M07.S04) across the contract, policies.js, service.js, validators.js, tests, fixture, README, and the RP00 validator. The pack is internally consistent: the 43-field result const in policies.js matches the inline result object in precheckControlPlaneTestAndGoldenCaseSetMatterTrace, the validator enforces the static no-write flags and the relational invariants (satisfied⟺allow decision, scope⟺required, deny⟺non-empty blocked_claim_refs, matter_id===null), and the contract definition/fixture/policy/service refs all agree (S01/S02/S03 upstream refs, RP00.P00.M04.S01 matter-first rules, CP00-032 evidence root, next boundary S05). Fail-closed behavior is correct: forbidden/unknown claims throw, while Matter-required claims with no Matter id return a deny result carrying blocked.synthetic.test_and_golden_case_set.matter_trace.matter_required_missing. All write/execute/route flags are false, M07 stays open (completesSourceMicroPhase:false, weighted boundary terminal:false), and the handoff to S05 is recorded. No scope violations (no test execution, golden fixture gen/persist, runtime routes, service logic, or DB/storage/product-state writes); the precheck is a pure function. Reported validation shows 499/499 tests passing and the contract validator clean except for the expected pre-evidence missing-files failure. No P0/P1 issues found.",
+    "residual_risk": "Low. The change set is metadata/precheck-only with no runtime, persistence, or write paths, and is self-consistent across all eight files. Primary residual risk is that this read-only review cannot execute the validator or tests, so it relies on the provided validation summary (499/499 pass; contract validator failing only on the expected missing docs/closeout-packs/cp00-032 evidence files) and on unchanged upstream artifacts (weighted ledger, S01/S03 policy/fixture data, shared helpers) being correct. Once the cp00-032 evidence pack (manifest, command-evidence, claude-review-result, adjudication, construction-inspection — including control_plane_test_and_golden_case_set_matter_trace_precheck_verified) is present, npm run rp00:control-plane:validate is expected to pass."
+  },
+  "raw_review_text": "{\n  \"verdict\": \"approve\",\n  \"summary\": \"CP00-032 adds the metadata-only Test And Golden Case Set Matter trace precheck (RP00.P02.M07.S04) across the contract, policies.js, service.js, validators.js, tests, fixture, README, and the RP00 validator. The pack is internally consistent: the 43-field result const in policies.js matches the inline result object in precheckControlPlaneTestAndGoldenCaseSetMatterTrace, the validator enforces the static no-write flags and the relational invariants (satisfied⟺allow decision, scope⟺required, deny⟺non-empty blocked_claim_refs, matter_id===null), and the contract definition/fixture/policy/service refs all agree (S01/S02/S03 upstream refs, RP00.P00.M04.S01 matter-first rules, CP00-032 evidence root, next boundary S05). Fail-closed behavior is correct: forbidden/unknown claims throw, while Matter-required claims with no Matter id return a deny result carrying blocked.synthetic.test_and_golden_case_set.matter_trace.matter_required_missing. All write/execute/route flags are false, M07 stays open (completesSourceMicroPhase:false, weighted boundary terminal:false), and the handoff to S05 is recorded. No scope violations (no test execution, golden fixture gen/persist, runtime routes, service logic, or DB/storage/product-state writes); the precheck is a pure function. Reported validation shows 499/499 tests passing and the contract validator clean except for the expected pre-evidence missing-files failure. No P0/P1 issues found.\",\n  \"findings\": [\n    {\n      \"id\": \"F1\",\n      \"severity\": \"P3\",\n      \"area\": \"service.js / precheck semantics\",\n      \"finding\": \"A denied (deny_blocked_claim_required) matter-trace result still carries permission_precheck_required:true and next_subphase:\\\"RP00.P02.M07.S05\\\"; the deny is expressed only via matter_trace_satisfied=false and blocked_claim_refs, while the static plan-boundary handoff fields are unchanged.\",\n      \"evidence\": \"precheckControlPlaneTestAndGoldenCaseSetMatterTrace builds the result with constant permission_precheck_required:true / next_subphase:\\\"RP00.P02.M07.S05\\\" regardless of matterTraceSatisfied; the deny path only differs in matter_trace_decision, matter_trace_satisfied, matter_trace_scope, and blocked_claim_refs.\",\n      \"recommendation\": \"Confirm (at S05) that downstream consumers gate on matter_trace_satisfied / blocked_claim_refs rather than treating next_subphase as an authorization to proceed. Consistent with sibling prechecks and harmless in this metadata-only, no-runtime pack, so no change required here.\"\n    },\n    {\n      \"id\": \"F2\",\n      \"severity\": \"P3\",\n      \"area\": \"service.js / claim presence test\",\n      \"finding\": \"Claim presence is detected with `value !== undefined && value !== null && value !== false`, so non-boolean truthy-ish values (e.g., 0, \\\"\\\", NaN) are treated as a set claim.\",\n      \"evidence\": \"for (const [claim, value] of Object.entries(matterTraceClaims)) { if (value !== undefined && value !== null && value !== false) { ... } }\",\n      \"recommendation\": \"Optional clarity only: all such values still resolve to a fail-closed outcome (throw for forbidden/unknown, deny for matter-required). Consider normalizing to strict `=== true` if explicit boolean semantics are desired.\"\n    },\n    {\n      \"id\": \"F3\",\n      \"severity\": \"P3\",\n      \"area\": \"validator dependencies / verification scope\",\n      \"finding\": \"The S04 weighted-ledger boundary assertion, the S01 service-entrypoint arrays (requiredEvidenceRefs/schemaExpectationFields/acceptanceGateIds), the S03 fixture tenant_boundary_result, and helpers (getWeightedSubphaseBoundary, requireArrayIncludesAll, requireIncludes, requireText, uniqueFrozenStrings) are referenced but not present in the diff; their correctness is corroborated only by the supplied validation summary.\",\n      \"evidence\": \"validate-rp00-control-plane-contract.mjs references weightedLedger/getWeightedSubphaseBoundary and expectedTestAndGoldenTenantBoundaryResultFields/fixtureTestAndGoldenTenantBoundary without adding them in this diff; the contract weighted ledger is not modified for S04.\",\n      \"recommendation\": \"Adjudicator should confirm the evidence pack contains the actual `node --test packages/control-plane/test/service.test.js` and `npm run rp00:control-plane:validate` outputs (validator clean apart from the expected missing cp00-032 evidence files).\"\n    }\n  ],\n  \"residual_risk\": \"Low. The change set is metadata/precheck-only with no runtime, persistence, or write paths, and is self-consistent across all eight files. Primary residual risk is that this read-only review cannot execute the validator or tests, so it relies on the provided validation summary (499/499 pass; contract validator failing only on the expected missing docs/closeout-packs/cp00-032 evidence files) and on unchanged upstream artifacts (weighted ledger, S01/S03 policy/fixture data, shared helpers) being correct. Once the cp00-032 evidence pack (manifest, command-evidence, claude-review-result, adjudication, construction-inspection — including control_plane_test_and_golden_case_set_matter_trace_precheck_verified) is present, npm run rp00:control-plane:validate is expected to pass.\"\n}",
+  "adjudication_notes": "Claude approved CP00-032 with only P3 findings. F1 is non-blocking because denied Matter trace receipts use decision/satisfied/blocked refs while static next_subphase remains a plan boundary, consistent with sibling prechecks and S05 must gate on matter_trace_satisfied. F2 is accepted because non-false claim values fail closed rather than authorizing behavior. F3 is accepted because final command evidence records live service tests and RP00/pack validators after evidence creation."
+}

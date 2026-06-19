@@ -1,0 +1,1785 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-225",
+  "planned_pack_id": "CP00-225",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "dms_core_failure_binding_slice_descriptor_verified",
+  "program_id": "RP06",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "primary_subphase_id": "RP06.P07.M05.S20",
+  "next_subphase": "RP06.P07.M05.S21",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-225",
+    "planned_pack_id": "CP00-225",
+    "title": "CP00-225 RP06.P07.M04.S06-RP06.P07.M05.S20 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP06.P07.M04.S06",
+      "last_unit_id": "RP06.P07.M05.S20",
+      "description": "RP06.P07.M04.S06-RP06.P07.M05.S20"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP06.P07.M04.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP06.P07.M04.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S12",
+        "title": "Retry exhaustion failure",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S13",
+        "title": "Rollback expectation",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M04.S14",
+        "title": "Compensation expectation",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P07.M04.S15",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP06.P07.M04.S16",
+        "title": "Failure fixture",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP06.P07.M04.S17",
+        "title": "Failure unit test",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P07.M04.S18",
+        "title": "Failure integration smoke",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P07.M04.S19",
+        "title": "Audit failure hint",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP06.P07.M04.S20",
+        "title": "Hermes failure evidence",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP06.P07.M04.S21",
+        "title": "Claude edge-case prompt",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP06.P07.M04.S22",
+        "title": "Human escalation note",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P07.M04.S23",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P07.M04.S24",
+        "title": "No silent success check",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P07.M04.S25",
+        "title": "No data leak check",
+        "source_micro_phase_id": "RP06.P07.M04",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P07.M05.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP06.P07.M05.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S12",
+        "title": "Retry exhaustion failure",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S13",
+        "title": "Rollback expectation",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P07.M05.S14",
+        "title": "Compensation expectation",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P07.M05.S15",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP06.P07.M05.S16",
+        "title": "Failure fixture",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP06.P07.M05.S17",
+        "title": "Failure unit test",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P07.M05.S18",
+        "title": "Failure integration smoke",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P07.M05.S19",
+        "title": "Audit failure hint",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP06.P07.M05.S20",
+        "title": "Hermes failure evidence",
+        "source_micro_phase_id": "RP06.P07.M05",
+        "program_id": "RP06",
+        "phase_id": "RP06.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "hermes_evidence"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP06.P07.M04.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S12",
+      "title": "Retry exhaustion failure",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S13",
+      "title": "Rollback expectation",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S14",
+      "title": "Compensation expectation",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S15",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S16",
+      "title": "Failure fixture",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S17",
+      "title": "Failure unit test",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S18",
+      "title": "Failure integration smoke",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S19",
+      "title": "Audit failure hint",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S20",
+      "title": "Hermes failure evidence",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S21",
+      "title": "Claude edge-case prompt",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S22",
+      "title": "Human escalation note",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S23",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S24",
+      "title": "No silent success check",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M04.S25",
+      "title": "No data leak check",
+      "source_micro_phase_id": "RP06.P07.M04",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S12",
+      "title": "Retry exhaustion failure",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S13",
+      "title": "Rollback expectation",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S14",
+      "title": "Compensation expectation",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S15",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S16",
+      "title": "Failure fixture",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S17",
+      "title": "Failure unit test",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S18",
+      "title": "Failure integration smoke",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S19",
+      "title": "Audit failure hint",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P07.M05.S20",
+      "title": "Hermes failure evidence",
+      "source_micro_phase_id": "RP06.P07.M05",
+      "program_id": "RP06",
+      "phase_id": "RP06.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-225/manifest.json",
+        "docs/closeout-packs/cp00-225/command-evidence.json",
+        "docs/closeout-packs/cp00-225/claude-review-result.json",
+        "docs/closeout-packs/cp00-225/adjudication.md",
+        "docs/closeout-packs/cp00-225/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-225 implements descriptor-only coverage of the RP06.P07.M04 secondary workflow tail and the M05 permission/audit binding head (40 failure-taxonomy rows across two sections) with Hermes evidence, Claude review packet, and CP00-226 handoff, without opening rollback/retry runtime, lock acquisition, permission runtime evaluation, AI runtime dispatch, DMS runtime dispatch, Hermes runtime receipts, review/approval route runtime, state writes, idempotency persistence, workflow persistence, object storage, OCR, search, email, Citation Ledger, or Loop behavior.",
+    "source_refs": [
+      "contracts/dms-core-contract.json",
+      "packages/dms/README.md",
+      "packages/dms/src/index.js",
+      "packages/dms/src/registry.js",
+      "packages/dms/src/service.js",
+      "packages/dms/src/validators.js",
+      "packages/dms/test/model.test.js",
+      "scripts/validate-rp06-dms-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_object_storage_runtime": true,
+    "no_ocr_runtime": true,
+    "no_search_indexing_runtime": true,
+    "no_email_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_ai_runtime_dispatch": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_lock_acquisition": true,
+    "no_silent_success_detected": true,
+    "no_data_leak_detected": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_review_route_runtime": true,
+    "no_approval_route_runtime": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_failure_internal_state_leak": true,
+    "no_rollback_internal_state_leak": true,
+    "no_retry_internal_state_leak": true,
+    "no_lock_token_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_permission_decision_detail_leak": true,
+    "no_tenant_policy_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_audit_event_body_leak": true,
+    "no_validation_error_detail_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-225/manifest.json",
+    "docs/closeout-packs/cp00-225/command-evidence.json",
+    "docs/closeout-packs/cp00-225/claude-review-result.json",
+    "docs/closeout-packs/cp00-225/adjudication.md",
+    "docs/closeout-packs/cp00-225/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-225/manifest.json",
+    "docs/closeout-packs/cp00-225/command-evidence.json",
+    "docs/closeout-packs/cp00-225/claude-review-result.json",
+    "docs/closeout-packs/cp00-225/adjudication.md",
+    "docs/closeout-packs/cp00-225/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "docs/enterprise-v2-loop-roadmap/",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "docs/loop-system-integration/",
+      "docs/spec-v2-integration/"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-225/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-225/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "b716605d-d936-42ec-bd60-813392cc6b76",
+      "uuid": "eb8adb1c-a3f6-424c-802e-e32bf319feb8",
+      "total_cost_usd": 2.8044547499999997,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-225 is a descriptor-only DMS-core \"failure binding slice\" pack covering exactly 40 RP06 units (RP06.P07.M04.S06-RP06.P07.M05.S20): the M04 Secondary Workflow Slice tail (20 rows) plus the M05 Permission And Audit Binding head (20 rows). Read-only inspection (Read/Grep/Glob) confirms the pack-level descriptor-verification claim is supported and the no-write/no-real-data boundaries hold. Evidence reviewed: (1) Implementation — all 7 required public exports exist (createDmsCoreCp225FailureBindingSliceDescriptor/CaseSet in service.js:4808/4841; validateDmsCoreCp225Coverage, validateDmsCoreCp225FailureBindingSliceDescriptor, createDmsCoreCp225HermesEvidencePacket/ClaudeReviewPacket/CloseoutHandoff in validators.js:6059-6204; re-exported via index.js). (2) Coverage/distribution — registry DMS_CORE_CP225_REQUIREMENTS and baseline included_units match the prompt deliverable_distribution exactly (failure_recovery:19, security_audit:4, implementation:6, hermes_evidence:4, fixture:2, test:4, claude_review:1 = 40) and micro_title split 20/20. (3) No-write/no-real-data — freezeCp225Result (service.js:4755) freezes 40+ boundary flags false; no-write attestation chain (registry.js:877) inherits silent_success_detected/leak_detected/promotes_claude_to_final_approval/claims_enterprise_trust_from_local_validation=false; contract projection (dms-core-contract.json:44005) is descriptor-only with raw_payload_included=false and *_detail_included=false; command-evidence reports production_ready=false, no_real_data=true, writes_product_state=false. (4) Authority — descriptor authority_boundary.claude_is_final_approval=false with human_final_approval_required_for_runtime_opening=true; review-request is read_only with tools Read/Grep/Glob, model claude-opus-4-8, effort max, matching createDmsCoreCp225ClaudeReviewPacket. (5) Hermes — control-plane patterns used only for the H06 review/evidence packet and descriptor receipt shape (emits_hermes_runtime_receipt=false), not product runtime. (6) Review hardening — readiness auth-preflight passed with valid non-empty JSON (exit 0, 1457-byte stdout); validate-rp06-dms-core-contract.mjs asserts coverage validity, descriptor-only rows, deny-over-allow, excluded lock tokens, and authority boundaries; all 19 command-evidence commands exit 0 (full repo suite incl. npm test, npm run validate, git diff --check). (7) Changed-file scope correctly isolates the 8 active refs and preserves unrelated dirty/untracked files without inferring pack membership. production_ready=false is intentional for this descriptor-only stage pending human final approval; Claude remains a read-only independent reviewer and is not treated as final approval authority. No P0-P3 findings; does not block pack or goal closeout.",
+      "findings": [],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 0,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 0
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-225 dms core failure binding slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 110,
+    "goal_closeout_dirs_with_required_artifacts": 110,
+    "remaining_by_closeout_dir_proxy": 55146
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-225/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-225/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-225/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-225/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.changed-file-scope.v0.1",
+  "pack_id": "CP00-299",
+  "active_pack_scope_available": true,
+  "active_pack_implementation_refs": [
+    "contracts/crm-core-contract.json",
+    "package.json",
+    "packages/crm/README.md",
+    "packages/crm/package.json",
+    "packages/crm/src/index.js",
+    "packages/crm/src/registry.js",
+    "packages/crm/src/service.js",
+    "packages/crm/src/validators.js",
+    "packages/crm/test/model.test.js",
+    "scripts/validate-rp09-crm-core-contract.mjs"
+  ],
+  "active_pack_required_untracked_files": [],
+  "git_status_rows": [
+    {
+      "status": " M",
+      "file": "package.json",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/crm/README.md",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "contracts/crm-core-contract.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-pack-plan/new-session-handoff.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-packs/cp00-299/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "packages/crm/package.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "packages/crm/src/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "packages/crm/test/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/validate-rp09-crm-core-contract.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    }
+  ],
+  "untracked_implementation_files": [
+    "contracts/crm-core-contract.json",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-299/",
+    "packages/crm/package.json",
+    "packages/crm/src/",
+    "packages/crm/test/",
+    "scripts/validate-rp09-crm-core-contract.mjs"
+  ],
+  "active_untracked_implementation_files_omitted": [],
+  "unrelated_dirty_files_preserved": [
+    "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-299/",
+    "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+    "packages/crm/src/",
+    "packages/crm/test/"
+  ]
+}

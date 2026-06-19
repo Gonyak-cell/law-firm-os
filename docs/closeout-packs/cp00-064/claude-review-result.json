@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-064",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "cat prompt and /tmp/cp00-064-review.diff | claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "output_ref": "/tmp/cp00-064-claude-review-output.json",
+    "session_id": "87ab8d20-b417-4855-95ac-74dcef0f3749",
+    "uuid": "b11c7229-9725-49b8-9807-a2471f8ca29a",
+    "total_cost_usd": 2.250819,
+    "duration_ms": 163665,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve_with_residual_risk",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "file": "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "line": null,
+        "title": "bridge_catalogue / bridgeEntries metadata duplicated across contract, fixture, and policy",
+        "rationale": "The 51-entry bridge metadata (subphase ids, unit titles, bridge entries) is materialized verbatim in policies.js, the contract definition, and the synthetic fixture. This mirroring is intentional and is what the validation script cross-checks, but it triples the surface that must stay in lockstep; a future hand edit to one copy that misses the others would only be caught at validation time, not authoring time. Consistent with the established CP00-060..063 convention, so not a defect — flagged only as maintenance drift risk.",
+        "required_action": "No change required. Continue relying on validate-rp00-control-plane-contract.mjs array-equality checks to enforce the three copies stay identical."
+      },
+      {
+        "severity": "P3",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": null,
+        "title": "Production-ready gating depends on cp00-064 evidence files that do not yet exist in this diff",
+        "rationale": "The script advances current_subphase to RP00.P05.M04.S11/CP00-064 with status production_ready and adds the control_plane_ui_operator_surface_evidence_fixture_handoff_verified inspection requirement. The actual docs/closeout-packs/cp00-064 evidence files are not in this diff. Per the task constraint this is expected (pack-level evidence is created after review) and the script's exists()-guarded reads do not hard-fail on their absence, so the implementation does not prevent them from validating later. Surfacing as a residual dependency, not a code defect.",
+        "required_action": "No change required for this metadata bridge. Ensure the cp00-064 closeout-pack evidence/inspection artifacts are authored and pass validation before the production_ready boundary is actually asserted in CI."
+      },
+      {
+        "severity": "P3",
+        "file": "contracts/control-plane-contract.json",
+        "line": null,
+        "title": "P05 fixture-phase subphases marked production_ready via a metadata-only bridge",
+        "rationale": "51 subphases through RP00.P05.M04.S11 are recorded as production_ready/closeout_pack/CP00-064 by a binding suite that explicitly performs no runtime fixture/test execution. This is the same metadata-bridge pattern used by prior packs and is internally consistent (no_write_scope all false, no_real_data true, fail-closed assembler), so the production_ready marking reflects binding completeness rather than runtime verification — which matches the pack's stated scope. Noted so the distinction between 'bound' and 'runtime-verified' stays visible.",
+        "required_action": "No change required. Keep downstream P05 runtime fixture/test packs responsible for actual execution verification; do not treat this bridge as runtime coverage."
+      }
+    ],
+    "residual_risks": [
+      "The docs/closeout-packs/cp00-064 evidence and construction-inspection artifacts are not in this diff; they must be authored and must pass validate-rp00-control-plane-contract.mjs before the RP00.P05.M04.S11 production_ready boundary and control_plane_ui_operator_surface_evidence_fixture_handoff_verified inspection are truly satisfied in CI.",
+      "This pack binds P05 fixture-scope/contract/type/primary/secondary subphases as metadata only; actual P05 runtime fixture/test/contract execution past RP00.P05.M04 remains open and must be delivered by downstream packs — this bridge must not be mistaken for runtime coverage.",
+      "Bridge metadata is duplicated across policies.js, the contract definition, and the synthetic fixture; correctness depends on the validation script's array-equality checks continuing to enforce the three copies stay identical."
+    ],
+    "overall_summary": "CP00-064 is a clean metadata-only UI Operator Surface Evidence And Fixture Handoff bridge that binds the 51 planned units (RP00.P04.M08.S01–RP00.P05.M04.S11) without creating any runtime UI, routes, fixture/test execution, Hermes/Claude invocation, golden persistence, permission/AuthZ execution, audit/storage writes, real data, raw permission policy, or internal audit payload exposure. The assembler is fail-closed: it asserts the canonical policy and the CP00-063 upstream result, rejects forbidden/unknown boundary claims, validates upstream pack identity and completion triplet, and downgrades the decision to 'blocked' with an emptied catalogue whenever upstreamAllowed is false. Policy, contract definition, and synthetic fixture mirror each other field-for-field with all *_permitted flags false and no_real_data true, and the result validator enforces allowTriplet/deniedTriplet mutual exclusion plus static safety expectations. The validation script correctly advances the boundary to RP00.P05.M04.S11 / RP00.P05.M04, adds the new production_ready flag and inspection requirement, and uses exists()-guarded reads so the not-yet-authored cp00-064 evidence files do not falsely break validation. The live cursor correction (requested CP00-063 → CP00-064, deviation_from_plan false) is recorded coherently. No P0/P1/P2 issues found; only P3 maintenance/dependency observations consistent with prior packs."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 163665,
+    "duration_api_ms": 171169,
+    "ttft_ms": 154974,
+    "num_turns": 2,
+    "result": "{\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"file\": \"packages/control-plane/fixtures/synthetic-control-plane.json\",\n      \"line\": null,\n      \"title\": \"bridge_catalogue / bridgeEntries metadata duplicated across contract, fixture, and policy\",\n      \"rationale\": \"The 51-entry bridge metadata (subphase ids, unit titles, bridge entries) is materialized verbatim in policies.js, the contract definition, and the synthetic fixture. This mirroring is intentional and is what the validation script cross-checks, but it triples the surface that must stay in lockstep; a future hand edit to one copy that misses the others would only be caught at validation time, not authoring time. Consistent with the established CP00-060..063 convention, so not a defect — flagged only as maintenance drift risk.\",\n      \"required_action\": \"No change required. Continue relying on validate-rp00-control-plane-contract.mjs array-equality checks to enforce the three copies stay identical.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"file\": \"scripts/validate-rp00-control-plane-contract.mjs\",\n      \"line\": null,\n      \"title\": \"Production-ready gating depends on cp00-064 evidence files that do not yet exist in this diff\",\n      \"rationale\": \"The script advances current_subphase to RP00.P05.M04.S11/CP00-064 with status production_ready and adds the control_plane_ui_operator_surface_evidence_fixture_handoff_verified inspection requirement. The actual docs/closeout-packs/cp00-064 evidence files are not in this diff. Per the task constraint this is expected (pack-level evidence is created after review) and the script's exists()-guarded reads do not hard-fail on their absence, so the implementation does not prevent them from validating later. Surfacing as a residual dependency, not a code defect.\",\n      \"required_action\": \"No change required for this metadata bridge. Ensure the cp00-064 closeout-pack evidence/inspection artifacts are authored and pass validation before the production_ready boundary is actually asserted in CI.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"file\": \"contracts/control-plane-contract.json\",\n      \"line\": null,\n      \"title\": \"P05 fixture-phase subphases marked production_ready via a metadata-only bridge\",\n      \"rationale\": \"51 subphases through RP00.P05.M04.S11 are recorded as production_ready/closeout_pack/CP00-064 by a binding suite that explicitly performs no runtime fixture/test execution. This is the same metadata-bridge pattern used by prior packs and is internally consistent (no_write_scope all false, no_real_data true, fail-closed assembler), so the production_ready marking reflects binding completeness rather than runtime verification — which matches the pack's stated scope. Noted so the distinction between 'bound' and 'runtime-verified' stays visible.\",\n      \"required_action\": \"No change required. Keep downstream P05 runtime fixture/test packs responsible for actual execution verification; do not treat this bridge as runtime coverage.\"\n    }\n  ],\n  \"overall_verdict\": \"CP00-064 is a clean metadata-only UI Operator Surface Evidence And Fixture Handoff bridge that binds the 51 planned units (RP00.P04.M08.S01–RP00.P05.M04.S11) without creating any runtime UI, routes, fixture/test execution, Hermes/Claude invocation, golden persistence, permission/AuthZ execution, audit/storage writes, real data, raw permission policy, or internal audit payload exposure. The assembler is fail-closed: it asserts the canonical policy and the CP00-063 upstream result, rejects forbidden/unknown boundary claims, validates upstream pack identity and completion triplet, and downgrades the decision to 'blocked' with an emptied catalogue whenever upstreamAllowed is false. Policy, contract definition, and synthetic fixture mirror each other field-for-field with all *_permitted flags false and no_real_data true, and the result validator enforces allowTriplet/deniedTriplet mutual exclusion plus static safety expectations. The validation script correctly advances the boundary to RP00.P05.M04.S11 / RP00.P05.M04, adds the new production_ready flag and inspection requirement, and uses exists()-guarded reads so the not-yet-authored cp00-064 evidence files do not falsely break validation. The live cursor correction (requested CP00-063 → CP00-064, deviation_from_plan false) is recorded coherently. No P0/P1/P2 issues found; only P3 maintenance/dependency observations consistent with prior packs.\",\n  \"production_ready_recommendation\": \"approve_with_residual_risk\",\n  \"residual_risks\": [\n    \"The docs/closeout-packs/cp00-064 evidence and construction-inspection artifacts are not in this diff; they must be authored and must pass validate-rp00-control-plane-contract.mjs before the RP00.P05.M04.S11 production_ready boundary and control_plane_ui_operator_surface_evidence_fixture_handoff_verified inspection are truly satisfied in CI.\",\n    \"This pack binds P05 fixture-scope/contract/type/primary/secondary subphases as metadata only; actual P05 runtime fixture/test/contract execution past RP00.P05.M04 remains open and must be delivered by downstream packs — this bridge must not be mistaken for runtime coverage.\",\n    \"Bridge metadata is duplicated across policies.js, the contract definition, and the synthetic fixture; correctness depends on the validation script's array-equality checks continuing to enforce the three copies stay identical.\"\n  ]\n}",
+    "stop_reason": "end_turn",
+    "session_id": "87ab8d20-b417-4855-95ac-74dcef0f3749",
+    "total_cost_usd": 2.250819,
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 10782,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 2041,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 10782,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2041,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 10782,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 10782
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 195071,
+        "outputTokens": 23,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.195186,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1875,
+        "outputTokens": 14938,
+        "cacheReadInputTokens": 6116,
+        "cacheCreationInputTokens": 267160,
+        "webSearchRequests": 0,
+        "costUSD": 2.055633,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "b11c7229-9725-49b8-9807-a2471f8ca29a"
+  }
+}

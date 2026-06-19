@@ -1,0 +1,98 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-175",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "76cc08c0-5ca6-4f71-932d-91b39b8c8ff0",
+    "uuid": "30f06306-5214-48b2-9014-033c5fbfd8c8",
+    "duration_ms": 199403,
+    "duration_api_ms": 200813,
+    "total_cost_usd": 0.5783625000000001,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-175-claude-review-output-minified-json.json"
+  },
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "cp00-175-invalid-stdin-full-diff-stalled",
+      "status": "invalid_not_accepted",
+      "reason": "stdin full-diff invocation was terminated after prolonged 0-byte output and produced no review payload",
+      "raw_output_ref": "/tmp/cp00-175-claude-review-output.json"
+    },
+    {
+      "attempt_id": "cp00-175-invalid-stdin-compact-stalled",
+      "status": "invalid_not_accepted",
+      "reason": "stdin compact invocation was terminated after prolonged 0-byte output and produced no review payload",
+      "raw_output_ref": "/tmp/cp00-175-claude-review-output-valid.json"
+    },
+    {
+      "attempt_id": "cp00-175-invalid-json-only-malformed",
+      "status": "invalid_not_accepted",
+      "reason": "prompt-argument JSON-only invocation returned fenced JSON plus extra prose and pending-verification text, so it was not accepted as the pack review",
+      "raw_output_ref": "/tmp/cp00-175-claude-review-output-json-only.json"
+    }
+  ],
+  "review_packet": {
+    "review_id": "C04.CP00-175.master_data_evidence_review_ui_readiness_bridge",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-175-claude-prompt-minified-json.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-175 is a clean descriptor-only evidence/review/UI-readiness bridge over RP04.P08.M06.S04-RP04.P09.M07.S06 (150 units). Within the reviewed excerpt it is internally consistent and side-effect-free: CP175 pack binding (range, unit_count 150, upstream CP00-174, next CP00-176, next_subphase RP04.P09.M07.S07) agrees with validator evidence (covered_units 150, next_pack CP00-176); deliverable/phase/micro_phase/micro_title/bridge_section distributions each sum to 150 and cross-reconcile, with micro_title fully derivable from micro_phase counts and bridge-section ranges matching their unit_counts and the declared first/last unit ids. No real client data, runtime permission evaluation, audit append, Hermes/Claude execution, network, or UI/DOM rendering occurs (all such flags false; results re-frozen via freezeEvidenceReviewUiReadinessBridgeResult and CP175 no-write attestation). Leak guard correctly keeps internal_reference_fields and prohibited_outputs out of the customer_facing_readiness_summary, and internal_readiness_evidence carries only descriptor IDs and false booleans, not sensitive payloads. Only a P3 dead-variable cleanup is noted; review scope is limited to the supplied excerpt, which truncates the catalog builder return.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "no_review_or_approval_dispatch": true,
+      "no_retry_rollback_execution": true,
+      "no_runtime_lock_acquisition": true,
+      "no_case_note_write": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_c_scope_preserved": true,
+      "handoff_valid": true
+    },
+    "findings": [
+      {
+        "id": "CP00-175-C04-F001",
+        "severity": "P3",
+        "file": "packages/master-data/src/service.js",
+        "line": 3422,
+        "title": "Unused serialized variable customerFacingRows in catalog builder",
+        "description": "In createMasterDataEvidenceReviewUiReadinessBridgeCatalog the line const customerFacingRows = JSON.stringify(rows.map(row => row.customer_facing_readiness_summary)) is computed but never referenced in the returned object within the visible excerpt; the aggregate customer-surface guarantee is instead satisfied per-row via all_customer_surfaces_trimmed. It mirrors serializedCustomerFacingReadinessSummary in the sibling descriptor function (which IS consumed by prohibited_output_absent), suggesting an intended catalog-level prohibited-output scan that was left unwired. No functional or security impact: pack is descriptor-only, all runtime/permission/audit/Hermes/Claude/UI flags are false, and counts reconcile (deliverable, phase, micro_phase, micro_title, and bridge_section distributions each total 150; first/last unit and 150-unit count match CP175 binding and validator covered_units 150 next_pack CP00-176). Confirmation is bounded by the excerpt truncating mid-return of this builder.",
+        "required_action": "If confirmed unused once the truncated tail is read, delete customerFacingRows; otherwise consume it via an explicit catalog-level prohibited_output_absent aggregate check so the serialization has a purpose.",
+        "post_review_disposition": "rejected_false_positive_due_truncated_excerpt: createMasterDataEvidenceReviewUiReadinessBridgeCatalog uses customerFacingRows for catalog-level prohibited_output_absent at packages/master-data/src/service.js:3491-3493; no code change required and no unresolved blocker remains."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-065",
+  "subphase_id": "RP00.P05.M05.S10",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/generate-closeout-pack-plan.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack-plan.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    }
+  ],
+  "preliminary_expected_failure": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "reason": "Before CP00-065 evidence files existed, RP00 validator correctly reported only missing manifest, command evidence, Claude review result, adjudication, and construction inspection artifacts for RP00.P05.M05.S01-RP00.P05.M05.S10."
+  },
+  "claude_review_command": {
+    "command": "cat prompt and /tmp/cp00-065-review.diff | claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "exit_code": 0,
+    "output_ref": "/tmp/cp00-065-claude-review-valid-output.json",
+    "exactly_one_pack_level_review_run": true,
+    "exactly_one_valid_pack_level_review_run": true
+  },
+  "invalid_claude_attempts": [
+    {
+      "output_ref": "/tmp/cp00-065-claude-review-output.json",
+      "exit_code": 0,
+      "accepted_as_review": false,
+      "reason": "Claude output stopped after saying it would verify repo facts and did not provide findings or a verdict.",
+      "result_preview": "I'll verify a few concrete facts against the repo before finalizing the review, since several findings depend on artifacts outside the diff.\n\n**Action:** Check whether the CP00-065 evidence pack exists and whether the plan contains CP00-065."
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-065 is metadata-only and writes no product state.",
+    "Exactly one valid pack-level Claude Opus 4.8 max read-only review was accepted for this pack.",
+    "Claude returned P0=0, P1=0, P2=0, P3=0.",
+    "Final commands are rerun after these pack evidence files are written so the evidence refs are live."
+  ],
+  "plan_regeneration": {
+    "command": "npm run closeout-pack-plan:generate",
+    "exit_code": 0,
+    "reason": "Run after CP00-065 evidence creation to move next queue to CP00-066 without recording it as a validation command."
+  }
+}

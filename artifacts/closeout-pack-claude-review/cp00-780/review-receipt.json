@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-780",
+  "normalized_at": "2026-06-15T17:54:26.941Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-780/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-780/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-780/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-780/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0b0de7b5-946c-4f1a-9a32-42d2be5ae206",
+    "uuid": "0fad1aab-02f5-4e83-aefe-f623fca018ac",
+    "total_cost_usd": 2.3694162500000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6020,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-780 (Migration Platform RP25 failure-recovery workflow, Risk B, 40 units, range RP25.P07.M03.S21-RP25.P07.M04.S30) is a descriptor-only continuation pack and its pack-level production_ready claim is supported by independent read-only inspection. Verified via Read/Grep/Glob only (no command re-execution): (1) binding (registry.js:417), manifest plan_binding_snapshot, and regenerated contracts/migration-platform-contract.json latest_pack all agree on pack identity, risk class B, 40 units, and next pack CP00-781/RP25.P07.M05.S01; (2) CP780_REQUIREMENTS.deliverable_counts and the recorded coverage summary match the baseline distribution exactly (claude_review:2, implementation:19, failure_recovery:12, security_audit:2, hermes_evidence:2, fixture:1, test:2 = 40) and micro-title split (Primary Implementation Slice:10, Secondary Workflow Slice:30); (3) section rows (PERMISSION_MATRIX_FAILURE_ROWS + PERMISSION_MATRIX_FAILURE_CLOSEOUT_ROWS) map 1:1 to the manifest unit titles; (4) CP780 service factories (service.js:1647) and validators (validators.js:2149) follow the established CP756-779 pattern with correct substitutions, are wildcard-exported through index.js, are wired into the contract validator (validate-rp25-migration-platform-contract.mjs:264), and are covered by meaningful tests asserting coverage errors [], descriptor errors [], runtime-closed flags, authority boundary, and latest contract projection; (5) the regenerated contract records validation.packs.cp780 coverage.valid=true and descriptor.valid=true with empty errors; (6) command-evidence.json records all required validation commands (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) at exit_code 0 with no non-zero exits or failed statuses; (7) no-write/no-real-data boundaries are comprehensively enforced (NO_WRITE_ATTESTATION, descriptor_only rows, source-system/import/UI/fixture-replay runtime all closed) and asserted in validators and tests; (8) authority boundary keeps Claude read-only and non-final (claude_is_final_approval:false, promotes_claude_to_final_approval:false), requires human approval for runtime opening, and sets local_validation_claims_enterprise_trust:false with no runtime/enterprise-trust over-claim (runtime_ready:false); (9) Hermes patterns are used only for deterministic descriptor-only review packet/receipt handling (emits_runtime_receipt:false, receipt_shape descriptor_only_migration_no_write), not product runtime; (10) CP178+ review hardening holds: auth preflight passed, invalid_review_attempts is empty, and the forbidden_review_evidence guard list (not_logged_in, malformed_json, usage_limit, tool_call_shaped_output, zero_byte_stdout, fenced_json_with_prose) is defined and referenced. The PENDING states in manifest.json (production_ready:false), construction-inspection.json, adjudication.md, and claude-review-result.json are the expected pre-review seeded state that this receipt gates, not defects. Changed-file scope was respected: unrelated dirty/untracked files (LDIP integration, workbook, progress-control-room, docx) were not attributed to this pack. No P0/P1/P2/P3 findings. blocks_goal_closeout=false because the pack does not claim runtime or enterprise trust within this receipt; the human/enterprise-trust final-approval boundary is expected and outside this CP closeout receipt.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

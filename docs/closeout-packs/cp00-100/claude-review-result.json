@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-100",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-100-claude-review-output-valid.json",
+    "session_id": "4a94a196-4650-47af-88bf-c1975fcc3c19",
+    "uuid": "2687f8bb-9288-4798-af35-b3a663f05387",
+    "duration_ms": 226479,
+    "total_cost_usd": 0.6388515,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 2,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "location": "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "description": "The staged Claude review could not cross-check unit_count=10 against the S15(M05) to S04(M06) enumerated range because the plan file was not part of the staged diff. Plan binding is documented in the CP00-100 manifest and enforced by closeout-pack-plan validation.",
+        "disposition": "documented_after_single_valid_review"
+      }
+    ],
+    "original_review_findings": [
+      {
+        "id": "P2-1",
+        "severity": "P2",
+        "location": "scripts/validate-rp01-core-domain-contract.mjs",
+        "description": "Relocating CP00-099 from current_pack to permission_audit_binding_pack dropped prior validator assertions on risk_class and production_ready_flag.",
+        "disposition": "fixed_after_single_valid_review"
+      },
+      {
+        "id": "P2-2",
+        "severity": "P2",
+        "location": "packages/domain/src/ui-surfaces.js",
+        "description": "CORE_DOMAIN_PERMISSION_AUDIT_FIXTURE_CONTRACT.forbidden_claims aliased CORE_DOMAIN_PERMISSION_AUDIT_BINDING_CONTRACT.forbidden_claims instead of carrying the fixture's own explicit no-real-data/no-write list.",
+        "disposition": "fixed_after_single_valid_review"
+      },
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "location": "packages/domain/src/ui-surfaces.js createCoreDomainPermissionAuditFixtureState",
+        "description": "The loading state declared secondary_interaction 'inspect_audit_hint' even though loading.actions only included 'inspect_fixture_summary'.",
+        "disposition": "fixed_after_single_valid_review"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "location": "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "description": "Unit count could not be cross-checked against the staged diff because the plan file was not included in that review diff.",
+        "disposition": "documented_after_single_valid_review"
+      }
+    ],
+    "notes": [
+      "No P0/P1 findings were reported.",
+      "All P2 findings from the single valid Claude review were fixed after review and covered by post-review tests and validators.",
+      "The remaining P3 is a staged-review visibility caveat only; CP00-100 plan binding is enforced by the pack manifest and closeout-pack-plan validation."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [
+      "P2-1 fixed",
+      "P2-2 fixed"
+    ],
+    "p3_fixed_or_documented": [
+      "P3-1 fixed",
+      "P3-2 documented"
+    ],
+    "no_second_valid_review_run": true
+  }
+}

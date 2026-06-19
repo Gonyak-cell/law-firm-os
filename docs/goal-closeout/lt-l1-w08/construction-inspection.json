@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-L1-W08",
+  "inspected_at": "2026-06-18T14:47:32Z",
+  "verdict": "BLOCKED_L0_W02_AND_STAFFING_APPROVAL_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "staffing_draft_exists": true,
+    "required_role_labels_present": true,
+    "development_team_premise_present": true,
+    "runtime_gap_report_citation_present": true,
+    "real_person_names_synthesized": false,
+    "final_staffing_approval_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "real_person_names_synthesized": false,
+    "staffing_approval_synthesized": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

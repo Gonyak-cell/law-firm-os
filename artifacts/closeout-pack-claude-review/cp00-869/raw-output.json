@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-869",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T07:54:28.343Z",
+  "finished_at": "2026-06-17T08:01:42.425Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":433574,\"duration_api_ms\":433844,\"ttft_ms\":4290,\"num_turns\":61,\"result\":\"Verdict submitted: **PASS** — CP00-869 closes cleanly with no findings, blocking neither pack nor goal closeout. The descriptor-only boundaries (no real data, no writes, no runtime), exact 150-unit distribution, read-only Claude authority boundary, and non-runtime Hermes handling are all enforced by validators and verified by tests against the live plan.\",\"stop_reason\":\"end_turn\",\"session_id\":\"efe56a90-d8f0-4bc5-818d-eecd4a8830e3\",\"total_cost_usd\":2.9015820000000003,\"usage\":{\"input_tokens\":2551,\"cache_creation_input_tokens\":140738,\"cache_read_input_tokens\":2448137,\"output_tokens\":31354,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":140738,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":200,\"cache_read_input_tokens\":138169,\"cache_creation_input_tokens\":2947,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2947},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1191,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001296,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":2551,\"outputTokens\":31354,\"cacheReadInputTokens\":2448137,\"cacheCreationInputTokens\":140738,\"webSearchRequests\":0,\"costUSD\":2.9002860000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-869 is a clean, internally consistent descriptor-only RP28 Marketplace evidence-review closeout Claude bridge pack (150 units, RP28.P08.M06.S09-RP28.P09.M03.S22, risk C). Source-level inspection of all six changed files (contract JSON, README, registry.js, validators.js, model.test.js, validate-rp28 script) plus the live plan, manifest, and review harness supports the pack-level descriptor-verified claim. Coverage is exact: deliverable (42/15/73/8/8/4), phase (P08:88, P09:62), micro-phase, micro-title, and section-row counts all sum to 150 and are enforced by validateMarketplaceCp869...Coverage against the LIVE closeout-pack-plan entry (not a self-referential stub; the test planPack helper reads the live plan first). No-real-data/no-write/descriptor-only boundaries are enforced redundantly: createRow sets all 20+ guard flags to safe values, ROW_EXTRAS never flips a guarded flag to an unsafe value, and the descriptor validator independently re-checks every row for descriptor_only=true, runtime_execution=false, and absence of connector secrets/OAuth/prompt-completion/real-client-data/permission-detail/audit-body, plus no runtime opening or product/permission/audit writes. Authority boundary holds: claude_is_final_approval=false, Claude packet read_only=true and promotes_claude_to_final_approval=false, human_final_approval_required_for_runtime_opening=true with runtime deferred to CP00-870. Hermes packet emits_runtime_receipt=false and writes_product_state=false, confirming control-plane review packet/receipt handling only, not product runtime. The production_ready_flag is scoped to marketplace_evidence_review_closeout_claude_bridge_descriptor_verified; manifest/command-evidence/construction-inspection all report production_ready=false and runtime_ready=false, so there is no runtime or enterprise-trust overreach. Upstream/downstream chain (CP00-868 -> CP00-869 -> CP00-870/RP28.P09.M04.S01) is correct and enforced. The review harness implements CP178+ hardening (rejects auth failures, 0-byte stdout, malformed JSON, fenced JSON with prose, tool-call-shaped output, permission denials, and missing required fields). All referenced helper symbols and exports exist. blocks_goal_closeout is false: this CP makes no runtime or enterprise-trust claim, and the human final-approval boundary is expected and outside this receipt. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"196c2e56-edd3-465b-9947-299911669566\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4442,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "efe56a90-d8f0-4bc5-818d-eecd4a8830e3",
+    "uuid": "196c2e56-edd3-465b-9947-299911669566",
+    "total_cost_usd": 2.9015820000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

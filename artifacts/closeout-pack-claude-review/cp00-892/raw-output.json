@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-892",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T13:07:07.081Z",
+  "finished_at": "2026-06-17T13:13:38.316Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":390736,\"duration_api_ms\":390861,\"ttft_ms\":4719,\"num_turns\":50,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** — CP00-892's descriptor-only Hermes semantics slice (RP29.P08.M02.S08–S17) is internally consistent, well-tested, and respects all no-write/no-real-data/no-runtime and read-only-reviewer/control-plane-only boundaries; the `production_ready` (descriptor-verified) claim is supported, with no P0/P1/P2 issues. The single P3 is a non-blocking transparency note that the full validation ladder was deferred to post-review and could not be re-run within this read-only pass, so promotion/commit must stay gated on that ladder running green downstream.\",\"stop_reason\":\"end_turn\",\"session_id\":\"22ebc148-bd63-4b1b-85de-6f5c2d9a2ffb\",\"total_cost_usd\":2.0180335000000005,\"usage\":{\"input_tokens\":322,\"cache_creation_input_tokens\":98232,\"cache_read_input_tokens\":1361907,\"output_tokens\":28812,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":98232,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":290,\"cache_read_input_tokens\":93392,\"cache_creation_input_tokens\":5345,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5345},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1115,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012200000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":322,\"outputTokens\":28812,\"cacheReadInputTokens\":1361907,\"cacheCreationInputTokens\":98232,\"webSearchRequests\":0,\"costUSD\":2.0168135000000005,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-892 is a descriptor-only RP29.P08.M02.S08-S17 Hermes evidence type/shape semantics slice. Static read-only verification confirms the pack-level production_ready (descriptor-verified) claim is well supported: the registry binding (registry.js:388), requirements (registry.js:1894), and section rows (registry.js:1890 -> COMMERCIAL_HERMES_EVIDENCE_ROWS.slice(7,17)) resolve to exactly the 10 planned units (Audit summary receipt through Harness boundary note), and commercialRowKey produces the keys the validator checks. The Hermes evidence row builder (registry.js:2035) sets every no-runtime/no-write/no-real-data flag false and human_final_approval_required true; the descriptor (registry.js:3881) wires authority_boundary claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human approval required, runtime opening deferred to CP00-893, Hermes packet emits_runtime_receipt=false, Claude packet read_only=true/promotes_final_approval=false. The validator (validators.js:2546) is comprehensive and consistent with the builder; tests (model.test.js:829-880) assert empty error arrays for coverage, descriptor, on-disk contract, and compatibility alias; the validate script enforces the full CP873->CP892 upstream/next chain and re-derives coverage/descriptor. Contract, README, and compatibility alias serialize CP00-892 faithfully with validation.valid=true and all safety flags preserved. Claude remains a read-only, non-final-approval reviewer; Hermes patterns are used only for deterministic control-plane review packet/receipt handling, not product runtime (hermes_runtime_embedded_in_product=false). Review-evidence hardening is satisfied: readiness auth-preflight passed (exit 0, 1432-byte valid JSON, non-zero stdout), tools limited to Read/Grep/Glob, schema present, no forbidden tools, no prior invalid attempts; the pack honestly reports production_ready=false/pending_review as the expected pre-review state rather than over-claiming. No P0/P1/P2 issues. One non-blocking P3: as a read-only reviewer I could not re-execute the full deterministic validation ladder; command-evidence.json records only the targeted subset (syntax check, model/service tests, rp29:commercial:validate, all exit 0) with the full ladder explicitly deferred to post-review normalization, so production_ready promotion/commit must remain gated on that ladder running green downstream. Unrelated dirty/untracked files (progress-control-room, workbook/*, docx, ldip) are correctly scoped out per changed-file-scope.json and not attributed to this pack.\",\"findings\":[{\"id\":\"CP892-P3-01\",\"severity\":\"P3\",\"title\":\"Full deterministic validation ladder not re-executed within read-only review; only targeted command subset evidenced\",\"file\":\"docs/closeout-packs/cp00-892/command-evidence.json\",\"line\":36,\"details\":\"command-evidence.json records only three targeted commands (node --check on registry.js/validators.js/validate script; node --test on service.test.js+model.test.js; npm run rp29:commercial:validate), all exit_code 0. The full deterministic ladder expected before closeout (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is explicitly deferred per the note: 'full deterministic validation ladder remains required after review normalization, adjudication update, and queue regeneration.' As a read-only reviewer without Bash, I verified structure, internal consistency, validator/test wiring, and no-write/no-real-data boundaries statically, but could not independently re-run that ladder. This is consistent with the pack's pre-review state (manifest production_ready=false, construction-inspection verdict PENDING_REVIEW) and is by-design, not a deliverable defect.\",\"recommendation\":\"Keep production_ready promotion and commit gated on the full validation ladder completing green downstream (after this review receipt is normalized and adjudicated). Downstream adjudication should attach the full ladder evidence before flipping production_ready/runtime gates; no change to the CP00-892 descriptor implementation is required.\",\"post_review_disposition\":\"Non-blocking; covered by the explicitly deferred post-review validation ladder. Does not block this read-only review verdict. Verification boundary recorded to distinguish statically-verified structure from the not-re-executed ladder.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"089e9b8a-70cf-4838-8d5b-34afc59e41b2\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6790,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "22ebc148-bd63-4b1b-85de-6f5c2d9a2ffb",
+    "uuid": "089e9b8a-70cf-4838-8d5b-34afc59e41b2",
+    "total_cost_usd": 2.0180335000000005,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

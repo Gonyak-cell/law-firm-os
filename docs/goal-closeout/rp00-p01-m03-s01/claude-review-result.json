@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M03.S01",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "/opt/homebrew/bin/claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "permission_mode": "dontAsk",
+    "output_format": "json",
+    "session_id": "78cc7493-2df2-4631-9edb-9c499ef6d76d",
+    "uuid": "bc8feec0-ae49-4bed-af12-1df8b4dad663",
+    "duration_ms": 349754,
+    "duration_api_ms": 350461,
+    "total_cost_usd": 2.04854325,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "reviewed_at": "2026-06-03T13:33:00Z"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Production_ready promotion steps still pending (expected for a read-only C00 stage, not a defect)",
+        "file": "docs/goal-closeout/rp00-p01-m03-s01/ ; contracts/control-plane-contract.json ; packages/control-plane/src/model.js ; packages/control-plane/test/model.test.js",
+        "line": "contract:13,169,3319; model.js:43; test:106",
+        "rationale": "Current-subphase status fields were still implemented and the evidence root held packet.json plus command-evidence.json at C00 review time. This was expected before adding this review result, adjudication, construction inspection, and production_ready promotion.",
+        "recommendation": "Add claude-review-result.json, adjudication.md, and construction-inspection.json; promote S01 status fields to production_ready; set final_validation_rerun_at; rerun validators."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "By-design observations: title reuses existing dirs; phase-aggregate registry status stays implemented",
+        "file": "contracts/control-plane-contract.json ; packages/control-plane/src/registry.js",
+        "line": "contract:11; registry.js:21",
+        "rationale": "The slice title is inherited from the weighted ledger generator while the implementation opens HermesGate model surfaces in existing package directories. CONTROL_PLANE_DOMAIN_MODEL_REGISTRY.status remains implemented because it is a phase aggregate and RP00.P01 is not closed.",
+        "recommendation": "No action; record as non-blocking design context."
+      }
+    ],
+    "summary": "PASS read-only C00 cross-validation. RP00.P01.M03.S01 implements only the HermesGate package directory-layout surface: HERMES_GATE_PACKAGE_LAYOUT with entity=HermesGate, implementedModel=false, target files/tests/fixtures, futureModelSubphases S02-S11, no-real-data/no-write flags, and nextSubphase RP00.P01.M03.S02, plus assertHermesGatePackageLayout. No HermesGate model, identifier, tenant scope, matter trace reference, lifecycle status enum, ownership metadata, relationship map, required/optional field registry, transition map, or validation helper is present. The registry exposes hermesGatePackageLayout while keeping HermesGate future-only with implementedInFutureSubphase=true and implementedSubphase=null. The synthetic fixture records expected_entity=HermesGate, implemented_model=false, no_real_data=true, writes_product_state=false, and next_subphase=RP00.P01.M03.S02. The validator enforces exports, file existence, fixture evidence, future subphases, registry future-only policy, no-write boundaries, weighted-generator P2 defer, actual Claude and construction inspection requirements, and next boundary. Prior production_ready slices remain intact. No real data or product-state writes were introduced. No P0/P1/P2 findings."
+  },
+  "raw_review_excerpt": "overall_verdict=PASS; blocks_subphase_closeout=false; blocks_goal_closeout=false; findings=P3_NOTE only; no P0/P1/P2 findings."
+}

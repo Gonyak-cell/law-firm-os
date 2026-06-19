@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-330",
+  "normalized_at": "2026-06-11T11:41:33.222Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-330/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-330/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-330/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-330/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f0627419-6e84-4df1-a12f-44cf411589a1",
+    "uuid": "8b4486a0-9925-4124-b90b-a4f117ffca83",
+    "total_cost_usd": 2.78814525,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7437,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-330 is a descriptor-only intake foundation pack (150 RP10 units, RP10.P05.M06.S02-RP10.P06.M03.S19, risk C) that closes the RP10.P05 fixture foundations and opens the RP10.P06 permission-matrix foundations. Read-only inspection of contracts/intake-core-contract.json, packages/intake/src/{index,registry,service,validators}.js, packages/intake/test/model.test.js, scripts/validate-rp10-intake-core-contract.mjs, the manifest, and the live closeout plan confirms the pack-level claim is appropriately scoped and well supported. The no-write/no-real-data boundary is enforced structurally: freezeCp330Result spreads the input first and then hard-sets every safety flag (writes_product_state, evaluates_runtime_permission, writes_audit_event, emits_hermes_runtime_receipt, loads_real_fixture_data, cross_tenant_access_allowed, etc.) to safe values, and validateCp330FixtureCloseoutRows/validateCp330PermissionMatrixRows assert descriptor-only behavior, deny-over-allow, no count/detail leaks, and no AI dispatch across all nine micro-sections. Claude is held as a read-only reviewer and explicitly NOT final approver (authority_boundary.claude_is_final_approval=false; no_write_attestation.promotes_claude_to_final_approval=false; review-request tools limited to Read/Grep/Glob). Hermes patterns are used only for deterministic descriptor/evidence packets, not product runtime. CP178+ review hardening is present via forbidden_review_evidence (auth failure, zero-byte, malformed JSON, fenced JSON, tool-call-shaped output, disabled-tools, claude-final-approval/enterprise-trust claims). Distributions and range are consistent across registry requirements, contract, manifest delivery_counts, and the live plan, and CP00-330 is the current live cursor pack; tests and the validate script assert coverage.valid and foundation.valid. The pack does not over-claim: production_ready=false, status=in_progress, descriptor_verified flag pending, correctly leaving enterprise-trust closure to the human approval gate. Only two non-blocking P3 advisories noted, both reflecting the read-only review step's position in the hardening sequence rather than defects.",
+    "findings": [
+      {
+        "id": "CP330-R01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts referenced in manifest are not yet present (expected at review step)",
+        "file": "docs/closeout-packs/cp00-330/manifest.json",
+        "line": 6430,
+        "details": "manifest.evidence_refs and required_pack_artifacts list command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json, and artifacts/closeout-pack-claude-review/cp00-330/review-receipt.json. A Glob of docs/closeout-packs/cp00-330/ shows only manifest.json present, and the artifacts review dir contains no review-receipt.json yet. This is expected: the pack_level_claude_review.status is 'pending' and the hardening_sequence places read_only_claude_run_raw_capture (this review) before receipt_validate, finding_adjudication, construction_inspection, and final_closeout_validation. So these artifacts are generated after this review, not before it. Flagging only so the human approver does not interpret the currently-missing evidence files as a defect.",
+        "recommendation": "No code change required. Ensure the closeout harness generates command-evidence.json, the normalized claude-review-result.json, review-receipt.json, adjudication.md, and construction-inspection.json before final_closeout_validation, and that final validation fails closed if any are missing or invalid.",
+        "post_review_disposition": "advisory_expected_pre_review_state"
+      },
+      {
+        "id": "CP330-R02",
+        "severity": "P3",
+        "title": "Validation/test green-status is verified by wiring only under read-only review; execution evidence must come from the harness",
+        "file": "scripts/validate-rp10-intake-core-contract.mjs",
+        "line": 490,
+        "details": "Under the read-only (Read/Grep/Glob, no Bash) constraint, this review confirms the validation and test WIRING is correctly in place to catch drift at closeout time: model.test.js (CP00-330 blocks at ~lines 668-730) asserts coverage.valid, foundation.valid, descriptor-only rows, Claude-not-final-approver, and handoff routing; validate-rp10-intake-core-contract.mjs (~lines 490-520) deep-equals the contract against INTAKE_CORE_CP330_PACK_BINDING / REQUIREMENTS / NO_WRITE_ATTESTATION and asserts production_ready_candidate and read_only. The review did NOT execute npm test, npm run validate, rp05:matter-core:validate, weighted/fullplan/goal:closeout validators, or git diff --check. Per the authority boundary, passing local validation does not by itself establish enterprise trust.",
+        "recommendation": "Treat actual command exit codes captured in command-evidence.json (not this review) as the authority for green status, and keep final closeout gated on a real, non-zero-exit-free run of all listed validation commands plus git diff --check.",
+        "post_review_disposition": "advisory_scope_of_read_only_review"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

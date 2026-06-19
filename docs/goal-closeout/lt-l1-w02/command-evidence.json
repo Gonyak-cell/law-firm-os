@@ -1,0 +1,529 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L1-W02",
+  "title": "critical OQ and PRD section 8 decision round",
+  "phase": "L1",
+  "gate": "L1-EXIT",
+  "status": "decision_round_brief_blocked_pending_owner_decisions",
+  "recorded_at": "2026-06-18T10:44:44Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:44:44Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L1-W02-PREP",
+      "title": "Prepare critical OQ and PRD8 decision round brief",
+      "status": "blocked_pending_owner_decisions",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/critical-oq-prd8-decision-round-brief.md",
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "register_keys_required": 9,
+        "critical_oq_keys_required": 6,
+        "prd8_mapping_rows": 6,
+        "launch_decision_register_rows_added": 0,
+        "human_decisions_synthesized": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count required OQ/PRD8 keys, PRD mapping rows, and register mutations ... NODE",
+          "exit_code": 0,
+          "output": "{\"required_key_count\":9,\"critical_oq_key_count\":6,\"prd8_mapping_rows\":6,\"register_rows_added\":0,\"review_policy\":\"review_waived_by_user\"}",
+          "purpose": "Verify the decision-round brief covers all required keys while not mutating the launch decision register"
+        },
+        {
+          "command": "grep -c \"^| OQ-\\|^| PRD8-\" docs/launch/critical-oq-prd8-decision-round-brief.md",
+          "exit_code": 0,
+          "output": "27",
+          "purpose": "Verify required decision keys appear in the main table and draft-input table"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is not a formal LT-L1-W02-T01 through T09 closeout because owner decisions and signatures are absent.",
+        "The launch decision register was intentionally left unchanged.",
+        "This package narrows the decision round inputs and blocked dependencies for owner action."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T01",
+      "title": "OQ-001 SharePoint site/library 토폴로지 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "SharePoint site/library 구조를 matter별로 둘지 practice별로 둘지(또는 하이브리드)가 결정되어 L3-8 프로비저닝과 file_ref 규약의 입력이 확정된다.",
+      "deliverables": [
+        "launch-decision-register OQ-001 행(결정 기록)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-001",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L3-8",
+        "workbook/absorption-package/06_오픈_결정_레지스터.md MAT-DEC-03 항"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 OQ-001 행이 status=decided로 존재하고 owner(AMIC 실명 역할)·결정·근거·일자가 전부 비공란이다.",
+        "결정 값이 matter별 / practice별 / 하이브리드 중 하나로 명시되어 있다(선택지 한정 — 내용 선취 아님).",
+        "근거란에 MAT-DEC-03 해소 기록(§4-3 산출물)과의 정합이 1줄 이상 인용되어 있다.",
+        "OQ-001 행에 결정 시한·승인 서명 참조가 기재되어 있다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"OQ-001\" docs/launch/launch-decision-register.md exit 0 2) 4필드 비공란 수동 판정 3) 결정 값의 선택지 일치 판정 4) MAT-DEC-03 인용·서명 확인",
+        "evidence": "grep 출력+체크리스트를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-001",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L3-8",
+        "workbook/absorption-package/06_오픈_결정_레지스터.md MAT-DEC-03 항"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T02",
+      "title": "OQ-002 Graph scope 목록·admin consent 범위 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "Microsoft Graph permission scope 전체 목록과 admin consent 범위가 최소권한 원칙으로 확정되어 L3-7(앱 등록·consent 증적)의 입력이 된다 — 현재 어느 문서에도 scope가 미열거된 공백의 해소.",
+      "deliverables": [
+        "launch-decision-register OQ-002 행(scope 목록 첨부)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-002·§1 RISK-011",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L3-7",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 OQ-002 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "결정에 Graph scope 전체 목록이 scope 식별자 단위로 열거되어 있고 목록 외 scope 요청 금지 조항이 포함된다.",
+        "각 scope에 최소권한 사유가 1줄 이상 붙어 있다(RISK-011 '광범위 권한 무검토 요청 금지' 충족).",
+        "consent 부여 절차·승인 주체가 기재되어 있다(부여 행위 자체는 L3-7 소관임이 명시).",
+        "OQ-002 행의 시한·승인 서명 참조가 확인된다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"OQ-002\" docs/launch/launch-decision-register.md exit 0 2) scope 목록 항목 수 ≥1·항목별 사유 존재 판정 3) 목록 외 요청 금지 조항·승인 주체 확인 4) 서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-002·§1 RISK-011",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L3-7",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T03",
+      "title": "OQ-003 외부 AI API 기밀정보 처리정책 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "privilege·customer confidential 자료의 외부 AI API 전송 허용/차단/마스킹 방침이 데이터 분류별로 결정된다(Wave 1은 AI off — 발효 시점 관계 명시).",
+      "deliverables": [
+        "launch-decision-register OQ-003 행(분류별 처리 방침표 첨부)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-003",
+        "workbook/matter_dev_docs/07_AI_자동화_모델라우팅_검증정책.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·§4-6"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 OQ-003 행이 status=decided이고 4필드(owner·결정·근거·일자) 비공란이다.",
+        "결정에 데이터 분류별(최소: privilege / customer confidential / 일반) 전송 허용·차단·마스킹 방침이 표로 기재되어 있다.",
+        "근거란에 §4-6 외부 법적 검토 결과 산출물 식별자가 인용되어 있다.",
+        "Wave 1 AI off 전제와 본 정책의 발효 시점(Wave 2 개방 게이트) 관계가 명시되어 있다.",
+        "OQ-003 행에 시한과 승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"OQ-003\" docs/launch/launch-decision-register.md exit 0 2) 분류별 방침표 3행 이상 존재 판정 3) 법적 검토 인용·발효 시점·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-003",
+        "workbook/matter_dev_docs/07_AI_자동화_모델라우팅_검증정책.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·§4-6"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T04",
+      "title": "OQ-006 HR payroll 범위 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "HR payroll 기능 범위가 compensation record 보관 / payroll explanation / payroll calculation 연동 중 어디까지인지 결정되어 HR 분리 트랙·rule engine 경계의 입력이 된다.",
+      "deliverables": [
+        "launch-decision-register OQ-006 행(결정 기록)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-006",
+        "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-1 HR 분리 트랙·L1-2"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 OQ-006 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "결정 값이 OQ-006의 3선택지(compensation record / payroll explanation / payroll calculation) 중 포함 범위를 명시한다.",
+        "W01 컷라인의 HR 분리 트랙 조항과의 정합이 근거란에 1줄 이상 기재되어 있다.",
+        "OQ-006 행에 시한·승인 서명 참조가 기재되어 있다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"OQ-006\" docs/launch/launch-decision-register.md exit 0 2) 3선택지 대비 포함 범위 명시 판정 3) HR 분리 트랙 정합·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-006",
+        "workbook/matter_dev_docs/11_People_HR_Operations_Spec.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-1 HR 분리 트랙·L1-2"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T05",
+      "title": "OQ-010 role hierarchy·partner override 정책 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "내부 로펌 role 위계와 partner override 허용 조건·승인 절차·감사 의무가 결정되어 L2-2 서버측 권한 컨텍스트 구현의 입력이 된다.",
+      "deliverables": [
+        "launch-decision-register OQ-010 행(role 위계표·override 조건 첨부)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-010",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md §3 Role 모델·§5 Ethical Wall",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 OQ-010 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "결정에 role 위계(06번 문서 §3 role 목록 기준 가감 명시)와 partner override의 허용 조건·승인 절차·감사 기록 의무가 각각 기재되어 있다.",
+        "partner override와 emergency override(L6-3 break-glass 소관)의 구분이 1줄 이상 명시되어 있다.",
+        "OQ-010 행에 시한·승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"OQ-010\" docs/launch/launch-decision-register.md exit 0 2) 위계표·override 3요소(조건·절차·감사) 존재 판정 3) override 구분·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-010",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md §3 Role 모델·§5 Ethical Wall",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T06",
+      "title": "OQ-014 AI prompt/output 보존·마스킹 정책 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "AI prompt/output의 보존 기간과 마스킹 정책이 결정되어 W03 보존정책 비준과 Wave 2 개방 게이트의 입력이 된다.",
+      "deliverables": [
+        "launch-decision-register OQ-014 행(보존 기간 수치·마스킹 대상 분류 포함)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-014",
+        "workbook/matter_dev_docs/07_AI_자동화_모델라우팅_검증정책.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L1-3"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 OQ-014 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "결정에 보존 기간이 수치(일/월/년 단위)로, 마스킹 대상이 데이터 분류 단위로 기재되어 있다.",
+        "발효 시점이 Wave 2 AI 활성화 전임이 명시되고, W03 비준 패키지로의 전달 표시가 있다.",
+        "OQ-014 행에 시한·승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"OQ-014\" docs/launch/launch-decision-register.md exit 0 2) 보존 기간 수치 존재 판정(숫자+단위) 3) 마스킹 분류·발효 시점·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-014",
+        "workbook/matter_dev_docs/07_AI_자동화_모델라우팅_검증정책.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L1-3"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T07",
+      "title": "Outlook Add-in 배포방식·manifest 형식 결정 (PRD §8-2)",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "Outlook Add-in의 배포 방식(조직 중앙배포 vs sideload)과 manifest 형식이 결정되어 L3-9 배포 파이프라인(파일럿→전사 2단계)의 입력이 된다.",
+      "deliverables": [
+        "launch-decision-register PRD8-2 행(결정 기록)"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md §8-2",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L3-9"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 PRD8-2 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "결정 값이 배포 방식(조직 중앙배포 / sideload 중 택1)과 manifest 형식을 함께 명시한다.",
+        "파일럿 그룹 한정→전사 2단계 배포(L3-9)와의 정합이 근거란에 기재되어 있다.",
+        "PRD8-2 행에 시한·승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"PRD8-2\" docs/launch/launch-decision-register.md exit 0 2) 배포 방식·manifest 형식 동시 명시 판정 3) 2단계 배포 정합·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md §8-2",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L3-9"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T08",
+      "title": "PRD §8 잔여 항목(법령·판례 데이터소스, Obsidian connector) 결정 또는 시한부 deferral",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "PRD §8-5(법령·판례·공시 연동 데이터소스)와 §8-6(Obsidian local vault connector 지원 OS·sync 방식)이 결정되거나 시한부 deferral로 판정되어 미결정 zero 게이트를 충족한다.",
+      "deliverables": [
+        "launch-decision-register PRD8-5·PRD8-6 2개 행"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md §8-5·§8-6",
+        "workbook/matter_dev_docs/09_Obsidian_Matter_Vault_Spec.md",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-004·OQ-007"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register에 PRD8-5·PRD8-6 행이 각각 status=decided 또는 deferred(시한·재심 게이트 명기)로 존재한다.",
+        "deferred 행은 Wave 2/3 배정이 W01 컷라인과 모순되지 않음을 근거란에 기재한다.",
+        "PRD8-5·PRD8-6 두 행 모두 owner·일자·승인 서명 참조가 비공란이다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -c \"PRD8-5\\|PRD8-6\" docs/launch/launch-decision-register.md ≥2 2) 각 행 status 허용값(decided/deferred+시한) 판정 3) 컷라인 정합·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md §8-5·§8-6",
+        "workbook/matter_dev_docs/09_Obsidian_Matter_Vault_Spec.md",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2 OQ-004·OQ-007"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W02-T09",
+      "title": "결정 라운드 완결성 대사·W02 증거 조립",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "objective": "Critical OQ 6건과 PRD §8 6건 전부가 레지스터 행으로 매핑(결정/참조/시한부 deferral)되었음이 기계 대사되고 W02 게이트 증거가 조립된다.",
+      "deliverables": [
+        "launch-decision-register 부록 매핑표(PRD §8 ↔ 레지스터 행)",
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json 갱신분"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L1 완료 게이트",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md §8",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2"
+      ],
+      "acceptance_criteria": [
+        "레지스터에서 OQ-001/002/003/006/010/014 6행이 전부 status=decided이고 각 행에 owner(AMIC 실명 역할)와 시한이 기재되어 있다(grep 검출 수 6).",
+        "PRD §8 6개 항목 전부의 매핑표가 레지스터 부록에 존재한다 — §8-1→OQ-001, §8-3→OQ-003, §8-4→OQ-006 참조 매핑, §8-2→PRD8-2, §8-5→PRD8-5, §8-6→PRD8-6 자체 행.",
+        "매핑표 기준 미매핑(undecided·미기재) 항목 수가 0이다."
+      ],
+      "verification_contract": {
+        "method": "node -e \"const s=require('fs').readFileSync('docs/launch/launch-decision-register.md','utf8');const keys=['OQ-001','OQ-002','OQ-003','OQ-006','OQ-010','OQ-014','PRD8-2','PRD8-5','PRD8-6'];for(const k of keys)if(!s.includes(k))process.exit(1)\" (exit 0) + 매핑표 6행 수동 대조",
+        "evidence": "명령 출력+대조 결과를 docs/goal-closeout/lt-l1-w02/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-2·L1 완료 게이트",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md §8",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md §2"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim any OQ or PRD8 decision is decided.",
+    "This record does not add launch decision register rows.",
+    "This record does not approve Microsoft Graph scopes, external AI handling, HR payroll scope, Outlook deployment, legal data sources, or Obsidian sync.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 9,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "work_package_id": "LT-L9-W03",
+  "title": "Legacy source disposition",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_legacy_disposition_templates_recorded",
+  "artifacts": [
+    "docs/launch/legacy-disposition-plan.md",
+    "docs/launch/legacy-freeze-record.md",
+    "docs/launch/legacy-disposition-record.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l9-w03/packet.json",
+    "docs/goal-closeout/lt-l9-w03/command-evidence.json",
+    "docs/goal-closeout/lt-l9-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l9-w03/adjudication.md",
+    "docs/goal-closeout/lt-l9-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "owner_disposition_decision": false,
+    "legacy_freeze_executed": false,
+    "disposition_executed": false,
+    "legal_hold_clearance_present": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false
+  },
+  "terminal_tuw": "LT-L9-W03-T03",
+  "gate_binding": [
+    "L9-EXIT"
+  ],
+  "phase": "L9"
+}

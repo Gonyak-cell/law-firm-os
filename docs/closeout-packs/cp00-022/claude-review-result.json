@@ -1,0 +1,106 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-022",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "4c84fa56-a5e0-4273-b0c5-882ee9095dd6",
+    "uuid": "902a42f9-1c71-4a94-a536-7cc9240af0e6",
+    "duration_ms": 300186,
+    "duration_api_ms": 302060,
+    "total_cost_usd": 1.134183,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 41194,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.041294000000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 2,
+        "outputTokens": 28554,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 60400,
+        "webSearchRequests": 0,
+        "costUSD": 1.092889,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_P3_FINDINGS_FIXED",
+    "claude_reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-022-RAW-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/test/service.test.js:15322",
+        "title": "Unused createSyntheticFixtureSetAuditHintResult helper",
+        "adjudication_status": "fixed",
+        "adjudication_detail": "The S06 happy-path test now uses createSyntheticFixtureSetAuditHintResult. The helper was adjusted to preserve the frozen canonical result when no overrides are provided."
+      },
+      {
+        "id": "CP00-022-RAW-P3-02",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/src/validators.js:10343",
+        "title": "No representative no-write drift rejection test",
+        "adjudication_status": "fixed",
+        "adjudication_detail": "Added a validator drift assertion that rejects audit_event_write_permitted: true for the S06 result. Service test now passes 449/449 after remediation."
+      }
+    ],
+    "security_notes": [
+      "Claude found the S06 metadata-only no-write guarantee holds.",
+      "Claude found no P0/P1/P2 issues and no false production_ready overreach."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 449/449 after P3 remediation.",
+      "A second Claude review was not run; CP00-022 keeps exactly one valid pack-level Claude review."
+    ],
+    "summary": "Claude reported two minor P3 findings. Both were accepted and fixed before closeout; unresolved P0/P1/P2/P3 is 0."
+  },
+  "raw_review_text": "## CP00-022 / RP00.P02.M06.S06 — Audit hint precheck review\n\nI reviewed the full diff against the metadata-only/no-write requirement, focusing on the no-write guarantee, fail-closed coverage, drift, and contract/fixture/validator consistency.\n\n**No-write guarantee — holds.** `precheckControlPlaneSyntheticFixtureSetAuditHint` is purely functional: it reads a validated S05 permission result, builds a frozen result, performs no I/O, and pins every write-permission flag (`audit_event_write_permitted`, `audit_ledger_append_permitted`, `fixture_generation_permitted`, `fixture_persistence_permitted`, `service_logic_execution_permitted`, `runtime_route_created`, `database_write_permitted`, `storage_write_permitted`, `product_state_persistence_permitted`, `runtime_permission_evaluation_permitted`, `authz_evaluator_call_permitted`, `permission_engine_execution_permitted`, `security_trimming_execution_permitted`) to `false`. The `audit_event_ref` is a metadata hint string, not a write. M06 stays open (`source_micro_phase_completed:false`, weighted boundary `terminal:false`, next `RP00.P02.M06.S07`).\n\n**Fail-closed — complete.** All 17 declared `failClosedOn` reasons map to enforced guards; the claim loop rejects every truthy unknown/forbidden claim and non-object claims. Drift counts (28 forbidden claims, 17 fail-closed, 5 hint fields) are length-pinned. No `production_ready` overreach — status is scoped to the precheck slice and backed by tests + validators.\n\nTwo minor findings only:\n\n```json\n{\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"file\": \"packages/control-plane/test/service.test.js\",\n      \"line\": 15322,\n      \"issue\": \"Helper `createSyntheticFixtureSetAuditHintResult(overrides, auditClaims)` is defined but never referenced by any CP00-022 test; every S06 test inlines `precheckControlPlaneSyntheticFixtureSetAuditHint(createSyntheticFixtureSetPermissionResult())` directly. Dead test code / drift introduced by this pack.\",\n      \"recommendation\": \"Either remove the unused helper or route the existing happy-path and drift assertions through it (as the analogous permission-precheck pattern does) so it carries weight.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"file\": \"packages/control-plane/src/validators.js\",\n      \"line\": 10343,\n      \"issue\": \"`assertControlPlaneSyntheticFixtureSetAuditHintPrecheckResult` pins ~37 expected values (all no-write flags = false), but only one result-level drift case (`audit_hint_scope`) is exercised in tests. No direct test flips a write-permission flag (e.g. `audit_event_write_permitted:true`, `fixture_generation_permitted:true`) and asserts the validator rejects it.\",\n      \"recommendation\": \"Add a representative drift-rejection case flipping a no-write flag to true (mirroring the existing audit_hint_scope drift test) to lock the validator's no-write enforcement against future regressions. Low priority — pins + happy-path assertions already provide coverage.\"\n    }\n  ]\n}\n```\n\nNo P0/P1/P2 issues: no unsafe state mutation (inputs read-only, outputs frozen), no missing fail-closed path, no false `production_ready` claim, and contract/policy/service/fixture/validator/script are mutually consistent. The only \"inconsistency\" — absent `docs/closeout-packs/cp00-022` evidence files — is the intended pre-evidence state for this review and not a defect.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude raw P3 findings were accepted and fixed: the unused helper is now used without breaking frozen-result assertions, and the no-write validator drift test now rejects audit_event_write_permitted:true. Unresolved P0/P1/P2/P3 after adjudication is 0."
+}

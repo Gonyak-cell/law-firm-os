@@ -1,0 +1,492 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-905",
+  "planned_pack_id": "CP00-905",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "opens_runtime": false,
+    "writes_product_state": false,
+    "uses_real_client_data": false,
+    "summary": "CP00-905 bridges the RP30 People HR Evidence embedded HRX P01 compensation tail into the RP30 P02 RuleEngine foundation across RP30.P01.M10.S04-RP30.P02.M00.S08. It binds CompensationRecord tail rows and RuleEngine rows as descriptor-only evidence while keeping compensation amounts, compensation currency, payroll runtime, rule definitions, rule execution runtime, rule decision writes, HR AI final judgment, runtime receipts, separate HRX product claims, credentials, secrets, and real employee/candidate/payroll/document data closed.",
+    "source_refs": [
+      "packages/hrx/README.md",
+      "packages/hrx/src/registry.js",
+      "packages/hrx/src/validators.js",
+      "packages/hrx/src/index.js",
+      "packages/hrx/test/model.test.js",
+      "contracts/hrx-people-contract.json",
+      "scripts/validate-rp30-hrx-people-contract.mjs",
+      "docs/rp30-people-hr-evidence-detailed-microphases.json",
+      "docs/rp30-people-hr-evidence-detailed-microphases.md",
+      "docs/hrx-requirement-ledger.json",
+      "docs/hrx-requirement-ledger.md",
+      "docs/hrx-weighted-implementation-ledger.json",
+      "docs/hrx-weighted-implementation-ledger.md",
+      "docs/hrx-integration/hrx-full-integration-plan.md",
+      "docs/hrx-integration/hrx-no-omission-coverage-matrix.md",
+      "docs/hrx-integration/hrx-overlay-closeout-pack-map.json",
+      "package.json"
+    ]
+  },
+  "program_id": "RP30",
+  "risk_class": "A",
+  "planned_risk_class": "A",
+  "unit_count": 10,
+  "planned_unit_count": 10,
+  "primary_subphase_id": "RP30.P01.M10.S04",
+  "next_subphase": "RP30.P02.M00.S09",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "production_ready_flag": "hrx_compensation_rule_engine_bridge_descriptor_verified",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-905",
+    "planned_pack_id": "CP00-905",
+    "title": "CP00-905 RP30.P01.M10.S04-RP30.P02.M00.S08 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP30.P01.M10.S04",
+      "last_unit_id": "RP30.P02.M00.S08",
+      "description": "RP30.P01.M10.S04-RP30.P02.M00.S08"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "hrx_source_ledger_sha": "2077f543bceca3d5c3a2dcc9bfb9428cf0c522990674d58960998546be613b3f",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP30.P01.M10.S04",
+        "title": "CompensationRecord HRX slice subphase 4",
+        "source_micro_phase_id": "RP30.P01.M10",
+        "program_id": "RP30",
+        "phase_id": "RP30.P01",
+        "micro_id": "M10",
+        "micro_title": "CompensationRecord HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P01.M10.S05",
+        "title": "CompensationRecord HRX slice subphase 5",
+        "source_micro_phase_id": "RP30.P01.M10",
+        "program_id": "RP30",
+        "phase_id": "RP30.P01",
+        "micro_id": "M10",
+        "micro_title": "CompensationRecord HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S01",
+        "title": "RuleEngine HRX slice subphase 1",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S02",
+        "title": "RuleEngine HRX slice subphase 2",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S03",
+        "title": "RuleEngine HRX slice subphase 3",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S04",
+        "title": "RuleEngine HRX slice subphase 4",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S05",
+        "title": "RuleEngine HRX slice subphase 5",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S06",
+        "title": "RuleEngine HRX slice subphase 6",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S07",
+        "title": "RuleEngine HRX slice subphase 7",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      },
+      {
+        "id": "RP30.P02.M00.S08",
+        "title": "RuleEngine HRX slice subphase 8",
+        "source_micro_phase_id": "RP30.P02.M00",
+        "program_id": "RP30",
+        "phase_id": "RP30.P02",
+        "micro_id": "M00",
+        "micro_title": "RuleEngine HRX slice",
+        "deliverable_type": "implementation",
+        "hrx_embedded": true
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP30.P01.M10.S04",
+      "title": "CompensationRecord HRX slice subphase 4",
+      "source_micro_phase_id": "RP30.P01.M10",
+      "program_id": "RP30",
+      "phase_id": "RP30.P01",
+      "micro_id": "M10",
+      "micro_title": "CompensationRecord HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P01.M10.S05",
+      "title": "CompensationRecord HRX slice subphase 5",
+      "source_micro_phase_id": "RP30.P01.M10",
+      "program_id": "RP30",
+      "phase_id": "RP30.P01",
+      "micro_id": "M10",
+      "micro_title": "CompensationRecord HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S01",
+      "title": "RuleEngine HRX slice subphase 1",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S02",
+      "title": "RuleEngine HRX slice subphase 2",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S03",
+      "title": "RuleEngine HRX slice subphase 3",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S04",
+      "title": "RuleEngine HRX slice subphase 4",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S05",
+      "title": "RuleEngine HRX slice subphase 5",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S06",
+      "title": "RuleEngine HRX slice subphase 6",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S07",
+      "title": "RuleEngine HRX slice subphase 7",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    },
+    {
+      "id": "RP30.P02.M00.S08",
+      "title": "RuleEngine HRX slice subphase 8",
+      "source_micro_phase_id": "RP30.P02.M00",
+      "program_id": "RP30",
+      "phase_id": "RP30.P02",
+      "micro_id": "M00",
+      "micro_title": "RuleEngine HRX slice",
+      "deliverable_type": "implementation",
+      "hrx_embedded": true,
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-905/manifest.json",
+        "docs/closeout-packs/cp00-905/command-evidence.json",
+        "docs/closeout-packs/cp00-905/claude-review-result.json",
+        "docs/closeout-packs/cp00-905/adjudication.md",
+        "docs/closeout-packs/cp00-905/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/hrx/src/registry.js",
+        "packages/hrx/src/validators.js",
+        "contracts/hrx-people-contract.json"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-905/manifest.json",
+    "docs/closeout-packs/cp00-905/command-evidence.json",
+    "docs/closeout-packs/cp00-905/claude-review-result.json",
+    "docs/closeout-packs/cp00-905/adjudication.md",
+    "docs/closeout-packs/cp00-905/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [
+      "docs/closeout-packs/cp00-901",
+      "artifacts/closeout-pack-claude-review/cp00-901"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-905/review-receipt.json",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-905/review-receipt.json"
+    ],
+    "invalid_review_attempts": []
+  },
+  "commit_policy": {
+    "required": true,
+    "status": "pending_commit_after_validation"
+  }
+}

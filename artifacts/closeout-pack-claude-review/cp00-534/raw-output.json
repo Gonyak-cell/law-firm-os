@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-534",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T17:22:08.461Z",
+  "finished_at": "2026-06-12T17:27:57.155Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":348134,\"duration_api_ms\":347854,\"ttft_ms\":2777,\"num_turns\":53,\"result\":\"Review complete. CP00-534 passes with no findings.\\n\\n**Verdict: PASS** — does not block pack or goal closeout; no unresolved P0/P1.\\n\\nThe pack is a clean, descriptor-only RP17.P05.M06 fixture slice that is internally consistent across all layers (manifest, contract, registry, service/validators, tests, validate script, README, and live queue). It correctly does not over-claim (`production_ready:false`), maintains Claude's read-only/non-final-approver boundary, uses Hermes only as deterministic evidence descriptors, enforces no-write/no-real-data/no-leak boundaries with no write/network/exec primitives in source, and shows all validation commands passing with valid review-hardening preflight. The post-review artifacts are correctly absent at this stage of the hardening sequence.\",\"stop_reason\":\"end_turn\",\"session_id\":\"f09abdbd-934a-4831-ab32-6e14e1305a1e\",\"total_cost_usd\":2.5018892500000005,\"usage\":{\"input_tokens\":78,\"cache_creation_input_tokens\":104027,\"cache_read_input_tokens\":2491109,\"output_tokens\":24184,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":104027,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":271,\"cache_read_input_tokens\":100726,\"cache_creation_input_tokens\":4196,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4196},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1076,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001176,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":78,\"outputTokens\":24184,\"cacheReadInputTokens\":2491109,\"cacheCreationInputTokens\":104027,\"webSearchRequests\":0,\"costUSD\":2.5007132500000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-534 is a descriptor-only closeout pack covering RP17.P05.M06.S09-S18 (Synthetic Fixture Set, risk class A, 10 units). Verified through read-only inspection (Read/Grep/Glob) across manifest, contract projection, registry bindings, service/validators source, tests, validation script, README, and the live next-pack queue. The pack is internally consistent at every layer: deliverable distribution {implementation:3, security_audit:2, fixture:1, test:3, hermes_evidence:1}=10 matches baseline/manifest/registry/validator; CP00-534 is the legitimate successor to live-latest CP00-533 with matching source_ledger_sha 13c7ed65. Descriptor-only boundaries are enforced everywhere (descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false plus the full freezeCp534Result no-write/no-runtime/no-leak attestation); a grep of packages/ai-governance/src and the validator found no write/network/exec primitives. The pack does NOT over-claim: production_ready:false, runtime_ready:false, status implemented_pending_review. Claude's read-only/non-final-approver boundary and the no-enterprise-trust-from-local-validation boundary are asserted in the no-write attestation, descriptor authority_boundary, tests, and validator deepEqual checks. Hermes patterns appear only as deterministic evidence-packet descriptors (H17), not product runtime (emits_hermes_runtime_receipt:false). command-evidence.json records all required validation commands at exit_code 0, and readiness auth-preflight passed with non-zero well-formed JSON. forbidden_review_evidence correctly covers auth failures, zero-byte, malformed JSON, fenced JSON, tool-call-shaped output, and missing fields; no invalid review attempts are present. All 7 required public exports exist (2 in service.js, 5 in validators.js) and are re-exported via index.js. Absent post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, review-receipt.json) are expected at this read_only_claude_run stage and are not defects. No findings at any severity.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"d3b2e4bb-fc24-4203-93b5-9af6f6d4455b\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4587,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "f09abdbd-934a-4831-ab32-6e14e1305a1e",
+    "uuid": "d3b2e4bb-fc24-4203-93b5-9af6f6d4455b",
+    "total_cost_usd": 2.5018892500000005,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

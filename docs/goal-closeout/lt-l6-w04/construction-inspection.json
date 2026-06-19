@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L6-W04",
+  "inspected_at": "2026-06-18T14:53:52Z",
+  "verdict": "BLOCKED_AI_REVIEW_OWNER_APPROVAL_SLA_DISABLE_AUTHORITY_AND_DRY_RUN_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "reviewer_coverage_slots": 6,
+    "disable_rollback_authority_slots": 4,
+    "ai_release_gate_mapping_rows": 7,
+    "wave1_ai_off_rule_present": true,
+    "named_reviewers_assigned": false,
+    "disable_authority_granted": false,
+    "dry_run_performed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "ai_runtime_activated": false,
+    "reviewers_synthesized": false,
+    "disable_authority_synthesized": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

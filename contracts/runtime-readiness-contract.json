@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.runtime-readiness-contract.v0.1",
+  "status": "governance_contract",
+  "decision_ref": "MAT-DEC-07",
+  "decision_record": "decided_2026-06-11_runtime_gate_layer",
+  "source_of_truth_position": "non_executive_additive_gate_contract",
+  "implementation_layer_start_pack_number": 328,
+  "implementation_layer_start_pack_id": "CP00-328",
+  "implementation_layer_enum": [
+    "descriptor",
+    "runtime",
+    "mixed"
+  ],
+  "legacy_derivation_rule": {
+    "retroactive_manifest_edits": "forbidden",
+    "descriptor_evidence_label": "declared_descriptor",
+    "missing_layer_label": "undeclared_legacy",
+    "runtime_retroactive_claim": "forbidden"
+  },
+  "runtime_ready_semantics": {
+    "field": "runtime_ready",
+    "type": "boolean",
+    "true_implies": [
+      "manifest.status === production_ready",
+      "all existing closeout-pack checks pass",
+      "RTG-001 functional runtime path executed",
+      "RTG-002 permission runtime path executed",
+      "RTG-003 audit runtime path executed",
+      "RTG-004 sandbox/security attestation complete",
+      "RTG-005 regression sweep complete"
+    ],
+    "does_not_replace": "production_ready"
+  },
+  "rtg_gates": [
+    {
+      "id": "RTG-001",
+      "name": "functional",
+      "description": "Tests execute exported runtime functions or services rather than frozen constants."
+    },
+    {
+      "id": "RTG-002",
+      "name": "permission",
+      "description": "Runtime actions execute authz evaluate paths for fail-closed permission outcomes."
+    },
+    {
+      "id": "RTG-003",
+      "name": "audit",
+      "description": "Mutating runtime actions append audit evidence and verify hash-chain behavior where applicable."
+    },
+    {
+      "id": "RTG-004",
+      "name": "security",
+      "description": "Runtime evidence runs in synthetic sandbox with no real data, credentials, or product writes."
+    },
+    {
+      "id": "RTG-005",
+      "name": "regression",
+      "description": "The closing commit records npm test, validators, and closeout-pack sweep results."
+    }
+  ],
+  "runtime_sandbox_attestation_schema": {
+    "synthetic_only": true,
+    "ephemeral": true,
+    "no_real_data": true,
+    "no_external_network": true,
+    "no_production_credentials": true,
+    "writes_product_state": false
+  },
+  "boundary_policy": {
+    "closed_packs_before_start": "derive_only",
+    "packs_at_or_after_start": "must_declare_implementation_layer",
+    "runtime_or_mixed_packs": "must_pass_runtime_readiness_validator"
+  },
+  "m365_relationship": {
+    "contract_ref": "contracts/email-dms-m365-runtime-contract.json",
+    "policy": "Future M365 runtime packs must satisfy both the M365 admission gate and RTG-001 through RTG-005."
+  },
+  "non_weakening_clause": [
+    "Closed packs are not edited or reinterpreted as runtime-ready.",
+    "New checks are boundary-gated after CP00-327.",
+    "runtime_ready is an additive implication gate, not a status enum.",
+    "production_ready semantics remain unchanged."
+  ]
+}

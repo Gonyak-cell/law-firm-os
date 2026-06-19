@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L0-W01",
+  "inspected_at": "2026-06-18T14:35:02Z",
+  "verdict": "BLOCKED_HUMAN_ACCEPTANCE_REQUIRED_FOR_MANUAL_FPCG_ITEMS",
+  "production_ready": false,
+  "quality_gates": {
+    "contract_exists": true,
+    "validator_exists": true,
+    "validator_machine_verdict_pass": true,
+    "manual_checklist_exists": true,
+    "manual_checklist_signed": false,
+    "g1_evidence_index_exists": true,
+    "g1_closed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "human_acceptance_synthesized": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

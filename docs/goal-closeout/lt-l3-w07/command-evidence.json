@@ -1,0 +1,168 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L3-W07",
+  "title": "Entra app registration, Graph scope decision, and admin consent",
+  "phase": "L3",
+  "gate": "G5, L3-EXIT",
+  "created_at": "2026-06-18T13:22:14Z",
+  "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-PRE-W06": {
+      "status": "blocked_pending_external_actions",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L1-W02": {
+      "status": "decision_round_brief_blocked_pending_owner_decisions",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L3-W03": {
+      "status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "tenant_admin_confirmation_exists": false,
+    "graph_scope_register_exists": false,
+    "entra_app_registration_exists": false,
+    "admin_consent_evidence_exists": false,
+    "w07_m365_evidence_file_count": 0,
+    "msal_naa_auth_config_file_count": 0,
+    "m365_runtime_implementation_allowed": false,
+    "calls_graph_api": false,
+    "acquires_entra_tokens": false,
+    "admin_consent_granted": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L3-W07-T01",
+      "title": "Confirm and record AMIC tenant administrator access",
+      "status": "blocked_waiting_on_ext_m365_admin_external_confirmation"
+    },
+    {
+      "tuw_id": "LT-L3-W07-T02",
+      "title": "Approve and enumerate least-privilege Graph scopes",
+      "status": "blocked_waiting_on_l1_w02_oq002_owner_decision_and_ext_m365_admin"
+    },
+    {
+      "tuw_id": "LT-L3-W07-T03",
+      "title": "Register Entra apps for local, staging, and production with vaulted credentials",
+      "status": "blocked_waiting_on_t01_t02_and_l3_w03_vault_boundary"
+    },
+    {
+      "tuw_id": "LT-L3-W07-T04",
+      "title": "Grant admin consent and assemble W07 G5 evidence",
+      "status": "blocked_waiting_on_t03_and_admin_consent_export",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_four_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "tenant_admin_confirmed": false,
+        "graph_scope_register_approved": false,
+        "entra_apps_registered": false,
+        "admin_consent_export_reconciled": false,
+        "g5_satisfied": false,
+        "l3_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-PRE-W06\" or .wp_id==\"LT-L1-W02\" or .wp_id==\"LT-L3-W03\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-PRE-W06\tblocked_pending_external_actions\tcommand_evidence_only_blocked",
+        "LT-L1-W02\tdecision_round_brief_blocked_pending_owner_decisions\tcommand_evidence_only_blocked",
+        "LT-L3-W03\tblocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W07 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "required_w07_docs_presence",
+      "command": "test -f docs/launch/l3/m365-tenant-admin-confirmation.md; printf '%s\\n' $?; test -f docs/launch/l3/graph-scope-register.md; printf '%s\\n' $?; test -f docs/launch/l3/entra-app-registration.md; printf '%s\\n' $?; test -f docs/launch/l3/admin-consent-evidence.md; printf '%s\\n' $?",
+      "exit_code": 0,
+      "output": [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "purpose": "Verify required W07 launch evidence documents are absent."
+    },
+    {
+      "id": "w07_m365_evidence_file_count",
+      "command": "find docs/launch/l3 docs/goal-closeout/lt-l3-w07 -maxdepth 2 -type f \\( -iname '*m365*tenant*admin*' -o -iname '*graph*scope*' -o -iname '*entra*app*' -o -iname '*admin*consent*' \\) -print 2>/dev/null | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no W07-specific M365/Graph/Entra/admin-consent evidence files exist."
+    },
+    {
+      "id": "msal_naa_auth_config_file_count",
+      "command": "find . -maxdepth 5 -type f \\( -iname '*msal*' -o -iname '*naa*' -o -iname '*authconfig*' \\) -not -path './.git/*' -print | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no MSAL/NAA/auth configuration files exist."
+    },
+    {
+      "id": "external_admin_scope_blockers",
+      "command": "rg -n \"blocked_pending_external_confirmation|pending_external_confirmation|admin consent|Graph scope|OQ-002|M365 admin\" docs/launch/external-leadtime/m365-admin-access-confirmation.md docs/launch/external-leadtime/external-leadtime-register.md docs/launch/critical-oq-prd8-decision-round-brief.md docs/goal-closeout/lt-pre-w06/command-evidence.json docs/goal-closeout/lt-l8-w02/gate-evidence/g5.md",
+      "exit_code": 0,
+      "output_summary": [
+        "M365 admin access confirmation is blocked_pending_external_confirmation.",
+        "External leadtime register lists EXT-M365-ADMIN as blocked_pending_external_confirmation.",
+        "OQ-002 Graph scope/admin consent is blocked until OQ-001 plus EXT-M365-ADMIN.",
+        "G5 gate evidence says tenant/admin evidence is pending."
+      ],
+      "purpose": "Verify external/admin and owner-decision blockers for W07."
+    },
+    {
+      "id": "m365_runtime_contract_state",
+      "command": "sed -n '1,120p' contracts/email-dms-m365-runtime-contract.json",
+      "exit_code": 0,
+      "output_summary": [
+        "runtime_admission_gate.implementation_allowed is false.",
+        "no_runtime_attestation.calls_graph_api is false.",
+        "no_runtime_attestation.acquires_entra_tokens is false.",
+        "no_runtime_attestation.uses_production_credentials is false."
+      ],
+      "purpose": "Verify current M365 runtime contract does not admit Graph/Entra runtime."
+    },
+    {
+      "id": "g5_readiness_blockers",
+      "command": "rg -n \"admin consent|Graph|M365|tenant admin|scope\" docs/goal-closeout/lt-l8-w02/gate-evidence/g5.md docs/goal-closeout/lt-l8-w02/readiness-input.json docs/goal-closeout/lt-l2-w02/command-evidence.json",
+      "exit_code": 0,
+      "output_summary": [
+        "L8 G5 evidence remains blocked pending admin consent reconciliation and M365 tenant evidence.",
+        "L2-W02 evidence does not claim Entra tenant integration, Graph admin consent, or production identity readiness."
+      ],
+      "purpose": "Verify go-live G5 remains No-Go for admin-consent evidence."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L3-W07.",
+    "This record does not claim AMIC M365 tenant administrator access is secured.",
+    "This record does not approve Graph scopes or admin consent range.",
+    "This record does not register Entra apps, configure MSAL/NAA, or create credentials.",
+    "This record does not grant or prove admin consent.",
+    "This record does not satisfy G5 or L3-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

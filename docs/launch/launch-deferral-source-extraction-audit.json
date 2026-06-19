@@ -1,0 +1,516 @@
+{
+  "schema_version": "law-firm-os.launch-deferral-source-extraction-audit.v0.1",
+  "generated_at": "2026-06-18T16:19:58.196Z",
+  "verdict": "PASS",
+  "source_refs": [
+    "docs/closeout-packs",
+    "docs/ldip-integration/ldip-overlay-closeout-pack-map.json",
+    "docs/hrx-integration/hrx-overlay-closeout-pack-map.json",
+    "workbook/absorption-package/06_오픈_결정_레지스터.md",
+    "docs/launch",
+    "docs/launch/deferral-review-register.md",
+    "docs/goal-closeout/lt-l0-w03/command-evidence.json"
+  ],
+  "boundary": {
+    "classifies_source_markers_only": true,
+    "closes_lt_l0_w03": false,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "closed_cp_evidence_is_read_only": true,
+    "review_waiver_counts_as_valid_review_evidence": false
+  },
+  "p2": {
+    "pack_count": 987,
+    "closeout_file_count": 4936,
+    "broad_marker_source_file_count": 3794,
+    "construction_p2_status_counts": {
+      "fixed_or_deferred": 987
+    },
+    "construction_p2_count_statement_count": 1478,
+    "construction_p2_count_statement_positive_count": 16,
+    "positive_count_statement_file_count": 11,
+    "positive_count_statement_sum": 18,
+    "positive_count_rows": [
+      {
+        "pack_id": "CP00-013",
+        "path": "docs/closeout-packs/cp00-013/adjudication.md",
+        "line": 10,
+        "count": 1,
+        "text": "Raw Claude P2 findings: 1"
+      },
+      {
+        "pack_id": "CP00-014",
+        "path": "docs/closeout-packs/cp00-014/adjudication.md",
+        "line": 10,
+        "count": 1,
+        "text": "Raw Claude P2 findings: 1"
+      },
+      {
+        "pack_id": "CP00-021",
+        "path": "docs/closeout-packs/cp00-021/adjudication.md",
+        "line": 10,
+        "count": 2,
+        "text": "Raw Claude P2 findings: 2"
+      },
+      {
+        "pack_id": "CP00-029",
+        "path": "docs/closeout-packs/cp00-029/adjudication.md",
+        "line": 12,
+        "count": 2,
+        "text": "Raw Claude P2 findings: 2"
+      },
+      {
+        "pack_id": "CP00-060",
+        "path": "docs/closeout-packs/cp00-060/adjudication.md",
+        "line": 24,
+        "count": 3,
+        "text": "Original P2 findings: 3"
+      },
+      {
+        "pack_id": "CP00-099",
+        "path": "docs/closeout-packs/cp00-099/adjudication.md",
+        "line": 19,
+        "count": 3,
+        "text": "- Original P2 findings from review: 3"
+      },
+      {
+        "pack_id": "CP00-100",
+        "path": "docs/closeout-packs/cp00-100/adjudication.md",
+        "line": 19,
+        "count": 2,
+        "text": "- Original P2 findings from review: 2"
+      },
+      {
+        "pack_id": "CP00-111",
+        "path": "docs/closeout-packs/cp00-111/adjudication.md",
+        "line": 19,
+        "count": 1,
+        "text": "- Original P2 findings from review: 1"
+      },
+      {
+        "pack_id": "CP00-113",
+        "path": "docs/closeout-packs/cp00-113/adjudication.md",
+        "line": 19,
+        "count": 1,
+        "text": "- Original P2 findings from review: 1"
+      },
+      {
+        "pack_id": "CP00-160",
+        "path": "docs/closeout-packs/cp00-160/adjudication.md",
+        "line": 12,
+        "count": 1,
+        "text": "Reported P2 findings: 1"
+      },
+      {
+        "pack_id": "CP00-161",
+        "path": "docs/closeout-packs/cp00-161/adjudication.md",
+        "line": 13,
+        "count": 1,
+        "text": "Reported P2 findings: 1"
+      }
+    ],
+    "explicit_p2_item_line_count": 18,
+    "explicit_p2_item_lines": [
+      {
+        "pack_id": "CP00-001",
+        "path": "docs/closeout-packs/cp00-001/adjudication.md",
+        "line": 23,
+        "snippet": "P2-1 noted that exact live count matching for `live_closeout_snapshot` would make pack validation brittle as future `docs/goal-closeout` directories are added. Disposition: fixed. `scripts/validate-closeout-pack.mjs` now enforces monotonic "
+      },
+      {
+        "pack_id": "CP00-004",
+        "path": "docs/closeout-packs/cp00-004/adjudication.md",
+        "line": 15,
+        "snippet": "- CP00-004-P2-001: Pack-level evidence was pending at review time. Disposition: fixed_by_closeout_evidence. The review is now recorded, adjudication and construction inspection are finalized, and `npm run closeout-pack:validate` plus `npm r"
+      },
+      {
+        "pack_id": "CP00-005",
+        "path": "docs/closeout-packs/cp00-005/adjudication.md",
+        "line": 15,
+        "snippet": "- CP00-005-P2-01: Fixture `allowed_state_transitions` used camelCase `ruleRef` and the fixture sub-block was not directly validated. Disposition: fixed_by_fixture_key_and_validator_assertion. The fixture now uses `rule_ref`, and `scripts/va"
+      },
+      {
+        "pack_id": "CP00-006",
+        "path": "docs/closeout-packs/cp00-006/adjudication.md",
+        "line": 12,
+        "snippet": "CP00-006-P2-01 was fixed. The S10 required idempotency receipt field list now includes `matter_id` and `decision_reason`, matching the synthetic receipt object and the validator assertions. The mirrored contract and fixture evidence were up"
+      },
+      {
+        "pack_id": "CP00-044",
+        "path": "docs/closeout-packs/cp00-044/adjudication.md",
+        "line": 15,
+        "snippet": "P2 adjudication: P2-1 is accepted and resolved by including docs/closeout-packs/cp00-044/manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json in the CP00-044 commit. The evidence"
+      },
+      {
+        "pack_id": "CP00-060",
+        "path": "docs/closeout-packs/cp00-060/adjudication.md",
+        "line": 27,
+        "snippet": "- CP00-060-P2-01: fixed by adding RP00 validator coverage for definition input round-trip, embedded result/result_summary parity, and construction_inspection expected fields."
+      },
+      {
+        "pack_id": "CP00-060",
+        "path": "docs/closeout-packs/cp00-060/adjudication.md",
+        "line": 28,
+        "snippet": "- CP00-060-P2-02: fixed by adding fail-closed tests for non-object request, missing required fields, entrypoint/source drift, upstream ref drift, evidence/gate array mismatch, forbidden claims, and unknown claims."
+      },
+      {
+        "pack_id": "CP00-060",
+        "path": "docs/closeout-packs/cp00-060/adjudication.md",
+        "line": 29,
+        "snippet": "- CP00-060-P2-03: fixed by making the result validator cross-check each per-unit decision string against its bound boolean."
+      },
+      {
+        "pack_id": "CP00-099",
+        "path": "docs/closeout-packs/cp00-099/adjudication.md",
+        "line": 24,
+        "snippet": "- P2-1: Fixed after review by aligning denied actions and focus order so every focus stop is an available action, while keeping audit hint display-only."
+      },
+      {
+        "pack_id": "CP00-099",
+        "path": "docs/closeout-packs/cp00-099/adjudication.md",
+        "line": 25,
+        "snippet": "- P2-2: Fixed after review by making CP00-099 coverage explicitly verify that permission_audit_binding_panel is registered to RP01.P04.M05."
+      },
+      {
+        "pack_id": "CP00-099",
+        "path": "docs/closeout-packs/cp00-099/adjudication.md",
+        "line": 26,
+        "snippet": "- P2-3: Fixed after review by explicitly setting denied/review permission badge effects inside the CP00-099 wrapper instead of relying on base helper inference."
+      },
+      {
+        "pack_id": "CP00-099",
+        "path": "docs/closeout-packs/cp00-099/adjudication.md",
+        "line": 27,
+        "snippet": "- P3-1: Fixed with the P2-1 action/focus alignment; denied now has a distinct display-only audit hint as secondary interaction."
+      },
+      {
+        "pack_id": "CP00-100",
+        "path": "docs/closeout-packs/cp00-100/adjudication.md",
+        "line": 24,
+        "snippet": "- P2-1: Fixed after review by restoring explicit validator assertions for CP00-099 permission_audit_binding_pack risk_class and production_ready_flag."
+      },
+      {
+        "pack_id": "CP00-100",
+        "path": "docs/closeout-packs/cp00-100/adjudication.md",
+        "line": 25,
+        "snippet": "- P2-2: Fixed after review by giving CORE_DOMAIN_PERMISSION_AUDIT_FIXTURE_CONTRACT its own explicit forbidden_claims list instead of aliasing the CP00-099 binding contract."
+      },
+      {
+        "pack_id": "CP00-159",
+        "path": "docs/closeout-packs/cp00-159/adjudication.md",
+        "line": 20,
+        "snippet": "- P2-01 was fixed by generating docs/closeout-packs/cp00-159 artifacts and rerunning closeout-pack validation before commit."
+      },
+      {
+        "pack_id": "CP00-160",
+        "path": "docs/closeout-packs/cp00-160/adjudication.md",
+        "line": 18,
+        "snippet": "- P2-01 was adjudicated as false-positive / confirmation-only. The contract was checked after review and contains no_write_attestation.executes_api_handler:false, renders_ui:false, and mutates_dom:false. npm run rp04:master-data:validate al"
+      },
+      {
+        "pack_id": "CP00-161",
+        "path": "docs/closeout-packs/cp00-161/adjudication.md",
+        "line": 18,
+        "snippet": "- P2-01 was fixed by adding contract and package validator parity checks for ui_interaction_workflow.security_display_rules, including permission_badge_source, audit_hint_source, denied_copy_source, and prohibited_outputs."
+      },
+      {
+        "pack_id": "CP00-680",
+        "path": "docs/closeout-packs/cp00-680/adjudication.md",
+        "line": 12,
+        "snippet": "Invalid attempt preserved: artifacts/closeout-pack-claude-review/cp00-680/attempt-01/review-receipt.json (closeout_ineligible_p2_before_cp680_p2_fix); CP680-P2-01 was fixed before the accepted review."
+      }
+    ],
+    "unresolved_p2_line_count": 0,
+    "unresolved_p2_rows": []
+  },
+  "ldip": {
+    "token_count": 1,
+    "actual_decision_count": 0
+  },
+  "hrx": {
+    "token_count": 0,
+    "actual_decision_count": 0
+  },
+  "mat_dec": {
+    "mention_line_count": 53,
+    "unique_decision_ids": [
+      "MAT-DEC-01",
+      "MAT-DEC-02",
+      "MAT-DEC-03",
+      "MAT-DEC-04",
+      "MAT-DEC-05",
+      "MAT-DEC-06",
+      "MAT-DEC-07",
+      "MAT-DEC-08",
+      "MAT-DEC-09"
+    ],
+    "sample_mention_lines": [
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 11,
+        "text": "| MAT-DEC-01 | ✅ **결정** | **1호 테넌트 정합화** — SaaS 코어 유지, 자사 로펌 = 1호 테넌트 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 13,
+        "text": "| MAT-DEC-03 | ⏸ 보류 확정 | 스토리지 결정은 봉인 유지 — RP06/08 런타임 계약 신설 전까지 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 15,
+        "text": "| MAT-DEC-06 | ✅ **결정** | **HRX 등재 일괄 승인** — RP30 네임스페이스, 901 보정 테이블(2.2+high-risk=895, M05 보강 +6), 급여 계산 defer(메타+rule 인터페이스만), 큐 꼬리 배치, HR AI는 RP17/18 anchor |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 17,
+        "text": "| MAT-DEC-04 | ✅ **결정** | **제품명 정합** — 2026-06-12 소유자 지시 기준: 제품 브랜드 `matter`, UI 브랜드 `matter by AMIC`, 플랫폼/리포 코드명 `Law Firm OS`, 기계 식별자 `law-firm-os` 유지 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 20,
+        "text": "## 1. 마스터 결정 표 (MAT-DEC-01~09)"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 24,
+        "text": "| **MAT-DEC-01** | 제품 성격: 내부용 vs 멀티테넌트 SaaS (또는 **\"1호 테넌트\" 정합화** — 내부 로펌을 첫 테넌트로 보고 SaaS 코어 유지) | 전략 선언문 §6(b) 확정 전, RP19/RP26 착수 전 | M365 배포 모델(④), 전략 선언문 분기 기준, Portal 일반화 판정 | 1호 테넌트 정합화 — 표준 목표문·기구현 테넌시와 충돌 없이 Plan A 의도 흡수 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 26,
+        "text": "| **MAT-DEC-03** | 문서 원본 스토리지: SharePoint/OneDrive vs object storage | RP06/08 런타임 계약 신설 전, RP22/23 착수 전 | M365 계약의 storage_dependent 5항목 봉인 해제 | 결정 자체는 보류 가능 — 계약 설계가 결정 무관 항목을 분리해 둠. 단 Outlook 런타임 착수 전 필수 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 28,
+        "text": "| **MAT-DEC-05** | Plan A 소스 동결 방식: workbook 25파일 커밋 vs untracked+SHA256 앵커 | 각 트랙 Phase 1 / Stage 1 커밋 전 | 모든 소스 인덱스의 freeze_mode | **커밋 동결** (SHA256 표의 실효성 — LDIP 방식). 현재 workbook/ 전체 untracked |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 30,
+        "text": "| **MAT-DEC-07** | 런타임 게이트 레이어 신설 일괄: 경계 팩 번호, **런타임 어휘 명명(runtime_ready/RTG + M365 계약의 런타임 검증 플래그 6종 — 단일 결정, 검증 반영)**, 의무화 시점(opt-in 권고), legacy 라벨, 변경 경로 | 문서 05 착수 전 (= 착수 승인이 곧 이 결정) | 문서 05 전체, M365 계약의 runtime_acceptance_criteria 명명 "
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 32,
+        "text": "| **MAT-DEC-09** | 리스크 레지스터 owner·갱신 주기 | 레지스터 커밋 전 | 산출물 B | owner 기본 jwsuh@amic.kr, 갱신 트리거는 RP 착수·MAT-DEC 결정·리뷰 적발 시 |"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 37,
+        "text": "MAT-DEC-02 (User/Employee) ──→ HRX 커밋 2 ──→ HRX 팩 생성 가능"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 39,
+        "text": "MAT-DEC-03 (스토리지) ──→ M365 admission 게이트 해제 ──→ Outlook 런타임 팩"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 41,
+        "text": "MAT-DEC-08 (기밀분류) ──→ M365 privilege 필드, HRX P06 — 소급 비용 大"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 43,
+        "text": "MAT-DEC-07 (게이트 레이어) ──→ 문서 05 착수 + M365 계약의 런타임 플래그 명명 (어휘 단일 결정)"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 50,
+        "text": "### MAT-DEC-01 (내부 vs SaaS)"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 55,
+        "text": "### MAT-DEC-02 (User/Employee)"
+      },
+      {
+        "path": "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "line": 59,
+        "text": "### MAT-DEC-03 (스토리지)"
+      },
+      {
+        "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
+        "line": 22,
+        "text": "| OQ-001 | LT-L1-W02-T01 | SharePoint site/library topology | matter별 / practice별 / hybrid | MAT-DEC-03 storage disposition and owner approval |"
+      },
+      {
+        "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
+        "line": 36,
+        "text": "| PRD §8-1 storage/topology-related item | OQ-001 | decided only after MAT-DEC-03 alignment |"
+      },
+      {
+        "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
+        "line": 60,
+        "text": "| OQ-001 | MAT-DEC-03 storage decision is not owner-approved in the launch register. |"
+      },
+      {
+        "path": "docs/launch/critical-oq-prd8-decision-round-brief.md",
+        "line": 86,
+        "text": "| OQ-001 | SharePoint topology | owner_supplied_real_person_role_required | owner_decision_required | MAT-DEC-03 alignment required | owner_date_required | owner_signature_reference_required | decided_only |"
+      },
+      {
+        "path": "docs/launch/deferral-review-register.md",
+        "line": 42,
+        "text": "| MAT-DEC register and launch docs | 53 | self-report-excluding MAT-DEC mention line count | `jq '.mat_dec.mention_line_count' docs/launch/launch-deferral-source-extraction-audit.json` | Decision mentions exist, but owner decision rows stil"
+      },
+      {
+        "path": "docs/launch/deferral-review-register.md",
+        "line": 50,
+        "text": "unresolved P2 item lines 0; LDIP/HRX actual defer decisions 0; MAT-DEC mention"
+      },
+      {
+        "path": "docs/launch/deferral-review-register.md",
+        "line": 60,
+        "text": "therefore remains blocked by P2/MAT-DEC item-level extraction and owner"
+      },
+      {
+        "path": "docs/launch/deferral-review-register.md",
+        "line": 86,
+        "text": "| LT-L0-W03-T01 | Collect P2, LDIP, HRX, and MAT-DEC deferral families with commands and counts | Candidate-family counts recorded; P2 broad markers normalized; LDIP/HRX actual defer decisions checked as 0 | partial |"
+      },
+      {
+        "path": "docs/launch/gap-five-area-coverage-matrix.md",
+        "line": 27,
+        "text": "| R8 Obsidian | Matter Vault export/import, YAML/frontmatter, wikilinks, canvas, redaction, approval write-back | partial | RP27.P02.M03; MAT-REQ-VAULT-195; MAT-REQ-VAULT-196; MAT-REQ-VAULT-197; MAT-REQ-VAULT-198; MAT-REQ-VAULT-199; MAT-REQ"
+      },
+      {
+        "path": "docs/launch/l3/rpo-rto-decision.md",
+        "line": 32,
+        "text": "| RPO-RTO-FILES | Document originals / file source of truth | pending MAT-DEC-03 | pending MAT-DEC-03 | If SharePoint/OneDrive is selected, original retention and restore boundaries are delegated to M365 policy with Law Firm OS evidence poi"
+      },
+      {
+        "path": "docs/launch/l3/rpo-rto-decision.md",
+        "line": 54,
+        "text": "| LT-PRE-W03 MAT-DEC-03 storage decision | `docs/launch/mat-dec-03-storage-decision-brief.md` is blocked pending storage decision. | File-original recovery boundary cannot be finalized. |"
+      },
+      {
+        "path": "docs/launch/l3/sharepoint-file-ref-blocker-survey.md",
+        "line": 20,
+        "text": "does not decide MAT-DEC-03, does not choose SharePoint/OneDrive storage, does"
+      },
+      {
+        "path": "docs/launch/l3/sharepoint-file-ref-blocker-survey.md",
+        "line": 28,
+        "text": "| LT-PRE-W03 | `blocked_pending_storage_decision` / `command_evidence_only_blocked` | MAT-DEC-03 document-original storage decision is not owner-approved. |"
+      },
+      {
+        "path": "docs/launch/l3/sharepoint-file-ref-blocker-survey.md",
+        "line": 41,
+        "text": "| MAT-DEC-03 | blocked | Storage decision brief says Codex cannot choose SharePoint/OneDrive or object storage |"
+      },
+      {
+        "path": "docs/launch/l3/sharepoint-file-ref-blocker-survey.md",
+        "line": 55,
+        "text": "| LT-L3-W08-T01 | file_ref convention and matter folder structure reflecting OQ-001 | MAT-DEC-03 and OQ-001 are not approved | blocked |"
+      },
+      {
+        "path": "docs/launch/l3/sharepoint-file-ref-blocker-survey.md",
+        "line": 62,
+        "text": "1. Close MAT-DEC-03 and OQ-001 with owner-approved storage/topology decisions."
+      },
+      {
+        "path": "docs/launch/launch-closure-dependency-graph.json",
+        "line": 684,
+        "text": "\"MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md\","
+      },
+      {
+        "path": "docs/launch/launch-closure-dependency-graph.json",
+        "line": 722,
+        "text": "\"MAT-DEC-08 decision row update\","
+      },
+      {
+        "path": "docs/launch/launch-tuw-status-audit.json",
+        "line": 262,
+        "text": "\"title\": \"MAT-DEC-03(문서 원본 소재/M365) 해소\","
+      },
+      {
+        "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
+        "line": 1,
+        "text": "# MAT-DEC-03 Storage Decision Brief"
+      },
+      {
+        "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
+        "line": 10,
+        "text": "`workbook/absorption-package/06_오픈_결정_레지스터.md` still records MAT-DEC-03 as deferred/pending for document original storage. Codex cannot choose SharePoint/OneDrive or object storage on behalf of the launch owner."
+      },
+      {
+        "path": "docs/launch/mat-dec-03-storage-decision-brief.md",
+        "line": 27,
+        "text": "| ID | Sealed item | Why MAT-DEC-03 matters |"
+      },
+      {
+        "path": "docs/launch/matter-naming-rules.md",
+        "line": 43,
+        "text": "| Decision register MAT-DEC-04 updated | `workbook/absorption-package/06_오픈_결정_레지스터.md` | 완료 |"
+      },
+      {
+        "path": "docs/launch/owner-action-deferral-request.json",
+        "line": 465,
+        "text": "\"title\": \"MAT-DEC-03(문서 원본 소재/M365) 해소\","
+      },
+      {
+        "path": "docs/launch/owner-action-deferral-request.json",
+        "line": 483,
+        "text": "\"MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md\","
+      },
+      {
+        "path": "docs/launch/owner-action-deferral-request.json",
+        "line": 553,
+        "text": "\"MAT-DEC-08 decision row update\","
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "line": 26,
+        "text": "| PERF-IN-03 | MAT-DEC-03 storage/link decision for upload measurement boundary | pending_owner_decision |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "line": 35,
+        "text": "| PERF-CRIT-02 | Document upload p95 latency | <= 3000 ms p95 for synthetic metadata/file_ref registration path; original-file provider transfer excluded until MAT-DEC-03 | Scenario records create/register request duration and separately ta"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "line": 53,
+        "text": "| LOAD-PROFILE-02 | Document registration/upload metadata path | synthetic file_ref rows, document metadata, audit hints, permission variants | upload/register p95 and error rate | pending_MAT-DEC-03_and_LT-L5-W06-T02 |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "line": 66,
+        "text": "| Basis | LT-L3-W06 SLO baseline, pilot roster/load target, MAT-DEC-03 storage boundary, staging telemetry capability |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "line": 92,
+        "text": "| MAT-DEC-03 | Decide upload/storage boundary before measuring provider transfer. |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-report.md",
+        "line": 26,
+        "text": "| Provider file transfer measured | false; pending MAT-DEC-03 |"
+      },
+      {
+        "path": "docs/launch/perf/performance-acceptance-report.md",
+        "line": 75,
+        "text": "| MAT-DEC-03 | Provider transfer timing remains excluded until storage/link boundary is decided. |"
+      },
+      {
+        "path": "docs/launch/risk-control-existence-audit.md",
+        "line": 18,
+        "text": "| RISK-003 | SharePoint permission sync checker, audit, reconciliation job | absent | M365 runtime contract and overlay still have `storage_decision_resolved: false`; `privilege_classification_decision_resolved: false`; SharePoint/Graph wri"
+      },
+      {
+        "path": "docs/launch/risk-control-existence-audit.md",
+        "line": 27,
+        "text": "| RISK-005 | Obsidian export-only -> controlled import -> approval sync | absent | No `packages/obsidian` or `packages/vault` directory exists. Vault requirements are planning candidates, and MAT-DEC-03 remains relevant to storage origin. |"
+      },
+      {
+        "path": "docs/launch/risk-control-reality-matrix.md",
+        "line": 17,
+        "text": "| RISK-005 | Obsidian export-only before controlled import and approval sync | absent | No Obsidian/Vault package; requirements remain planning candidates linked to MAT-DEC-03. | not_ready | yes |"
+      }
+    ]
+  },
+  "findings": []
+}

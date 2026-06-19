@@ -1,0 +1,116 @@
+{
+  "subphase_id": "RP00.P02.M03.S12",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Persistence boundary",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T10:29:47Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "1ac314a5-13fb-48ee-b4f4-b6e500990f6d",
+    "uuid": "208f3a8c-5911-4073-bf89-632ef2d6907f",
+    "duration_ms": 452534,
+    "duration_api_ms": 453193,
+    "total_cost_usd": 4.240637749999999,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s12-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline heredoc",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s12-claude-review.json",
+    "duration_ms": 452534,
+    "duration_api_ms": 453193,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "208f3a8c-5911-4073-bf89-632ef2d6907f",
+    "session_id": "1ac314a5-13fb-48ee-b4f4-b6e500990f6d"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "docs/weighted-implementation-ledger.json"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "S12 marked production_ready but closeout evidence directory is absent",
+        "location": "contracts/control-plane-contract.json",
+        "status": "fixed_by_closeout_evidence",
+        "summary": "Claude observed the expected mid-closeout state where the S12 closeout evidence bundle had not yet been created. The bundle now exists and is validated by the RP00 closeout gate."
+      },
+      {
+        "severity": "P3",
+        "title": "S12 README prose only partially guarded against drift",
+        "location": "packages/control-plane/README.md",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Optional README prose guard expansion is deferred. The S12 export names, policy, service, fixture, tests, contract definition, and live validator behavior remain hard-guarded."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S13 Validation error mapping as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S12 metadata-only persistence boundary logic, validators, fixture parity, fail-closed claim handling, and weighted-ledger successor behavior.",
+      "S12 does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S13.",
+      "The only P2 was expected closeout sequencing and is resolved by this evidence bundle."
+    ],
+    "summary": "Claude reported PASS / GO with one P2 closeout-evidence sequencing finding and one P3 optional README prose guard suggestion. After adjudication S12 is PASS_WITH_FINDINGS / GO with no unresolved P0/P1/P2."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 1
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s12-claude-review.json",
+    "summary": "Claude returned PASS / GO with one P2 expected closeout evidence finding and one P3 optional README prose guard suggestion."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

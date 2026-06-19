@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-326",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-326/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-326/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "3c917896-5ab0-4bf2-a602-d09c8df46b47",
+    "uuid": "7223af54-513a-4709-b262-eb57e5382d2c",
+    "total_cost_usd": 1.87989875,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-326 is a descriptor-only intake-core pack (RP10.P04.M02.S08-RP10.P04.M04.S17, 40 units, risk B) extending the CP00-321 through CP00-325 lineage; it opens no runtime surface. Read-only inspection confirms: (1) coverage is exact — the 40 included_units yield the prompt's deliverable distribution (ui 18, implementation 10, claude_review 3, security_audit 4, fixture 2, test 2, hermes_evidence 1) and micro distribution (M02 Type-And-Shape 1, M03 Primary 22, M04 Secondary 17), with validators.js + model.test.js + validate-rp10-intake-core-contract.mjs enforcing section/row counts and contract<->registry deepEqual; (2) the pack-level production_ready claim is false in both manifest.json and command-evidence.json, and production_ready_candidate is only coverage.valid && slice.valid (descriptor validity), so readiness is not overstated; (3) no-write/no-real-data boundaries are enforced via frozen attestations (no_real_data, writes_product_state:false, executes_ui_runtime:false, emits_hermes_runtime_receipt:false, loads_real_fixture_data:false, cross_tenant_access_allowed:false) and per-row leak guards; (4) Claude remains read-only and non-final (claude_is_final_approval:false, promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false); (5) Hermes is used only for deterministic H10 review/evidence packets, not product runtime. Review-hardening posture is sound: readiness-report shows a passing auth preflight with valid JSON, forbidden_review_evidence blockers are wired in, and no premature or invalid claude-review-result.json exists (adjudication/construction-inspection/review-result are correctly produced post-review). One non-blocking P3 cosmetic labeling overlap was found in the harness-generated changed-file-scope.json. No P0/P1/P2 issues; nothing blocks pack or goal closeout. Note: validation command exit codes were taken from command-evidence.json (Bash is unavailable to a read-only reviewer) and are corroborated by source inspection of the validator, tests, and contract.",
+    "findings": [
+      {
+        "id": "CP326-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-classifies pack artifact paths as both untracked implementation and unrelated dirty files",
+        "file": "artifacts/closeout-pack-claude-review/cp00-326/changed-file-scope.json",
+        "line": 102,
+        "details": "The harness-generated scope artifact lists docs/closeout-packs/cp00-326/ and docs/closeout-pack-plan/new-session-handoff.md under untracked_implementation_files (lines 102-105) AND under unrelated_dirty_files_preserved (lines 107-113). The pack manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json lines 1702-1706) excludes those two and lists only the docx, the c-ldip invalid-attempt JSON, and workbook/. So the two artifacts classify the same paths differently. This is cosmetic: validation-report.json confirms active_untracked_implementation_files_omitted: [] (no required untracked implementation file was dropped from scope), and docs/closeout-packs/cp00-326/ is legitimately the pack's own new evidence directory. It does not affect the pack deliverables, the descriptor-only boundaries, or the closeout decision.",
+        "recommendation": "Tighten the review harness's unrelated_dirty_files_preserved semantics (e.g., exclude the active pack's own artifact directory and the planning handoff from the 'unrelated' bucket, or rename it to 'all_preserved_dirty_files') so the scope artifact and manifest agree. No change required to CP00-326 product code.",
+        "post_review_disposition": "non_blocking_informational_forwarded_to_human_adjudication"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

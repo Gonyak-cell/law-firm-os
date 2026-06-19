@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-043",
+  "subphase_id": "RP00.P02.M07.S15",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "7cc13901-3ea7-441c-ba92-3d9748a5ea5a",
+    "uuid": "87a6877d-9c50-4e3d-95f0-9b6e4aa73f24",
+    "duration_ms": 217257,
+    "duration_api_ms": 219566,
+    "total_cost_usd": 1.17575175,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-043-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "raw_review_verdict": "not_explicitly_returned",
+    "raw_review_result_form": "progress_text_without_p0_p1_p2_p3_groups",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": []
+    },
+    "boundary_checks": {
+      "consumes_only_s14_review_required_routing_metadata": "PASS_BY_TEST_AND_VALIDATOR_EVIDENCE",
+      "emits_metadata_only_approval_required_routing_receipt": "PASS_BY_TEST_AND_VALIDATOR_EVIDENCE",
+      "rejects_approval_queue_assignment_notification_record_human_approval_ui_claims": "PASS_BY_TEST_AND_VALIDATOR_EVIDENCE",
+      "rejects_runtime_claude_review_review_queue_test_golden_catalog_contract_product_state_audit_permission_authz_security_ui_real_data_claims": "PASS_BY_TEST_AND_VALIDATOR_EVIDENCE",
+      "keeps_source_micro_phase_open": "PASS_BY_TEST_AND_VALIDATOR_EVIDENCE",
+      "hands_off_to_s16": "PASS_BY_TEST_AND_VALIDATOR_EVIDENCE"
+    }
+  },
+  "raw_cli_result_excerpt": "I'll review CP00-043 by examining the diff against the actual repo state to verify correctness and consistency. Let me start by reading the key files.\n\n*[Tool: read]*\n\n*[Tool: read]*"
+}

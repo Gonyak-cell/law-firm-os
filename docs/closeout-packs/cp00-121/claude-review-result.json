@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-121",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-121-claude-review-output-valid.json",
+    "session_id": "deada628-c55a-432b-93ea-ab8617c92589",
+    "uuid": "9d253355-a21c-4346-b936-89ad2b2aa4e6",
+    "duration_ms": 184132,
+    "duration_api_ms": 186065,
+    "total_cost_usd": 0.6504012499999999,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "No-write / no-leak guarantees are static attestation constants, not runtime-derived",
+        "file": "packages/authz/src/permission-matrix-risk-boundary.js",
+        "evidence": "freezeNoWriteResult() unconditionally hardcodes writes_audit_event/writes_product_state/grants_human_approval/unauthorized_count_exposed/hidden_field_names_exposed = false after spreading the result, and CP121_NO_WRITE_ATTESTATION is a frozen all-false constant. leak_prevention_test/security_trimming_proof expose unauthorized_count_exposed=false and hidden_fields_rendered=false as asserted flags rather than values computed from the rendered payload.",
+        "recommendation": "No change required for closeout. The attestation is sound here because the module performs no I/O (no DB/route/fetch/fs/policy-mutation code path exists) and the real proof is structural: trimmed_result_ids returns only IDs, rendered_fields is a fixed safe allowlist, and the fixture deliberately includes a cross-tenant Document matching the allow rule so only tenant-isolation can omit it. Consistent with the established CP108–CP120 pattern."
+      }
+    ],
+    "recommendation": "approve_and_close",
+    "rationale": "The pack closes all 10 planned Risk A units RP02.P06.M03.S15-RP02.P06.M04.S02 across two micro-phases (M03=8, M04=2; ui=1, security_audit=4, test=4, implementation=1) and covers exactly the required boundary cases: approval_required_route, security_trimming_proof, audit_event_expectation, permission_fixture, allowed_test, denied_test, cross_tenant_test, leak_prevention_test, permission_matrix_row, view_decision_binding. CP120 evidence is genuinely inherited (createPermissionKernelCp120FixtureEvidencePermissionMatrix + runPermissionKernelCp120PermissionDecisionBinding; inherited binding count 19 and approval route status asserted). Approval routing returns approval_required_routing with grants_human_approval=false (routes, never grants). Security trimming renders only d_cp121_document (cross-tenant + ACL-denied omitted), exposes no omitted-count field, and returns only a fixed safe field list with no hidden source field (cross_tenant_resource_id/unauthorized_result_count/privileged_note/sealed_audit_hint_payload) appearing as a key. Audit event expectation is preview_only with emitted_to_audit_ledger=false; permission fixture and matrix row carry persisted=false; cross-tenant fails closed with reason cross_tenant_deny and a redacted audit-hint object. The new module is pure functions over frozen objects: no runtime UI/API route, no policy mutation (evaluate.js is untouched), no audit/product/database write, no idempotency/lock/rollback/retry, no export/share/AI/analytics, no LDIP, and HRX remains embedded. Contract, README, tests, and the validator are mutually consistent (current_pack -> CP00-121 Risk A 10 units, production_ready_flag updated, handoff fixed to CP00-122 / RP02.P06.M04.S03). Correctness of cross-tenant deny, audit-hint redaction, and search trimming depends on the unchanged pre-existing evaluate.js semantics, which the included coverage assertions and tests pin to the expected synthetic outputs. Only one P3 informational observation; nothing blocking."
+  }
+}

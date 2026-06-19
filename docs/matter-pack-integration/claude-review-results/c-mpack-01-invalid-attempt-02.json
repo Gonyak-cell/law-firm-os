@@ -1,0 +1,17 @@
+{
+  "review_id": "C-MPACK-01",
+  "status": "invalid_not_accepted",
+  "invalid_reason": "prose_output_not_json",
+  "raw_output_ref": "docs/matter-pack-integration/claude-review-results/raw/c-mpack-01-attempt-02.raw.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tools": "Read,Grep,Glob",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "status": 0,
+    "session_id": "023daf22-0e77-41e5-9e0e-cca716ac3913",
+    "total_cost_usd": 1.1943599999999999
+  }
+}

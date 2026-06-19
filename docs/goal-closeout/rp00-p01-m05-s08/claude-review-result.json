@@ -1,0 +1,208 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M05.S08",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Required field registry",
+  "entity": "HumanApproval",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T02:33:46Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "failed_tooling_attempts_not_counted_as_completed_review": 0,
+    "completed_diff_based_reviews_counted": 1
+  },
+  "tooling_attempts": [],
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "pasted_git_diff_and_weighted_subphase_context",
+    "session_id": "39721c49-0a6e-46cc-ba46-21ba7ec85a6a",
+    "uuid": "c43d99c0-5959-477f-b1e8-b54ab688107d",
+    "duration_ms": 313786,
+    "duration_api_ms": 315601,
+    "ttft_ms": 273047,
+    "stop_reason": "end_turn",
+    "terminal_reason": "completed",
+    "total_cost_usd": 1.0233249999999998
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "39721c49-0a6e-46cc-ba46-21ba7ec85a6a",
+    "uuid": "c43d99c0-5959-477f-b1e8-b54ab688107d",
+    "duration_ms": 313786,
+    "duration_api_ms": 315601,
+    "total_cost_usd": 1.0233249999999998,
+    "permission_denials": []
+  },
+  "raw_claude_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "medium",
+        "title": "S08 closeout evidence not yet recorded; rp00:control-plane:validate fails while the contract already declares production_ready",
+        "evidence": "Local validation showed npm run rp00:control-plane:validate exit_code 1 only because S08 evidence files were not created yet. Other listed commands were green, so this was an evidence gap rather than a code defect.",
+        "recommendation": "Record the standard closeout bundle under docs/goal-closeout/rp00-p01-m05-s08, including H00 command receipt, C00 Claude review result, construction inspection, and final command receipts.",
+        "defer_allowed": false
+      },
+      {
+        "severity": "low",
+        "title": "Mixed indentation (tabs) introduced into scripts/validate-rp00-control-plane-contract.mjs",
+        "evidence": "The relocated S07 check, new S08 construction-inspection check, and closing braces used tab indentation while the file otherwise used spaces.",
+        "recommendation": "Re-indent the construction-inspection block with spaces.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "low",
+        "title": "Missing-key branch of validateHumanApprovalRequiredFields is never exercised",
+        "evidence": "Negative cases set required keys to undefined or invalid values, but did not omit a key entirely.",
+        "recommendation": "Add a negative case that omits a key entirely in both model.test.js and the validator invalid-record loop.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "low",
+        "title": "canonicalPattern documentation strings duplicate the real validation regexes (drift risk)",
+        "evidence": "HUMAN_APPROVAL_REQUIRED_FIELD_REGISTRY records canonicalPattern strings while actual enforcement delegates to source regexes.",
+        "recommendation": "Derive canonicalPattern strings from RegExp.source or assert string equality against the source regexes.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "info",
+        "title": "Some gate evidence rows not shown updated S07->S08 (unverifiable from this diff)",
+        "evidence": "Some completion gate rows were outside the pasted hunk and could not be verified by Claude without repository file access.",
+        "recommendation": "Confirm unchanged rows are subphase-agnostic or update stale S07 wording.",
+        "defer_allowed": true
+      }
+    ]
+  },
+  "verdict": "approve_implementation_after_closeout_evidence_and_low_fixes",
+  "go_no_go": "go_after_adjudication",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "HA-S08-001",
+        "severity": "P1_MUST_FIX",
+        "title": "S08 closeout evidence not yet recorded while contract declares production_ready",
+        "details": "Claude found the only blocking gap was absent S08 closeout evidence under docs/goal-closeout/rp00-p01-m05-s08 while the contract and closeout ledger already marked S08 production_ready.",
+        "recommendation": "Record packet, command evidence, Claude review result, adjudication, and construction inspection; then rerun Hermes/local validation.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "fixed_by_recording_required_closeout_evidence",
+        "evidence": "S08 packet, command evidence, Claude review result, adjudication, and construction inspection are recorded under docs/goal-closeout/rp00-p01-m05-s08; final validation rerun is recorded in command evidence."
+      },
+      {
+        "id": "HA-S08-002",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Mixed indentation in the RP00 contract validator",
+        "details": "Claude flagged tab indentation introduced around construction-inspection checks.",
+        "recommendation": "Normalize the touched validator regions to spaces.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "Tabs were normalized to spaces in scripts/validate-rp00-control-plane-contract.mjs; rg for tab characters returns no matches and node --check passes."
+      },
+      {
+        "id": "HA-S08-003",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Missing-key branch of validateHumanApprovalRequiredFields was not exercised",
+        "details": "Claude found invalid cases used present keys with undefined or invalid values, but did not omit a required key entirely.",
+        "recommendation": "Add a missing-key negative case in the model test and RP00 validator invalid-record loop.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "model.test.js and scripts/validate-rp00-control-plane-contract.mjs now omit audit_event_ref in one negative record; focused tests and RP00 validator cover the missing-key branch."
+      },
+      {
+        "id": "HA-S08-004",
+        "severity": "P3_NON_BLOCKING",
+        "title": "canonicalPattern documentation strings duplicate source validation regexes",
+        "details": "Claude identified drift risk where canonicalPattern strings could diverge from enforcement regexes.",
+        "recommendation": "Derive canonicalPattern values from the source RegExp.source values.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "HUMAN_APPROVAL_REQUIRED_FIELD_REGISTRY now derives steward_ref, correction_route, audit_event_ref, and blocked-claim correction route patterns from the source regex .source values."
+      },
+      {
+        "id": "HA-S08-005",
+        "severity": "P3_NOTE",
+        "title": "Completion gate rows outside the pasted diff could not be verified by Claude",
+        "details": "Claude could not verify whether permission_audit, hermes_validation, and failure_mode_covered rows were stale because those rows were outside the pasted hunk.",
+        "recommendation": "Confirm unchanged rows are subphase-agnostic or update stale S07 references.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "verified_in_repository_without_claude_rerun",
+        "evidence": "Repository validation and direct contract inspection confirm the unchanged rows are subphase-agnostic or current for H00/C00 evidence, while S08-specific implemented/tests/Claude/human approval/production readiness/working behavior rows reference the required field registry."
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [
+      {
+        "id": "HA-S08-001",
+        "title": "S08 closeout evidence not yet recorded while contract declares production_ready",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "fixed_by_recording_required_closeout_evidence",
+        "evidence": "S08 closeout evidence files are recorded and final validation rerun is required before commit."
+      }
+    ],
+    "P2": [],
+    "P3": [
+      {
+        "id": "HA-S08-002",
+        "title": "Mixed indentation in the RP00 contract validator",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S08-003",
+        "title": "Missing-key branch of validateHumanApprovalRequiredFields was not exercised",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S08-004",
+        "title": "canonicalPattern documentation strings duplicate source validation regexes",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S08-005",
+        "title": "Completion gate rows outside the pasted diff could not be verified by Claude",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "verified_in_repository_without_claude_rerun"
+      }
+    ]
+  },
+  "criteria_checks": {
+    "required_fields_bound": "PASS",
+    "field_definitions_bound": "PASS",
+    "optional_fields_excluded": "PASS",
+    "synthetic_required_record_validates": "PASS",
+    "missing_key_branch_covered": "PASS",
+    "canonical_patterns_derived_from_regex_source": "PASS",
+    "registry_exposes_required_field_registry": "PASS",
+    "registry_keeps_human_approval_model_future": "PASS",
+    "no_approval_synthesis": "PASS",
+    "no_product_state_writes": "PASS",
+    "evidence_sufficiency_after_closeout_files": "PASS"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ]
+}

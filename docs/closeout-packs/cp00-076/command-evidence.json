@@ -1,0 +1,88 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-076",
+  "subphase_id": "RP00.P06.M07.S08",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    }
+  ],
+  "preliminary_expected_failure": {
+    "command": "npm run rp00:control-plane:validate",
+    "failure_reason": "CP00-076 evidence files were not created yet; contract and closeout rows already pointed at docs/closeout-packs/cp00-076.",
+    "resolved_by": [
+      "docs/closeout-packs/cp00-076/manifest.json",
+      "docs/closeout-packs/cp00-076/command-evidence.json",
+      "docs/closeout-packs/cp00-076/claude-review-result.json",
+      "docs/closeout-packs/cp00-076/adjudication.md",
+      "docs/closeout-packs/cp00-076/construction-inspection.json"
+    ]
+  },
+  "claude_review_command": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"read-only code reviewer\" --output-format json < /tmp/cp00-076-review-prompt.txt > /tmp/cp00-076-claude-review-output.json",
+    "exit_code": 0,
+    "exactly_one_valid_pack_level_review": true
+  },
+  "invalid_claude_attempts": [],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-076 is metadata-only and does not execute runtime permission, AuthZ, security trimming, audit, fixture, test, golden, database, storage, idempotency, lock, product-state, or LDIP implementation logic."
+  ]
+}

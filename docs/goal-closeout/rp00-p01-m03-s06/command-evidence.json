@@ -1,0 +1,91 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P01.M03.S06",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "status": "passed",
+  "executed_at": "2026-06-03T23:43:32+09:00",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate",
+      "product_contract_validate"
+    ],
+    "gate_outcome": "passed",
+    "claude_gate": "C00"
+  },
+  "commands": [
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P01.M03.S06 with status implemented."
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with requirement_count 227, feature_requirement_count 209, narrative_requirement_count 18."
+    },
+    {
+      "id": "product_contract_validate",
+      "command": "npm run validate",
+      "exit_code": 0,
+      "summary": "Law Firm OS product contract validation passed with modules 9/9, principles 9/9, invariants 7/7."
+    },
+    {
+      "id": "weighted_ledger_validate",
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 3,300 source micro phases and 54,355 implementation subphases."
+    },
+    {
+      "id": "full_microphase_plan_validate",
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed with 30 release programs, 10 standard phases, and 3,300 micro phases."
+    },
+    {
+      "id": "goal_closeout_protocol_validate",
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "summary": "Goal closeout protocol validation passed and records claude-opus-4-8 effort=max read-only."
+    },
+    {
+      "id": "node_test_suite",
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Node test suite passed 43/43 tests, including HermesGate ownership metadata fail-closed tests."
+    }
+  ],
+  "blocked_claims": [],
+  "gate_outcome": "passed",
+  "evidence_summary": {
+    "implemented": "HermesGate ownership metadata binds owner_module, owner_role, steward_ref, correction_route, may_reference, and may_not_mutate.",
+    "tests": "Model tests and the RP00 control-plane validator execute the ownership metadata policy and failure cases.",
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review required before production_ready",
+    "human_approval_boundary": "Human approval decisions are referenced as a mutation boundary and are not approved, replaced, or modified by this subphase."
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "This command evidence is read-only validation evidence for RP00.P01.M03.S06 and does not write product state.",
+    "Relationship maps remain deferred to RP00.P01.M03.S07; required field registries, transition maps, and validation helpers remain deferred."
+  ],
+  "final_validation_rerun_at": "2026-06-04T01:49:18+09:00",
+  "final_validation_summary": {
+    "status": "passed",
+    "commands_rerun": [
+      "npm run rp00:control-plane:validate",
+      "npm run spec:requirements:validate",
+      "npm run validate",
+      "npm run weighted:validate",
+      "npm run fullplan:validate",
+      "npm run goal:closeout:validate",
+      "npm test"
+    ],
+    "production_ready_status_verified": true,
+    "node_tests_passed": "43/43"
+  }
+}

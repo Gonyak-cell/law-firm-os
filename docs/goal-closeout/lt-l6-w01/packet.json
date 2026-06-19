@@ -1,0 +1,41 @@
+{
+  "work_package_id": "LT-L6-W01",
+  "title": "Incident response operating model",
+  "created_at": "2026-06-18T14:53:52Z",
+  "status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+  "phase": "L6",
+  "gate_binding": [
+    "G6",
+    "L6-EXIT"
+  ],
+  "terminal_tuw": "LT-L6-W01-T03",
+  "artifacts": [
+    "docs/launch/runbooks/incident-response-runbook.md",
+    "docs/launch/runbooks/incident-sla-oncall-decision.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l6-w01/packet.json",
+    "docs/goal-closeout/lt-l6-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l6-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l6-w01/adjudication.md",
+    "docs/goal-closeout/lt-l6-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "severity_sections": 4,
+    "alert_mapping_rows": 7,
+    "incident_lifecycle_steps": 8,
+    "candidate_sla_rows": 4,
+    "oncall_assignment_slots": 6,
+    "approved_sla_values": false,
+    "named_oncall_assigned": false,
+    "live_alert_channels_opened": false,
+    "tabletop_exercise_performed": false,
+    "g6_satisfied": false,
+    "l6_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

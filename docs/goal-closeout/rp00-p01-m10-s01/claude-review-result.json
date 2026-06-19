@@ -1,0 +1,96 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M10.S01",
+  "source_micro_phase_id": "RP00.P01.M10",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only",
+    "session_id": "f069b5b1-77b5-4d8d-81c5-dc4a847b1bb4",
+    "uuid": "d07005cc-33c4-482c-bd55-0bf4df0e5597",
+    "total_cost_usd": 0.9847545000000001,
+    "duration_ms": 281129,
+    "duration_api_ms": 284244,
+    "num_turns": 1,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "session_continuation_used_to_complete_review": false,
+    "raw_result_path": "/tmp/lfos-rp00-p01-m10-s01-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true,
+    "records_p01_domain_model_closeout_handoff_only": true,
+    "lists_51_prerequisite_subphases_through_M09_S03": true,
+    "exports_required_symbols": true,
+    "exposes_layout_in_domain_model_registry": true,
+    "advances_to_RP00_P02_M00_S01": true,
+    "non_ui_gates_marked_not_applicable": true,
+    "does_not_create_service_logic": true,
+    "does_not_mutate_states_js": true,
+    "does_not_mutate_entity_registry": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_claim_RP00_completion": true,
+    "handoff_to_next_subphase": "RP00.P02.M00.S01",
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "Package directory layout title intentionally carries the closeout handoff slice",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The weighted ledger title is authoritative for this generated M10.S01 slice; implemented_surface, implemented_slice, purpose, validator block, and README disambiguate it as metadata-only closeout handoff."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "Non-UI gate field naming differs between contract weighted applicability and layout/fixture applicability",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The naming difference is intentional because contract weighted gates use ledger gate ids while model and fixture use reader-facing applicability fields; all values are not_applicable_metadata_handoff_only and validator checks each block."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "title": "requiredEvidenceRoots records bookends rather than all 51 evidence roots",
+        "status": "confirmed_by_validator",
+        "disposition": "The complete proof is the 51-entry completed_domain_model_subphases_required list plus validator per-prerequisite production_ready closeout checks; requiredEvidenceRoots intentionally records first/last bookend evidence roots."
+      },
+      {
+        "id": "P3-4",
+        "severity": "P3",
+        "title": "Confirm no stale registry.nextSubphase assertions remain",
+        "status": "confirmed_by_test_suite",
+        "disposition": "Focused model tests and npm test pass; grep confirms CONTROL_PLANE_DOMAIN_MODEL_REGISTRY.nextSubphase assertions now expect RP00.P02.M00.S01 and remaining RP00.P01.M10.S01 references are S03 handoff or M10 identity assertions."
+      },
+      {
+        "id": "P3-5",
+        "severity": "P3",
+        "title": "Confirm CONTROL_PLANE_BOUNDARY_FLAGS dependency",
+        "status": "confirmed_by_test_suite",
+        "disposition": "CONTROL_PLANE_BOUNDARY_FLAGS is exported from states.js and tests verify noRealData true and writesProductState false; the M10 default-layout assertion also exercises those fields."
+      },
+      {
+        "id": "CB-1",
+        "severity": "CB",
+        "title": "Record M10 closeout evidence",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "packet.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json are recorded for M10."
+      },
+      {
+        "id": "CB-2",
+        "severity": "CB",
+        "title": "Run RP00 validator and local tests after evidence materialization",
+        "status": "fixed_by_final_validation",
+        "disposition": "Final validation reruns npm run rp00:control-plane:validate and local tests after evidence materialization."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude approved the M10.S01 metadata-only Domain Model closeout handoff with no P0/P1/P2 findings. The review confirmed the 51 prerequisite RP00.P01 subphases through RP00.P01.M09.S03, required exports, registry exposure, next boundary RP00.P02.M00.S01, non-UI gate applicability, no service logic creation, no states.js or entity-registry mutation, no real data, no product-state writes, and no RP00 completion claim. P3 findings are informational and confirmed or adjudicated by validator, tests, and closeout evidence."
+}

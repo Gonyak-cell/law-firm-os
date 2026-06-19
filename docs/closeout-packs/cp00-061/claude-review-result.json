@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-061",
+  "subphase_id": "RP00.P04.M05.S11",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "37a295da-b743-4943-832f-45ed3da36fd3",
+    "uuid": "6ab6a012-4f79-4336-8706-c17de1617adc",
+    "duration_ms": 273385,
+    "duration_api_ms": 275539,
+    "total_cost_usd": 1.2096335,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-061-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "raw_review_verdict": "approve",
+    "raw_review_summary": "CP00-061 (RP00.P04.M05.S11, Risk A, 1 unit) adds the UI Operator Surface Permission And Audit Error Copy boundary as a metadata-only assembler that consumes the CP00-060 permission/audit binding result. Contract definition, policy, module, fixture, validators, tests, README, and the RP00 validator are mutually consistent, and the focused suite passes. Plan binding, upstream CP00-060 consumption with fail-closed guards, source micro-phase completion, and every no-write/no-runtime/no-leak boundary hold. Error copy exposes only safe synthetic permission/audit references while hiding raw permission policy and internal audit payloads. No P0-P3 findings. The only outstanding item was generation of the docs/closeout-packs/cp00-061 evidence pack, which is expected and not a defect in the reviewed diff.",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "original_review_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": []
+    },
+    "boundary_checks": {
+      "plan_binding": "pass - CP00-061 plan binding is enforced across definition, policy, fixture, tests, README, and RP00 validator coverage.",
+      "source_micro_phase_completion": "pass - source_micro_phase_completed true, phase_completed false, and next_subphase RP00.P04.M06.S01.",
+      "upstream_cp00_060_binding": "pass - assembler consumes and validates the CP00-060 permission/audit result and fails closed on upstream drift.",
+      "error_copy_safety": "pass - operator-facing copy exposes only safe synthetic permission and audit references, with blocked fallback for upstream denied states.",
+      "no_raw_permission_policy_or_internal_audit_payload": "pass - raw permission policy and internal audit payload exposure are forbidden and validator-enforced.",
+      "no_runtime_permission_engine": "pass - runtime permission evaluation, permission engine execution, AuthZ evaluator calls, and security trimming are all false.",
+      "no_review_queue_or_assignment_write": "pass - review queue, assignment, and notification writes are forbidden and false.",
+      "no_runtime_ui_route_asset_or_storage": "pass - runtime UI rendering, route creation, external asset fetching, storage/database/idempotency/lock/product-state writes, and audit writes are all false."
+    },
+    "notes": [
+      "Claude CLI execution succeeded with zero permission denials and exactly one pack-level invocation.",
+      "No P0, P1, P2, or P3 findings were reported.",
+      "The pre-evidence RP00 validator failure was expected and limited to the missing CP00-061 evidence files."
+    ]
+  }
+}

@@ -1,0 +1,1637 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-106",
+  "planned_pack_id": "CP00-106",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "core_domain_review_outcome_routing_verified",
+  "program_id": "RP01",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "primary_subphase_id": "RP01.P09.M07.S08",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-106",
+    "planned_pack_id": "CP00-106",
+    "title": "CP00-106 RP01.P09.M03.S10-RP01.P09.M07.S08 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP01.P09.M03.S10",
+      "last_unit_id": "RP01.P09.M07.S08",
+      "description": "RP01.P09.M03.S10-RP01.P09.M07.S08"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP01.P09.M03.S10",
+        "title": "Go/no-go verdict format",
+        "source_micro_phase_id": "RP01.P09.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M03.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP01.P09.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M04.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M04.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M04.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M04.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M04.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP01.P09.M04.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P09.M04.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M04.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M04.S09",
+        "title": "Severity taxonomy",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M04.S10",
+        "title": "Go/no-go verdict format",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M04.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP01.P09.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M05.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M05.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M05.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M05.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M05.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP01.P09.M05.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P09.M05.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M05.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M05.S09",
+        "title": "Severity taxonomy",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M05.S10",
+        "title": "Go/no-go verdict format",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M05.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP01.P09.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M06.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M06.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M06.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M06.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M06.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP01.P09.M06.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P09.M06.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M06.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP01.P09.M06",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M07.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M07.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P09.M07.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M07.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P09.M07.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP01.P09.M07.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P09.M07.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P09.M07.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP01.P09.M07",
+        "program_id": "RP01",
+        "phase_id": "RP01.P09",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "range": {
+    "first_unit_id": "RP01.P09.M03.S10",
+    "last_unit_id": "RP01.P09.M07.S08",
+    "description": "RP01.P09.M03.S10-RP01.P09.M07.S08"
+  },
+  "included_units": [
+    {
+      "id": "RP01.P09.M03.S10",
+      "title": "Go/no-go verdict format",
+      "source_micro_phase_id": "RP01.P09.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M03.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP01.P09.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S09",
+      "title": "Severity taxonomy",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S10",
+      "title": "Go/no-go verdict format",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M04.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S09",
+      "title": "Severity taxonomy",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S10",
+      "title": "Go/no-go verdict format",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M05.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M06.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP01.P09.M07.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "phase_id": "RP01.P09",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/domain/src/review-outcome-routing.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-106/manifest.json",
+        "docs/closeout-packs/cp00-106/command-evidence.json",
+        "docs/closeout-packs/cp00-106/claude-review-result.json",
+        "docs/closeout-packs/cp00-106/adjudication.md",
+        "docs/closeout-packs/cp00-106/construction-inspection.json"
+      ]
+    }
+  ],
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-106/manifest.json",
+    "docs/closeout-packs/cp00-106/command-evidence.json",
+    "docs/closeout-packs/cp00-106/claude-review-result.json",
+    "docs/closeout-packs/cp00-106/adjudication.md",
+    "docs/closeout-packs/cp00-106/construction-inspection.json"
+  ],
+  "implementation_refs": [
+    "packages/domain/src/review-outcome-routing.js",
+    "packages/domain/src/index.js",
+    "contracts/core-domain-contract.json",
+    "packages/domain/test/core-domain-foundation.test.js",
+    "scripts/validate-rp01-core-domain-contract.mjs",
+    "packages/domain/README.md"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-106/manifest.json",
+    "docs/closeout-packs/cp00-106/command-evidence.json",
+    "docs/closeout-packs/cp00-106/claude-review-result.json",
+    "docs/closeout-packs/cp00-106/adjudication.md",
+    "docs/closeout-packs/cp00-106/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "result_ref": "docs/closeout-packs/cp00-106/claude-review-result.json"
+  },
+  "gate_sequence": [
+    "implementation",
+    "tests",
+    "Hermes evidence",
+    "Claude Opus 4.8 max read-only review exactly once",
+    "finding adjudication",
+    "construction inspection",
+    "included units production_ready",
+    "commit"
+  ],
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-106 core domain review outcome routing pack"
+  },
+  "final_validation": {
+    "local_targeted_tests_passed": true,
+    "hermes_gate_passed": true,
+    "closeout_pack_validation_required": true,
+    "full_validation_required_before_commit": true
+  },
+  "no_write_boundary": {
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "executes_ai_retrieval": false,
+    "executes_export_download": false,
+    "executes_external_share": false,
+    "mutates_locks": false,
+    "retries_operations": false,
+    "performs_rollback": false,
+    "performs_compensation": false,
+    "executes_claude_review_by_catalog": false,
+    "grants_human_approval_by_catalog": false,
+    "mutates_issue_routing": false,
+    "ldip_implemented": false
+  },
+  "next_pack": {
+    "pack_id": "CP00-107",
+    "next_subphase_id": "RP01.P09.M07.S09"
+  }
+}

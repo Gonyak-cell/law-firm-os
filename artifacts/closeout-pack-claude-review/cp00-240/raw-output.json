@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-240",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T12:54:58.179Z",
+  "finished_at": "2026-06-10T13:02:34.206Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":455416,\"duration_api_ms\":443913,\"ttft_ms\":4480,\"num_turns\":29,\"result\":\"Verdict delivered for CP00-240: **PASS_WITH_FINDINGS** (0 P0 / 0 P1 / 0 P2 / 1 P3). The pack does not block pack or goal closeout. Downstream hardening steps (normalize, receipt validate, adjudication, construction inspection, final closeout validation, commit) run outside this read-only review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"b58cc939-6eea-4de4-b369-f3899bb30bf1\",\"total_cost_usd\":2.55523575,\"usage\":{\"input_tokens\":28,\"cache_creation_input_tokens\":146388,\"cache_read_input_tokens\":1219985,\"output_tokens\":28529,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":146388,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":180,\"cache_read_input_tokens\":64401,\"cache_creation_input_tokens\":5256,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5256},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1082,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001182,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1915,\"outputTokens\":35835,\"cacheReadInputTokens\":1381095,\"cacheCreationInputTokens\":153289,\"webSearchRequests\":0,\"costUSD\":2.55405375,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-240 (RP07.P02.M04.S16-RP07.P02.M04.S25; risk class A; 10 descriptor-only units in micro-phase RP07.P02.M04 \\\"Secondary Workflow Slice\\\") is a valid, read-only-reviewable pack. Review evidence is valid per CP178+ hardening: readiness auth_preflight passed (exit_code 0, stdout_bytes 1456, well-formed JSON result), no 0-byte stdout, no malformed/fenced JSON, no tool-call-shaped output, and no missing required fields. The pack correctly does NOT claim production readiness (manifest production_ready=false); production_ready_candidate=true is a descriptor-coverage signal only, consistent with never weakening production_ready gates. No-write/no-runtime/no-real-data boundaries are enforced via Object.freeze descriptor builders and explicit false attestation flags (performs_rollback_runtime/performs_retry_runtime/dispatches_integration_smoke_runtime/real_client_data_loaded/emits_hermes_runtime_receipt all false; customer_safe_errors_only true), verified in service.js, validators.js (CP240 coverage + service-workflow-tail descriptor checks), the search-core contract (no_write_attestation, cp240_no_write_attestation), and model.test.js. Authority boundary holds: claude_role remains read_only_independent_reviewer, claude_is_final_approver=false, claims_enterprise_trust_from_local_validation=false, promotes_claude_to_final_approval=false; human final approval remains required for the enterprise trust claim. Hermes control-plane patterns are confined to deterministic review packet/receipt handling (hermes_runtime_embedded_in_product=false), not product runtime execution. Command-evidence reports 19 commands at exit_code 0 including npm test, npm run validate, build, and git diff --check. One non-blocking P3 maintainability nit identified. Verdict: PASS_WITH_FINDINGS.\",\"findings\":[{\"id\":\"CP00-240-P3-001\",\"severity\":\"P3\",\"title\":\"CP240 case-set builder reuses CP239 row-extras instead of a dedicated CP240 constant\",\"file\":\"packages/search/src/service.js\",\"line\":813,\"details\":\"createSearchCoreCp240ServiceWorkflowTailCaseSet decorates each row with `...(SEARCH_CORE_CP239_ROW_EXTRAS[key] ?? {})` rather than a dedicated SEARCH_CORE_CP240_ROW_EXTRAS constant, whereas CP235-CP239 each define their own per-pack ROW_EXTRAS constant. No functional impact: all 10 CP240 row keys (Blocked-claim output, Rollback behavior, Retry behavior, Unit test: happy/denied/review path, Integration smoke case, Golden fixture binding, Hermes service evidence, Claude service review prompt) resolve within SEARCH_CORE_CP239_ROW_EXTRAS, none are keyed 'documentation_entry', and both validators.js (validateSearchCoreCp240ServiceWorkflowTailDescriptor, ~lines 1062-1125) and model.test.js CP240 assertions (~lines 371-418) pass against the produced descriptor.\",\"recommendation\":\"Optionally introduce a SEARCH_CORE_CP240_ROW_EXTRAS constant for symmetry with prior packs and to prevent future drift if CP240-specific row metadata ever needs to diverge from CP239. No change required for this pack's closeout.\",\"post_review_disposition\":\"Non-blocking. Cosmetic/maintainability nit with no behavioral effect. Does not block pack or goal closeout.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"3b10157e-8b61-4424-88f3-0ac8e0d1773c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5127,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "b58cc939-6eea-4de4-b369-f3899bb30bf1",
+    "uuid": "3b10157e-8b61-4424-88f3-0ac8e0d1773c",
+    "total_cost_usd": 2.55523575,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

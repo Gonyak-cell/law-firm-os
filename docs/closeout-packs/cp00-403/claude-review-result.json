@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-403",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-403/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-403/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "79c718af-f059-4931-ac06-2f645590fc3d",
+    "uuid": "2d54f989-195d-409b-9bc4-e195a2398265",
+    "total_cost_usd": 2.199483,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-403 is a descriptor-only RP13 payments-core pack (Risk C, 150 units, RP13.P05.M04.S06-RP13.P06.M01.S12) reviewed read-only via Read/Grep/Glob. Verified strong internal consistency: the CP403 pack binding (registry.js:188), requirements (registry.js:1200), no-write attestation (registry.js:1194), service descriptor/case-set factories (service.js:1474,1507), validators (validators.js:2042-2201), contract projection (payments-core-contract.json current_pack, cp403_requirements, cp403_no_write_attestation, p05_closeout_p06_foundation_descriptor, historical_pack_bindings tail), manifest, and the live closeout-pack-plan all agree on pack_id, risk C, 150 units, range, upstream CP00-402, next CP00-404, next_subphase RP13.P06.M01.S13. Deliverable distribution (fixture 43, claude_review 7, implementation 57, security_audit 16, test 18, hermes_evidence 6, ui 3 = 150) and micro-phase/micro-title row counts match across all artifacts; independently spot-counted claude_review=7, ui=3, hermes_evidence=6, and confirmed M04 section rows map exactly to plan units S06-S20 with no off-by-one. All 7 required public exports are defined and re-exported through src/index.js and imported by the passing test suite. Descriptor-only invariants (descriptor_only true, runtime_execution false, customer_safe_errors_only true, raw_payload_included false) are enforced per-row by validatePaymentsCoreCp403P05CloseoutP06FoundationDescriptor. No-write/no-real-data boundaries are comprehensively attested (all dispatch_*_runtime, db/storage/audit/permission-write flags false; no_real_data true; emits_hermes_runtime_receipt false), so Hermes (H13) is used only for deterministic evidence-packet/receipt descriptors, not product runtime. Authority boundary holds: claude_is_final_approval false, promotes_claude_to_final_approval false, claims_enterprise_trust_from_local_validation false, human_final_approval_required_for_runtime_opening true. The pack makes no affirmative production_ready claim (manifest production_ready:false, status implemented_pending_review; hermes production_ready_candidate:true reflects descriptor-coverage validity only), so there is no over-claim of enterprise trust. CP178+ review hardening checks pass: readiness auth preflight succeeded (exit 0, 1450-byte valid-JSON stdout), validation-report shows forbidden_tools_present false and summary_only_review_allowed false (correctly prohibited for Risk C + security/review deliverables), prompt within size limit, source_inspection_mode read_tools_used, and no pre-baked raw-output.json/review-receipt.json exist (this review is fresh). command-evidence records npm test, npm run validate, rp13:payments-core:validate, closeout-pack-plan:validate, weighted/spec/fullplan/goal:closeout/rp00:control-plane validate, build, and git diff --check all at exit 0, with post-review gated commands correctly deferred. One non-blocking P3 metadata note on the changed-file-scope bundle. Recommend pack closeout proceed to the human/final-approval gate; Claude remains read-only reviewer, not final approver.",
+    "findings": [
+      {
+        "id": "CP00-403-SCOPE-META-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-classifies the pack's own manifest dir and handoff doc as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-403/changed-file-scope.json",
+        "line": 130,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md and docs/closeout-packs/cp00-403/ are listed in untracked_implementation_files (lines 130-133) and simultaneously in unrelated_dirty_files_preserved (lines 135-145). docs/closeout-packs/cp00-403/ is the pack's own manifest/command-evidence deliverable, so labeling it 'unrelated' is internally inconsistent. This is review-tooling metadata only and has no effect on descriptor coverage, no-write/no-real-data boundaries, authority boundaries, or any pack deliverable; all substantive bindings and validations are correct.",
+        "recommendation": "Have the changed-file-scope generator exclude active-pack paths (docs/closeout-packs/<pack_id>/ and the active handoff doc) from unrelated_dirty_files_preserved so downstream consumers are not ambiguous about pack membership. Non-blocking for CP00-403 closeout.",
+        "post_review_disposition": "Acknowledged as benign review-tooling metadata overlap; does not block CP00-403 pack or goal closeout and requires no change to pack deliverables. Suggested as a future scope-generator cleanup."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

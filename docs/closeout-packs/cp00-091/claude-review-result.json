@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-091",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "47cfa7a1-8deb-4a57-a008-a0ea98c71ee8",
+    "uuid": "c80c6fbb-570a-40a9-83c4-c231356f8cb1",
+    "total_cost_usd": 1.82664025,
+    "permission_denials": [],
+    "duration_ms": 334391,
+    "invalid_attempt_counted_as_valid": false
+  },
+  "invalid_attempts": [],
+  "parsed_review": {
+    "review_id": "CP00-091-RP00.P08.M06-to-RP00.P09.M04-evidence-review-transition-review-2026-06-08",
+    "pack_id": "CP00-091",
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "title": "RP00.P09 micro-phase titles use the generic closeout-pack template names while deliverables are review questions",
+          "severity": "p3",
+          "file": "packages/control-plane/src/policies.js (CONTROL_PLANE_HERMES_VALIDATION_EVIDENCE_REVIEW_TRANSITION_UNIT_GROUPS); contracts/control-plane-contract.json (micro_phase_closeout_map / unit_receipt_matrix micro_title)",
+          "rationale": "RP00.P09.M00-M04 carry micro_titles 'Scope Inventory', 'Contract Draft', 'Type And Shape Definition', 'Primary Implementation Slice', 'Secondary Workflow Slice' while every P09 unit has deliverable_type 'review_question'. This is internally self-consistent and matches the project-wide generic micro-phase scaffold, but the micro_title values cannot be confirmed against docs/closeout-pack-plan/closeout-pack-plan.json from this diff.",
+          "recommendation": "Confirm these micro_titles match the plan's RP00.P09 micro-phase names during pack creation; no code change needed if they do."
+        },
+        {
+          "title": "Assembler input-guard negative paths are not unit-tested",
+          "severity": "p3",
+          "file": "packages/control-plane/test/service.test.js",
+          "rationale": "assembleControlPlaneHermesValidationEvidenceReviewTransition rejects a non-object/array upstream result and a non-object/array boundaryClaims, but no test exercises those two guards (only object-shaped drift and claim cases are tested).",
+          "recommendation": "Add two assert.throws cases (null/array upstream result; array boundaryClaims) to lock the guard messages, matching the rigor of the other fail-closed tests."
+        },
+        {
+          "title": "Contract definition duplicates the full result matrices at top level and nested under result",
+          "severity": "p3",
+          "file": "contracts/control-plane-contract.json (control_plane_hermes_validation_evidence_review_transition_definition)",
+          "rationale": "unit_receipt_matrix, micro_phase_closeout_map, review_question_contracts, and the two contracts appear both at definition top level and inside definition.result, inflating the contract by ~3k lines. This mirrors prior packs and is parity-checked, so it is purely a maintainability/verbosity observation.",
+          "recommendation": "No action required for this pack; consider whether future packs can reference rather than duplicate the nested result block."
+        }
+      ]
+    },
+    "verification_performed": {
+      "static_parity_checks": "20/20 pass, 0 fail (policy self-validates; counts 61 units / 22 review-question contracts / 10 micro-phase closeouts; range endpoints RP00.P08.M06.S01..RP00.P09.M04.S05)",
+      "input_shape_parity": "policy.requiredInputFields === CONTROL_PLANE_HERMES_VALIDATION_HUMAN_APPROVAL_MARKER_RESULT_FIELDS (87 fields) — confirmed live",
+      "result_field_parity": "policy.resultFields === RESULT_FIELDS const === contract.result_fields (98 fields) — confirmed live",
+      "contract_fixture_parity": "contract.result deep-equals fixture.result; both pass assertResult; included_subphase_ids identical across policy/fixture/contract/validate-script — confirmed live",
+      "assembler_live": "assembler consumes the stored CP00-090 fixture result and produces a metadata-only CP00-091 result that deep-equals the stored fixture result (exit 0)",
+      "fail_closed_live": "verified throws on: upstream pack drift, wrong upstream next_subphase, broken human-approval boundary, write_hermes_evidence_packet, invoke_runtime_claude_review, synthesize_human_approval_decision, bypass_human_approval, unknown claim",
+      "ldip_ref_exists": "docs/ldip-integration/ldip-overlay-closeout-pack-map.json present",
+      "evidence_pack": "docs/closeout-packs/cp00-091/* intentionally absent — created post-review per scope; not treated as a finding"
+    },
+    "explicit_checks": {
+      "permission_boundary": "PASS — runtime_permission_evaluation_permitted, permission_engine_execution_permitted, authz_evaluator_called, security_trimming_execution_permitted all false in policy/result/validator; permission_context_visible_only true. Assembler also re-asserts these false on the consumed CP00-090 result.",
+      "audit_boundary": "PASS — audit_ledger_append_permitted, audit_event_write_permitted false; audit_context_visible_only true; append_audit_ledger/write_audit_event in forbidden claim set.",
+      "human_approval_boundary": "PASS — human_approval_marker_required true, human_approval_marker_is_not_approval true, human_approval_record_write_permitted/decision_synthesized/bypass_permitted all false; synthesize/bypass/create-runtime-approval/write-record forbidden and live-rejected. Upstream CP00-090 marker is consumed (not re-synthesized).",
+      "claude_runtime_boundary": "PASS — runtime_claude_review_invocation_permitted false; every review_question_contract carries runtime_review_invocation_permitted false; invoke_runtime_claude_review forbidden and live-rejected. Claude Review Packet bound as metadata only.",
+      "write_boundaries": "PASS — service_logic, route, ui, external asset, error/retry/rollback/compensation/incident, observability, hermes_evidence_packet_write, command_evidence_write, review_queue/assignment/notification, database, storage, product_state, idempotency, lock all false; writes_product_state false; no_real_data true.",
+      "cp00_plan_binding": "PASS — packId/plannedPackId CP00-091, requestedPackId CP00-090 with explicit live-cursor correctionReason; planRef docs/closeout-pack-plan/closeout-pack-plan.json; Risk C; sourceMicroPhaseId RP00.P09.M04; completedPhaseIds [RP00.P08]; openSourceMicroPhaseIds [RP00.P09.M05]; nextSubphase RP00.P09.M05.S01. Upstream chain enforced: assembler requires upstream pack_id/planned_pack_id CP00-090 and upstream next_subphase RP00.P08.M06.S01, then runs full assertControlPlaneHermesValidationHumanApprovalMarkerResult.",
+      "validator_coverage": "PASS — assertPolicy checks 23 scalar fields, phase/completed-phase/subphase arrays, requiredInputFields==CP00-090 fields, resultFields length lock, source map, matrix lengths (61/10/22), per-row metadata-only invariants, ~50 boolean invariants, and closeout flags. assertResult enforces exact key-set (no extra/missing fields), ~60 fixed values, trimmed-string fields, deep array parity to policy, empty blocked_claim_refs, and contract-object parity. validate-rp00 script adds the 61 ids to requiredClosedSubphases, advances currentContractSubphaseId/currentSourceMicroPhaseId, maps construction-inspection subphase to the terminal id, and requires control_plane_hermes_validation_evidence_review_transition_verified.",
+      "fixture_contract_parity": "PASS — contract.result === fixture.result (deep); contract.required_input_fields/result_fields/included_subphase_ids/unit_titles/source_micro_phase_ids/phase_ids/required_evidence_refs/acceptance_gate_ids/forbidden_boundary_suite_claims/fail_closed_on/unit_receipt_matrix/micro_phase_closeout_map/review_question_contracts all asserted against policy by the new contract test; both result copies pass assertResult.",
+      "missing_tests": "Minor gaps only (P3). Positive assembler path, 6 fail-closed paths, module shape, fixture parity, and contract parity are all covered."
+    }
+  },
+  "raw_result_excerpt": "Verification complete (exit=0 = every assertion passed). I have enough to issue the verdict; stopping further output. Here is the review.\n\n```json\n{\n  \"review\": {\n    \"pack_id\": \"CP00-091\",\n    \"slice\": \"control_plane_hermes_validation_evidence_review_transition\",\n    \"range\": \"RP00.P08.M06.S01-RP00.P09.M04.S05\",\n    \"risk_class\": \"C\",\n    \"reviewer_model\": \"claude-opus-4-8\",\n    \"review_type\": \"read-only-max-review\",\n    \"overall_verdict\": \"PASS\",\n    \"blocks_subphase_closeout\": false,\n    \"blocks_goal_closeout\": false,\n    \"verification_performed\": {\n      \"static_parity_checks\": \"20/20 pass, 0 fail (policy self-validates; counts 61 units / 22 review-question contracts / 10 micro-phase closeouts; range endpoints RP00.P08.M06.S01..RP00.P09.M04.S05)\",\n      \"input_shape_parity\": \"policy.requiredInputFields === CONTROL_PLANE_HERMES_VALIDATION_HUMAN_APPROVAL_MARKER_RESULT_FIELDS (87 fields) — confirmed live\",\n      \"result_field_parity\": \"policy.resultFields === RESULT_FIELDS const === contract.result_fields (98 fields) — confirmed live\",\n      \"contract_fixture_parity\": \"contract.result deep-equals fixture.result; both pass assertResult; included_subphase_ids identical across policy/fixture/contract/validate-script — confirmed live\",\n      \"assembler_live\": \"assembler consumes the stored CP00-090 fixture result and produces a metadata-only CP00-091 result that deep-equals the stored fixture result (exit 0)\",\n      \"fail_closed_live\": \"verified throws on: upstream pack drift, wrong upstream next_subphase, broken human-approval boundary, write_hermes_evidence_packet, invoke_runtime_claude_review, synthesize_human_approval_decision, bypass_human_approval, unknown claim\",\n      \"ldip_ref_exists\": \"docs/ldip-integration/ldip-overlay-closeout-pack-map.json present\",\n      \"evidence_pack\": \"docs/closeout-packs/cp00-091/* intentionally absent — created post-review per scope; not treated as a finding\"\n    },\n    \"explicit_checks\": {\n      \"permission_boundary\": \"PASS — runtime_permission_evaluation_permitted, permission_engine_execution_permitted, authz_evaluator_called, security_trimming_execution_permitted all false in policy/result/validator; permission_context_visible_only true. Assembler also re-asserts these false on the consumed CP00-090 result.\",\n      \"audit_boundary\": \"PASS — audit_ledger_append_permitted, audit_event_write_permitted false; audit_context_visible_only true; append_audit_ledger/write_audit_event in forbidden claim set.\",\n      \"human_approval_boundary\": \"PASS — human_approval_marker_required true, human_approval_marker_is_not_approval true, human_approval_record_write_permitted/decision_synthesized/bypass_permitted all false; synthesize/bypass/create-runtime-approval/write-record forbidden and live-rejected. Upstream CP00-090 marker is consumed (not re-synthesized).\",\n      \"claude_runtime_boundary\": \"PASS — runtime_claude_review_invocation_permitted false; every review_question_contract carries runtime_review_invocation_permitted false; invoke_runtime_claude_review forbidden and live-rejected. Claude Review Packet bound as metadata only.\",\n      \"write_boundaries\": \"PASS — service_logic, route, ui, external asset, error/retry/rollback/compensation/incident, observability, hermes_evidence_packet_write, command_evidence_write, review_queue/assignment/notification, database, storage, product_state, idempotency, lock all false; writes_product_state false; no_real_data true.\",\n      \"cp00_plan_binding\": \"PASS — packId/plannedPackId CP00-091, requestedPackId CP00-090 with explicit live-cursor correctionReason; planRef docs/closeout-pack-plan/closeout-pack-plan.json; Risk C; sourceMicroPhaseId RP00.P09.M04; completedPhaseIds [RP00.P08]; openSourceMicroPhaseIds [RP00.P09.M05]; nextSubphase RP00.P09.M05.S01. Upstream chain enforced: assembler requires upstream pack_id/planned_pack_id CP00-090 and upstream next_subphase RP00.P08.M06.S01, then runs full assertControlPlaneHermesValidationHumanApprovalMarkerResult.\",\n      \"validator_coverage\": \"PASS — assertPolicy checks 23 scalar fields, phase/completed-phase/subphase arrays, requiredInputFields==CP00-090 fields, resultFields length lock, source map, matrix lengths (61/10/22), per-row metadata-only invariants, ~50 boolean invariants, and closeout flags. assertResult enforces exact key-set (no extra/missing fields), ~60 fixed values, trimmed-string fields, deep array parity to policy, empty blocked_claim_refs, and contract-object parity. validate-rp00 script adds the 61 ids to requiredClosedSubphases, advances currentContractSubphaseId/currentSourceMicroPhaseId, maps construction-inspection subphase to the terminal id, and requires control_plane_hermes_validation_evidence_review_transition_verified.\",\n      \"fixture_contract_parity\": \"PASS — contract.result === fixture.result (deep); contract.required_input_fields/result_fields/included_subphase_ids/unit_titles/source_micro_phase_ids/phase_ids/required_evidence_refs/acceptance_gate_ids/forbidden_boundar"
+}

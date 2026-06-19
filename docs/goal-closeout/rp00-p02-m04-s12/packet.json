@@ -1,0 +1,81 @@
+{
+  "subphase_id": "RP00.P02.M04.S12",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Persistence boundary",
+  "status": "production_ready",
+  "created_at": "2026-06-05T22:05:50Z",
+  "deliverable_type": "implementation",
+  "implementation_summary": [
+    "Added the control-plane Claude review Persistence boundary slice for RP00.P02.M04.S12.",
+    "The S12 policy, result-field registry, prechecker module, service function, validator, synthetic fixture, contract definition, README, and RP00 validator bind a frozen metadata-only persistence boundary receipt after RP00.P02.M04.S11.",
+    "The precheck consumes and revalidates the S11 Lock acquisition rule result, requires the carried claude_review entrypoint, claude-opus-4-8 model, max effort, read-only metadata, lock receipt, audit event ref, allow_metadata_only lock decision, and applied lock acquisition marker.",
+    "The allowed path emits a frozen allow_metadata_only persistence receipt and result without writing database, storage, product state, persistence records, idempotency records, lock records, audit events, review queues, review assignments, review notifications, UI, service routes, runtime permissions, AuthZ, permission engines, or runtime Claude review.",
+    "Unsafe or unknown persistence claims fail closed, including database/storage/object-store/file-store/cache writes, product/control-plane/runtime persistence, runtime Claude review, review queue/assignment/notification writes, audit writes, runtime permission/AuthZ/permission-engine execution, idempotency/lock store writes, runtime lock acquisition, UI creation, real-data claims, persistence bypass, and source microphase completion.",
+    "The dedicated service tests prove policy binding, metadata-only persistence receipt emission, firm-level metadata acceptance, result drift rejection, unsafe-claim and wrong-source failures, prechecker no-write boundaries, S13 handoff, and synthetic fixture parity.",
+    "Claude review returned GO with no P0/P1 findings. The P2 documentation accuracy item and P3 stale prose observations were fixed in contract completion-gate evidence before production_ready.",
+    "RP00.P02.M04 remains open after S12 and hands off to RP00.P02.M04.S13 Validation error mapping; RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m04-s12/packet.json",
+    "docs/goal-closeout/rp00-p02-m04-s12/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m04-s12/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m04-s12/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m04-s12/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 298,
+    "full_test_count": 382,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s12_evidence_files",
+    "final_rp00_gate_status": "passed_after_evidence_creation"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "1b252eed-0b3c-44e3-bac7-71f251bb3b69",
+    "uuid": "cd9369a6-6ea0-451b-ba3a-94736f441e30",
+    "implementation_verdict": "GO",
+    "production_ready_verdict_before_adjudication": "GO",
+    "production_ready_verdict_after_adjudication": "GO",
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 3
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed",
+    "p3_status": "fixed",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": false,
+    "completed_micro_phase_id": null,
+    "next_micro_phase_id": "RP00.P02.M04",
+    "next_subphase": "RP00.P02.M04.S13",
+    "does_not_complete_RP00_P02_M04": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M04.S13"
+}

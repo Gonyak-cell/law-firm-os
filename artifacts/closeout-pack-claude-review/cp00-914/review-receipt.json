@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-914",
+  "normalized_at": "2026-06-17T17:51:27.063Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-914/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-914/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-914/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-914/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "20f18c87-e4fe-4cba-bf74-a7e060d418ce",
+    "uuid": "ee62a572-29f7-47aa-a238-112b6765ac25",
+    "total_cost_usd": 1.9445732500000001,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7639,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-914 is a descriptor-only, risk-class-A closeout pack bridging the final RP30.P02.M06 RuleEngine tail row (S12) into nine RP30.P02.M07 LeaveWorkflow re-entry rows (S01-S09), 10 units total, matching the baseline distribution {RuleEngine:1, LeaveWorkflow:9}. Source inspection across packages/hrx/src/registry.js (HRX_CP914 binding/requirements/section-rows, case set, descriptor, Hermes/Claude packets, closeout handoff, contract projection), packages/hrx/src/validators.js (coverage + descriptor validators, validateHrxPeopleContract pinned to CP00-914), contracts/hrx-people-contract.json (latest_pack/latest_projection HrxCp914RuleEngineLeaveWorkflowBridgeDescriptor sourced from HrxCp913RuleEngineTailDescriptor, validation.valid=true), scripts/validate-rp30-hrx-people-contract.mjs (CP913->CP914->CP915 chain), README, and packages/hrx/test/model.test.js (3 tests: binding/coverage, descriptor runtime-closed, contract projection) shows a consistent, well-tested implementation. Descriptor-only boundaries are enforced in code and asserted by tests: no rule definitions/execution-runtime/decision-writes, no leave request payloads/workflow-runtime/approval-writes/policy-rule-execution, no payroll runtime, no HR AI final judgment, no permission/audit/product-state writes, no runtime receipts, no separate HRX product, no real employee/candidate/payroll/document data, no credentials/secrets (grep for real-data/secret patterns returned none). Authority boundary is correctly preserved: Claude is read_only non-final reviewer (claude_is_final_approval=false, promotes_claude_to_final_approval=false), human approval is required for runtime opening (CP00-915), and local validation does not claim enterprise trust. Hermes packet is static metadata with emits_runtime_receipt=false (deterministic review/evidence handling, not product runtime). Review readiness auth preflight passed (stdout_bytes=1228) and the claude-review-result/construction-inspection/adjudication PENDING state is the expected pre-promotion template that this review gates, not stale/invalid evidence. Reported HRX command exit codes (node --check, node --test, rp30:hrx/rp30/hrx:requirements/hrx:weighted validate) are all 0. No P0/P1/P2 issues; one P3 provenance note recorded. Does not block pack or this CP closeout.",
+    "findings": [
+      {
+        "id": "CP914-P3-01",
+        "severity": "P3",
+        "title": "Full deterministic validation ladder and adjudication/inspection are deferred post-review steps not re-executable under read-only review",
+        "file": "docs/closeout-packs/cp00-914/command-evidence.json",
+        "line": 49,
+        "details": "command-evidence.json records only the HRX-scoped commands (node --check, node --test packages/hrx/test/*.test.js, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate), all exit_code 0. The broader closeout ladder named in the prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) plus adjudication.md, construction-inspection.json, and claude-review-result.json are still in their PENDING templates and run during the post-review promotion step. As a read-only reviewer (Read/Grep/Glob only, no Bash) I confirmed these via direct source/artifact inspection and reported exit codes, but did not independently re-execute them. This matches the documented gate sequence (command-evidence note: 'Full hardened read-only Claude review, adjudication, production_ready promotion, queue regeneration, full deterministic validation ladder, and commit are required before production_ready') and the established CP00-897..913 closing pattern.",
+        "recommendation": "Proceed with promotion only after the full deterministic validation ladder and git diff --check complete cleanly and adjudication/inspection/claude-review-result are populated from this receipt; no code change required. Provenance distinction (directly inspected vs reported exit codes) is noted for audit transparency.",
+        "post_review_disposition": "informational_non_blocking_acknowledged"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "work_package_id": "LT-L4-W06",
+  "title": "Wave 1 training source materials",
+  "created_at": "2026-06-18T14:51:37Z",
+  "status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+  "phase": "L4",
+  "gate_binding": [
+    "L4-EXIT"
+  ],
+  "terminal_tuw": "LT-L4-W06-T03",
+  "artifacts": [
+    "docs/training/wave1/screen-flows.md",
+    "docs/training/wave1/index.md",
+    "docs/product-ui/glossary.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l4-w06/packet.json",
+    "docs/goal-closeout/lt-l4-w06/command-evidence.json",
+    "docs/goal-closeout/lt-l4-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-l4-w06/adjudication.md",
+    "docs/goal-closeout/lt-l4-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "wave1_screen_count": 6,
+    "role_flow_rows": 18,
+    "role_toc_rows": 3,
+    "prohibited_action_rows": 8,
+    "misfiling_steps": 6,
+    "escalation_rows": 6,
+    "existing_package_links_valid": true,
+    "runtime_screen_sample_verified": false,
+    "walkthrough_captures_exist": false,
+    "rendered_ui_copy_compliance_verified": false,
+    "training_published": false,
+    "l4_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

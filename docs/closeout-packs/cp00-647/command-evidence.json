@@ -1,0 +1,138 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-647",
+  "subphase_id": "RP21.P02.M09.S02",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": []
+  },
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp21-admin-console-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp21:admin-console:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp21:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/admin/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-647",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-647",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-647 --timeout_ms=900000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-647",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-647",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-647 remains descriptor-only and synthetic-only.",
+    "Full CP00-647 command matrix ran after queue regeneration to CP00-648 and all recorded commands exited 0 before production_ready promotion.",
+    "Hardened read-only Claude review receipt validated at artifacts/closeout-pack-claude-review/cp00-647/review-receipt.json; verdict PASS_WITH_FINDINGS; P0/P1/P2 all 0; P3 count 2 nonblocking.",
+    "P3 CP647-P3-01 is a latent source_descriptor_ref hardcoding advisory; current call paths all use the CP646 source descriptor and validation output is unaffected.",
+    "P3 CP647-P3-02 described expected pre-closeout command/receipt state during review; the full matrix and exactly one valid receipt are now recorded.",
+    "CP00-647 is promoted to production_ready for the descriptor-only Admin Console test/evidence/review packet; runtime opening remains closed and next handoff moves to CP00-648 / RP21.P02.M09.S03."
+  ],
+  "review_artifacts": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-647/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-647/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-647/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-647/review-receipt.json"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "work_package_id": "LT-L4-W05",
+  "inspected_at": "2026-06-18T14:51:37Z",
+  "verdict": "BLOCKED_OWNER_I18N_POLICY_SOURCE_CLEANUP_AND_RENDERED_COPY_VALIDATION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "decision_options": 3,
+    "term_rows": 36,
+    "l2_crosswalk_rows": 6,
+    "old_ui_brand_phrase_count": 0,
+    "matter_logo_aria_ok": true,
+    "app_source_files_modified": 0,
+    "owner_i18n_policy_decision_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "language_policy_synthesized": false,
+    "apps_web_source_modified": false,
+    "launch_register_mutated_without_approval": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "work_package_id": "LT-L7-W01",
+  "title": "Inventory and mapping",
+  "created_at": "2026-06-18T14:25:08Z",
+  "status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+  "phase": "L7",
+  "gate_binding": [
+    "G8",
+    "L7-EXIT"
+  ],
+  "terminal_tuw": "LT-L7-W01-T10",
+  "artifacts": [
+    "docs/launch/l7/inventory-mapping-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l7-w01/packet.json",
+    "docs/goal-closeout/lt-l7-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l7-w01/adjudication.md",
+    "docs/goal-closeout/lt-l7-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "preflight_readiness_report_exists": false,
+    "inventory_fileserver_summary_exists": false,
+    "inventory_sharepoint_summary_exists": false,
+    "inventory_mailbox_summary_exists": false,
+    "inventory_matter_register_summary_exists": false,
+    "matter_id_filename_rule_exists": false,
+    "mapping_matter_client_owner_summary_exists": false,
+    "mapping_acl_summary_exists": false,
+    "exclusion_judgment_exists": false,
+    "gl_mig_01_package_exists": false,
+    "production_data_policy_effective": false,
+    "real_data_accessed": false,
+    "g8_satisfied": false,
+    "l7_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

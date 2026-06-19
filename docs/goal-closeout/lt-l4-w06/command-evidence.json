@@ -1,0 +1,181 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L4-W06",
+  "title": "Wave 1 training source materials",
+  "phase": "L4",
+  "gate": "L4-EXIT",
+  "status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+  "recorded_at": "2026-06-18T11:25:09Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L4-W06-T01",
+      "title": "Wave 1 screen flow source draft",
+      "status": "draft_blocked_pending_runtime_screen_validation_and_l4_w06_t02_captures",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/training/wave1/screen-flows.md",
+        "docs/goal-closeout/lt-l4-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "wave1_screen_count": 6,
+        "role_flow_rows": 18,
+        "roles": [
+          "lawyer",
+          "staff",
+          "admin"
+        ],
+        "ia_source_links": 6,
+        "wave2_3_exclusion_rows": 5,
+        "runtime_screen_sample_verified": false,
+        "screenshots_captured": false,
+        "training_published": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count SRC-IA, FLOW, EXCL rows and verify six screens by lawyer/staff/admin roles ... NODE",
+          "exit_code": 0,
+          "output": "{\"source_rows\":6,\"flow_rows\":18,\"exclusion_rows\":5,\"screens\":6,\"roles_per_screen_complete\":true,\"runtime_verified\":false,\"screenshots_captured\":false}",
+          "purpose": "Verify screen-flow source covers six Wave 1 screens across lawyer, staff, and admin roles without claiming implementation validation"
+        },
+        {
+          "command": "grep -c \"^| FLOW-\" docs/training/wave1/screen-flows.md && grep -c \"^| SRC-IA-\" docs/training/wave1/screen-flows.md && grep -c \"^| EXCL-\" docs/training/wave1/screen-flows.md",
+          "exit_code": 0,
+          "output": "18\n6\n5",
+          "purpose": "Verify role flow, source IA, and exclusion row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}; 위반 0건 — PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This training source is IA-derived and remains blocked until actual screen validation and walkthrough captures exist.",
+        "Wave 2/3 features such as AI, portals, HR sensitive workflows, Vault, and billing automation are excluded from Wave 1 training flow.",
+        "No user-facing training was published and no screenshots were captured."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W06-T03",
+      "title": "Wave 1 training source index draft",
+      "status": "draft_blocked_pending_l4_w06_t02_captures_walkthrough_and_final_link_check",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/training/wave1/index.md",
+        "docs/training/wave1/screen-flows.md",
+        "docs/product-ui/glossary.md",
+        "docs/goal-closeout/lt-l4-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "role_toc_rows": 3,
+        "prohibited_action_rows": 8,
+        "misfiling_steps": 6,
+        "escalation_rows": 6,
+        "package_links": 6,
+        "existing_package_links_valid": true,
+        "glossary_exists": true,
+        "rendered_ui_copy_compliance_verified": false,
+        "walkthrough_captures_exist": false,
+        "training_published": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count ROLE-TOC, PROHIBIT, MISFILE-STEP, ESC-ROUTE, PKG-LINK rows and verify existing links ... NODE",
+          "exit_code": 0,
+          "output": "{\"toc_rows\":3,\"prohibit_rows\":8,\"misfile_steps\":6,\"escalation_rows\":6,\"package_links\":6,\"missing_links\":[],\"glossary_exists\":true,\"walkthrough_exists\":false,\"rendered_ui_copy_compliance_verified\":false}",
+          "purpose": "Verify training index contains role TOC, prohibited actions, misfiling correction, escalation routes, valid existing links, and glossary presence without claiming walkthrough or rendered UI copy completion"
+        },
+        {
+          "command": "grep -c \"^| ROLE-TOC-\" docs/training/wave1/index.md && grep -c \"^| PROHIBIT-\" docs/training/wave1/index.md && grep -c \"^| MISFILE-STEP-\" docs/training/wave1/index.md && grep -c \"^| ESC-ROUTE-\" docs/training/wave1/index.md",
+          "exit_code": 0,
+          "output": "3\n8\n6\n6",
+          "purpose": "Verify training index required section row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}; 위반 0건 — PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an index draft only; the required walkthrough captures and rendered UI copy compliance check are not complete.",
+        "The index includes role-based TOCs plus prohibited actions, misfiling correction, and escalation guide sections.",
+        "The product-ui glossary exists and is linked, but LT-L4-W06 remains open because T02 screenshots, walkthrough material, final link check, rendered copy validation, and evidence package assembly are incomplete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W06-T02",
+      "title": "핵심 업무 시나리오 워크스루를 캡처한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+      "objective": "핵심 업무 시나리오(신건 등록→문서 filing→이메일 filing→task/deadline→issue→audit 조회)의 단계별 화면 캡처·조작 설명이 교재 삽입 가능한 형태로 보존된다.",
+      "deliverables": [
+        "docs/training/wave1/walkthrough/"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-6",
+        "workbook/matter-post-cp-launch-plan.md §5 L7-6",
+        "docs/training/wave1/screen-flows.md"
+      ],
+      "acceptance_criteria": [
+        "시나리오 단계 전부(≥6단계)에 캡처 이미지와 조작 캡션이 1:1로 존재한다(단계 수=캡처 수 판정).",
+        "캡처 전부가 합성 시드 데이터만 노출한다(실존 인명·사건명 0건 — 캡처 전수 점검 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 단계 수와 캡처 파일 수 대조 2) 캡처 전수에서 합성 시드 외 데이터 0건 점검 3) 캡션-화면 일치 표본 점검",
+        "evidence": "캡처 목록+점검 기록을 docs/goal-closeout/lt-l4-w06/work-log에 기록",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w06/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-6",
+        "workbook/matter-post-cp-launch-plan.md §5 L7-6",
+        "docs/training/wave1/screen-flows.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L4-W06, LT-L4-W06-T01, or LT-L4-W06-T03 is complete.",
+    "This record does not prove rendered UI labels match the source flows.",
+    "This record does not capture screenshots or publish L7 training material.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 3,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

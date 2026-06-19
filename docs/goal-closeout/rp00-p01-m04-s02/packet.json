@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M04.S02",
+  "source_micro_phase_id": "RP00.P01.M04",
+  "release_program": "RP00",
+  "release_program_title": "Product Constitution And AI Control Plane",
+  "title": "Primary entity identifier",
+  "status": "production_ready",
+  "minimum_closeout_status": "production_ready",
+  "created_at": "2026-06-04T03:41:18+09:00",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "implemented_slice": {
+    "entity": "ClaudeReviewGate",
+    "slice": "primary_entity_identifier",
+    "identifier_field": "review_id",
+    "identifier_policy_export": "CLAUDE_REVIEW_GATE_IDENTIFIER_POLICY",
+    "normalize_export": "normalizeClaudeReviewGateId",
+    "validate_export": "validateClaudeReviewGateId",
+    "stable_prefix": "crg_",
+    "canonical_pattern": "^crg_[a-z0-9]+(?:_[a-z0-9]+)*$",
+    "tenant_scope_deferred_to": "RP00.P01.M04.S03",
+    "matter_trace_deferred_to": "RP00.P01.M04.S04",
+    "implemented_model": false,
+    "next_subphase": "RP00.P01.M04.S03",
+    "human_approval_boundary": "HumanApproval remains non-delegable and cannot be synthesized by this identifier slice."
+  },
+  "target_files": [
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ],
+  "acceptance_gates": [
+    "identifier_policy_bound",
+    "review_id_field_selected",
+    "stable_crg_prefix_enforced",
+    "canonical_lowercase_snake_case_enforced",
+    "noncanonical_forms_rejected",
+    "synthetic_fixture_identifier_validates",
+    "registry_exposes_claude_review_gate_identifier_policy",
+    "registry_keeps_claude_review_gate_model_future",
+    "tenant_scope_deferred_to_next_subphase",
+    "matter_trace_deferred_to_future_subphase",
+    "no_product_state_writes",
+    "actual_claude_cli_review_required",
+    "construction_inspection_required",
+    "next_subphase_boundary_recorded"
+  ],
+  "scope_boundary": {
+    "implements_only_ClaudeReviewGate_identifier": true,
+    "does_not_implement_ClaudeReviewGate_tenant_scope": true,
+    "does_not_implement_ClaudeReviewGate_matter_trace": true,
+    "does_not_implement_full_ClaudeReviewGate_model": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "does_not_create_ui": true,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "evidence_files": {
+    "command_evidence": "docs/goal-closeout/rp00-p01-m04-s02/command-evidence.json",
+    "claude_review_result": "docs/goal-closeout/rp00-p01-m04-s02/claude-review-result.json",
+    "adjudication": "docs/goal-closeout/rp00-p01-m04-s02/adjudication.md",
+    "construction_inspection": "docs/goal-closeout/rp00-p01-m04-s02/construction-inspection.json"
+  },
+  "next_subphase": "RP00.P01.M04.S03",
+  "closeout": {
+    "hermes_evidence_recorded": true,
+    "claude_review_completed": true,
+    "no_unresolved_p0_or_p1": true,
+    "p2_findings_fixed_or_deferred": true,
+    "construction_inspection_passed": true,
+    "final_validation_rerun_required_before_commit": true,
+    "production_ready_at": "2026-06-04T03:57:30+09:00"
+  }
+}

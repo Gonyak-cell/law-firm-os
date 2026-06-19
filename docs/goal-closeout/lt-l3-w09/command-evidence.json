@@ -1,0 +1,183 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L3-W09",
+  "title": "Outlook Add-in deployment pipeline from pilot to company-wide rollout",
+  "phase": "L3",
+  "gate": "G5, L3-EXIT",
+  "created_at": "2026-06-18T13:26:48Z",
+  "status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L1-W02": {
+      "status": "decision_round_brief_blocked_pending_owner_decisions",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L1-W10": {
+      "status": "draft_completed_pending_l1_w01_scope_decision",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L2-W03": {
+      "status": "blocked_pending_l2_w01_w02_and_write_runtime",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W06": {
+      "status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L3-W07": {
+      "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W08": {
+      "status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "outlook_addin_app_exists": false,
+    "addin_manifest_file_count": 0,
+    "addin_release_gate_precheck_exists": false,
+    "graph_failure_rehearsal_exists": false,
+    "addin_deployment_runbook_exists": false,
+    "w09_launch_evidence_file_count": 0,
+    "m365_runtime_implementation_allowed": false,
+    "registers_addin_manifest": false,
+    "admin_center_deployment_export_exists": false,
+    "pilot_mailbox_visibility_verified": false,
+    "read_mode_filing_e2e_verified": false,
+    "graph_failure_rollback_verified": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L3-W09-T01",
+      "title": "Create and validate Outlook Add-in manifest",
+      "status": "blocked_waiting_on_l1_w02_prd8_2_l3_w07_app_registration_and_addin_app"
+    },
+    {
+      "tuw_id": "LT-L3-W09-T02",
+      "title": "Deploy Add-in to pilot group through admin center",
+      "status": "blocked_waiting_on_t01_l1_w10_pilot_roster_and_ext_m365_admin"
+    },
+    {
+      "tuw_id": "LT-L3-W09-T03",
+      "title": "Run pilot mailbox read-mode filing E2E and release gate precheck",
+      "status": "blocked_waiting_on_t02_l3_w08_file_ref_and_l2_w03_write_runtime"
+    },
+    {
+      "tuw_id": "LT-L3-W09-T04",
+      "title": "Rehearse Graph failure partial-state rollback",
+      "status": "blocked_waiting_on_t03_and_l3_w06_graph_monitoring_alerts"
+    },
+    {
+      "tuw_id": "LT-L3-W09-T05",
+      "title": "Write Add-in deployment runbook and assemble W09 evidence",
+      "status": "blocked_waiting_on_t01_through_t04_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_five_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "manifest_validated": false,
+        "pilot_admin_center_deployment_verified": false,
+        "read_mode_e2e_passed": false,
+        "graph_failure_rehearsal_passed": false,
+        "g5_satisfied": false,
+        "l3_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L1-W02\" or .wp_id==\"LT-L1-W10\" or .wp_id==\"LT-L2-W03\" or .wp_id==\"LT-L3-W06\" or .wp_id==\"LT-L3-W07\" or .wp_id==\"LT-L3-W08\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L1-W02\tdecision_round_brief_blocked_pending_owner_decisions\tcommand_evidence_only_blocked",
+        "LT-L1-W10\tdraft_completed_pending_l1_w01_scope_decision\tcommand_evidence_only_blocked",
+        "LT-L2-W03\tblocked_pending_l2_w01_w02_and_write_runtime\tstandard_five_blocked",
+        "LT-L3-W06\tt01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test\tcommand_evidence_only_blocked",
+        "LT-L3-W07\tblocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent\tstandard_five_blocked",
+        "LT-L3-W08\tblocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W09 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "addin_app_and_manifest_presence",
+      "command": "test -d apps/outlook-addin; printf '%s\\n' $?; test -d apps/addin; printf '%s\\n' $?; find apps -maxdepth 4 -type f \\( -iname '*manifest*.xml' -o -iname '*manifest*.json' \\) -print | wc -l",
+      "exit_code": 0,
+      "output": [
+        "1",
+        "1",
+        "0"
+      ],
+      "purpose": "Verify Outlook Add-in app directories and manifest files are absent."
+    },
+    {
+      "id": "required_w09_docs_presence",
+      "command": "test -f docs/launch/l3/addin-release-gate-precheck.md; printf '%s\\n' $?; test -f docs/launch/l3/graph-failure-rehearsal.md; printf '%s\\n' $?; test -f docs/runbooks/addin-deployment-runbook.md; printf '%s\\n' $?",
+      "exit_code": 0,
+      "output": [
+        "1",
+        "1",
+        "1"
+      ],
+      "purpose": "Verify W09 release-gate, failure rehearsal, and runbook docs are absent."
+    },
+    {
+      "id": "w09_launch_evidence_file_count",
+      "command": "find docs/launch/l3 docs/runbooks docs/goal-closeout/lt-l3-w09 -maxdepth 2 -type f \\( -iname '*addin*' -o -iname '*add-in*' -o -iname '*outlook*' -o -iname '*graph-failure*' \\) -print 2>/dev/null | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no W09 launch evidence files exist."
+    },
+    {
+      "id": "pilot_downstream_blockers",
+      "command": "rg -n \"no evidence directory|No Add-in deployment|No Microsoft 365 admin center setting|pending_m365_admin_export|LT-L3-W09\" docs/goal-closeout/lt-l7-w05/pilot-kickoff-checklist.md docs/goal-closeout/lt-l7-w05/command-evidence.json docs/goal-closeout/lt-l8-w02/gate-evidence/g5.md",
+      "exit_code": 0,
+      "output_summary": [
+        "L7 pilot kickoff checklist says W09 Add-in pilot deployment evidence directory is not found.",
+        "L7 pilot evidence says no Add-in deployment was performed.",
+        "L7 pilot evidence says no Microsoft 365 admin center setting was changed."
+      ],
+      "purpose": "Verify downstream pilot docs also treat W09 deployment evidence as absent."
+    },
+    {
+      "id": "m365_runtime_contract_state",
+      "command": "jq '.runtime_admission_gate, .no_runtime_attestation | {implementation_allowed, registers_addin_manifest, calls_graph_api, writes_sharepoint_onedrive, uses_production_credentials}' contracts/email-dms-m365-runtime-contract.json",
+      "exit_code": 0,
+      "output_summary": [
+        "runtime_admission_gate.implementation_allowed is false.",
+        "no_runtime_attestation.registers_addin_manifest is false.",
+        "no_runtime_attestation.calls_graph_api is false.",
+        "no_runtime_attestation.writes_sharepoint_onedrive is false.",
+        "no_runtime_attestation.uses_production_credentials is false."
+      ],
+      "purpose": "Verify current M365 runtime contract does not admit Add-in/Graph runtime."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L3-W09.",
+    "This record does not create Outlook Add-in code, Office.js task pane runtime, or manifest files.",
+    "This record does not validate a manifest or compare manifest permissions to approved Graph scopes.",
+    "This record does not deploy through Microsoft 365 admin center or verify mailbox visibility.",
+    "This record does not run read-mode filing E2E, release gate precheck, Graph-failure rehearsal, or rollback.",
+    "This record does not satisfy G5 or L3-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "subphase_id": "RP00.P02.M01.S01",
+  "source_micro_phase_id": "RP00.P02.M01",
+  "title": "Service entrypoint contract",
+  "micro_title": "Contract Draft",
+  "status": "production_ready",
+  "evidence_created_at": "2026-06-04T13:31:25Z",
+  "implemented_surface": "ControlPlanePlanAuthoringServiceEntrypointContract",
+  "implemented_slice": "plan_authoring_service_entrypoint_contract",
+  "scope": {
+    "entrypoint_id": "plan_authoring",
+    "accepted_input_shape": "control_plane_tenant_boundary_precheck_result_after_RP00.P02.M00.S03",
+    "accepted_tenant_boundary_decision": "allow_metadata_only",
+    "upstream_subphase_refs": {
+      "service_entrypoint_contract": "RP00.P02.M00.S01",
+      "request_normalization": "RP00.P02.M00.S02",
+      "tenant_boundary_precheck": "RP00.P02.M00.S03"
+    },
+    "next_subphase": "RP00.P02.M01.S02"
+  },
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "contract_exports": [
+    "CONTROL_PLANE_PLAN_AUTHORING_SERVICE_ENTRYPOINT_CONTRACT",
+    "CONTROL_PLANE_PLAN_AUTHORING_CONTRACT_ROW_IDS",
+    "CONTROL_PLANE_PLAN_AUTHORING_SERVICE_MODULE",
+    "getControlPlanePlanAuthoringServiceEntrypointContract",
+    "assertControlPlanePlanAuthoringServiceEntrypointContract"
+  ],
+  "acceptance_gate_ids": [
+    "plan_authoring_entrypoint_bound",
+    "accepted_input_shape_bound",
+    "m00_request_normalization_ref_required",
+    "m00_tenant_boundary_precheck_pass_required",
+    "permission_decision_ref_required",
+    "audit_event_ref_required",
+    "contract_rows_declared",
+    "schema_expectations_declared",
+    "human_approval_boundary_preserved",
+    "no_runtime_route_created",
+    "no_service_logic_executed",
+    "no_product_state_writes",
+    "next_subphase_boundary_recorded"
+  ],
+  "boundary": {
+    "synthetic_only": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_execute_service_logic": true,
+    "does_not_create_runtime_route": true,
+    "does_not_mutate_entity_registry": true,
+    "does_not_replace_human_approval": true,
+    "does_not_draft_contract_rows": true
+  },
+  "review": {
+    "claude_gate": "C00",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "completed_session_id": "d121671f-955c-4883-9dca-5b061f3d3e2e",
+    "verdict": "GO",
+    "blocking_findings": 0
+  },
+  "production_ready": true
+}

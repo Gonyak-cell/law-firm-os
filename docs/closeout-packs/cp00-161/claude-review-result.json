@@ -1,0 +1,90 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-161",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "178ff2e6-b67a-4e04-a010-27175af35d61",
+    "uuid": "d42c65df-d524-49ff-885c-44ab55c6092a",
+    "duration_ms": 277106,
+    "duration_api_ms": 279254,
+    "total_cost_usd": 0.8628145,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-161-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-161.master_data_ui_interaction_workflow",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-161-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-161 adds descriptor-only Master Data UI interaction workflow descriptors, fixtures, validators, tests, contract v0.6 bindings, H04/C04 packets, and CP00-162 handoff. No P0/P1 blockers were found. The reported P2 was fixed by adding security_display_rules parity validation. Two P3 items were fixed; the symbolic leak-check hardening item is explicitly deferred until real rendering/data packs.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "notes": "CP00-161 builds UI interaction descriptors only; package code does not execute API handlers, network calls, UI rendering, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "P2-01",
+        "severity": "P2",
+        "title": "Contract ui_interaction_workflow.security_display_rules is not cross-checked against the registry constant",
+        "evidence": "The contract validator cross-checks ui_interaction_workflow.workflow_id, covered_slices, interaction_states, data_dependencies, fixture_ids, and evidence_descriptors between MASTER_DATA_UI_INTERACTION_WORKFLOW and contracts/master-data-contract.json, and validateMasterDataCp161UiInteractionWorkflow re-checks workflow_id and fixture_ids on the projection. Neither validates ui_interaction_workflow.security_display_rules (permission_badge_source, audit_hint_source, denied_copy_source, and especially prohibited_outputs). prohibited_outputs is the leak-prevention control list, so silent drift or removal in the contract JSON would go undetected. Runtime behavior is unaffected because createMasterDataUiInteractionWorkflowCatalog reads the registry constant directly, so this is a projection/consistency gap rather than a functional or security-behavior defect.",
+        "recommended_action": "Add requireEqual/requireIncludes checks asserting contract.ui_interaction_workflow.security_display_rules matches MASTER_DATA_UI_INTERACTION_WORKFLOW.security_display_rules (each of permission_badge_source, audit_hint_source, denied_copy_source, and every prohibited_outputs entry), mirroring the existing evidence_descriptors loop.",
+        "post_review_disposition": "fixed: contract validator and package validator now assert security_display_rules parity, including prohibited_outputs."
+      },
+      {
+        "id": "P3-02",
+        "severity": "P3",
+        "title": "C04 leak check matches category tokens rather than actual hidden-source values",
+        "evidence": "createMasterDataUiInteractionWorkflowCatalog computes prohibited_output_absent by substring-scanning serialized customer-facing descriptors for the literal labels raw_permission_rule, audit_internal_payload, internal_blocked_claim_refs, and hidden_source_values. This verifies absence of the category tokens, not the absence of actual prohibited content (e.g., real permission-rule text, audit payloads, or hidden_source_fields values such as raw_document_body). It is adequate for this synthetic, descriptor-only pack because no real data exists to leak, but the guard is symbolic.",
+        "recommended_action": "Defer for CP00-161. When a later pack renders real data, strengthen the leak check to scan for hidden_source_fields values and actual permission/audit payload content in addition to category tokens.",
+        "post_review_disposition": "deferred: descriptor robustness hardening is tracked for a later pack and does not block this no-write reference closeout."
+      },
+      {
+        "id": "P3-03",
+        "severity": "P3",
+        "title": "Redundant default fixture_id transformation over an unreachable default path",
+        "evidence": "The default fixture_id builds a template that applies slice.replaceAll(\"_slice\",\"\").replaceAll(\"_\",\"-\") and then replaceAll(\"-\",\"_\") across the whole string, so the inner _→- and outer -→_ cancel out, making the transformation effectively a no-op. Every call site (catalog, model.test.js, validate-rp04-master-data-contract.mjs) passes an explicit fixture_id, so the default branch is never exercised. No behavioral impact.",
+        "recommended_action": "Simplify the default to `cp161_ui_fixture_${slice}_${scenario}` and drop the redundant replaceAll chain. Low priority.",
+        "post_review_disposition": "fixed: default fixture_id construction was simplified to cp161_ui_fixture_${slice}_${scenario}."
+      },
+      {
+        "id": "P3-04",
+        "severity": "P3",
+        "title": "One-directional requireIncludes checks allow undetected extra contract entries",
+        "evidence": "covered_slices, data_dependencies, and fixture_ids are validated with requireIncludes (registry subset of contract) but not the reverse, so stale or extra entries added only to the contract JSON would not be flagged. interaction_states and evidence_descriptors use per-key requireEqual which is stronger. Low risk because the contract is maintained alongside the registry.",
+        "recommended_action": "Optionally assert array length/equality for covered_slices, data_dependencies, and fixture_ids to catch contract-only additions.",
+        "post_review_disposition": "fixed: covered_slices, data_dependencies, and fixture_ids now use equality checks in addition to inclusion checks."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 1,
+      "reported_p3": 3
+    }
+  }
+}

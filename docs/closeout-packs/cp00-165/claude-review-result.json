@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-165",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "09b0021e-d729-4fe4-a9be-fec69db0dbbc",
+    "uuid": "951d44ee-cfad-4da3-9383-d7af28c54baf",
+    "duration_ms": 204275,
+    "duration_api_ms": 206245,
+    "total_cost_usd": 0.74524525,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-165-claude-review-output-valid.json"
+  },
+  "invalid_review_attempts": [
+    {
+      "source": "claude_cli",
+      "raw_output_ref": "/tmp/cp00-165-claude-review-output.json",
+      "session_id": "8586687a-02dd-4db6-9fa2-67c90fdf928a",
+      "uuid": "678d518c-2830-4105-8627-2913a5291056",
+      "duration_ms": 139347,
+      "reason": "Malformed non-verdict response; the result text was not the required JSON review object and is not counted as a valid pack-level Claude review."
+    }
+  ],
+  "review_packet": {
+    "review_id": "C04.CP00-165.master_data_permission_matrix_workflow",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-165-claude-prompt-valid.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-165 is a clean descriptor-only continuation of the RP04 master-data closeout series. The contract bumps to v0.10 with current_pack/upstream/next bindings, range RP04.P05.M06.S04-RP04.P06.M04.S17, and a CP00-166 handoff that are internally consistent; CP164 ends at S03 and CP165 starts at S04 with no gap. Coverage distributions sum exactly to 150 (deliverable 28+7+59+24+15+3+14; phases 69+81; micro-phases 17/20/20/8/4/11/11/20/22/17), and the permission-matrix workflow, decision descriptors, catalog, and validators construct only frozen plain objects. No-write and permission/audit boundaries hold: every result sets evaluates_runtime_permission, appends_audit_event, dispatches_review/approval_route, executes_api_handler, renders_ui, mutates_dom, executes_ai_retrieval/analytics to false, matched rules are captured as references only (exposes_raw_rule false), and audit events are expectation-only with no append. All data is synthetic (no real client data), so there is no data leakage. Hermes (H04) and Claude (C04, opus-4-8/max/read_only) evidence packets and the closeout handoff are well-formed and validator-gated. Two non-blocking P3 advisories: internal reference IDs appear on the named customer-facing surface (no runtime leak, but worth confirming before downstream rendering), and two new false-valued route-dispatch attestation keys are required by the validator loop but not visible as additions in the contract diff (operator-reported validation passing implies presence). Approved.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "notes": "CP00-165 builds frozen permission matrix workflow descriptors, decision descriptors, and synthetic fixture-tail references only; package code does not execute runtime permission checks, audit appends, API handlers, UI rendering, AI retrieval, analytics, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "CP00-165-C04-F001",
+        "severity": "P3",
+        "title": "customer_facing_decision embeds internal reference identifiers on the renderable surface",
+        "file": "packages/master-data/src/service.js",
+        "line": null,
+        "description": "In createMasterDataPermissionMatrixDecisionDescriptor the object explicitly named customer_facing_decision includes permission_ref, audit_hint_ref, and matched_rule_ref. leak_guard.renderable_surface is declared 'customer_facing_permission_matrix_descriptors_only', yet leak_guard.prohibited_outputs only screens for *_payload / raw_* / *_internal_rule style names, so the substring scan in prohibited_output_absent passes these reference identifiers. The values here are synthetic descriptor refs (e.g. 'matched_rule_cp165_denied_export', 'audit_hint_cp165'), so there is no actual data leak and no runtime rendering occurs in this descriptor-only pack, but a strict customer-facing permission response would typically omit internal rule/audit reference IDs.",
+        "recommendation": "Before any downstream RP04.P06 pack renders this surface, confirm whether permission_ref/audit_hint_ref/matched_rule_ref belong on customer_facing_decision or only on the internal evidence layer (matched_rule_capture/audit_hint_fields), and if they must not be customer-visible, extend leak_guard to screen reference-style field names rather than only *_payload/raw_* substrings.",
+        "post_review_disposition": "deferred: CP00-165 has no rendering or runtime exposure; downstream RP04.P06 rendering or real-data packs must decide whether customer_facing_decision may include reference-style fields and harden leak guards before rendering."
+      },
+      {
+        "id": "CP00-165-C04-F002",
+        "severity": "P3",
+        "title": "New false-valued attestation keys required by the validator loop are not visible in the contract diff",
+        "file": "contracts/master-data-contract.json",
+        "line": null,
+        "description": "The validator loop in scripts/validate-rp04-master-data-contract.mjs now iterates Object.entries(MASTER_DATA_CP165_NO_WRITE_ATTESTATION) and asserts each key exists in contract.no_write_attestation. CP165_NO_WRITE_ATTESTATION (registry.js) spreads CP164 and additionally sets several false-valued keys including dispatches_review_route and dispatches_approval_route, which are new permission-matrix concepts. The contract no_write_attestation diff only shows the 10 new true-valued builds_*/exercises_* keys being added; the new false-valued route-dispatch keys are not shown as added. If those keys were absent the loop would emit 'no_write_attestation.<key> is required' and fail. Operator-reported rp04:master-data:validate passing implies they are present (presumably already carried from CP164), but their presence cannot be confirmed from the provided diff alone.",
+        "recommendation": "No change required if rp04:master-data:validate passes as reported; for evidence completeness, confirm contract.no_write_attestation explicitly carries dispatches_review_route:false and dispatches_approval_route:false so the no-write attestation surface is fully self-documenting rather than inherited implicitly.",
+        "post_review_disposition": "addressed: contract.no_write_attestation explicitly contains dispatches_review_route:false and dispatches_approval_route:false, and rp04:master-data:validate passes the validator loop."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

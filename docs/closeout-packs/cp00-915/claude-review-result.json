@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-915",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-915/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-915/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0d38c93d-0602-47e2-b429-08414ea14195",
+    "uuid": "0000d320-9255-4cfc-ab61-4ef5d0b5d829",
+    "total_cost_usd": 2.7467702499999995,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6210,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-915 is a descriptor-only RP30 embedded-HRX bridge carrying the LeaveWorkflow final tail (RP30.P02.M07.S10-S12) into AttendanceWorkflow re-entry rows (RP30.P02.M08.S01-S07), 10 units, risk class A. Read-only static inspection confirms the pack supports its eventual production_ready (descriptor-verified) promotion: (1) the CP915 binding, descriptor, coverage validator, and tests are mutually consistent and match closeout-pack-plan.json and the committed contract; (2) coverage is contiguous and gap-free (M07 ends at S12 with no S13 in plan numbering; CP915 flows M07.S12->M08.S01 and hands off to CP916 at M08.S08); the weighted-ledger LeaveWorkflow split-13 is a distinct earlier micro (M01), not this pack's M07; (3) every runtime/leave-and-attendance-payload/decision-write/attendance-record-write/real-data/credential flag is forced false in registry rows, the descriptor, baseline_decisions, domain_entities, and HRX_NO_WRITE_ATTESTATION, and the validators reject any drift; (4) packages/hrx/src contains no write/network/child_process/env/fs operations and no real PII; (5) the authority boundary is correct: claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true, and the Hermes packet emits_runtime_receipt=false (deterministic review-evidence/control-plane only, not product runtime). Review infrastructure is healthy (auth preflight exit 0, valid JSON, non-empty stdout) and this is the sole review attempt (no prior valid/invalid attempts; exactly_one_valid_pack_review_required honored). The manifest correctly holds production_ready=false / runtime_ready=false / status in_progress pending this gate. The pack does not claim runtime or enterprise trust, so the human/enterprise-trust approval boundary does not block this CP closeout goal. No P0/P1/P2 issues found; one non-blocking P3 documents that final promotion remains correctly gated on the deferred full validation ladder, adjudication, and commit, which were not re-executed in this read-only review.",
+    "findings": [
+      {
+        "id": "CP915-P3-01",
+        "severity": "P3",
+        "title": "Final production_ready promotion remains gated on deferred validation ladder/adjudication not re-executed in this read-only review",
+        "file": "docs/closeout-packs/cp00-915/command-evidence.json",
+        "line": 17,
+        "details": "command-evidence.json records six HRX-scoped commands at exit_code 0 (node --check, node --test, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate) with gate_outcome 'pending_pack_review' and hermes_gate status 'pending'. The full deterministic validation ladder named in the prompt/baseline (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) plus adjudication, production_ready promotion, queue regeneration, and commit are explicitly deferred to post-review per the command-evidence notes and the manifest pending state. This is by-design sequencing matching the prior CP00-911..CP00-914 closeouts, not a defect. As a read-only reviewer I verified descriptor/validator/test/contract consistency via static inspection only and did not re-execute these commands, so reported command exit codes are pack-supplied evidence rather than reviewer-reproduced results.",
+        "recommendation": "No action required for this review gate. During adjudication/promotion, ensure the full validation ladder and git diff --check are executed and recorded green before flipping production_ready to true, consistent with the established pack pattern.",
+        "post_review_disposition": "informational_non_blocking_expected_sequencing"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

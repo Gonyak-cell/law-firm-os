@@ -1,0 +1,34 @@
+{
+  "work_package_id": "LT-L8-W01",
+  "created_at": "2026-06-18T12:17:36Z",
+  "status": "review_waived_by_user",
+  "review_type": "full_claude_review",
+  "model": null,
+  "effort": null,
+  "read_only": null,
+  "exactly_one_valid_claude_review_run": false,
+  "valid_review_evidence": false,
+  "qualifies_as_required_review": false,
+  "model_not_run": true,
+  "waiver": {
+    "waived_by": "user",
+    "instruction": "From now on, skip full Claude reviews.",
+    "recorded_effect": "The waiver is recorded for traceability but does not count as independent review evidence."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "advisory": 0
+  },
+  "review_text": null,
+  "required_fixes": [],
+  "deferred_or_informational": [],
+  "satisfies_governance_review_gate": false,
+  "requires_later_owner_policy_disposition": true,
+  "notes": [
+    "No Claude review was executed for LT-L8-W01.",
+    "This file is not a review receipt and cannot satisfy valid-review evidence.",
+    "The work package may record local validator acceptance, but not go-live approval."
+  ]
+}

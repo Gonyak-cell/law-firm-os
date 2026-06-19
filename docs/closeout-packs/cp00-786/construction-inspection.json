@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-786",
+  "subphase_id": "RP25.P09.M06.S06",
+  "verdict": "PASS",
+  "production_ready": true,
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2,
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "adjudicated_non_blocking"
+  },
+  "migration_platform_review_packet_risk_bridge_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-786 is production_ready after exactly one valid hardened read-only Claude review receipt; the next explicit CP boundary is CP00-787 / RP25.P09.M06.S07. P0/P1/P2 findings are zero; the two P3 findings are non-blocking and adjudicated.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-786/review-receipt.json",
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "CP786-invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "stdout_0_bytes; required_field_error: parsed_review missing",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-786/review-receipt-invalid-attempt-01.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-786/raw-output-invalid-attempt-01.json",
+      "valid_review": false,
+      "counted_as_pack_level_review": false
+    }
+  ]
+}

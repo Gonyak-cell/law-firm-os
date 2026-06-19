@@ -1,0 +1,320 @@
+{
+  "schema_version": "law-firm-os.go-live-gate-contract.v0.1",
+  "status": "governance_contract",
+  "source_refs": [
+    "workbook/matter-post-cp-launch-plan.md:247-263",
+    "workbook/launch-tuw/19_L8.md",
+    "contracts/runtime-readiness-contract.json",
+    "docs/closeout-pack-plan/runtime-gate-layer.md"
+  ],
+  "source_of_truth_position": "additive_go_live_gate_contract",
+  "scope": {
+    "launch_track": "Law Firm OS internal AMIC tenant go-live",
+    "wave": "Wave 1",
+    "does_not_replace": [
+      "production_ready",
+      "runtime_ready",
+      "goal-closeout protocol",
+      "human approval records"
+    ],
+    "numeric_threshold_policy": "Do not hardcode RPO/RTO, performance, staffing, or acceptance thresholds in this contract. Store threshold approvals as evidence references on the relevant gate."
+  },
+  "gate_order": [
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6",
+    "G7",
+    "G8",
+    "G9",
+    "G10"
+  ],
+  "gates": {
+    "G1": {
+      "dimension": "completion",
+      "criteria": [
+        "Final Product Completion Gate is green.",
+        "Every deferred item has a fresh blocking, non-blocking, or wave-2-plus disposition.",
+        "No blocking deferred item remains open.",
+        "Hardening coverage is either complete or every missing cell has adjudication."
+      ],
+      "evidence": [
+        {
+          "id": "G1-E01",
+          "slot": "final_product_completion_gate_output",
+          "required_state": "exit_0_with_timestamp"
+        },
+        {
+          "id": "G1-E02",
+          "slot": "deferred_item_rejudgment_register",
+          "required_state": "blocking_remaining_count_zero"
+        },
+        {
+          "id": "G1-E03",
+          "slot": "hardening_coverage_matrix",
+          "required_state": "all_missing_cells_adjudicated_or_zero"
+        }
+      ]
+    },
+    "G2": {
+      "dimension": "runtime",
+      "criteria": [
+        "Wave 1 candidate functions are runtime_ready.",
+        "Runtime integration tests are green.",
+        "RTG-001 through RTG-005 attestations are linked for Wave 1 runtime functions."
+      ],
+      "evidence": [
+        {
+          "id": "G2-E01",
+          "slot": "wave1_runtime_ready_matrix",
+          "required_state": "approved_wave1_runtime_ready_completeness_rule_satisfied"
+        },
+        {
+          "id": "G2-E02",
+          "slot": "runtime_integration_test_output",
+          "required_state": "all_tests_pass_with_timestamp"
+        },
+        {
+          "id": "G2-E03",
+          "slot": "rtg_001_005_attestation_links",
+          "required_state": "all_links_resolve"
+        }
+      ]
+    },
+    "G3": {
+      "dimension": "security",
+      "criteria": [
+        "Verification Gate seven-item production rerun is green.",
+        "Ethical Wall five-path blocking is green.",
+        "Open P0/P1 penetration-test findings are zero.",
+        "Prohibited and non-goal bypass mapping is green."
+      ],
+      "evidence": [
+        {
+          "id": "G3-E01",
+          "slot": "verification_gate_production_rerun",
+          "required_state": "seven_of_seven_pass"
+        },
+        {
+          "id": "G3-E02",
+          "slot": "ethical_wall_blocking_results",
+          "required_state": "five_of_five_pass_with_audit"
+        },
+        {
+          "id": "G3-E03",
+          "slot": "penetration_test_adjudication",
+          "required_state": "open_p0_p1_zero"
+        },
+        {
+          "id": "G3-E04",
+          "slot": "bypass_mapping_results",
+          "required_state": "all_rows_green"
+        }
+      ]
+    },
+    "G4": {
+      "dimension": "infrastructure_dr",
+      "criteria": [
+        "Backup restore rehearsal meets approved RPO/RTO.",
+        "WORM chain operation is verified.",
+        "Deployment rollback round trip is demonstrated.",
+        "Performance acceptance criteria are met."
+      ],
+      "evidence": [
+        {
+          "id": "G4-E01",
+          "slot": "backup_restore_rehearsal",
+          "required_state": "meets_approved_rpo_rto"
+        },
+        {
+          "id": "G4-E02",
+          "slot": "worm_chain_operation",
+          "required_state": "hash_verify_mutation_block_and_hold_purge_block"
+        },
+        {
+          "id": "G4-E03",
+          "slot": "deployment_rollback_roundtrip",
+          "required_state": "start_end_timestamp_pairs_present"
+        },
+        {
+          "id": "G4-E04",
+          "slot": "performance_acceptance_report",
+          "required_state": "all_metrics_within_approved_thresholds"
+        }
+      ]
+    },
+    "G5": {
+      "dimension": "m365",
+      "criteria": [
+        "Admin consent evidence matches approved Graph scope list.",
+        "Outlook Add-in Release Gate six items pass in production.",
+        "Permission sync checker runs and detects an injected mismatch."
+      ],
+      "evidence": [
+        {
+          "id": "G5-E01",
+          "slot": "admin_consent_scope_reconciliation",
+          "required_state": "mismatch_count_zero"
+        },
+        {
+          "id": "G5-E02",
+          "slot": "addin_release_gate_production_results",
+          "required_state": "six_of_six_pass"
+        },
+        {
+          "id": "G5-E03",
+          "slot": "permission_sync_checker_log",
+          "required_state": "injected_mismatch_detected"
+        }
+      ]
+    },
+    "G6": {
+      "dimension": "operations",
+      "criteria": [
+        "SLO dashboard and alert fire test are proven.",
+        "Incident, break-glass, and rollback runbooks have tabletop records.",
+        "Break-glass procedure is effective with approved approver and time limit.",
+        "Support channel receives and resolves a test request."
+      ],
+      "evidence": [
+        {
+          "id": "G6-E01",
+          "slot": "slo_dashboard_and_alert_fire",
+          "required_state": "dashboard_capture_and_alert_timestamp_pair"
+        },
+        {
+          "id": "G6-E02",
+          "slot": "runbook_tabletop_records",
+          "required_state": "incident_breakglass_rollback_each_at_least_once"
+        },
+        {
+          "id": "G6-E03",
+          "slot": "break_glass_effective_record",
+          "required_state": "approved_approver_and_time_limit_present"
+        },
+        {
+          "id": "G6-E04",
+          "slot": "support_channel_roundtrip",
+          "required_state": "test_request_received_and_resolved"
+        }
+      ]
+    },
+    "G7": {
+      "dimension": "compliance",
+      "criteria": [
+        "Ratified PIPA retention policy matches system settings.",
+        "Wave 1 AI is off or later Wave 2 AI gate is satisfied.",
+        "HR sensitive store has zero real-data records before HR gate."
+      ],
+      "evidence": [
+        {
+          "id": "G7-E01",
+          "slot": "pipa_retention_policy_setting_reconciliation",
+          "required_state": "mismatch_count_zero"
+        },
+        {
+          "id": "G7-E02",
+          "slot": "ai_disabled_state_or_wave2_gate",
+          "required_state": "all_wave1_ai_off_or_wave2_gate_pass"
+        },
+        {
+          "id": "G7-E03",
+          "slot": "hr_sensitive_store_count",
+          "required_state": "real_record_count_zero"
+        }
+      ]
+    },
+    "G8": {
+      "dimension": "data",
+      "criteria": [
+        "Backfill reconciliation satisfies the approved completeness rule with all differences explained.",
+        "Delta synchronization procedure is running.",
+        "Rollback-ready state is current."
+      ],
+      "evidence": [
+        {
+          "id": "G8-E01",
+          "slot": "backfill_reconciliation_report",
+          "required_state": "approved_reconciliation_completeness_rule_satisfied_and_unexplained_diff_zero"
+        },
+        {
+          "id": "G8-E02",
+          "slot": "delta_sync_latest_log",
+          "required_state": "latest_run_timestamp_and_count_present"
+        },
+        {
+          "id": "G8-E03",
+          "slot": "rollback_ready_attestation",
+          "required_state": "current_owner_and_date_present"
+        }
+      ]
+    },
+    "G9": {
+      "dimension": "governance",
+      "criteria": [
+        "The go-live gate goal has its goal-closeout evidence chain assembled.",
+        "All required closeout links resolve.",
+        "G1 through G8 are pass before G9 is used as a go-live governance claim."
+      ],
+      "evidence": [
+        {
+          "id": "G9-E01",
+          "slot": "goal_closeout_chain_links",
+          "required_state": "all_links_resolve"
+        },
+        {
+          "id": "G9-E02",
+          "slot": "governance_evidence_files",
+          "required_state": "required_files_exist"
+        },
+        {
+          "id": "G9-E03",
+          "slot": "g1_through_g8_readiness_report",
+          "required_state": "g1_to_g8_all_pass"
+        }
+      ]
+    },
+    "G10": {
+      "dimension": "human_approval",
+      "criteria": [
+        "Managing Partner and System Admin sign off in the approved L1-W05 format.",
+        "The signoff artifact records G1 through G9 results and decision date.",
+        "The go-live decision record is linked and resolvable."
+      ],
+      "evidence": [
+        {
+          "id": "G10-E01",
+          "slot": "joint_signoff_artifact",
+          "required_state": "two_required_signatures_present"
+        },
+        {
+          "id": "G10-E02",
+          "slot": "g1_through_g9_decision_table",
+          "required_state": "nine_rows_and_decision_date_present"
+        },
+        {
+          "id": "G10-E03",
+          "slot": "launch_decision_register_entry",
+          "required_state": "linked_and_resolvable"
+        }
+      ]
+    }
+  },
+  "no_go_policy": {
+    "partial_pass_carryover": "forbidden",
+    "missing_or_failed_dimension_result": "no_go",
+    "p0_p1_adjudication_required_before_rejudgment": true,
+    "full_gate_rejudgment_required_after_fix": true,
+    "local_waiver_without_owner_approval": "forbidden",
+    "review_waiver_counts_as_valid_review_evidence": false
+  },
+  "non_weakening_clause": [
+    "Closed CP evidence is read-only and must not be rewritten to satisfy go-live.",
+    "Go-live readiness is an additive gate above production_ready and runtime_ready.",
+    "Lower gate output cannot be implied or substituted by a higher gate document.",
+    "Synthetic validation fixtures prove validator behavior only and do not prove live go-readiness.",
+    "Human signoff remains required for G10 and cannot be synthesized by automation."
+  ]
+}

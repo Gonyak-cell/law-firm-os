@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-008",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "f0a56f28-1aef-4fb7-bebc-2c767107820e",
+    "uuid": "9424a7db-aec1-4b58-a348-7a6fbddb3a0c",
+    "total_cost_usd": 1.0255745,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1
+    },
+    "findings": [
+      {
+        "severity": "P2",
+        "file": "packages/control-plane/src/policies.js",
+        "line": 2272,
+        "title": "Persistence boundary result omits persistence_store_write_permitted attestation",
+        "description": "S12 exposed persistence_record_write_permitted=false but lacked a sibling persistence_store_write_permitted=false result attestation even though policy and scope already rejected write_persistence_store claims.",
+        "recommendation": "Add persistence_store_write_permitted=false to the S12 result fields, precheck result, validator, fixture, and tests."
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P2",
+        "status": "fixed",
+        "file": "packages/control-plane/src/policies.js",
+        "line": 2272,
+        "title": "Persistence boundary result omits persistence_store_write_permitted attestation",
+        "resolution": "Added persistence_store_write_permitted=false to CONTROL_PLANE_PERMISSION_AUDIT_BINDING_PERSISTENCE_BOUNDARY_RESULT_FIELDS, the S12 precheck result object, result validator false-field enforcement, service tests, fixture precheck_result, and contract result_fields; also added persistence_store_write_claim to failClosedOn for parity."
+      }
+    ]
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-008.",
+    "Claude returned PASS_WITH_FINDINGS with zero P0, zero P1, and one P2 finding.",
+    "The P2 attestation-symmetry finding was fixed before pack closeout.",
+    "No unresolved findings remain after adjudication."
+  ]
+}

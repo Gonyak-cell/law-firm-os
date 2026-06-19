@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.launch-authority-traceability-audit.v0.1",
+  "generated_at": "2026-06-18T15:32:36.637Z",
+  "source_refs": [
+    "/Users/jws/Downloads/LAUNCH_TUW_PACKAGE_PART1_COMBINED.md",
+    "workbook/launch-tuw",
+    "workbook/launch-tuw/launch-tuw-ledger.json"
+  ],
+  "verdict": "PASS",
+  "authority_inputs": {
+    "combined_package": {
+      "path": "/Users/jws/Downloads/LAUNCH_TUW_PACKAGE_PART1_COMBINED.md",
+      "exists": true,
+      "embedded_file_marker_count": 7,
+      "required_embedded_file_marker_count": 7,
+      "required_principle_count": 6,
+      "required_principles_present_count": 6
+    },
+    "workbook": {
+      "path": "workbook/launch-tuw",
+      "exists": true,
+      "required_files_count": 15,
+      "required_files_present_count": 15
+    }
+  },
+  "summary": {
+    "work_package_count": 72,
+    "tuw_count": 344,
+    "phase_order": "PRE,L0,L1,L2,L3,L4,L5,L6,L7,L8,L9",
+    "phase_counts": "{\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}",
+    "markdown_tuw_id_count": 344,
+    "tuw_markdown_coverage_count": 344,
+    "wp_terminal_tuw_valid_count": 72,
+    "tuw_source_refs_present_count": 344,
+    "tuw_deliverables_present_count": 344,
+    "tuw_verification_contract_complete_count": 344,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "planning_authority_traceability_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "closed_cp_evidence_is_read_only": true,
+    "combined_package_is_planning_authority": true,
+    "workbook_launch_tuw_is_executable_ledger_authority": true
+  },
+  "findings": []
+}

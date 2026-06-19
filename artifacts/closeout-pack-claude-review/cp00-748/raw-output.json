@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-748",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T11:09:45.827Z",
+  "finished_at": "2026-06-15T11:16:41.368Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":415000,\"duration_api_ms\":415265,\"ttft_ms\":3752,\"num_turns\":49,\"result\":\"Review complete. **Verdict: PASS** — no findings, nothing blocking pack or this-CP goal closeout.\\n\\nKey points:\\n- **CP00-748** is a clean descriptor-only slice consistent with the established CP00-722→747 pattern. Distribution (40 units), range, row→title mapping, plan/queue cursor (live latest CP00-748 → CP00-749/RP24.P07.M06.S09), and contract latest projection all reconcile.\\n- **Boundaries enforced**: no product-state write, no real data, no Korean-legal runtime, Claude read-only/non-final, Hermes evidence-only (`emits_runtime_receipt:false`). These are hard-coded in the factory functions, checked by validators, and asserted by CP748 tests.\\n- **Honest state**: manifest `production_ready:false`/`runtime_ready:false`, adjudication 0 P0/P1/P2 — correctly PENDING this gating review, not an unresolved blocker.\\n- **Review-hardening clean**: auth preflight passed with well-formed non-zero JSON; no invalid attempts laundered as valid; no forbidden tools; nothing omitted from scope.\\n\\nProvenance caveat I want to be explicit about: I inspected all source/artifacts directly, but as a read-only reviewer I did **not** re-run the validation commands — the exit-0 results in `command-evidence.json` are pack-reported, though corroborated by the consistent source state I read.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e8f6dd16-1ca6-48be-9453-2ab2e8bb95c6\",\"total_cost_usd\":2.6403965,\"usage\":{\"input_tokens\":64,\"cache_creation_input_tokens\":129720,\"cache_read_input_tokens\":2222187,\"output_tokens\":28679,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":129720,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":486,\"cache_read_input_tokens\":127315,\"cache_creation_input_tokens\":2766,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2766},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1153,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001258,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":64,\"outputTokens\":28679,\"cacheReadInputTokens\":2222187,\"cacheCreationInputTokens\":129720,\"webSearchRequests\":0,\"costUSD\":2.6391385,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-748 (RP24.P07.M04.S13-RP24.P07.M06.S08, Risk B, 40 units, descriptor-only Korean Legal Depth P07 permission fixture bridge) passes independent read-only review. PROVENANCE: I inspected all source/artifacts directly via Read/Grep/Glob; I did NOT re-execute validation commands (read-only reviewer), so the exit-0 results in command-evidence.json are reported-by-pack but corroborated by my direct source inspection. VERIFIED: (1) Baseline/manifest/registry binding/contract latest_projection/plan-queue all agree — live_latest_pack_id CP00-748, cursor advances to CP00-749/RP24.P07.M06.S09. (2) Deliverable distribution (failure_recovery:20, implementation:4, hermes_evidence:4, fixture:2, test:4, security_audit:4, claude_review:2 = 40) and micro-title counts (10/22/8) match across baseline, KOREAN_LEGAL_CP748_REQUIREMENTS, and validator logic; the 22-element failure-workflow row array slices (M04 slice(12)=10, M05 full=22, M06 slice(0,8)=8) map correctly to all 40 unit titles. (3) createDescriptor/createCaseSet hard-code descriptor_only:true, runtime_execution:false, all *_runtime_opened:false, no raw/legal/credential/client payloads; ROW_EXTRAS never set a prohibited flag true. (4) validators.js enforces program/upstream IDs, human-approval-required-for-runtime, claude-not-final, no enterprise-trust claim, no Korean-legal runtime, no permission-decision/cross-tenant/audit-body leakage, Hermes/Claude gates, handoff and contract-projection drift. (5) model.test.js covers CP748 binding+coverage, descriptor runtime-closed (runtime_opening_pack_id CP00-749, hermes emits_runtime_receipt:false, claude read_only:true), and contract latest projection. (6) Hermes used only for descriptor-only evidence packets, not product runtime; index.js re-exports all 6 required public exports. (7) Review-hardening: readiness auth-preflight passed with well-formed non-zero JSON, claude-review-result has no invalid attempts laundered as valid and no prior receipts, validation-report confirms no forbidden tools / prompt within size / nothing omitted. Pack state is honestly PENDING (production_ready:false, runtime_ready:false; adjudication 0 P0/P1/P2) awaiting this gating review — the expected pre-review state, not an unresolved blocker. Authority boundary intact: Claude is a read-only non-final reviewer; runtime/enterprise-trust opening is correctly deferred to human approval and is outside this receipt. No P0/P1/P2/P3 findings; nothing blocks pack or this-CP goal closeout.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"28d0568c-801b-4964-9600-9fd656dbdb9f\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5472,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e8f6dd16-1ca6-48be-9453-2ab2e8bb95c6",
+    "uuid": "28d0568c-801b-4964-9600-9fd656dbdb9f",
+    "total_cost_usd": 2.6403965,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

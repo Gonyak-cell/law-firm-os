@@ -1,0 +1,69 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-669",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "18eaf192-275a-47cf-83cd-a30888db6a30",
+    "uuid": "71effd1c-8bdd-4843-82c1-c37ecaee1e25",
+    "total_cost_usd": 2.27992475,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-669/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-669/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-669 (RP22 External Integrations I — Synthetic Fixture/Test-Golden/Hermes/Claude/Handoff tail closeout plus RP22.P02 Service Contract + Type-Shape descriptor opening, 150 units, risk C) is a clean, descriptor-only pack correctly standing at production_ready=false pending exactly this hardened read-only review.\n\nIndependently verified (Read/Grep/Glob only): (1) Implementation in registry.js/service.js/validators.js/index.js is coherent and descriptor-only; every CP669 result is frozen through freezeCp669Result with a comprehensive no-write attestation (writes_product_state=false, calls_external_provider_api=false, persists_access/refresh_token=false, stores_secret_material=false, emits_hermes_runtime_receipt=false, includes_raw_external_payload/credential/secret_value=false, leak_detected=false). (2) validateExternalIntegrationsICp669ServiceContractTypeShapeFoundationDescriptor and Coverage assert descriptor_only/runtime_execution=false/customer_safe/raw_payload=false per row, persistence_boundary_no_write, runtime_execution_opened=false, all runtime_boundary flags closed, and claude_is_final_approval=false. (3) model.test.js covers CP669 distribution, descriptor validity, runtime-closed boundaries, read-only Claude, handoff to CP00-670/RP22.P02.M03.S01, and asserts both contract files deep-equal the freshly built projection. (4) contracts/external-integrations-i-contract.json and integrations-core-contract.json on disk are regenerated (current_pack=CP00-669, generated_from_pack_id=CP00-669, cp669_requirements + cp669_descriptor embedded with matching counts). (5) I recomputed the deliverable distribution from all 150 baseline units: implementation 77 / ui 23 / fixture 4 / test 20 / hermes_evidence 4 / claude_review 7 / contract 3 / security_audit 6 / failure_recovery 6 = 150, and micro-title (16/22/20/20/10/20/20/22) and phase (P01=88, P02=62) counts all match the prompt, requirements, baseline, and manifest.\n\nAuthority/hardening: Claude is held as read_only_independent_reviewer and not final approver everywhere (authority_boundary, promotes_claude_to_final_approval=false, validator assertions); Hermes is descriptor-only evidence (hermes_runtime_opened=false), not embedded product runtime; enterprise-trust claim is closed outside this receipt. CP178+ hardening holds: prompt excludes full diff/source and mandates read tools, readiness auth-preflight passed with valid JSON (exit 0, 1436-byte stdout), valid_review_receipts=[] and invalid_review_attempts=[] with no auth-failure/0-byte/malformed/fenced/tool-call/missing-field output counted as valid. Pending-state evidence is internally consistent across manifest, command-evidence, construction-inspection, claude-review-result, and adjudication.\n\nProvenance: the validation command exit codes (npm test, npm run build, closeout-pack/plan validators, rp22 validators, git diff --check) are as-reported in command-evidence.json; per the read-only mandate I did not (and cannot) re-execute them — I verified the static code, contracts, artifacts, and distribution math directly. Only two non-blocking P3 metadata/cosmetic observations were found; no P0/P1/P2. This PASS receipt does not constitute final human/enterprise-trust approval, which remains a human authority outside this receipt.",
+    "findings": [
+      {
+        "id": "CP00-669-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json dual-classifies new-session-handoff.md as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-669/changed-file-scope.json",
+        "line": 184,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed under untracked_implementation_files (line 184) and simultaneously under unrelated_dirty_files_preserved (line 191). The two categories are mutually exclusive. The authoritative pack manifest (docs/closeout-packs/cp00-669/manifest.json) classifies this file only as unrelated_dirty_files_preserved and omits it from active_pack_required_untracked_files and active_pack_implementation_refs, so it is genuinely out of pack scope. This is an internal inconsistency in the review-support scope artifact, not in any pack deliverable.",
+        "recommendation": "Have the scope-generator exclude new-session-handoff.md from untracked_implementation_files so the changed-file-scope.json matches the authoritative manifest classification. No pack-deliverable change required.",
+        "post_review_disposition": "Non-blocking. Recorded for the human adjudicator; closeout may proceed. Does not affect production_ready evidence or no-write boundaries."
+      },
+      {
+        "id": "CP00-669-P3-02",
+        "severity": "P3",
+        "title": "Generated micro_titles for RP22.P02.M00/M01/M02 reuse P00 labels while rows are service-implementation rows",
+        "file": "packages/integrations-core/src/registry.js",
+        "line": 740,
+        "details": "EXTERNAL_INTEGRATIONS_I_CP669_REQUIREMENTS.required_section_micro_titles maps RP22.P02.M00->\"Scope Inventory\", RP22.P02.M01->\"Contract Draft\", RP22.P02.M02->\"Type And Shape Definition\" (labels first used in RP22.P00), yet those sections' required_section_rows are service-implementation rows (Service entrypoint contract, Tenant boundary precheck, Persistence boundary, Rollback/Retry behavior, Unit test: review path, Integration smoke case, etc.). The labels are therefore not semantically descriptive of the row content. This is consistent across the prompt, requirements, baseline, and manifest and is enforced by the validator (section micro_title must equal the mapping), so it is an intended weighted-ledger generator labeling artifact, not drift.",
+        "recommendation": "Confirm the micro_title labeling is the intended generator behavior; if desired, future ledger generations could assign P02 service phases more descriptive micro_titles. No correctness or no-write impact for this pack.",
+        "post_review_disposition": "Non-blocking cosmetic observation. Internally consistent and validator-enforced; recorded for awareness only."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "user_waiver": null
+}

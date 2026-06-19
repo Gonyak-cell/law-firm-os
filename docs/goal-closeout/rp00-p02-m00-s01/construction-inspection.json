@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P02.M00.S01",
+  "source_micro_phase_id": "RP00.P02.M00",
+  "title": "Service entrypoint contract",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-04T12:31:10.000Z",
+  "control_plane_service_entrypoint_contract_verified": true,
+  "three_entrypoints_declared": true,
+  "entrypoint_ids_verified": [
+    "plan_authoring",
+    "ai_implementation_handoff",
+    "hermes_validation"
+  ],
+  "required_context_fields_verified": true,
+  "permission_audit_before_execution_required": true,
+  "audit_event_required": true,
+  "human_approval_boundary_preserved": true,
+  "request_normalization_deferred": "RP00.P02.M00.S02",
+  "tenant_boundary_precheck_deferred": "RP00.P02.M00.S03",
+  "synthetic_fixture_contract_verified": true,
+  "list_entrypoints_behavior_verified": true,
+  "service_logic_not_executed": true,
+  "runtime_route_not_created": true,
+  "entity_registry_not_mutated": true,
+  "states_js_not_mutated": true,
+  "rp00_not_closed": true,
+  "rp00_p02_not_completed": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "human_acceptance_or_explicit_next_goal_boundary": "Explicit next boundary is RP00.P02.M00.S02; no sensitive human approval action is performed by this synthetic service entrypoint contract.",
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 1,
+    "p1_status": "fixed_by_closeout_evidence",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed_or_adjudicated",
+    "closeout_blocker_status": "fixed_by_closeout_evidence"
+  },
+  "next_subphase": "RP00.P02.M00.S02"
+}

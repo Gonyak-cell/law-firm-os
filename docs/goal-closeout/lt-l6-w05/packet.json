@@ -1,0 +1,45 @@
+{
+  "work_package_id": "LT-L6-W05",
+  "title": "Change management and rollback operating model",
+  "created_at": "2026-06-18T14:53:52Z",
+  "status": "t01_runbook_t02_tabletop_scaffold_blocked_pending_real_change_pipeline_deploy_regression_and_rollback_evidence",
+  "phase": "L6",
+  "gate_binding": [
+    "G6",
+    "L6-EXIT"
+  ],
+  "terminal_tuw": "LT-L6-W05-T02",
+  "artifacts": [
+    "docs/launch/runbooks/change-management.md",
+    "docs/launch/runbooks/rollback-runbook.md",
+    "docs/launch/runbooks/rehearsal/change-rollback-demo.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l6-w05/packet.json",
+    "docs/goal-closeout/lt-l6-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l6-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l6-w05/adjudication.md",
+    "docs/goal-closeout/lt-l6-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "change_steps": 4,
+    "regression_map_rows": 7,
+    "cp_gate_rows": 7,
+    "rollback_decision_rows": 4,
+    "procedure_evidence_slots": 5,
+    "rollback_tabletop_scenarios": 3,
+    "real_change_processed": false,
+    "ci_green_log_present": false,
+    "deployment_log_present": false,
+    "regression_evidence_present": false,
+    "rollback_executed": false,
+    "tabletop_conducted": false,
+    "g6_satisfied": false,
+    "l6_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

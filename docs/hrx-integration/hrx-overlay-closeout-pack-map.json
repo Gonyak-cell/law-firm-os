@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.hrx-overlay-closeout-pack-map.v0.1",
+  "status": "planning_only",
+  "frozen_hrx_unit_count": 901,
+  "implementation_admission_gate": {
+    "user_employee_separation_decision_recorded": true,
+    "payroll_scope_decision_recorded": true,
+    "hrx_sequencing_decision_recorded": true,
+    "source_freeze_decision_recorded": true,
+    "hrx_ledger_extension_allowed": false,
+    "claude_reviews_c_hrx_01_04_passed": false,
+    "review_execution": {
+      "C-HRX-01": "user_waived_2026-06-11_once",
+      "C-HRX-02": "user_waived_2026-06-11_once",
+      "C-HRX-03": "user_waived_2026-06-11_once",
+      "C-HRX-04": "user_waived_2026-06-11_once",
+      "waiver_ref": "docs/matter-pack-integration/adjudications/one-time-claude-review-waiver-2026-06-11.md"
+    }
+  },
+  "coverage_summary": {
+    "hr_core_objects": 16,
+    "missing_count": 0
+  },
+  "overlay_policy": {
+    "splits_hrx_product": false,
+    "queue_tail_after_rp29": true,
+    "payroll_runtime_deferred": true
+  }
+}

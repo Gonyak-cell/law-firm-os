@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-644",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "cb1a7cb6-c15f-4127-8b77-2e32f6f838a2",
+    "uuid": "d0216f45-772d-40af-afe3-094b26a834fc",
+    "total_cost_usd": 2.69169725,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-644/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-644/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-644 is a descriptor-only Risk C closeout pack (122 units, RP20.P09.M04.S13-RP20.P09.M10.S10) for the RP20 Data Room/VDR P09 review closeout tail. Read-only inspection via Read/Grep/Glob confirms the pack is internally consistent and its (pending) production_ready posture is supported by implementation, tests, and local/contract validation. Verified: (1) The CP644 pack binding in packages/data-room/src/registry.js matches the baseline, the contract projection in contracts/data-room-vdr-core-contract.json (cp644_pack_binding/cp644_requirements/cp644_no_write_attestation/cp644_p09_review_closeout_tail_descriptor), the manifest plan_binding_snapshot, and next-pack-queue.json (live_latest CP00-644, next CP00-645). (2) Deliverable distribution computes deterministically to claude_review:18, implementation:78, security_audit:12, test:6, ui:6, hermes_evidence:2 = 122, from the P09_REVIEW row definitions (QUESTION=10, EXTENDED=20, FULL=22, SECONDARY_TAIL=EXTENDED.slice(12)=8) and the title->type classifier in service.js; this matches registry expected_deliverable_counts and the manifest (doubled 36/156 due to two included_units arrays). The 7 micro-phase sections (M04-M10) and row counts/keys are asserted by validateDataRoomVdrCoreCp644Coverage. (3) freezeCp644Result sets all 7 executes_p09_review_*_runtime flags plus the no-write attestation (no product-state writes, no audit/permission writes, no object storage, no Hermes runtime receipt, synthetic_only/no_real_data) to false; validators and model tests assert each boundary and contract-projection deep-equality. (4) command-evidence.json records 19 commands all exiting 0 (node --check, rp20 validator, node --test, npm test/validate/build, git diff --check); readiness-report auth preflight passed with valid JSON (no auth failure, no 0-byte/malformed/fenced/tool-call output). (5) Claude is kept read-only and non-approving (claude_is_final_approval:false, allowed_tools Read/Grep/Glob, forbidden_review_evidence includes claude_final_approval_claim/enterprise_trust_claim/source_mutation_claim), and Hermes patterns are descriptor/receipt-only (hermes_runtime_embedded_in_product:false). The chain CP00-643 -> CP00-644 -> CP00-645 (next_subphase RP21.P00.M00.S01) is consistent. The pack's evidence artifacts (command-evidence/construction-inspection/claude-review-result/adjudication) correctly show in_progress/pending pre-closeout state awaiting this review; no premature production_ready or enterprise-trust claim is asserted. Human final approval remains required for any enterprise-trust/runtime-opening claim; this review is advisory read-only evidence, not final approval. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  },
+  "user_waiver": null
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M09.S02",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T11:45:12Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "a84303ae-4497-4b71-be0e-87311c228acc",
+    "uuid": "8903bef9-5c81-4782-9f2a-75b4aaace2e2",
+    "duration_ms": 227026,
+    "total_cost_usd": 1.023427,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 18002,
+        "cache_read_input_tokens": 507560,
+        "cache_creation_input_tokens": 50964,
+        "cost_usd": 1.022435
+      },
+      "claude-haiku-4-5-20251001": {
+        "output_tokens": 30,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cost_usd": 0.000992
+      }
+    }
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI re-review verified the prior P2 writes_product_state enforcement gap and parity drift P3 are fixed, the M09.S01 deferred parity finding is closed, the acceptance gate definition remains bound to RP00.P00.M09.S02, and the next boundary is RP00.P00.M10.S01 without prohibited authority or completion claims."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "writes_product_state enforcement for current subphase activates at production_ready promotion",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1737,
+        "details": "The current-subphase writes_product_state=false check is inside the production_ready closeout loop. That is correct sequencing; the S09.S02 command evidence already sets writes_product_state=false and the promotion validator will exercise the check.",
+        "recommendation": "No action required."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m09-s02/packet.json",
+      "docs/goal-closeout/rp00-p00-m09-s02/command-evidence.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Initial actual Claude CLI review returned PASS_WITH_FINDINGS with one P2 and two P3 notes. The validator was updated to enforce current-subphase writes_product_state=false and derive files_for_review parity expansion from contract.current_subphase.id. Final actual Claude CLI re-review returned PASS_WITH_FINDINGS with one non-blocking informational P3."
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-255",
+  "normalized_at": "2026-06-10T16:38:02.150Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-255/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-255/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-255/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-255/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "03c06a35-58ca-45ce-b1c4-aae7d878788e",
+    "uuid": "c6733d89-a124-472c-a12b-44297aeb28e5",
+    "total_cost_usd": 2.0640095,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5071,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-255 is a clean descriptor-only increment covering the RP07.P05.M06 Synthetic Fixture Set middle rows (S09-S18, risk A, 10 units). Independent read-only verification confirms full consistency across the live plan (closeout-pack-plan.json:412), manifest, contract (search-core-contract.json:16), and registry binding (registry.js:361): CP00-255, risk A, 10 units, range RP07.P05.M06.S09-RP07.P05.M06.S18, next CP00-256/S19, source_ledger_sha matching. Deliverable distribution (impl 3, security_audit 2, fixture 1, test 3, hermes 1 = 10) matches the prompt and requirements (registry.js:1864). The descriptor builder (service.js:2774) and case-set produce only frozen plain objects with every no-write/no-runtime flag false (no search/OCR/index/embedding/AI runtime, no state writes, no object storage, no Hermes runtime receipt) and synthetic_only/no_real_data true. The validator (validators.js:4097-4157) deterministically enforces coverage, per-row descriptor_only/runtime_execution=false/customer_safe/no-raw-payload, M06 no-leak guards (cross-tenant denied, unauthorized data omitted, no AI dispatch, no test-runtime, no Hermes receipt, no Claude final approval, no audit-hint leak), and authority-boundary projections; all asserted row-extras exist with correct values (service.js:2365-2374). Authority boundary is intact: Claude remains a read-only reviewer (tools Read/Grep/Glob, read_only true) and is not final approver; claude_is_final_approval/local_validation_claims_enterprise_trust are false; human approval is required before runtime opening. Hermes patterns are used only for the deterministic H07 evidence-packet descriptor (receipt_shape descriptor_only..no_write), not product runtime. The pack correctly holds production_ready=false / implemented_pending_review and exposes only a production_ready_candidate, so the gate is not prematurely flipped. Review-hardening preconditions pass: auth preflight succeeded with valid JSON, prompt 2166B under the 25600B cap, no forbidden tools, summary-only correctly disallowed. Tests (model.test.js:1309-1355) and validator script (validate-rp07-search-core-contract.mjs:471-1028) genuinely exercise the CP255 logic with deep-equal contract projection checks; index.js re-exports via export *; command-evidence shows all gates at exit 0. The post-review evidence files (claude-review-result.json, adjudication.md, construction-inspection.json) are absent, which is the expected state at this read_only_claude_run_raw_capture step rather than a defect. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

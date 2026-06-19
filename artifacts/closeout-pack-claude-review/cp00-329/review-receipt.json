@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-329",
+  "normalized_at": "2026-06-11T11:17:52.591Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-329/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-329/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-329/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-329/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "c55c9b58-7ab9-490e-b9e3-71affa6104e2",
+    "uuid": "e2e5c2b6-960f-43ec-ab26-f40fc812db5f",
+    "total_cost_usd": 2.167072,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8210,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-329 is a Risk-A, 10-unit descriptor-only intake pack covering the RP10.P05.M05 permission/audit-binding tail (9 units) plus the RP10.P05.M06 synthetic-fixture head (1 unit), range RP10.P05.M05.S14-RP10.P05.M06.S01. Coverage matches exactly across the closeout-pack plan, manifest, registry binding, contract projection, and prompt baseline: deliverable distribution {fixture:2,test:3,hermes_evidence:1,implementation:4} and micro-title {Permission And Audit Binding:9, Synthetic Fixture Set:1}, all RP10. The pack does NOT over-claim: manifest sets production_ready=false, runtime_ready=false, implementation_layer=descriptor, status=in_progress; the only readiness signal is production_ready_candidate gated on coverage.valid && tail.valid (descriptor verification, not runtime). Grep found no \"production_ready\": true / \"runtime_ready\": true / enterprise-trust / Claude-final-approval over-claims in the contract or manifest. No-write/no-real-data boundaries hold at code level: packages/intake/src has no fs/network/child_process/eval calls, and row-extras enforce real_client_data_loaded=false, executes_unit_test_runtime_paths=false, executes_command_runtime=false, emits_hermes_runtime_receipt=false, cross_tenant_access_allowed=false. Claude stays read-only and not final approver across the descriptor authority_boundary, manifest, no-write attestation, and review-request (read_only=true, tools Read/Grep/Glob). Hermes is used only as a deterministic control-plane evidence/receipt pattern (receipt_shape ..._no_write, emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false), not product runtime. Tests (3 CP329 blocks in model.test.js), the contract validator (deep-equals descriptor/requirements/attestation, asserts CP321-328 no-regression, historical tail = CP00-329), and the README#cp00-329 descriptor section are all consistent, and the readiness auth-preflight passed (exit 0, 1432-byte valid JSON, non-zero stdout). Two non-blocking P3 notes only. This read-only PASS does not by itself close the pack: the hardening sequence still requires receipt validation, finding adjudication, construction inspection, final closeout validation (the npm validate/test suite), and human final approval before any enterprise-trust/runtime claim.",
+    "findings": [
+      {
+        "id": "CP00-329-F1",
+        "severity": "P3",
+        "title": "Post-review required pack artifacts not yet present (expected at this stage)",
+        "file": "docs/closeout-packs/cp00-329/manifest.json",
+        "line": 480,
+        "details": "manifest.required_pack_artifacts lists command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json currently exists under docs/closeout-packs/cp00-329/. This is consistent with the hardening_sequence: the current step is read_only_claude_run_raw_capture (step 3 of 9); those four artifacts are produced by the later normalize/finding_adjudication/construction_inspection/final_closeout_validation steps that consume this review. It is recorded only to make explicit that pack closeout remains gated on those post-review steps plus human final approval, not on this read-only PASS.",
+        "recommendation": "No code change. Ensure the remaining hardening steps generate the four required_pack_artifacts before commit, and confirm exactly one valid review receipt is recorded (pack_level_claude_review.valid_review_receipts is currently []).",
+        "post_review_disposition": "Informational/expected by design; non-blocking. Confirm artifacts are generated in subsequent hardening steps prior to closeout commit."
+      },
+      {
+        "id": "CP00-329-F2",
+        "severity": "P3",
+        "title": "changed-file-scope.json mis-classifies the pack's own evidence dir as unrelated dirty",
+        "file": "artifacts/closeout-pack-claude-review/cp00-329/changed-file-scope.json",
+        "line": 138,
+        "details": "changed-file-scope.json lists docs/closeout-packs/cp00-329/ (and docs/closeout-pack-plan/new-session-handoff.md) under both untracked_implementation_files and unrelated_dirty_files_preserved. The pack's own evidence directory docs/closeout-packs/cp00-329/ is a core required pack artifact, not an unrelated dirty file. The authoritative manifest.worktree_transition_policy.unrelated_dirty_files_preserved correctly omits cp00-329/ (listing only the docx, new-session-handoff.md, ldip result, and workbook/), so the over-inclusive classification is confined to this generated scope helper and does not affect pack boundaries, the production_ready claim, or the changed-file scoping used for review (active_untracked_implementation_files_omitted is []).",
+        "recommendation": "Adjust the changed-file-scope generator so the active pack's own evidence directory is not also emitted under unrelated_dirty_files_preserved; keep it solely under the pack/untracked-implementation classification for clarity.",
+        "post_review_disposition": "Minor generated-metadata hygiene nit; non-blocking. Manifest classification is authoritative and correct."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

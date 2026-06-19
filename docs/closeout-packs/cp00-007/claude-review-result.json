@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-007",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "reason": "full_diff_review_hung_and_was_killed_without_review_output",
+      "counted_as_valid_pack_review": false
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "c8247d5d-f505-4813-a76d-e49dc65d2adc",
+    "uuid": "65f66d70-2c57-4adf-9ca7-fc705ffb4d2d",
+    "total_cost_usd": 0.671544,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "findings": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-007.",
+    "Claude returned PASS with zero P0, P1, or P2 findings.",
+    "No unresolved findings remain after adjudication."
+  ]
+}

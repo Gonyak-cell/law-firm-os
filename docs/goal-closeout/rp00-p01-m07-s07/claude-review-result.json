@@ -1,0 +1,73 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v1",
+  "subphase_id": "RP00.P01.M07.S07",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools": "",
+    "write_tools_granted": false,
+    "permission_denials": [],
+    "session_id": "611851ff-8ffd-4810-a397-b820461e3602",
+    "uuid": "193ab09c-ee30-4aa9-a779-b0b4a00c6eb5",
+    "duration_ms": 228469,
+    "duration_api_ms": 230941,
+    "total_cost_usd": 0.86485,
+    "executed_at": "2026-06-04T06:51:09Z",
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s07-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "summary": "Claude Code Opus 4.8 max read-only review reported no P0 and no P1 findings. It reported one P2 about blocked_claim_refs declaring synthetic_only while accepting the controlled blocked_claim.* namespace, plus three P3 observations. The P2 is rejected after adjudication because this repo consistently treats blocked_claim.* as the controlled blocked-claim namespace, including S06 correction routes and HermesGate/HumanApproval relationship-map precedents. P3 items are non-blocking and documented for future hardening.",
+    "findings": [
+      {
+        "id": "STATE-M07-S07-001",
+        "severity": "P2",
+        "title": "blocked_claim_refs synthetic_only label does not require a literal synthetic marker",
+        "files": [
+          "packages/control-plane/src/model.js",
+          "packages/control-plane/test/model.test.js",
+          "contracts/control-plane-contract.json"
+        ],
+        "status": "not_applicable_after_adjudication",
+        "disposition": "Rejected after local adjudication. In this repo, blocked_claim.* is the controlled blocked-claim namespace. S06 correction_route uses blocked_claim.state_enum_registry_ownership_correction, and existing HermesGate/HumanApproval relationship maps use the same controlled blocked_claim.* convention. S07 keeps the same pattern and rejects wrong-prefix claim.* and whitespace cases; no code change is required."
+      },
+      {
+        "id": "STATE-M07-S07-002",
+        "severity": "P3",
+        "title": "Validator reuses expectedStateEnumRegistryMayReference for relationship targets",
+        "files": [
+          "scripts/validate-rp00-control-plane-contract.mjs"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Deferred as non-blocking script readability hardening. The dependency is intentional because S07 relationship targets are the S06 may_reference targets, and the validator fails closed on length and item mismatch."
+      },
+      {
+        "id": "STATE-M07-S07-003",
+        "severity": "P3",
+        "title": "Firm-level null matter_id with non-null matterContext is not explicitly unit-tested",
+        "files": [
+          "packages/control-plane/test/model.test.js"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Deferred as non-blocking test hardening. Current tests cover nullable firm-level records, matching matter context, Matter mismatch, and cross-tenant Matter rejection. The untested path is not required for this synthetic relationship-map closeout."
+      },
+      {
+        "id": "STATE-M07-S07-004",
+        "severity": "P3",
+        "title": "Reference-only mutation prohibitions are declarative in this slice",
+        "files": [
+          "packages/control-plane/src/model.js",
+          "contracts/control-plane-contract.json"
+        ],
+        "status": "not_applicable_after_adjudication",
+        "disposition": "Not applicable as a code defect. S07 defines the relationship map and pure validator; it performs no writes, gate bypass, or approval actions. Later field registry, transition, and validation helper slices can add stronger runtime composition as needed."
+      }
+    ]
+  }
+}

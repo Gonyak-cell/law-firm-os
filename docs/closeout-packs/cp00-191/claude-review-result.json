@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-191",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-191/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-191/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "adjudication_summary": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1,
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "reconciled_after_review_by_final_inspection_all_passed_update",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "a6789b84-4a21-4376-be8c-3a8f53e206f0",
+    "uuid": "06f373a6-0cd7-480c-9575-c5a4308e9891",
+    "total_cost_usd": 2.92028825,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7675,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-191 is a Risk B, descriptor-only Matter Core pack binding RP05.P07.M04.S03-RP05.P07.M05.S20 (40 units). Read-only inspection (Read/Grep/Glob) confirms the pack is internally consistent and does NOT overclaim: production_ready is held false across manifest, command-evidence, construction-inspection, contract, and claude-review-result, pending hardened review, adjudication, inspection, final validation, and human approval. Scope verified: pack_id, risk class B, unit_count 40, range, deliverable distribution {failure_recovery:22,security_audit:4,implementation:3,hermes_evidence:4,fixture:2,test:4,claude_review:1}=40, and micro-title distribution {Secondary Workflow Slice:20,Permission And Audit Binding:20} all agree across registry MATTER_CORE_CP191_GENERATED_FAILURE_RECOVERY_BINDING_REQUIREMENTS, contract current_pack/generated_failure_recovery_binding, validator coverage (validateMatterCoreCp191Coverage), and test assertions. No-write/no-real-data/descriptor-only boundaries verified at multiple layers: MATTER_CORE_CP191_NO_WRITE_ATTESTATION (all write/permission/audit/route/rollback/retry/API/DOM flags false; synthetic_only true), the cp191GeneratedFailureRecoveryBindingRow builder (every row sets raw_payload/real_client_data/runtime_permission/permission_decision_detail/audit_event_body/audit_event_written/route-dispatch/rollback/retry to false and replay_command_inert true), the freeze wrapper (no_real_data true), validator leak-guard enforcement, absence of fs/http/child_process imports, and zero write/network/exec calls in packages/matter/src. Fail-closed outcome classification (blocked incl. cross_tenant_failure and permission_denied_failure; review_required=claude_edge_case_prompt; approval_required=human_escalation_note) is enforced by the validator, and all 20 required customer-safe error codes are emitted with no permission-decision/audit-body/raw-payload/unauthorized-count leakage. Authority boundary holds: Claude is read_only with allowed_tools [Read,Grep,Glob], claude_is_final_approval/promotes_claude_to_final_approval/production_or_enterprise_trust_claim all false, and enterprise trust is deferred to human approval. Hermes is used only as deterministic evidence-packet (H05.CP00-191.*) and control-plane gate metadata, not product runtime (implements_loop_engine false; loop_overlay_role future_execution_harness_reference_only). CP178+ review hardening is present: forbidden_review_evidence covers auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output and more, with an 8-step hardened_review_sequence. Review readiness artifacts are well-formed (readiness ready, auth preflight exit 0, prompt 2243B under the 25600B limit, read_tools_used mode, summary-only prohibited for Risk B + security/review deliverables); raw-output.json and review-receipt.json are correctly absent since this review is the run producing them. Unrelated dirty/untracked files (UI assets, amplitude scripts, docs) are correctly excluded from the active pack scope (7 matter implementation refs only). No P0/P1/P2 issues; one non-blocking P3 clarity nuance on construction-inspection all_passed semantics. The pack supports its descriptor-only generated-failure-recovery/permission-audit binding claim and is ready to proceed in the closeout sequence; final pack/goal closeout remains correctly gated behind final validation and human approval, not this read-only review.",
+    "findings": [
+      {
+        "id": "CP191-P3-01",
+        "severity": "P3",
+        "title": "construction-inspection all_passed=false despite all 8 command-evidence commands reporting passed",
+        "file": "docs/closeout-packs/cp00-191/construction-inspection.json",
+        "line": 63,
+        "details": "tests_and_validation.all_passed is false, but command-evidence.json records all 8 listed commands (node --check x5, JSON.parse contract check, node --test model.test.js, npm run rp05:matter-core:validate) with exit_code 0 and status passed. This is consistent with the deliberate fail-closed posture (verdict PENDING, production_ready false, h05_gate_passed/c05_gate_passed/exactly_one_valid_claude_review_receipt all false) and is NOT a correctness defect, since the aggregate closeout gate is intentionally held closed until hardened review, adjudication, inspection, and final closeout validation complete. However, because the all_passed field sits directly on the commands array whose members all passed, a future automated consumer could misread it as the listed commands having failed.",
+        "recommendation": "When the inspection transitions out of PENDING after the hardened review and final_closeout_validation steps, set all_passed to reflect the actual aggregate command results, or rename/annotate the field (e.g. closeout_gate_passed) so it clearly denotes the full closeout sequence rather than the conjunction of the listed commands.",
+        "post_review_disposition": "Non-blocking; accepted as intentional fail-closed behavior for a PENDING inspection. No change required before this review is counted; recommend reconciliation at final closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-042",
+  "subphase_id": "RP00.P02.M07.S14",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "218e44dc-7332-4c59-af1a-d89bb5064928",
+    "uuid": "e1d10fb1-ada1-4040-8cfe-40ba7672003c",
+    "duration_ms": 375701,
+    "duration_api_ms": 377987,
+    "total_cost_usd": 1.667511,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-042-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "fail",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [
+        {
+          "id": "missing-closeout-pack",
+          "severity": "P1",
+          "status": "fixed_by_closeout_evidence",
+          "summary": "Added the required CP00-042 manifest, command evidence, Claude review result, adjudication, and construction inspection artifacts with the S14 production_ready flag."
+        }
+      ],
+      "p2": [
+        {
+          "id": "validator-existence-gated-inspection",
+          "severity": "P2",
+          "status": "fixed",
+          "summary": "Hardened the RP00 validator so missing construction-inspection.json records an explicit construction inspection error instead of only relying on the generic evidence missing check."
+        }
+      ],
+      "p3": [
+        {
+          "id": "result-fields-order-quirk",
+          "status": "accepted_non_blocking",
+          "summary": "Result field inventory order remains harmless because validators assert field presence and fixture/live output key order matches."
+        },
+        {
+          "id": "claim-test-sampling",
+          "status": "accepted_non_blocking",
+          "summary": "Policy membership and generic truthy claim rejection cover the sampled claim variants consistently with prior subphases."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "consumes_only_s13_validation_error_mapping_metadata": "PASS",
+      "emits_metadata_only_review_required_routing_receipt": "PASS",
+      "rejects_runtime_claude_review_queue_assignment_notification_human_approval_write": "PASS",
+      "rejects_test_golden_catalog_contract_product_state_audit_permission_authz_security_ui_real_data_claims": "PASS",
+      "keeps_source_micro_phase_open": "PASS",
+      "hands_off_to_s15": "PASS"
+    }
+  },
+  "raw_cli_result_excerpt": "## CP00-042 Review — RP00.P02.M07.S14 Test And Golden Case Set Review-required routing\n\nVerified against the actual file state: contract validator passes and all 1623 service tests pass. Code logic is correct and consistent with the S13→S14 pattern. The one substantive gap is missing closeout-pack evidence backing the `production_ready` flip.\n\n```json\n{\n  \"subphase\": \"RP00.P02.M07.S14\",\n  \"closeout_pack\": \"CP00-042\",\n  \"scope_conformance\": {\n    \"consumes_only_s13_metadata\": true,\n    \"emits_metadata_only_receipt\": true,\n    \"rejects_runtime_claude_review\": true,\n    \"rejects_review_queue_assignment_notification\": true,\n    \"rejects_human_approval_write\": true,\n    \"rejects_test_exec_golden_gen_persist\": true,\n    \"rejects_golden_catalog_unit_test_mutation\": true,\n    \"rejects_db_storage_product_state_persistence\": true,\n    \"rejects_audit_writes\": true,\n    \"rejects_runtime_permission_authz_engine_trimming\": true,\n    \"rejects_runtime_error_exception_error_store\": true,\n    \"rejects_ui_real_data_source_completion\": true,\n    \"does_not_complete_m07\": true,\n    \"hands_off_to_s15\": true\n  },\n  \"findings\": {\n    \"P0\": [],\n    \"P1\": [\n      {\n        \"id\": \"missing-closeout-pack\",\n        \"area\": \"evidence\",\n        \"detail\": \"Diff sets current_subphase.status=production_ready and references closeout_pack_ref CP00-042 / evidence_root docs/closeout-packs/cp00-042, but no cp00-042 pack files exist. Missing: construction-inspection.json (with control_plane_test_and_golden_case_set_review_required_routing_verified:true), command-evidence.json, evidence/*, self-review.md, INDEX.md, closeout-summary.md. Prior subphase CP00-041 bundled the full pack in the same commit. Without it the production_ready claim is unsubstantiated.\",\n        \"remediation\": \"Produce docs/closeout-packs/cp00-042/ mirroring cp00-041 structure, with the verified flag set, before closing.\"\n      }\n    ],\n    \"P2\": [\n      {\n        \"id\": \"validator-existence-gated-inspection\",\n        \"area\": \"validator\",\n        \"detail\": \"scripts/validate-rp00-control-plane-contract.mjs construction-inspection check is gated on `if (!(await exists(constructionInspectionPath))) continue`, so it silently skips S14 when the pack is absent. 'Validator passes' therefore does NOT prove evidence completeness for this subphase. Pre-existing gap, exposed by the P1 above; not introduced by this diff.\"\n      }\n    ],\n    \"P3\": [\n      {\n        \"id\": \"result-fields-order-quirk\",\n        \"area\": \"consistency\",\n        \"detail\": \"RESULT_FIELDS inventory lists the 13 new review_required_* fields after next_subphase, while the constructed result object (and fixture) place them after validation_error_mapping_receipt. Harmless — assert uses `field in result`; JSON.stringify compares prechecker output vs fixture which share key order — and matches the established pattern.\"\n      },\n      {\n        \"id\": \"claim-test-sampling\",\n        \"area\": \"tests\",\n        \"detail\": \"A few enumerated forbidden claims (assign_review"
+}

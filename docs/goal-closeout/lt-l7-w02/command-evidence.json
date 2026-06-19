@@ -1,0 +1,187 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L7-W02",
+  "title": "Pilot migration dry-run and rollback rehearsal",
+  "phase": "L7",
+  "gate": "G8, L7-EXIT",
+  "created_at": "2026-06-18T14:27:52Z",
+  "status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "real_data_boundary": {
+    "source_originals_commit_allowed": false,
+    "staging_real_data_copy_loaded": false,
+    "pilot_team_access_granted": false,
+    "rollback_performed": false
+  },
+  "dependency_state": {
+    "LT-L7-W01": {
+      "status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L2-W01": {
+      "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W02": {
+      "status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W03": {
+      "status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W04": {
+      "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W05": {
+      "status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+      "classification": "command_evidence_only_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "engine_staging_setup_exists": false,
+    "dryrun_execution_summary_exists": false,
+    "dryrun_verification_report_exists": false,
+    "pilot_inspection_record_exists": false,
+    "rollback_rehearsal_report_exists": false,
+    "gl_mig_02_package_exists": false,
+    "g8_satisfied": false,
+    "l7_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L7-W02-T01",
+      "title": "Configure RP25 migration engine in staging and smoke verify",
+      "status": "blocked_waiting_on_lt_l7_w01_gl_mig_01_package_rp25_engine_runtime_and_staging_environment",
+      "acceptance": {
+        "engine_staging_setup_exists": false,
+        "four_modules_paths_and_versions_identified": false,
+        "module_smokes_exit_zero": false,
+        "pilot_scope_config_exists": false,
+        "target_count_matches_gl_mig_01_mapping": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W02-T02",
+      "title": "Run staging dry-run for pilot scope",
+      "status": "blocked_waiting_on_t01_engine_setup_pilot_scope_and_staging_real_data_policy",
+      "acceptance": {
+        "dryrun_execution_summary_exists": false,
+        "all_pilot_scope_attempts_completed": false,
+        "failures_all_reason_coded": false,
+        "dryrun_audit_events_match_loaded_items": false,
+        "secure_store_log_path_matches_summary_counts": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W02-T03",
+      "title": "Create five-axis dry-run verification report",
+      "status": "blocked_waiting_on_t02_dryrun_outputs_hash_compare_acl_sample_and_audit_chain_verify",
+      "acceptance": {
+        "dryrun_verification_report_exists": false,
+        "count_equation_difference_zero": false,
+        "hash_integrity_100_percent": false,
+        "duplicate_version_sample_30_errors_zero": false,
+        "acl_sample_50_over_permission_zero": false,
+        "audit_event_count_matches_and_chain_verify_passed": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W02-T04",
+      "title": "Run pilot team inspection session",
+      "status": "blocked_waiting_on_t03_dryrun_verification_ext_pilot_team_and_temporary_staging_access",
+      "acceptance": {
+        "pilot_inspection_record_exists": false,
+        "inspection_checklist_completion_100_percent": false,
+        "all_issues_registered_and_classified": false,
+        "team_member_signatures_exist": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W02-T05",
+      "title": "Run and verify rollback rehearsal",
+      "status": "blocked_waiting_on_t03_dryrun_state_l3_w05_rollback_runbook_and_staging_window",
+      "acceptance": {
+        "rollback_rehearsal_report_exists": false,
+        "migration_records_remaining_zero": false,
+        "rollback_events_preserved_in_audit_chain": false,
+        "rollback_duration_measured": false,
+        "repeatable_numbered_procedure_documented": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W02-T06",
+      "title": "Assemble GL-MIG-02 verification package and success verdict",
+      "status": "blocked_waiting_on_t04_t05_verification_inspection_and_rollback_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "all_six_tuw_ids_present_in_command_evidence": true,
+        "gl_mig_02_package_exists": false,
+        "required_links": 3,
+        "required_links_present": 0,
+        "success_verdict_all_items_pass": false,
+        "g8_evidence_index_updated": false,
+        "g8_satisfied": false,
+        "l7_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L7-W01\" or .wp_id==\"LT-L2-W01\" or .wp_id==\"LT-L3-W02\" or .wp_id==\"LT-L3-W03\" or .wp_id==\"LT-L3-W04\" or .wp_id==\"LT-L3-W05\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L2-W01\tblocked_pending_l1_w06_hosting_decision_and_persistence_implementation\tstandard_five_blocked",
+        "LT-L3-W02\tblocked_pending_remote_repo_ci_container_staging_and_rollback_evidence\tstandard_five_blocked",
+        "LT-L3-W03\tblocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence\tstandard_five_blocked",
+        "LT-L3-W04\tblocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement\tstandard_five_blocked",
+        "LT-L3-W05\tt01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal\tcommand_evidence_only_blocked",
+        "LT-L7-W01\tblocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W02 migration, staging, WORM, rollback, and GL-MIG-01 predecessors before claiming blocked evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in docs/goal-closeout/lt-l7-w02/engine-staging-setup.md docs/goal-closeout/lt-l7-w02/dryrun-execution-summary.md docs/goal-closeout/lt-l7-w02/dryrun-verification-report.md docs/goal-closeout/lt-l7-w02/pilot-inspection-record.md docs/goal-closeout/lt-l7-w02/rollback-rehearsal-report.md docs/goal-closeout/lt-l7-w02/gl-mig-02-package.md; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent docs/goal-closeout/lt-l7-w02/engine-staging-setup.md",
+        "absent docs/goal-closeout/lt-l7-w02/dryrun-execution-summary.md",
+        "absent docs/goal-closeout/lt-l7-w02/dryrun-verification-report.md",
+        "absent docs/goal-closeout/lt-l7-w02/pilot-inspection-record.md",
+        "absent docs/goal-closeout/lt-l7-w02/rollback-rehearsal-report.md",
+        "absent docs/goal-closeout/lt-l7-w02/gl-mig-02-package.md"
+      ],
+      "purpose": "Verify required LT-L7-W02 engine, dry-run, verification, inspection, rollback, and package artifacts are absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L7-W02.",
+    "This record does not configure or execute an RP25 migration engine.",
+    "This record does not load a staging real-data copy or run pilot-scope dry-run.",
+    "This record does not perform five-axis migration verification.",
+    "This record does not grant pilot-team staging access or synthesize pilot signatures.",
+    "This record does not execute rollback rehearsal or verify audit-preserving rollback.",
+    "This record does not access staging, production, real matters, file servers, SharePoint, Outlook mailboxes, or legacy matter registers.",
+    "This record does not assemble GL-MIG-02 or satisfy G8/L7-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

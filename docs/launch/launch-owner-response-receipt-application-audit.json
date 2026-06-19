@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.launch-owner-response-receipt-application-audit.v0.1",
+  "generated_at": "2026-06-19T00:22:01.577Z",
+  "source_refs": [
+    "docs/launch/launch-owner-approval-receipt-ledger.json",
+    "docs/launch/launch-owner-approval-receipt-ledger-validation.json",
+    "docs/launch/launch-owner-response-receipt-candidates.json",
+    "docs/launch/launch-owner-response-receipt-candidates-validation.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "audits_receipt_update_candidate_application_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "receipt_ledger_modified_by_this_audit": false,
+    "launch_decision_register_modified_by_this_audit": false,
+    "pending_candidate_application_counts_as_owner_approval": false,
+    "empty_candidate_state_counts_as_owner_approval": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "receipt_update_candidate_count": 0,
+    "applied_candidate_count": 0,
+    "pending_application_count": 0,
+    "mismatched_application_count": 0,
+    "missing_receipt_slot_count": 0,
+    "receipt_ledger_current_real_receipt_count": 0,
+    "receipt_ledger_current_copy_allowed_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "application_rows": [],
+  "findings": []
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-786",
+  "normalized_at": "2026-06-15T20:38:14.437Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-786/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-786/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-786/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-786/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "dea9f0b6-7b72-47eb-af38-2412c81e7971",
+    "uuid": "0c413edd-994d-4fe1-811d-445197a50236",
+    "total_cost_usd": 2.3924345000000002,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7819,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-786 (RP25 Migration Platform, risk C, 150 units, RP25.P08.M09.S03-RP25.P09.M06.S06) is a descriptor-only review-packet risk-bridge pack. Independent read-only inspection (Read/Grep/Glob) confirms the pack does not over-claim: manifest.json:6-7 and construction-inspection.json:6 hold production_ready=false and runtime_ready=false with verdict PENDING, correctly gated on exactly one valid hardened Claude review; adjudication.md agrees (production ready after adjudication: no). Binding (registry.js:519), requirements (registry.js:2424), contract current_pack/latest_pack projection, and review-baseline agree on identity, and the deliverable distribution {hermes_evidence:20,claude_review:20,implementation:80,test:9,security_audit:14,ui:7} plus the micro-title distribution each sum to 150, matching the prompt baseline. All no-write/no-real-data boundaries are structurally enforced by validators.js (descriptor_only, runtime_execution=false, raw/source/credential/real-client payloads excluded, no source-system runtime, no cross-tenant access, no audit bodies, no runtime render, no unverified knowledge) and verified by passing tests (model.test.js:1139-1167); a secret/credential/PII scan over packages/migration returned only negative-assertion flags. The authority boundary holds throughout: service.js:302-305 sets claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false, and the Claude review packet is read_only with promotes_claude_to_final_approval=false. Hermes patterns are deterministic review-packet/receipt only (emits_runtime_receipt=false, writes_product_state=false, receipt_shape=descriptor_only_migration_no_write), not product runtime. The CP178+ hardening library (scripts/lib/closeout-pack-claude-review-hardening.mjs) correctly rejects auth failures, 0-byte stdout, malformed JSON, fenced JSON with prose, tool-call-shaped output, permission denials, and missing required fields; the prior attempt (SIGTERM status 143, empty stdout) was correctly classified invalid_review (reason 'stdout_0_bytes; required_field_error: parsed_review missing') and no fabricated valid receipt exists. Recorded command-evidence.json shows all ten required validation commands plus node --check and git diff --check at exit_code 0 with no non-zero exits (verified as recorded artifacts; not re-executed under read-only review). Changed-file scope correctly separates active implementation refs from unrelated dirty UI-workstream and workbook files. Two non-blocking P3 advisories are recorded (invalid-attempt ledger reconciliation at adjudication; production_ready field-scope clarity in command-evidence). No P0/P1/P2 issues; pack closeout is not blocked by this review. Final human approval for any enterprise-trust or runtime claim remains outside this receipt, as designed.",
+    "findings": [
+      {
+        "id": "CP786-P3-01",
+        "severity": "P3",
+        "title": "Archived invalid review attempt not yet reflected in pack review ledgers",
+        "file": "docs/closeout-packs/cp00-786/construction-inspection.json",
+        "line": 21,
+        "details": "An invalid review attempt was captured on disk (artifacts/closeout-pack-claude-review/cp00-786/raw-output-invalid-attempt-01.json and review-receipt-invalid-attempt-01.json: status 143/SIGTERM, 0-byte stdout, correctly classified invalid_review with reason 'stdout_0_bytes; required_field_error: parsed_review missing'), and the live raw-output.json/review-receipt.json still carry that failed attempt pending this retry. However the pack ledgers still show invalid_review_attempts: [] (construction-inspection.json:21, claude-review-result.json:8, manifest.json:1644). This is consistent with a pre-adjudication pending state, but the captured attempt is not yet reflected in the auditable attempt count.",
+        "recommendation": "When this valid receipt is normalized and adjudicated, fold the archived invalid attempt into the pack's invalid_review_attempts ledger so the full attempt history (1 invalid + 1 valid) is auditable; do not weaken the exactly-one-valid-receipt gate.",
+        "post_review_disposition": "non_blocking_reconcile_at_adjudication"
+      },
+      {
+        "id": "CP786-P3-02",
+        "severity": "P3",
+        "title": "command-evidence production_ready:true uses a different scope than the authoritative pack-level gate",
+        "file": "docs/closeout-packs/cp00-786/command-evidence.json",
+        "line": 6,
+        "details": "command-evidence.json sets production_ready: true in the command/descriptor-gate sense (all validation commands exit 0 and descriptor verified), while the authoritative pack-level gates correctly hold production_ready: false pending this Claude review (manifest.json:6, construction-inspection.json:6, adjudication.md). The two are reconcilable and consistent with the established per-pack pattern (CP00-756..785), but reusing the field name production_ready across different scopes could be misread in isolation.",
+        "recommendation": "Optionally disambiguate the command-evidence flag (e.g., commands_passed / descriptor_verified) from the adjudicated pack-level production_ready. No functional change required; pack-level gating is already correct.",
+        "post_review_disposition": "accept_by_design"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

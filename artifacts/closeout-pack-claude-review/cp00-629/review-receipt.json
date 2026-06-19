@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-629",
+  "normalized_at": "2026-06-13T10:25:43.676Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-629/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-629/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-629/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-629/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "32bb561a-67c6-428b-9625-f0fd903ff669",
+    "uuid": "ed162023-1665-4a1a-9eec-51d7bc734f40",
+    "total_cost_usd": 3.7267837500000005,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7877,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-629 is a descriptor-only Risk A closeout pack (RP20.P05.M05.S17-RP20.P05.M06.S04, 10 units) for the Data Room/VDR P05 permission-and-audit tail plus the synthetic-fixture head. Independent read-only review (Read/Grep/Glob only) confirms the descriptor-verified claim is supported and no production_ready gate is weakened: manifest declares production_ready=false, runtime_ready=false, status=in_progress, implementation_layer=descriptor honestly. Unit math is exact (M05 tail S17-S22 = 6 rows + M06 head S01-S04 = 4 rows = 10) and the deliverable distribution {hermes_evidence:1, test:1, implementation:4, fixture:4} matches the prompt baseline, registry DATA_ROOM_VDR_CORE_CP629_DELIVERABLE_COUNTS, the cp629_requirements contract projection, the manifest delivery_counts, and the model test assertions. Continuity holds: cp628 handoff -> CP00-629 / RP20.P05.M05.S17, cp629 handoff -> CP00-630 / RP20.P05.M06.S05, upstream_pack_id CP00-628. No-write/no-real-data/no-runtime boundaries hold: validators.js asserts ~35 dispatch/write/permission/audit/runtime flags false, the freezeCp629Result->...->freezeCp618Result chain pins all base no-write flags, the contract pack descriptor mirrors every flag false, and rows are descriptor_only with loads_real_*_data=false. Authority boundary is correct: Claude is read_only_independent_reviewer and not final approver (descriptor authority_boundary claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-630; claude_packet.read_only=true). Hermes is used only for the deterministic descriptor evidence-packet/receipt-shape (emits_hermes_runtime_receipt=false), not product runtime. CP178+ hardening is wired: forbidden_review_evidence covers not_logged_in, zero_byte_output, malformed_json, fenced_json_only, tool_call_shaped_output, missing_raw_output, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, enterprise_trust_claim; allowed_claude_tools is Read/Grep/Glob; readiness-report auth_preflight passed (exit 0, 1449-byte valid JSON, not 0-byte). Recorded command-evidence shows node --check x5 exit 0, npm run rp20:data-room-vdr-core:validate exit 0 (covered_units 10, production_ready_candidate true, runtime_opened false), and node --test model.test.js 1..60 pass 60 fail 0. changed-file-scope correctly separates active pack refs from unrelated UI-workstream/workbook/ldip dirty files. No P0/P1/P2 findings. Two P3 informational notes record correctly-gated pending steps (final command matrix and exactly-one-valid review-receipt normalization) that the closeout harness must still enforce before this pack flips to closed; these are expected sequencing, not defects, and do not block pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP629-P3-01",
+        "severity": "P3",
+        "title": "Final command matrix pending (expected sequencing, harness-gated)",
+        "file": "docs/closeout-packs/cp00-629/command-evidence.json",
+        "line": 16,
+        "details": "command-evidence.json records only descriptor-level checks (node --check x5 exit 0; npm run rp20:data-room-vdr-core:validate exit 0 with covered_units 10, next_pack_id CP00-630, production_ready_candidate true, runtime_opened false; node --test packages/data-room/test/model.test.js 1..60 pass 60 fail 0) and sets gate_outcome=pending_final_command_matrix with hermes_gate.status=pending_final_matrix. The full pre-closeout validation matrix from the prompt (closeout-pack-plan:validate, closeout-pack:validate, rp05:matter-core:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded. This is the correct order (read-only review precedes the final matrix), not a defect, and the pack honestly stays in_progress/production_ready=false.",
+        "recommendation": "Keep pack status in_progress and production_ready=false until the complete command matrix is recorded green in command-evidence.json; do not flip to closed on descriptor-level checks alone.",
+        "post_review_disposition": "tracked_expected_sequencing_non_blocking"
+      },
+      {
+        "id": "CP629-P3-02",
+        "severity": "P3",
+        "title": "Exactly-one valid review receipt not yet normalized (CP178+ hardening)",
+        "file": "docs/closeout-packs/cp00-629/claude-review-result.json",
+        "line": 5,
+        "details": "claude-review-result.json shows status=review_pending with exactly_one_valid_pack_level_claude_review_run=false, valid_review_receipts=[] and invalid_review_attempts=[]; parsed_review verdict is the PENDING placeholder (blocks_pack_closeout=true). The forward-referenced artifacts artifacts/closeout-pack-claude-review/cp00-629/raw-output.json and review-receipt.json listed in changed-file-scope active_pack_implementation_refs and the manifest do not exist yet (only baseline/packet/request/prompt/changed-file-scope/validation-report/schema/readiness are present); they are produced by this review run. readiness-report.json auth_preflight passed (exit 0, 1449-byte valid JSON). This run must yield exactly one valid receipt that survives hardening rejection of auth failures, 0-byte stdout, malformed JSON, fenced JSON with prose, tool-call-shaped output, and missing required fields.",
+        "recommendation": "Normalize and validate exactly one valid review receipt before the adjudication/inspection flip; reject any attempt matching the forbidden_review_evidence list rather than counting it as valid, and only then update claude-review-result.json/construction-inspection.json/adjudication.md.",
+        "post_review_disposition": "tracked_expected_sequencing_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

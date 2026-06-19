@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-426",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-426/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-426/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "618bd482-da3f-418a-8557-77f44eed3567",
+    "uuid": "0dc43e63-d536-4803-a933-6f99f6782c4e",
+    "total_cost_usd": 1.9186474999999998,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-426 is a descriptor-only RP14 \"Partner Settlement\" scope/contract-foundation pack (150 units, risk C, RP14.P00.M00.S01-RP14.P01.M04.S13, gates H14/C14, upstream RP13/CP00-425). Independent read-only inspection (Read/Grep/Glob) confirms the pack-level posture is supported and not overclaimed: manifest production_ready=false, runtime_ready=false, implementation_layer=descriptor, status implemented_pending_review; command-evidence production_ready=false / no_real_data=true / writes_product_state=false. Cross-artifact agreement is tight with no drift: closeout-pack-plan.json (CP00-426 present exactly once), manifest plan_binding_snapshot, contract current_pack, registry SETTLEMENT_CORE_CP426_PACK_BINDING/REQUIREMENTS, the generated scope-contract-foundation descriptor, packages/settlement tests, and scripts/validate-rp14-settlement-core-contract.mjs all pin the same scope; the validator's deepEqual checks tie the contract program/current_pack/no_write_attestation/scope_contract_foundation_descriptor/cp426_requirements to code-generated values, so silent divergence would fail. Distributions verified: deliverable counts (impl 105, contract 7, security_audit 14, hermes_evidence 5, ui 13, fixture 2, test 3, claude_review 1) and the 11 micro-title counts each independently sum to 150 and match registry constants and validateSettlementCoreCp426Coverage. Descriptor-only/no-write boundaries hold in both code (service.js freezeCp426Result + SETTLEMENT_CORE_CP426_NO_WRITE_ATTESTATION: all dispatch/write/runtime/audit/object-storage/hermes-receipt/real-data flags false) and the contract projection; grep of the settlement package found no fs/child_process/fetch/db usage and no secrets, credentials, or real client/matter/email/SSN data; fixture rows set fixture_payload_included=false and real_client_data_loaded=false. Authority boundary is preserved everywhere: contract and descriptor pin claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true (manifest claude_not_final_approver=true, enterprise_trust_not_claimed_from_local_validation=true), keeping Claude a read-only reviewer rather than final approver; this review does not constitute final approval and human final approval remains required. Hermes is used only for the deterministic evidence packet/receipt (emits_hermes_runtime_receipt=false; hermes_runtime_embedded_in_product=false). CP178+ review-hardening evidence is intact: readiness auth preflight passed (exit 0, 1469-byte non-empty valid JSON, stderr 0), validation-report shows tools restricted to Read/Grep/Glob with forbidden_tools_present=false and prompt_contains_full_diff_or_source=false (read_tools_used), and the requirements forbidden_review_evidence list rejects failed authentication, zero-byte output, malformed JSON, fenced JSON, tool-call-shaped output, disabled-tools runs, and missing references. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, review-receipt.json) are not yet present, which is expected at this read_only_claude_run step of the hardening sequence; no prior invalid attempts are recorded for this pack (invalid_attempts_preserved=[]). Two P3 informational findings only: (1) changed-file-scope.json dual-classifies active-pack paths — including the core packages/settlement/ directory — as unrelated_dirty_files_preserved, contradicting their own untracked_implementation_files listing, though the authoritative manifest resolves the classification correctly and omits nothing from review; (2) the planned commit message labels this settlement-core pack as \"payments core\". Neither affects scope integrity, descriptor-only/no-write boundaries, or the production_ready posture. No P0/P1/P2 findings; pack and goal closeout are not blocked by this review.",
+    "findings": [
+      {
+        "id": "CP00-426-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope dual-classifies active-pack paths (incl. packages/settlement/) as unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-426/changed-file-scope.json",
+        "line": 134,
+        "details": "packages/settlement/ (line 134), docs/closeout-packs/cp00-426/ (line 132), and docs/closeout-pack-plan/new-session-handoff.md (line 131) appear in unrelated_dirty_files_preserved while also being listed in untracked_implementation_files (lines 125, 124, 123). packages/settlement/ is the pack's core implementation package and docs/closeout-packs/cp00-426/ holds the required pack artifacts (manifest.json, command-evidence.json), so labeling them 'unrelated' is internally contradictory review evidence (a path cannot be both active-pack implementation and an unrelated preserved file). Impact is cosmetic: the authoritative manifest worktree_transition_policy.unrelated_dirty_files_preserved (docs/closeout-packs/cp00-426/manifest.json ~lines 6337-6345) correctly excludes all three active-pack paths and active_untracked_implementation_files_omitted is [] (nothing withheld from review); all active implementation files were independently inspected, and manifest-driven commit staging is unaffected, so pack scope, the descriptor-only/no-write boundary, and the production_ready=false posture are intact.",
+        "recommendation": "In the changed-file-scope generator, subtract active-pack implementation paths (the settlement package, the pack's own docs/closeout-packs/<pack_id>/ directory, and the active handoff doc) from unrelated_dirty_files_preserved so each path is classified in exactly one bucket, keeping review evidence non-contradictory.",
+        "post_review_disposition": "Non-blocking informational. Authoritative manifest classifies the paths correctly and omits nothing from review; no effect on pack closeout, scope integrity, boundary claims, or commit staging."
+      },
+      {
+        "id": "CP00-426-P3-02",
+        "severity": "P3",
+        "title": "Planned commit message labels the settlement-core pack as 'payments core'",
+        "file": "docs/closeout-packs/cp00-426/manifest.json",
+        "line": 6369,
+        "details": "commit_policy.message is 'Close CP00-426 payments core scope contract foundation descriptor pack', but CP00-426 is the RP14 Partner Settlement (settlement core) bootstrap. The contract program.program_title ('Partner Settlement'), packages/settlement/README.md, and registry SETTLEMENT_CORE_PROGRAM_CONTRACT all identify the program as settlement core (RP14); the 'payments core' wording is carried over from the prior RP13 CP00-421..425 packs. This is a traceability/cosmetic mislabel in the commit-message string only and does not affect gates, scope, or boundary claims.",
+        "recommendation": "Update the planned commit message to reference settlement core (e.g., 'Close CP00-426 settlement core scope contract foundation descriptor pack') for accurate program traceability before commit.",
+        "post_review_disposition": "Non-blocking informational. Affects the commit-message string only; no impact on scope, validation gates, or the descriptor-only production_ready posture."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

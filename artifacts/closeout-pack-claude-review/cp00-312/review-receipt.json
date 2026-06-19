@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-312",
+  "normalized_at": "2026-06-11T03:48:10.945Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-312/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-312/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-312/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-312/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f4addde8-d975-4554-85ff-d4744f91eb71",
+    "uuid": "c53b4760-7036-42fd-b474-d2eeba24757c",
+    "total_cost_usd": 2.7776715000000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5075,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-312 is a well-formed descriptor-only CRM-core closeout pack covering exactly 150 RP09 units (RP09.P06.M06.S04 through RP09.P07.M03.S18), closing the RP09.P06 permission phase tail and opening the RP09.P07 failure foundation. Independent read-only inspection confirms the pack-level claim is appropriately conservative: manifest and command-evidence report production_ready:false / implemented_pending_review with no premature enterprise-trust claim. Coverage is enforced in code: CRM_CORE_CP312_REQUIREMENTS distributions (deliverable, phase, micro-phase, micro-title) match the prompt baseline, the live closeout-pack-plan.json pack, the manifest plan_binding_snapshot, and the review baseline; validateCrmCoreCp312Coverage checks every count, unit-id ordering, RP09-only scope, and per-section row titles against the live plan, and model.test.js asserts validity (node --test exit 0). No-write/no-real-data boundaries are comprehensive and enforced: freezeCp312Result and CRM_CORE_CP312_NO_WRITE_ATTESTATION pin all runtime, DB, object-storage, audit-event, Hermes-receipt, lock, retry, rollback, AI-dispatch, and test-runtime flags to false with synthetic_only/no_real_data true, and the descriptor validator rejects any drift plus per-row leak guards (permission-decision, audit-hint, blocked-claim, lock-token, fixture-payload, cross-tenant). The authority boundary holds end to end (registry constant, service descriptor authority_boundary, contract projection, validator assertions, test): Claude is read-only (Read/Grep/Glob), not final approver; local validation does not claim enterprise trust; human approval is required before any downstream runtime opening (CP00-313). Hermes is used only as a deterministic descriptor-only review packet/receipt (receipt_shape descriptor_only…no_write, emits_hermes_runtime_receipt:false), not embedded in product runtime. CP178+ review hardening is present via forbidden_review_evidence (failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, disabled_tools_run, missing_raw_output_reference, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, production_enterprise_trust_claim), and the readiness auth-preflight returned valid JSON (1436 bytes, exit 0). Changed-file-scope correctly isolates the eight pack files and preserves unrelated dirty files without attributing them to the pack. No P0–P3 findings; the pack is consistent across registry, service, validators, contract, tests, manifest, plan, README, and index re-exports.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

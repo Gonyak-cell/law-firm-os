@@ -1,0 +1,180 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L5-W04",
+  "title": "External penetration test and PIPA review",
+  "phase": "L5",
+  "gate": "G3, G7, L5-EXIT",
+  "created_at": "2026-06-18T14:20:08Z",
+  "status": "blocked_pending_external_pentest_roe_report_adjudication_pipa_review_and_evidence_map",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "external_dependency_state": {
+    "EXT-PENTEST": {
+      "required": true,
+      "status": "blocked_no_signed_roe_no_vendor_report_no_retest_evidence",
+      "source_registry": "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md"
+    }
+  },
+  "dependency_state": {
+    "LT-PRE-W06": {
+      "status": "blocked_pending_external_actions",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L1-W03": {
+      "status": "t01_draft_blocked_pending_external_legal_review_result",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L3-W02": {
+      "status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W03": {
+      "status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W04": {
+      "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L5-W01": {
+      "status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "roe_exists": false,
+    "external_pentest_report_directory_exists": false,
+    "pentest_adjudication_exists": false,
+    "pipa_review_exists": false,
+    "evidence_map_exists": false,
+    "security_acceptance_run_all_exists": false,
+    "g3_satisfied": false,
+    "g7_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L5-W04-T01",
+      "title": "Confirm penetration-test scope, ROE, and staging environment",
+      "status": "blocked_waiting_on_ext_pentest_signed_roe_staging_test_accounts_and_l3_w02_l3_w03",
+      "acceptance": {
+        "signed_roe_exists": false,
+        "four_required_areas_documented": false,
+        "staging_test_accounts_issued": false,
+        "production_exclusion_documented": false,
+        "decision_register_row_exists": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W04-T02",
+      "title": "Run external penetration test",
+      "status": "blocked_waiting_on_t01_l5_w01_t09_and_external_vendor_execution",
+      "acceptance": {
+        "vendor_report_exists": false,
+        "permission_bypass_area_covered": false,
+        "tenant_isolation_area_covered": false,
+        "auth_session_area_covered": false,
+        "prompt_injection_area_covered": false,
+        "findings_all_classified_p0_to_p3": false,
+        "roe_scope_access_log_reconciled": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W04-T03",
+      "title": "Adjudicate, fix, and retest P0/P1 findings",
+      "status": "blocked_waiting_on_external_report_findings_adjudication_retest_and_security_acceptance_rerun",
+      "acceptance": {
+        "adjudication_register_exists": false,
+        "all_p0_p1_findings_adjudicated": false,
+        "all_fixed_findings_retested": false,
+        "residual_p0_p1_count_zero": false,
+        "security_acceptance_run_all_exit_zero": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W04-T04",
+      "title": "Perform PIPA-oriented review",
+      "status": "blocked_waiting_on_l1_w03_policy_ratification_l3_w04_runtime_evidence_and_legal_reviewer_report",
+      "acceptance": {
+        "pipa_review_report_exists": false,
+        "six_retention_policy_categories_judged": false,
+        "personal_data_flow_reconciled_with_staging": false,
+        "reviewer_date_and_recommendations_recorded": false,
+        "all_corrective_items_classified": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W04-T05",
+      "title": "Assemble pentest and PIPA evidence",
+      "status": "blocked_waiting_on_t03_t04_evidence_map_and_residual_p0_p1_json",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "all_five_tuw_ids_present_in_command_evidence": true,
+        "required_evidence_count": 4,
+        "required_evidence_present_count": 0,
+        "evidence_map_exists": false,
+        "empty_g3_g7_mapping_cells_zero": false,
+        "residual_p0_p1_json_count_zero": false,
+        "g3_satisfied": false,
+        "g7_satisfied": false,
+        "l5_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-PRE-W06\" or .wp_id==\"LT-L1-W03\" or .wp_id==\"LT-L3-W02\" or .wp_id==\"LT-L3-W03\" or .wp_id==\"LT-L3-W04\" or .wp_id==\"LT-L5-W01\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-PRE-W06\tblocked_pending_external_actions\tcommand_evidence_only_blocked",
+        "LT-L1-W03\tt01_draft_blocked_pending_external_legal_review_result\tcommand_evidence_only_blocked",
+        "LT-L3-W02\tblocked_pending_remote_repo_ci_container_staging_and_rollback_evidence\tstandard_five_blocked",
+        "LT-L3-W03\tblocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence\tstandard_five_blocked",
+        "LT-L3-W04\tblocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement\tstandard_five_blocked",
+        "LT-L5-W01\tblocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W04 predecessor and external-leadtime blockers before claiming blocked evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in docs/launch/pentest/roe.md docs/launch/pentest/report docs/launch/pentest/adjudication.md docs/launch/pentest/pipa-review.md docs/launch/pentest/evidence-map.md tests/launch/security-acceptance/run-all.mjs; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent docs/launch/pentest/roe.md",
+        "absent docs/launch/pentest/report",
+        "absent docs/launch/pentest/adjudication.md",
+        "absent docs/launch/pentest/pipa-review.md",
+        "absent docs/launch/pentest/evidence-map.md",
+        "absent tests/launch/security-acceptance/run-all.mjs"
+      ],
+      "purpose": "Verify required W04 ROE, report, adjudication, PIPA review, evidence map, and rerun command artifacts are absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L5-W04.",
+    "This record does not execute or receive an external penetration test.",
+    "This record does not synthesize vendor signatures, ROE acceptance, findings, legal review, or owner approval.",
+    "This record does not prove residual P0/P1 count zero.",
+    "This record does not perform PIPA legal review or retention-policy implementation review.",
+    "This record does not rerun security-acceptance suites.",
+    "This record does not access staging, production, real matters, or real HR-sensitive files.",
+    "This record does not satisfy G3, G7, or L5-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-767",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T15:09:40.100Z",
+  "finished_at": "2026-06-15T15:15:31.233Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":350375,\"duration_api_ms\":350152,\"ttft_ms\":3643,\"num_turns\":41,\"result\":\"Review complete. Verdict: **PASS** for CP00-767 with zero findings.\\n\\nThe pack is a clean descriptor-only RP25 Migration Platform UI-workflow closeout pack: exact 40-unit coverage, intact no-write/no-real-data and runtime-closed boundaries, correct read-only/non-final Claude authority boundary, Hermes used only for deterministic packet/receipt handling, all 16 validation commands passing (including `npm test`, `git diff --check`, and the full `validate`/`goal:closeout`/`rp00:control-plane` suite), and an honest `production_ready=false`/`pending_review` state awaiting exactly this hardened receipt. This receipt enables — and does not block — pack or CP-goal closeout; `no_unresolved_p0` and `no_unresolved_p1` are both true.\",\"stop_reason\":\"end_turn\",\"session_id\":\"03caa1b0-f2c9-473d-bacc-ecff79ecbd98\",\"total_cost_usd\":2.6334792499999997,\"usage\":{\"input_tokens\":54,\"cache_creation_input_tokens\":138015,\"cache_read_input_tokens\":2286071,\"output_tokens\":25053,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":138015,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":317,\"cache_read_input_tokens\":128160,\"cache_creation_input_tokens\":10282,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":10282},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1150,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001255,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":54,\"outputTokens\":25053,\"cacheReadInputTokens\":2286071,\"cacheCreationInputTokens\":138015,\"webSearchRequests\":0,\"costUSD\":2.6322242499999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-767 is a descriptor-only RP25 Migration Platform \\\"UI workflow\\\" closeout pack (40 units, RP25.P04.M03.S19-RP25.P04.M05.S14, risk B) reviewed read-only via Read/Grep/Glob with full source inspection (no summary-only shortcut). Coverage is exact: deliverable distribution {claude_review:4, implementation:11, ui:18, security_audit:4, fixture:1, test:1, hermes_evidence:1}=40 matches MIGRATION_PLATFORM_CP767_REQUIREMENTS; coverage/descriptor validators (validators.js:996,:1024) and node --test cases (model.test.js:436-484) assert errors=[] and distribution equality. No-write/no-real-data boundaries are intact and enforced: MIGRATION_PLATFORM_NO_WRITE_ATTESTATION (registry.js:227) is spread into every descriptor/row, and validators reject runtime execution, raw/source/credential/real-client payloads, source-system/import runtime, UI runtime rendering (:1059), unauthorized count leak (:1060), and cross-tenant/audit/permission-body exposure. Authority boundary is correct: claude_is_final_approval=false, claude_packet.read_only=true, promotes_claude_to_final_approval=false, human_final_approval_required_for_runtime_opening=true, with runtime opening deferred to CP00-768. Hermes packets are deterministic control-plane review/receipt only (emits_runtime_receipt=false, writes_product_state=false, receipt_shape=descriptor_only_migration_no_write) and are not embedded in product runtime. Command evidence shows all 16 commands at exit_code 0, including npm test, npm run validate, spec:requirements/weighted/fullplan/goal:closeout/rp00:control-plane:validate, git diff --check, and build. The generated contract promotes latest_pack/latest_projection to MigrationPlatformCp767UiWorkflowDescriptor while retaining CP00-756..766 as historical, with validation.valid=true. Manifest production_ready=false and runtime_ready=false, and the inspection/adjudication/claude-review-result artifacts are in pending_review; these are the expected pre-closeout placeholders to be resolved by acceptance of exactly this one valid hardened read-only receipt, not defects, and the pack makes no runtime or enterprise-trust overclaim. Claude remains a read-only, non-final reviewer; this receipt enables, and does not block, CP00-767 closeout. No P0-P3 defects identified.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"66fba7ea-064c-40b9-bf53-0a76fae98dea\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4705,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "03caa1b0-f2c9-473d-bacc-ecff79ecbd98",
+    "uuid": "66fba7ea-064c-40b9-bf53-0a76fae98dea",
+    "total_cost_usd": 2.6334792499999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

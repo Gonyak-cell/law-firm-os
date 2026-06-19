@@ -1,0 +1,37 @@
+{
+  "work_package_id": "LT-PRE-W06",
+  "title": "external leadtime kickoff tracking",
+  "created_at": "2026-06-18T14:42:07Z",
+  "status": "blocked_pending_external_actions",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W06-T04",
+  "artifacts": [
+    "docs/launch/external-leadtime/m365-admin-access-confirmation.md",
+    "docs/launch/external-leadtime/ai-legal-review-scope.md",
+    "docs/launch/external-leadtime/pentest-scope-draft.md",
+    "docs/launch/external-leadtime/external-leadtime-register.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w06/packet.json",
+    "docs/goal-closeout/lt-pre-w06/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w06/adjudication.md",
+    "docs/goal-closeout/lt-pre-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "m365_admin_access_decision_present": false,
+    "ai_legal_review_kickoff_evidence_present": false,
+    "pentest_vendor_outreach_evidence_present": false,
+    "external_leadtime_register_rows": 3,
+    "all_external_evidence_complete": false,
+    "pre_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

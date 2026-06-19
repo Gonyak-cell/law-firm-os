@@ -1,0 +1,42 @@
+{
+  "subphase_id": "RP00.P02.M01.S02",
+  "source_micro_phase_id": "RP00.P02.M01",
+  "title": "Request normalization",
+  "micro_title": "Contract Draft",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-04T13:54:31Z",
+  "control_plane_plan_authoring_request_normalization_verified": true,
+  "implementation_verified": true,
+  "tests_verified": true,
+  "hermes_H00_verified": true,
+  "claude_C00_review_verified": true,
+  "single_completed_claude_review_used": true,
+  "no_unresolved_P0_or_P1": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "service_logic_execution_permitted": false,
+  "runtime_route_created": false,
+  "contract_rows_drafted": false,
+  "registry_mutated": false,
+  "human_approval_replaced": false,
+  "tenant_boundary_precheck_deferred_to": "RP00.P02.M01.S03",
+  "next_subphase": "RP00.P02.M01.S03",
+  "human_acceptance_or_explicit_next_goal_boundary": "Explicit next subphase boundary recorded: RP00.P02.M01.S03 tenant boundary precheck remains required before any plan_authoring service logic execution.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed_or_deferred"
+  },
+  "validator_receipts": [
+    "node --test packages/control-plane/test/service.test.js packages/control-plane/test/model.test.js",
+    "npm test",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate",
+    "npm run spec:requirements:validate",
+    "npm run fullplan:validate",
+    "npm run rp00:control-plane:validate"
+  ]
+}

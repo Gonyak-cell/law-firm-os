@@ -1,0 +1,105 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-003",
+  "subphase_id": "RP00.P02.M05.S07",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T03:29:40Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data used.",
+    "S07 emits only a synthetic metadata primary happy path receipt and does not run permission engines, call AuthZ, append audit ledgers, write audit events, or persist product state."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/control-plane-contract.json','utf8')); console.log('contract json ok')\"",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('packages/control-plane/fixtures/synthetic-control-plane.json','utf8')); console.log('fixture json ok')\"",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "351 tests passed"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M05.S07 after CP00-003 evidence finalization."
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Closeout Pack validation passed for CP00-001, CP00-002, and CP00-003."
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "435 tests passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "227 requirements validated"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "54,355 Law Firm OS implementation subphases validated"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "3,300 micro phases across 30 release programs validated"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "summary": "Goal closeout protocol validation passed with claude-opus-4-8 effort=max read-only requirement"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

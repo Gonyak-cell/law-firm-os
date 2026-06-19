@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-779",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T17:32:29.766Z",
+  "finished_at": "2026-06-15T17:39:50.215Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":439896,\"duration_api_ms\":439826,\"ttft_ms\":8131,\"num_turns\":58,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0/P1/P2/P3 all zero).\\n\\nCP00-779 is a clean, internally-consistent descriptor-only continuation of the established CP00-756→778 Migration Platform pattern. Binding, deliverable distribution, row math, validators, exports, tests, command evidence, manifest, contract, README, and plan state all reconcile; no-write/no-real-data/no-runtime and read-only/non-final-approver authority boundaries are enforced and verified. The pack does not overclaim — it correctly reports `production_ready:false` pending this review and does not assert runtime or enterprise-trust, so neither pack nor goal closeout is blocked.\\n\\nOne transparency note carried into the summary: the gate-command exit codes (npm test, validate, etc.) are agent-reported in `command-evidence.json` and I could not re-run them under read-only constraints; I independently confirmed the source/contract/test/manifest consistency that those commands assert.\",\"stop_reason\":\"end_turn\",\"session_id\":\"809aabbd-623a-4f2c-8591-385b9761eb74\",\"total_cost_usd\":2.765996,\"usage\":{\"input_tokens\":221,\"cache_creation_input_tokens\":120924,\"cache_read_input_tokens\":2526198,\"output_tokens\":29791,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":120924,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":356,\"cache_read_input_tokens\":116729,\"cache_creation_input_tokens\":4622,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4622},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1142,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001242,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":221,\"outputTokens\":29791,\"cacheReadInputTokens\":2526198,\"cacheCreationInputTokens\":120924,\"webSearchRequests\":0,\"costUSD\":2.764754,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-779 (RP25 Migration Platform failure-recovery primary; Risk B; 40 units; RP25.P07.M02.S03-RP25.P07.M03.S20) passes hardened read-only review with no findings. Verified via Read/Grep/Glob only. (1) Binding (registry.js:400) matches baseline exactly (pack_id, risk_class B, unit_count 40, range, upstream CP00-778, next CP00-780/RP25.P07.M03.S21, flag migration_platform_failure_recovery_primary_descriptor_verified). (2) Requirements deliverable_counts (failure_recovery 22, security_audit 4, implementation 3, hermes_evidence 4, fixture 2, test 4, claude_review 1 = 40) and micro-title counts (20/20) match the prompt; row math reconciles (M02 = FAILURE_ROWS.slice(2)=18 + FAILURE_CLOSEOUT_ROWS=2 = 20; M03 = FAILURE_ROWS = 20) and hand-counted deliverable_type assignments equal the baseline included_units. (3) Descriptor/coverage validators (validators.js:2072,2100) enforce no-write, no source-system/import runtime, no permission/cross-tenant/audit-body/UI-render leak, no sensitive payloads, claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human approval required; grep found no runtime_opened/writes_product_state/real_client_data true and no secrets/TODOs. (4) Required public exports present via wildcard re-export (index.js); CP779 tests assert runtime-closed descriptor and packets. command-evidence.json records every gate command exit 0 with substantive stdout (migration suite 73/73, full suite 3021/3021, RP25 contract validation passed) -- these exit codes are agent-reported and not re-run by me, but I independently confirmed source/contract/test/manifest internal consistency. (5) No production_ready overclaim: manifest, construction-inspection, and command-evidence all show production_ready=false, runtime_ready=false, pending exactly-one valid Claude review; contract regenerated deterministically with validation.valid=true and zero valid:false. (6) Authority boundary intact: Claude is read-only independent reviewer (not final approver), Hermes used only for deterministic descriptor-only packet/receipt handling (emits_runtime_receipt=false), not product runtime; auth preflight passed and no invalid review evidence is counted as valid. blocks_goal_closeout=false because the pack claims only descriptor verification, not runtime or enterprise trust, and the human/enterprise-trust authority boundary is outside this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"2210c5d7-35e4-4a6c-85a5-4a16bb9e7f01\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5045,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "809aabbd-623a-4f2c-8591-385b9761eb74",
+    "uuid": "2210c5d7-35e4-4a6c-85a5-4a16bb9e7f01",
+    "total_cost_usd": 2.765996,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

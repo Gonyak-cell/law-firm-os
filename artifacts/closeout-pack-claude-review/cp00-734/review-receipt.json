@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-734",
+  "normalized_at": "2026-06-15T08:40:05.229Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-734/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-734/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-734/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-734/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d8de013d-c504-4012-b3be-a8dd16e76e4f",
+    "uuid": "5142bd76-bc2b-4865-acbb-f67a9f3e5c28",
+    "total_cost_usd": 1.9075062500000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5624,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-734 (Korean Legal Depth P04 Permission Fixture Bridge, RP24.P04.M05.S17-RP24.P04.M06.S04, risk A, 10 units) is a descriptor-only pack and its modest verification claim is fully supported. Verified via Read/Grep/Glob only.\n\nScope/distribution consistency: 10 units, deliverable distribution {test:1,hermes_evidence:1,claude_review:1,implementation:3,ui:4} and micro-title split {Permission And Audit Binding:6,Synthetic Fixture Set:4} match across review-baseline, manifest, registry KOREAN_LEGAL_CP734_PACK_BINDING/REQUIREMENTS, contract validation summary, and plan live_state/next-pack-queue (live_latest_pack_id=CP00-734, next RP24.P04.M06.S05/CP00-735).\n\nImplementation: service.js/validators.js/registry.js add CP734 following the established CP722-CP733 pattern exactly. The descriptor is composed of deep-frozen synthetic structures; grep of packages/korean-legal/src found no fetch/http/process.env/child_process/fs writes/secrets and no runtime_execution=true. KOREAN_LEGAL_NO_WRITE_ATTESTATION plus validateDescriptor enforce descriptor_only, runtime_execution=false, no sensitive payloads, no Korean-legal runtime opening, no permission-decision/audit-body leak, and Hermes/Claude gate integrity at row level. model.test.js asserts CP734 binding/coverage, runtime-closed descriptor (runtime_opening_pack_id=CP00-735, all *_runtime_opened=false, hermes emits_runtime_receipt=false, claude read_only=true, handoff to CP00-735), and contract-projection-latest with cp722-cp733 historical.\n\nBoundaries: descriptor authority_boundary (claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false) matches the supplied authority boundary; Hermes packets are deterministic packet/receipt only (emits_runtime_receipt=false, writes_product_state=false, descriptor_only_korean_legal_no_write), not product runtime. Contract is regenerated deterministically by scripts/validate-rp24-korean-legal-depth-contract.mjs with validation.valid=true and cp734 coverage+descriptor errors empty; no real_client_data/writes_product_state/emits_runtime_receipt=true anywhere in the contract.\n\nEvidence/honesty: manifest reports production_ready=false, runtime_ready=false, status=in_progress, descriptor_only=true and does NOT claim runtime or enterprise trust; the production_ready_flag is a named milestone (descriptor verified), not a boolean production-ready assertion. command-evidence records all ten required validation commands plus git diff --check at exit_code 0 (agent-reported; I verified source and artifacts read-only, not by re-execution). readiness-report shows auth_preflight passed. construction-inspection (verdict PENDING) and adjudication correctly show this hardened read-only review as the pending step, with Claude as read-only non-final reviewer (tools Read,Grep,Glob). This review is emitted as schema-valid JSON, so it is not an auth-failure/0-byte/malformed/fenced/tool-shaped artifact.\n\nNo P0/P1/P2/P3 findings. This review does not block CP00-734 pack closeout or this CP closeout goal; final human/enterprise-trust approval remains the expected out-of-receipt boundary.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

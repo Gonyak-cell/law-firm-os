@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-325",
+  "normalized_at": "2026-06-11T06:37:28.220Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-325/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-325/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-325/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-325/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "6664ac59-873e-4bae-ba1c-85f3f8b5c2a0",
+    "uuid": "15d43e0d-c45c-4038-b658-6f77d852cc8f",
+    "total_cost_usd": 2.05185225,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7396,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-325 is a descriptor-only RP10 (intake-core) closeout pack covering 150 units (RP10.P02.M09.S13-RP10.P04.M02.S07) that closes the RP10.P02/P03 descriptor scopes and adds RP10.P04 UI-foundation descriptor rows. Independent read-only inspection of service.js, registry.js, validators.js, index.js, the validator script, the contract, manifest, command-evidence, and tests confirms the pack-level claim set is honest and supported: production_ready is false (status implemented_pending_review / gate_outcome implementation_gates_passed_post_review_closeout_pending), no_real_data is true, and writes_product_state is false. No-write/no-real-data boundaries are exhaustively asserted via the freeze helpers and no_write_attestations and independently re-checked by the CP325 coverage and descriptor validators and three CP325 tests (coverage.valid, descriptor-only rows, no-leak guards, authority boundary). Claude is held as a read-only independent reviewer (claude_is_final_approval=false, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false); the Hermes packet is a deterministic evidence descriptor with emits_hermes_runtime_receipt=false and no product-runtime embedding. The Hermes production_ready_candidate=true is a coverage/foundation-gated candidate flag, not the pack-level production_ready flag, so it is not an overclaim. All 7 required public exports exist; deliverable/phase/micro distributions sum to 150 and are validated; the contract current_pack, no_write_attestation, requirements, and descriptor projections deep-equal the generated artifacts; historical_pack_bindings tail is CP00-325. Pre-closeout validation commands are recorded exit_code 0; closeout-pack:validate and receipt commands are correctly deferred as post-review gated. Review-hardening forbidden-evidence list is present, auth-preflight passed with valid JSON, and no invalid attempts are claimed as evidence. Two non-blocking P3 process notes only; no P0/P1/P2 defects. Verdict PASS — does not block pack or goal closeout, and final enterprise-trust/production promotion correctly remains a human approval gate.",
+    "findings": [
+      {
+        "id": "CP325-001",
+        "severity": "P3",
+        "title": "production_ready correctly declared false with no enterprise-trust overclaim",
+        "file": "docs/closeout-packs/cp00-325/command-evidence.json",
+        "line": 6,
+        "details": "command-evidence.json (production_ready:false, status implementation_and_plan_gates_passed_pending_final_closeout, gate_outcome implementation_gates_passed_post_review_closeout_pending), manifest.json (production_ready:false, status implemented_pending_review), and the contract all decline to claim production readiness or enterprise trust from local validation. The Hermes packet's production_ready_candidate:true is gated on coverage.valid && foundation.valid and is a distinct candidate signal, consistent with CP321-324, not the pack-level flag. This is the correct non-overclaiming posture for a descriptor-only pack pending Claude review and human final approval.",
+        "recommendation": "No action required. Keep human final approval as the sole gate for any production_ready=true or enterprise-trust promotion; do not let the Hermes production_ready_candidate flag be reinterpreted as a pack-level readiness claim downstream.",
+        "post_review_disposition": "Confirmed correct; non-blocking informational note."
+      },
+      {
+        "id": "CP325-002",
+        "severity": "P3",
+        "title": "Post-review gated validation commands not yet recorded (by design)",
+        "file": "docs/closeout-packs/cp00-325/command-evidence.json",
+        "line": 99,
+        "details": "closeout-pack:validate, the review run/normalize/receipt:validate commands, closeout-pack-plan:generate, and git diff --check --cached are listed in notes as post-review gated and are absent from the executed commands list. This is expected because they require the accepted claude-review-result.json, but pack closeout must not proceed until they are executed and pass with a clean staged diff.",
+        "recommendation": "Before committing/closing CP00-325, run the post-review gated commands and record their exit codes in command-evidence.json, and confirm git diff --check --cached is clean.",
+        "post_review_disposition": "Expected by design; verify execution before closeout. Non-blocking for this review."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-227",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T10:13:28.266Z",
+  "finished_at": "2026-06-10T10:18:45.969Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":316952,\"duration_api_ms\":314989,\"ttft_ms\":3899,\"num_turns\":48,\"result\":\"Review complete — **PASS**, no findings.\\n\\nCP00-227 is a clean descriptor-only DMS-core pack. Coverage (150 units, 8 sections, all distributions) reconciles to the baseline; implementation/tests/validation gates pass at exit 0; and every required boundary holds — `production_ready:false` pending closeout, no real data, no runtime writes, Hermes descriptor-only, and Claude correctly scoped as read-only reviewer (not final approver). It does not block pack or goal closeout; human final approval remains the gating step outside this receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"5b057e0a-4025-493f-925d-c17b42705d94\",\"total_cost_usd\":2.6369772499999993,\"usage\":{\"input_tokens\":1813,\"cache_creation_input_tokens\":121159,\"cache_read_input_tokens\":2558503,\"output_tokens\":23607,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":121159,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":249,\"cache_read_input_tokens\":151548,\"cache_creation_input_tokens\":8125,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":8125},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1142,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001242,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1813,\"outputTokens\":23607,\"cacheReadInputTokens\":2558503,\"cacheCreationInputTokens\":121159,\"webSearchRequests\":0,\"costUSD\":2.6357352499999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-227 (Risk C, 150 units, RP06.P07.M06.S06-RP06.P08.M02.S14) passes independent read-only review. The pack closes the RP06.P07 failure-taxonomy tail (M06 fixture rows + M07-M10) and opens the RP06.P08 Hermes-receipt foundation (Scope Inventory, Contract Draft, Type And Shape Definition) as eight descriptor-only sections.\\n\\nCoverage verified: DMS_CORE_CP227_PACK_BINDING matches the baseline exactly (risk C, 150 units, range, upstream CP00-226, next CP00-228, next subphase RP06.P08.M02.S15). Phase counts (RP06.P07:106 + RP06.P08:44 = 150), micro-phase counts, micro-title counts, and deliverable counts (failure_recovery:55, hermes_evidence:38, implementation:24, test:11, security_audit:10, claude_review:7, fixture:5) all reconcile to 150 and match the prompt distributions. Partial sections handled correctly (M06 = 17 rows S06-S22; M02 = 14 rows ending at BLOCK semantics). closeout-pack-plan.json confirms CP00-227 is the live cursor pack (live_next_unit_id RP06.P07.M06.S06).\\n\\nImplementation verified: registry.js (binding, no-write attestation extending CP226 with regression_detected:false, requirements), service.js (descriptor/case-set builders are pure functions; all no-write/no-runtime flags false; authority_boundary.claude_is_final_approval:false, human_final_approval_required_for_runtime_opening:true), validators.js (coverage + descriptor validators enforce descriptor-only rows, Hermes sections not emitting runtime receipts, PASS/BLOCK semantics, no silent success, no cross-tenant access, Claude not final approver, no enterprise-trust-from-local-validation). index.js re-exports via export * (explains why it is an impl ref but unmodified). README CP00-227 anchor present; contracts/dms-core-contract.json current_pack=CP00-227 with matching p07_closeout_p08_hermes_receipt_descriptor projection. Grep of changed sources found no writeFile/fs/child_process/fetch/.query runtime calls.\\n\\nTests/validation: model.test.js has three CP227 tests asserting coverage.valid, descriptor-only rows, verdict semantics, human-approval marker, claude_final_approval_claimed:false, authority boundary, and handoff to CP00-228. validate-rp06-dms-core-contract.mjs adds plan-existence, contract current_pack, coverage, descriptor, and no-write attestation assertions. command-evidence.json records all 18 commands (node --check/--test, all npm validates, npm test, npm run validate/build, git diff --check) at exit 0.\\n\\nBoundaries honored: production_ready:false with status implemented_pending_review/pending_final_closeout (no premature enterprise-trust claim); no_real_data:true; writes_product_state:false. Hermes control-plane patterns are descriptor-only (emits_hermes_runtime_receipt:false, receipt_shape descriptor_only_..._no_write) and not embedded in product runtime. Claude remains read-only independent reviewer, not final approver; human final approval still required.\\n\\nCP178+ review hardening: forbidden_review_evidence encodes auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim; hardened_review_sequence keeps Claude as a single read-only capture step ahead of normalize/receipt_validate/adjudication/final_closeout_validation. readiness-report auth-preflight passed (exit 0, 1456-byte valid JSON, no errors). No pre-baked raw-output.json/review-receipt.json/claude-review-result.json exists, so the verdict is not predetermined. Unrelated dirty/untracked files (spec-v2-integration, loop-system-integration, enterprise-v2-loop-roadmap, ldip invalid-attempt, the .docx) are correctly classified as unrelated_dirty_files_preserved and excluded from this pack per scope guidance.\\n\\nNo P0/P1/P2/P3 defects, coverage gaps, or boundary violations attributable to CP00-227. The pack supports closeout pending the human final-approval step that remains outside this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"1b7b3b0a-5efa-44ac-aa12-3faf3916c812\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6186,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "5b057e0a-4025-493f-925d-c17b42705d94",
+    "uuid": "1b7b3b0a-5efa-44ac-aa12-3faf3916c812",
+    "total_cost_usd": 2.6369772499999993,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

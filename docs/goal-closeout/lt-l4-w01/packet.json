@@ -1,0 +1,51 @@
+{
+  "work_package_id": "LT-L4-W01",
+  "title": "Wave 1 screen group build",
+  "created_at": "2026-06-18T14:51:37Z",
+  "status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+  "phase": "L4",
+  "gate_binding": [
+    "L4-EXIT"
+  ],
+  "terminal_tuw": "LT-L4-W01-T21",
+  "artifacts": [
+    "docs/product-ui/ia/matter-home.md",
+    "docs/product-ui/ia/work-queue.md",
+    "docs/product-ui/ia/document-workspace.md",
+    "docs/product-ui/ia/outlook-addin-pane.md",
+    "docs/product-ui/ia/issue-ledger.md",
+    "docs/product-ui/ia/admin-console.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l4-w01/packet.json",
+    "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l4-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l4-w01/adjudication.md",
+    "docs/goal-closeout/lt-l4-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "ia_artifacts_completed": [
+      "T02",
+      "T06",
+      "T09",
+      "T12",
+      "T15",
+      "T18"
+    ],
+    "matter_home_area_rows": 11,
+    "work_queue_lane_rows": 4,
+    "document_workspace_column_rows": 5,
+    "outlook_pane_flow_rows": 8,
+    "issue_flow_rows": 8,
+    "admin_function_sections": 4,
+    "apps_web_code_or_routes_changed": false,
+    "mat_dec_03_resolved": false,
+    "runtime_wp_open": true,
+    "l4_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

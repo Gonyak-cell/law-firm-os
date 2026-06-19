@@ -1,0 +1,43 @@
+{
+  "work_package_id": "LT-L6-W04",
+  "title": "AI human-review operations readiness",
+  "created_at": "2026-06-18T14:53:52Z",
+  "status": "t01_reviewer_roster_decision_brief_t02_operations_draft_blocked_pending_owner_approval_sla_disable_authority_and_dry_run",
+  "phase": "L6",
+  "gate_binding": [
+    "G7",
+    "L6-EXIT"
+  ],
+  "terminal_tuw": "LT-L6-W04-T02",
+  "artifacts": [
+    "docs/launch/ai-reviewer-roster-decision.md",
+    "docs/launch/runbooks/ai-review-operations.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l6-w04/packet.json",
+    "docs/goal-closeout/lt-l6-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l6-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l6-w04/adjudication.md",
+    "docs/goal-closeout/lt-l6-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "reviewer_coverage_slots": 6,
+    "disable_rollback_authority_slots": 4,
+    "ai_release_gate_mapping_rows": 7,
+    "ai_ops_steps": 5,
+    "disable_switch_steps": 7,
+    "wave1_ai_off_rule_present": true,
+    "named_reviewers_assigned": false,
+    "disable_authority_granted": false,
+    "sla_values_set": false,
+    "dry_run_performed": false,
+    "ai_runtime_activated": false,
+    "g7_satisfied": false,
+    "l6_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-044",
+  "subphase_id": "RP00.P02.M07.S16",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "a26f0374-832f-4fd9-9825-92d1254ec838",
+    "uuid": "1b961ac0-c1bb-4dbf-bc3a-f6327e124a9c",
+    "duration_ms": 306662,
+    "duration_api_ms": 309584,
+    "total_cost_usd": 1.46313125,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-044-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "pass",
+    "raw_review_result_form": "json_fenced_review_with_findings",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-1",
+          "area": "validator-coupling",
+          "note": "assertControlPlaneTestAndGoldenCaseSetBlockedClaimOutputResult re-validates via the S15 approval validator by overriding blocked_claim_refs=[], working_product_behavior_ref, and next_subphase. Correct today (S15 carries blocked_claim_refs=[]), but it's an implicit coupling — if upstream ever populates blocked_claim_refs the override masks it. Non-blocking.",
+          "disposition": "recorded_non_blocking"
+        },
+        {
+          "id": "P3-2",
+          "area": "untracked-noise",
+          "note": "Working tree also has untracked '.DS_Store' and 'Law Firm OS UI/' unrelated to this subphase; keep them out of the S16 commit.",
+          "disposition": "recorded_non_blocking"
+        }
+      ]
+    },
+    "resolved_findings": {
+      "p2": [
+        {
+          "id": "P2-1",
+          "area": "evidence-hooks/tracking",
+          "note": "docs/closeout-packs/cp00-044/ (closeout-pack, construction-inspection, command-evidence, adjudication-summary, MERGED) exists on disk and construction-inspection sets control_plane_test_and_golden_case_set_blocked_claim_output_verified=true, but the pack is still untracked (git '??'). The 8 reviewed files are correct; just confirm the pack is committed alongside them so the CP00-044 evidence_root is not lost.",
+          "disposition": "resolved_by_commit_inclusion"
+        }
+      ]
+    },
+    "boundary_checks": {
+      "consumes_only_s15_approval_required_routing_metadata": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW",
+      "emits_metadata_only_blocked_claim_output_receipt": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW",
+      "emits_canonical_blocked_claim_refs_and_entries": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW",
+      "rejects_blocked_claim_output_record_notification_ui_ref_mutation_bypass_claims": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW",
+      "rejects_approval_queue_human_approval_runtime_claude_review_review_queue_test_golden_product_state_audit_permission_authz_security_error_ui_real_data_claims": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW",
+      "keeps_source_micro_phase_open": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW",
+      "hands_off_to_s17": "PASS_BY_TEST_VALIDATOR_AND_CLAUDE_REVIEW"
+    }
+  },
+  "raw_cli_result_excerpt": "\n<invoke name=\"Bash\">\n<parameter name=\"command\">cd \"/Users/jws/Documents/Codex/Law Firm OS\" && node --input-type=module << 'EOF'\nimport * as p from \"./packages/control-plane/src/policies.js\";\nconst S15=p.CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_APPROVAL_REQUIRED_ROUTING_POLICY.forbiddenApprovalRequiredRoutingClaims;\nconst S16=p.CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_BLOCKED_CLAIM_OUTPUT_POLICY.forbiddenBlockedClaimOutputClaims;\nconst missing=S15.filter(c=>!S16.includes(c));\nconsole.log(\"S15 count:\",S15.length,\"S16 count:\",S16.length,\"dropped:\",JSON.stringify(missing));\nconsole.log(\"S16 new:\",JSON.stringify(S16.filter(c=>!S15.includes(c))));\nconst refs=p.CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_BLOCKED_CLAIM_OUTPUT_REFS;\nconst ents=p.CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_BLOCKED_CLAIM_OUTPUT_ENTRIES;\nconsole.log(\"refs:\",refs.length,\"entries:\",ents.length,\"refs===entryRefs:\",JSON.stringify(re"
+}

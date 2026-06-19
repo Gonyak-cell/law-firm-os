@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-213",
+  "normalized_at": "2026-06-10T06:03:04.101Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-213/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-213/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-213/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-213/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "ac73e25d-f093-449c-a00e-f2dfcf7fc8cd",
+    "uuid": "19c0d8c9-1561-4dbd-9190-6663858f5c79",
+    "total_cost_usd": 3.2498887499999993,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6973,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-213 is a descriptor-only RP06 DMS-core closeout pack (risk B, 40 units, RP06.P04.M03.S19-RP06.P04.M05.S14), reviewed via Read/Grep/Glob only. Cross-artifact consistency holds across the live closeout-pack-plan, manifest plan_binding_snapshot, registry binding (DMS_CORE_CP213_PACK_BINDING/REQUIREMENTS/NO_WRITE_ATTESTATION), contract current_pack and ui_secondary_slice_binding_descriptor projection, review baseline, and validation report: pack_id, risk_class B, unit_count 40, range, deliverable distribution (claude_review 4 / implementation 11 / ui 18 / security_audit 4 / fixture 1 / test 1 / hermes_evidence 1), micro-title distribution (4/22/14), upstream CP00-212 -> next CP00-214 chain, production_ready_flag dms_core_ui_secondary_slice_binding_descriptor_verified, and source_ledger_sha 13c7ed65 all agree. The CP213 implementation in service.js/validators.js/registry.js is pure frozen-object descriptor construction with no IO/runtime/side effects (no fs, network, db, process, child_process, eval, or console). Tests in model.test.js are non-vacuous: they assert coverage.valid and binding.valid === true (errors joined into the assert message), check every section row for descriptor_only=true and runtime_execution=false, and verify the state_snapshot, no_unauthorized_count_leak, claude_final_approval, no-write-attestation, and authority-boundary guards against concrete false-valued fields defined in the ROW_EXTRAS chain; the validate-rp06-dms-core-contract.mjs script independently re-validates against the live plan. No-write/no-real-data boundaries are comprehensively attested and enforced (freezeCp213Result stamps ~40 negative attestations; validator rejects any drift). Authority boundary is correct: Claude is a read-only reviewer and not the final approver, enterprise trust is not claimed from local validation, and human approval is required to open runtime. Hermes is used only as a deterministic control-plane review-packet/receipt descriptor (gate H06, receipt_shape/evidence strings) with emits_hermes_runtime_receipt=false and actual runtime reserved for RP07/RP08/RP18 — it is not embedded in product runtime. CP178+ review hardening forbidden_review_evidence covers auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, and tool_call_shaped_output (plus final-approval/source-mutation/enterprise-trust claims). production_ready is correctly false in the implemented_pending_review state; this review is the gate. No P0/P1/P2 issues found and the pack-level production_ready claim is well-supported; one P3 informational note records that the post-review evidence artifacts are not yet present, which is expected for pending-review and confirmed by prior closed pack CP00-212.",
+    "findings": [
+      {
+        "id": "C-213-01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts not yet present at review time (expected, non-blocking)",
+        "file": "docs/closeout-packs/cp00-213/manifest.json",
+        "line": 1656,
+        "details": "The manifest's required_pack_artifacts and every per-unit evidence_refs list cite docs/closeout-packs/cp00-213/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json exist in that directory at review time. This is consistent with the pending-review state (status=implemented_pending_review, production_ready=false) and the documented hardened_review_sequence, in which adjudication -> construction_inspection -> final_closeout_validation produce those files from the accepted review. The prior already-closed pack CP00-212 contains all three artifacts, confirming the expected flow. It is therefore not a defect in the pack implementation.",
+        "recommendation": "Ensure the post-review pipeline generates claude-review-result.json, adjudication.md, and construction-inspection.json from this review and that npm run closeout-pack:validate confirms their presence (and the post-review gated commands pass) before commit and final closeout. No source code change is required.",
+        "post_review_disposition": "Expected and non-blocking; artifacts are produced after this read-only review by the documented post-review gated commands. Verified that prior pack CP00-212 contains all three, confirming timing-only absence."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

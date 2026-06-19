@@ -1,0 +1,11 @@
+node_modules/
+apps/*/dist/
+*.log
+*.png
+!docs/ui-reference/amplitude-feb-2025/contact-sheets/*.png
+!docs/ui-reference/amplitude-feb-2025/visual-parity/*.png
+!docs/ui-reference/brand/*.png
+.DS_Store
+Law Firm OS UI/
+progress-control-room-live-data.js
+tools/progress-control-room/live-data.js

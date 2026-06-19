@@ -1,0 +1,287 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-053",
+  "planned_pack_id": "CP00-053",
+  "planned_risk_class": "A",
+  "planned_unit_count": 4,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-052 shifted to CP00-053 by live sequential cursor",
+  "title": "Control-plane Closeout Next Handoff boundary suite pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-07T02:23:33.427Z",
+  "completed_at": "2026-06-07T02:23:33.427Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "A",
+  "risk_reason": "Closes the planned CP00-053 Risk A boundary suite because it binds the Claude Review Packet lock acquisition rule and RP00.P02 Closeout And Next Handoff service entrypoint, request normalization, and tenant boundary precheck while explicitly forbidding Claude runtime invocation, review queue writes, runtime lock acquisition, database/storage/product-state writes, audit/idempotency/lock writes, and real data.",
+  "primary_subphase_id": "RP00.P02.M10.S03",
+  "production_ready_flag": "control_plane_closeout_next_handoff_boundary_suite_verified",
+  "unit_count": 4,
+  "source_micro_phase_completed": true,
+  "phase_completed": true,
+  "next_subphase": "RP00.P03.M00.S01",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-053",
+    "planned_pack_id": "CP00-053",
+    "requested_pack_id": "CP00-052",
+    "title": "CP00-053 RP00.P02.M09.S11-RP00.P02.M10.S03 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 4,
+    "unit_count": 4,
+    "range": {
+      "first_unit_id": "RP00.P02.M09.S11",
+      "last_unit_id": "RP00.P02.M10.S03",
+      "description": "RP00.P02.M09.S11 + RP00.P02.M10.S01-S03"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 4,
+    "correction_reason": "requested CP00-052 shifted to CP00-053 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P02.M09.S11",
+        "title": "Lock acquisition rule",
+        "source_micro_phase_id": "RP00.P02.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P02",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P02.M10.S01",
+        "title": "Service entrypoint contract",
+        "source_micro_phase_id": "RP00.P02.M10",
+        "program_id": "RP00",
+        "phase_id": "RP00.P02",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "contract"
+      },
+      {
+        "id": "RP00.P02.M10.S02",
+        "title": "Request normalization",
+        "source_micro_phase_id": "RP00.P02.M10",
+        "program_id": "RP00",
+        "phase_id": "RP00.P02",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P02.M10.S03",
+        "title": "Tenant boundary precheck",
+        "source_micro_phase_id": "RP00.P02.M10",
+        "program_id": "RP00",
+        "phase_id": "RP00.P02",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "live_closeout_snapshot": {
+    "snapshot_at": "2026-06-07T02:23:33.427Z",
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "contract_subphase_closeouts": 195,
+    "closeout_pack_dirs": 53,
+    "remaining_by_closeout_dir_proxy": 55133,
+    "validation_policy": "monotonic_after_snapshot_not_exact_equality",
+    "proxy_note": "This is a live evidence and contract proxy, not a claim that every weighted Law Firm OS plus HRX unit has a one-to-one directory."
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-053/manifest.json",
+    "docs/closeout-packs/cp00-053/command-evidence.json",
+    "docs/closeout-packs/cp00-053/claude-review-result.json",
+    "docs/closeout-packs/cp00-053/adjudication.md",
+    "docs/closeout-packs/cp00-053/construction-inspection.json"
+  ],
+  "gate_policy": {
+    "implementation": "required",
+    "tests": "required",
+    "hermes_evidence": "required",
+    "claude_review": "exactly_one_pack_level_claude_opus_4_8_max_read_only_review_required",
+    "finding_adjudication": "required",
+    "construction_inspection": "required",
+    "included_units_production_ready": "required",
+    "commit": "required"
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "ignored_untracked_items": [
+      ".DS_Store",
+      "Law Firm OS UI/"
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP00.P02.M09.S11",
+      "title": "Lock acquisition rule",
+      "source_micro_phase_id": "RP00.P02.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P02",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-053/manifest.json",
+        "docs/closeout-packs/cp00-053/command-evidence.json",
+        "docs/closeout-packs/cp00-053/claude-review-result.json",
+        "docs/closeout-packs/cp00-053/adjudication.md",
+        "docs/closeout-packs/cp00-053/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP00.P02.M10.S01",
+      "title": "Service entrypoint contract",
+      "source_micro_phase_id": "RP00.P02.M10",
+      "program_id": "RP00",
+      "phase_id": "RP00.P02",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "contract",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-053/manifest.json",
+        "docs/closeout-packs/cp00-053/command-evidence.json",
+        "docs/closeout-packs/cp00-053/claude-review-result.json",
+        "docs/closeout-packs/cp00-053/adjudication.md",
+        "docs/closeout-packs/cp00-053/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP00.P02.M10.S02",
+      "title": "Request normalization",
+      "source_micro_phase_id": "RP00.P02.M10",
+      "program_id": "RP00",
+      "phase_id": "RP00.P02",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-053/manifest.json",
+        "docs/closeout-packs/cp00-053/command-evidence.json",
+        "docs/closeout-packs/cp00-053/claude-review-result.json",
+        "docs/closeout-packs/cp00-053/adjudication.md",
+        "docs/closeout-packs/cp00-053/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP00.P02.M10.S03",
+      "title": "Tenant boundary precheck",
+      "source_micro_phase_id": "RP00.P02.M10",
+      "program_id": "RP00",
+      "phase_id": "RP00.P02",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-053/manifest.json",
+        "docs/closeout-packs/cp00-053/command-evidence.json",
+        "docs/closeout-packs/cp00-053/claude-review-result.json",
+        "docs/closeout-packs/cp00-053/adjudication.md",
+        "docs/closeout-packs/cp00-053/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true
+    }
+  ],
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-053/claude-review-result.json"
+  },
+  "commit_policy": {
+    "required": true,
+    "message_prefix": "Close CP00-053"
+  }
+}

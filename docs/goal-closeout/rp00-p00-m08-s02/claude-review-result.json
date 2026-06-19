@@ -1,0 +1,95 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M08.S02",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T11:23:39Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "466871c3-ced9-4620-a06f-26fcdd0baae2",
+    "uuid": "7d9d114a-43bf-40bb-b198-256448977117",
+    "duration_ms": 221544,
+    "total_cost_usd": 1.0937535,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 18788,
+        "cache_read_input_tokens": 510021,
+        "cache_creation_input_tokens": 56188,
+        "cost_usd": 1.0927205
+      },
+      "claude-haiku-4-5-20251001": {
+        "output_tokens": 31,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cost_usd": 0.001033
+      }
+    }
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI re-review verified the prior P2 machine-enforcement gap is fixed, the H00 preflight acceptance gate definition remains bound to RP00.P00.M08.S02, M08.S01 remains production_ready as completed scope inventory, required closeout evidence checks are enforced at production_ready, and no prohibited production, real-data, generation approval, C00 replacement, human replacement, M08 completion, or RP00 completion claim is made."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Prior P2 fixed: command-evidence writes_product_state=false and blocked_claims array are now machine-enforced",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1553,
+        "details": "The production_ready closeout loop now has a dedicated RP00.P00.M08.S02 block that verifies blocked_claims is an array and writes_product_state is false.",
+        "recommendation": "No action required."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Prior P3 fixed or acceptable: every command row exit_code 0 and required preflight fields are enforced",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1533,
+        "details": "The validator now checks every command row for exit_code 0 and directly verifies the required preflight evidence fields used by the H00 packet.",
+        "recommendation": "No action required."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Strict evidence enforcement runs at production_ready promotion by design",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1490,
+        "details": "The production_ready closeout evidence loop runs only after the closeout status is promoted to production_ready. This matches prior subphase sequencing and the S02 command evidence satisfies the strict checks.",
+        "recommendation": "Attach Claude review, adjudication, and construction inspection before promotion; this closeout does so."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Binding, scope preservation, and prohibited-claim boundaries all hold",
+        "file": "contracts/control-plane-contract.json",
+        "line": 2307,
+        "details": "h00_preflight_acceptance_gate_definition binds to RP00.P00.M08.S02, M08.S01 remains a completed production_ready scope inventory, next_subphase is RP00.P00.M09.S01, and non-goal boundaries disclaim production mutation, real data, generation approval, C00 replacement, human replacement, M08 completion, and RP00 completion.",
+        "recommendation": "No action required."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m08-s02/packet.json",
+      "docs/goal-closeout/rp00-p00-m08-s02/command-evidence.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Initial actual Claude CLI review returned PASS_WITH_FINDINGS with one P2 validation-theater gap and one P3 partial-enforcement note. The validator was updated to enforce writes_product_state=false, blocked_claims array, required preflight evidence fields, and every command row exit_code 0. Final actual Claude CLI re-review returned PASS_WITH_FINDINGS with only non-blocking P3 confirmation notes."
+  }
+}

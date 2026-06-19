@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-376",
+  "normalized_at": "2026-06-11T21:01:08.355Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-376/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-376/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-376/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-376/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "fe85e0fc-2879-4363-b91b-eb1a5765e8f2",
+    "uuid": "3e2bd79b-ec20-4dbf-937e-5987588033fa",
+    "total_cost_usd": 2.0437565,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7110,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-376 (RP12.P04.M05.S17–RP12.P04.M06.S04, risk A, 10 units) is a descriptor-only billing-core pack covering the M05 Permission And Audit Binding tail (6 rows) and M06 Synthetic Fixture Set head (4 rows). Independent read-only inspection confirms the pack-level claim is fully supported: (1) range/risk/unit-count and deliverable+micro-title distribution agree across the plan (closeout-pack-plan.json), baseline, manifest, contract, and code constants; (2) all 7 declared public exports exist and are implemented as pure frozen descriptor builders (service.js:1610/1643, validators.js:2451/2486/2542/2563/2586) re-exported via index.js `export *`; (3) packages/billing/src contains zero runtime/write/IO patterns (no fs/fetch/child_process/process.env/SQL/db); (4) model.test.js:696-724 deep-equals the contract's p04_permission_fixture_slice_descriptor, cp376_requirements, and cp376_no_write_attestation against code constants and asserts descriptor-only rows, claude_is_final_approval=false, production_ready_candidate=true, and the CP00-377 handoff (next RP12.P04.M06.S05); (5) the RP12 validator covers CP00-376. Boundaries hold: manifest production_ready=false and runtime_ready=false (no over-claim and no weakening of production_ready gates), no_write_attestation sets promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false, and Hermes is used only for the deterministic H12 descriptor-only `_no_write` evidence receipt (emits_hermes_runtime_receipt=false), not product runtime. CP178+ hardening is satisfied: readiness auth_preflight passed (exit 0, 1436-byte valid JSON), validation-report confirms prompt within size limit / no forbidden tools / read_tools_used, and forbidden_review_evidence/invalid_review_blockers are enumerated. Claude remains a read-only independent reviewer and not the final approver; enterprise trust closure requires human approval (downstream). The 3 post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly still absent at this mid-sequence review stage. One non-blocking P3 cosmetic observation about scope-file classification is noted. No P0/P1/P2 issues; pack and goal closeout are not blocked.",
+    "findings": [
+      {
+        "id": "CP00-376-OBS-01",
+        "severity": "P3",
+        "title": "changed-file-scope labels pack-owned doc artifacts as both implementation and unrelated-preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-376/changed-file-scope.json",
+        "line": 130,
+        "details": "`docs/closeout-pack-plan/new-session-handoff.md` and the `docs/closeout-packs/cp00-376/` directory appear simultaneously in `untracked_implementation_files` (line 130-133) and `unrelated_dirty_files_preserved` (line 135-145). The cp00-376/ directory holds this pack's own manifest.json and command-evidence.json, so classifying it as 'unrelated' is inaccurate. The manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json:547-555) omits both paths, so the two generated artifacts disagree on classification. Impact is purely cosmetic: both lists are non-destructive (preserve/track), the review scope is correctly driven by active_pack_implementation_refs, and no billing source, test, contract, or production_ready gating is affected.",
+        "recommendation": "For scope clarity, exclude pack-owned artifact paths (docs/closeout-packs/cp00-376/) from unrelated_dirty_files_preserved in the scope generator, or document that unrelated_dirty_files_preserved is a non-destructive catch-all that may overlap with untracked_implementation_files. No code or runtime change required.",
+        "post_review_disposition": "Non-blocking observation. Does not affect descriptor-only scope, exports, tests, Hermes/local validation evidence, no-write/no-real-data boundaries, or the read-only reviewer authority boundary. Safe to close CP00-376; optionally tidy in the scope-file generator."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

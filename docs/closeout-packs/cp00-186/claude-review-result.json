@@ -1,0 +1,77 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-186",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "session_id": "ba7f354a-cf7b-44b0-8af8-16ed8b1eca73",
+    "uuid": "d1bed361-9bb9-4d1a-b521-1cb69e402b7f",
+    "duration_ms": null,
+    "duration_api_ms": null,
+    "total_cost_usd": 2.7478642499999997,
+    "permission_denials": [],
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-186/raw-output.json"
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-186/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-186/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C05.CP00-186.matter_core_synthetic_fixture_permission_substrate",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "artifacts/closeout-pack-claude-review/cp00-186/prompt.txt",
+    "request_ref": "artifacts/closeout-pack-claude-review/cp00-186/review-request.json",
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-186/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-186/readiness-report.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-186 (RP05 Matter Core, Risk C, 150 units, range RP05.P05.M06.S02-RP05.P06.M03.S19) passes independent read-only review with one non-blocking P3 code-quality finding. The pack-level production_ready claim is supported because it is NOT yet asserted: manifest.json (in_progress), command-evidence.json (production_ready=false, gate_outcome=pending), construction-inspection.json (PENDING), adjudication.md (pending), and claude-review-result.json (pending) all honestly report a pre-approval state. This C05 Claude review is itself the gate being produced; the implementation correctly distinguishes the Hermes production_ready_candidate flag (coverage.valid && substrate.valid in createMatterCoreCp186HermesEvidencePacket) from the final pack-level production_ready, which remains gated behind H05 + human final approval. Implementation is descriptor-only and leak-safe: MATTER_CORE_CP186_NO_WRITE_ATTESTATION sets every mutation/leak boolean false (writes_product_state, evaluates_runtime_permission, writes_audit_event, dispatches_review_route, executes_api_handler, uses_real_client_data, etc.), and the synthetic fixture/permission substrate descriptor (tenant_rp05_synthetic) carries 9 enforced leak_guards validated against the descriptor at validators.js:2438-2450. Tests (model.test.js CP186 cases) assert 105 fixture rows (21x5), 80 substrate rows (20x4), denied=blocked/allowed=passed/review/approval rows, inherited CP00-185 tail leak-safety, and authority-boundary preservation. CP178+ review hardening is correctly enforced in scripts/lib/closeout-pack-claude-review-hardening.mjs: deterministic rejection of auth failures, 0-byte stdout, malformed JSON, fenced JSON-with-prose, tool-call-shaped output, permission denials, structured_output absence, and missing required fields, plus exactly-one-valid-receipt and read-only-tools/model/effort enforcement; the runner only captures raw output and defers all judgment to the normalize/validate steps. Claude is preserved as read-only reviewer and not final approver (request.read_only=true, tools=[Read,Grep,Glob], promotes_claude_to_final_approval=false, claude_is_final_approval=false, human_final_approval_required_for_enterprise_trust_claim=true). Hermes control-plane patterns are used only for deterministic evidence packet/receipt handling, not product runtime (hermes_runtime_embedded_in_product=false). Changed-file scope honored: the 8 in-scope implementation refs were reviewed and unrelated dirty files (amplitude/UI/progress-control-room scripts and the untracked docs/ldip-integration c-ldip-01 file) were correctly excluded. No P0/P1/P2 issues found.",
+    "findings": [
+      {
+        "id": "CP00-186-P3-01",
+        "severity": "P3",
+        "title": "Tautological no-leak-guard validation loop is dead code (validates nothing)",
+        "file": "packages/matter/src/validators.js",
+        "line": 2375,
+        "details": "In validateMatterCoreCp186SyntheticFixturePermissionSubstrate, the loop `for (const guard of requirements.required_no_leak_guards) { if (!requirements.required_no_leak_guards.includes(guard)) errors.push(...) }` (lines 2375-2377) iterates an array while checking membership in that same array, so the condition is always false and no error can ever be pushed. This is dead validation that gives false assurance of guard-name coverage. It contrasts with the immediately preceding required_permission_controls loop (2372-2374) and required_fixture_controls loop, which check the requirements arrays against hard-coded expected control-name lists. Functional impact is nil because the descriptor's actual runtime leak guards are independently validated against a hard-coded 9-guard list at lines 2438-2450, and the pack is descriptor-only with no product runtime; so this does not weaken any no-write/no-real-data boundary. It is purely a code-quality/maintainability defect.",
+        "recommendation": "Replace the self-referential loop with a check of requirements.required_no_leak_guards against a hard-coded expected guard-name set (mirroring the permission/fixture control loops), e.g. iterate the expected guard names and assert requirements.required_no_leak_guards.includes(name). This restores the intended coverage assertion on the requirements object.",
+        "post_review_disposition": "Non-blocking (P3). Does not block CP00-186 pack closeout or goal closeout; descriptor leak guards remain independently enforced at validators.js:2438-2450. Recommend cleanup in a follow-up pack (e.g. CP00-187) rather than reopening this pack."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "post_review_adjudication_summary": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1,
+    "finding_cp00_186_p3_01": "fixed_post_review_without_second_claude_review",
+    "exactly_one_valid_claude_review_preserved": true
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.subphase-command-evidence.v0.1",
+  "subphase_id": "RP00.P00.M01.S01",
+  "status": "passed",
+  "recorded_at": "2026-06-03T08:48:20Z",
+  "commands": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed; final rerun confirmed status production_ready and all closeout evidence present."
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with 227 requirements, including 209 feature and 18 narrative requirements."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "summary": "Law Firm OS product contract validation passed with 9 modules, 9 principles, 7 invariants, and product_codebase Hermes project type."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 3,300 source micro phases and 54,355 implementation subphases."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "summary": "Goal closeout protocol validation passed for all_goals with claude-opus-4-8 effort=max read-only requirements."
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Node test suite passed: 23 tests, 0 failures across domain, authz, and audit packages."
+    }
+  ]
+}

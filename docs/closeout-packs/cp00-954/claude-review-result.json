@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-954",
+  "status": "review_waived_by_user",
+  "review_receipt_ref": null,
+  "valid_review_receipts": [],
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "cp954-review-run-interrupted-by-user-waiver-01",
+      "status": "invalid_not_accepted",
+      "reason": "User instructed to skip full Claude review before the CP00-954 review run completed; no raw output or receipt is accepted as review evidence.",
+      "command": "npm run closeout-pack:review:run -- CP00-954",
+      "exit_code": 130
+    }
+  ],
+  "exactly_one_valid_pack_level_claude_review_run": false,
+  "review_execution": {
+    "source": "user_instruction",
+    "runner": "not_run_due_to_user_waiver",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": [],
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "WAIVED_BY_USER",
+    "not_counted_as_review_evidence": true,
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Full Claude review was explicitly waived by the user and is not counted as valid review evidence. CP00-954 closeout remains descriptor-only and depends on deterministic local/Hermes validation evidence; enterprise trust, runtime opening, and final human approval remain outside this waiver.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  },
+  "user_waiver": {
+    "owner_instruction": "지금부터는 전체 클로드 리뷰는 생략",
+    "recorded_at": "2026-06-18T05:59:41.265Z",
+    "not_counted_as_valid_review": true,
+    "future_precedent": false,
+    "scope_note": "Thread-level instruction applies going forward; each pack records an explicit non-review waiver artifact so closeout evidence does not misrepresent a Claude review as completed."
+  }
+}

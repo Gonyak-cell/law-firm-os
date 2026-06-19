@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-353",
+  "normalized_at": "2026-06-11T17:31:19.848Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-353/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-353/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-353/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-353/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "1e9aee88-0ebf-4b9e-8669-3bd4fe84217f",
+    "uuid": "bdba6593-6027-406c-9f28-d2cea4a81e89",
+    "total_cost_usd": 2.4181909999999993,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6353,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-353 is a descriptor-only closeout pack (150 units, risk C, RP11.P05.M06.S08-RP11.P06.M04.S05) and its production_ready claim is appropriately conservative and fully supported. The pack does NOT overclaim: command-evidence and manifest both record production_ready=false with status implementation_and_plan_gates_passed_pending_final_closeout, and Hermes/local validation only report production_ready_candidate=true. Independent read-only inspection confirms: (1) the live closeout-pack-plan.json CP00-353 entry (ledger sha 13c7ed65..., deviation_from_plan=false) matches the registry binding, contract current_pack, and review baseline exactly; (2) registry CP353_REQUIREMENTS deliverable/phase/micro-title counts reconcile to 150 and match the prompt distribution; (3) all seven required public exports exist in service.js/validators.js and are re-exported via index.js, with freezeCp353Result forcing 30+ no-write/no-runtime flags to false; (4) model.test.js and the validator script load the live plan+contract, deepEqual the contract against registry constants, and assert coverage.valid, foundation.valid, deny-over-allow, and claude_is_final_approval=false; (5) command-evidence.json records all 23 build/test/validate commands exiting 0 including git diff --check. No-write/no-real-data boundaries hold at every layer: no writeFileSync/exec/fetch/http in any changed source, contract+manifest no-write attestations all-false on dangerous flags, synthetic_only/no_real_data true. Claude remains a read-only reviewer (read_only=true, tools Read/Grep/Glob, claude_not_final_approver=true, human_final_approval_required) and is not final approval authority. Hermes patterns are used only for deterministic descriptor evidence/receipt handling (emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false). CP178+ review hardening is enforced via forbidden_review_evidence (auth failures, zero-byte/malformed/fenced JSON, tool-call-shaped output, missing fields, final-approval/enterprise-trust claims) and the readiness auth-preflight passed with valid JSON. One non-blocking P3 bookkeeping discrepancy noted in the generated changed-file-scope. No P0/P1/P2 issues.",
+    "findings": [
+      {
+        "id": "CP353-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists this pack's own cp00-353/ artifacts under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-353/changed-file-scope.json",
+        "line": 138,
+        "details": "In changed-file-scope.json, docs/closeout-packs/cp00-353/ (and docs/closeout-pack-plan/new-session-handoff.md) appear simultaneously in untracked_implementation_files (lines 131-132) and in unrelated_dirty_files_preserved (lines 138-139). The cp00-353/ directory holds this pack's own manifest.json and command-evidence.json, so labeling it 'unrelated' is inconsistent with the manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest line 6016 onward), which correctly excludes cp00-353/ and lists only the genuinely unrelated workbook/docx/ldip files. The discrepancy is purely a generated-bookkeeping labeling difference and has no effect on review integrity: active_untracked_implementation_files_omitted is empty in both changed-file-scope.json (line 134) and validation-report.json (line 24), so nothing in active pack scope was improperly omitted, and the no-write/no-real-data boundaries are unaffected.",
+        "recommendation": "Optionally align the changed-file-scope generator so the pack's own docs/closeout-packs/<pack-id>/ artifacts are not also categorized as unrelated_dirty_files_preserved, matching the manifest's cleaner classification. No code or boundary change required; safe to close out as-is.",
+        "post_review_disposition": "Informational only; does not block pack closeout or goal closeout. Recommend tracking as a minor generator-hygiene cleanup."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

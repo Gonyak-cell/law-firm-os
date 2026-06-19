@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-595",
+  "normalized_at": "2026-06-13T00:45:47.474Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-595/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-595/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-595/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-595/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "a9a35703-1548-4bc4-afca-89c9933b0e2d",
+    "uuid": "b705dfee-c1d5-4ec6-9685-ce3b7602d2c4",
+    "total_cost_usd": 3.11560225,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7234,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-595 is a descriptor-only closeout pack for RP19 client-portal-core (P05 closeout / P06 foundation, 150 units, risk C, range RP19.P05.M06.S06-RP19.P06.M03.S14). The pack-level claim is correctly stated as production_ready=false, runtime_ready=false, implementation_layer=descriptor, status=implemented_pending_review; the production_ready_flag is a verification label, not an enterprise-trust claim. The claim is fully supported: registry binding, contract current_pack + p05_closeout_p06_foundation_descriptor projection, live closeout-pack-plan.json, and manifest all agree on identity, counts, and distribution (fixture29/claude_review8/implementation59/security_audit22/test16/hermes_evidence4/ui12 = 150). All 7 required CP595 public exports exist (service.js + validators.js) and are surfaced via index.js export *. Descriptor output is descriptor-only with comprehensive no-write/no-real-data flags (freezeCp595Result), and every section row carries descriptor_only=true/runtime_execution=false/customer_safe_errors_only=true/raw_payload_included=false. Validators (coverage, slice, hermes, claude, handoff) and three dedicated tests assert these boundaries plus the authority boundary; the contract validator script deep-equals the contract projection, requirements, and no-write attestation. Authority boundaries hold: Claude is a read-only reviewer (Read/Grep/Glob), not final approver; promotes_claude_to_final_approval=false; human approval required for runtime opening; enterprise trust not claimed from local validation. Hermes patterns are descriptor-only review packet/receipt handling with emits_hermes_runtime_receipt=false and no product-runtime embedding. Review-hardening preconditions are satisfied: forbidden_review_evidence enumerates all CP178+ failure modes, and the readiness auth-preflight passed (exit 0, non-zero stdout, valid JSON), so no auth-failure/0-byte/malformed/fenced/tool-call-shaped evidence is being relied upon. command-evidence records 28 commands at exit 0 (npm test, npm run validate, all RP validators, plan/weighted/spec/control-plane/goal/fullplan, git diff --check). Two modified progress-control-room UI files are correctly classified as unrelated/out-of-scope. One non-blocking P3: P06 security_audit/permission/ui rows are bare descriptor placeholders (no enforcement/audit/trimming logic), which is by-design for a descriptor foundation and consistent with production_ready=false. No P0/P1/P2 issues; pack closeout and goal closeout are not blocked. Final human approval remains required for any enterprise-trust/runtime claim.",
+    "findings": [
+      {
+        "id": "CP595-P3-01",
+        "severity": "P3",
+        "title": "P06 security/permission/ui rows resolve to bare descriptor placeholders, not runtime enforcement",
+        "file": "packages/client-portal/src/service.js",
+        "line": 1594,
+        "details": "CP595_ROW_EXTRAS only spreads CP594_ROW_EXTRAS, and there are no ROW_EXTRAS keyed to the P06 permission/security row titles (permission_matrix_row, view/search/mutation/export/share/ai_retrieval decision bindings, deny_over_allow_check, matched_rule_capture, audit_hint_fields, security_trimming_proof, audit_event_expectation, permission_fixture, legal_hold/ethical_wall/object_acl interaction). These rows (covering the pack's 22 security_audit, 12 ui, and permission-binding implementation units) therefore resolve to descriptor rows carrying only the four base flags (descriptor_only, runtime_execution:false, customer_safe_errors_only, raw_payload_included:false). No permission decision logic, audit emission, or security trimming is implemented in this pack. This is by design for a descriptor-only foundation and is internally consistent (validators and tests accept bare descriptor rows; identical pattern used in CP587-CP594), and it reinforces rather than contradicts production_ready=false / runtime_ready=false. Noted so the human final approver does not mistake the security_audit/ui deliverable counts for implemented runtime controls.",
+        "recommendation": "No change required for this descriptor pack. Ensure the downstream runtime-opening packs (CP00-596+), gated by human approval, implement and test the actual permission enforcement, deny-over-allow, audit emission, and security-trimming behavior that these P06 rows currently only describe before any enterprise-trust or production_ready=true claim is made.",
+        "post_review_disposition": "informational_non_blocking_by_design"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

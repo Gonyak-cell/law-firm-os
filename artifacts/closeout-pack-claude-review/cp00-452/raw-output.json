@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-452",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T06:15:35.217Z",
+  "finished_at": "2026-06-12T06:23:29.297Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":472932,\"duration_api_ms\":472994,\"ttft_ms\":3021,\"num_turns\":48,\"result\":\"Review complete. **Verdict: PASS** — no findings.\\n\\nCP00-452 cleanly closes the RP14 Partner Settlement descriptor program (23 units, M09 review-packet tail + M10 closeout) and hands off to RP15.P00.M00.S01. All layers reconcile (registry, service, validators, contract, plan, tests, validator script, manifest, command-evidence), the descriptor-only/no-write/no-real-data boundary holds with no runtime or write flag set true, Claude remains a read-only non-final reviewer, Hermes is used only for descriptor evidence, and the CP178+ evidence-hardening checks (auth preflight, non-zero valid-JSON stdout, read-tools mode, no forbidden tools) all pass. The pack correctly does not overclaim — `production_ready: false`, pending this review — and does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"4ada9a5b-f7d8-4bcf-88b9-c31c973c8cc6\",\"total_cost_usd\":3.0488272499999995,\"usage\":{\"input_tokens\":96,\"cache_creation_input_tokens\":107757,\"cache_read_input_tokens\":3150202,\"output_tokens\":31943,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":107757,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":342,\"cache_read_input_tokens\":108470,\"cache_creation_input_tokens\":7682,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7682},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1085,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00119,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":96,\"outputTokens\":31943,\"cacheReadInputTokens\":3150202,\"cacheCreationInputTokens\":107757,\"webSearchRequests\":0,\"costUSD\":3.0476372499999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-452 is a clean, descriptor-only closeout pack that closes the final RP14 \\\"Partner Settlement\\\" review/closeout slice (M09 Claude Review Packet tail = 13 rows, M10 Closeout And Next Handoff = 10 rows) over 23 RP14 units and hands off to RP15.P00.M00.S01. Read-only inspection (Read/Grep/Glob) confirms the pack-level claims are supported and no boundaries are violated.\\n\\nVerified: (1) Scope/distribution reconcile to 23 units across registry SETTLEMENT_CORE_CP452_PACK_BINDING (registry.js:443), CP452_REQUIREMENTS (registry.js:2375), manifest, contract current_pack (settlement-core-contract.json:16), the plan entry (closeout-pack-plan.json:410), and the test/validator harness — deliverable split 16 implementation / 3 claude_review / 2 security_audit / 1 test / 1 ui and micro counts M09=13, M10=10 all match. (2) Descriptor-only enforcement: freezeCp452Result (service.js:3287) and freezeCp452Validation (validators.js:4689) stamp synthetic_only/no_real_data and set every settlement/origination/allocation/working-credit runtime, state-write, audit-write, permission-eval, Hermes-runtime-receipt, and command-runtime flag to false; a scoped scan for any such flag set true across the settlement package, the contract, and the CP452 docs returned no matches. (3) Authority boundary intact: authority_boundary.claude_is_final_approval=false, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false, human_final_approval_required_for_runtime_opening=true — asserted in source, contract projection, tests (model.test.js:1815/1832), and the validator script (validate-rp14-settlement-core-contract.mjs:1475/1481). (4) Hermes patterns used only for the deterministic descriptor evidence packet (H14, emits_hermes_runtime_receipt=false), never product runtime; production_ready_candidate is gated on coverage+slice validity, not a runtime/trust claim. (5) CP178+ review-evidence hardening: readiness auth-preflight passed (exit 0, 1436-byte valid-JSON stdout, zero errors/warnings), validation-report confirms read-tools inspection mode, summary-only prohibited (Risk C + security/review deliverables), and no forbidden tools. (6) No overclaim: manifest production_ready=false / runtime_ready=false / status=implemented_pending_review; the three post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly absent at this read_only_claude_run stage (CP00-451 confirms they are produced only after closeout), and closeout-pack:validate is correctly deferred as post-review-gated. (7) Continuity: predecessor CP00-451 is production_ready=true with next_subphase RP14.P09.M09.S08 (= CP452 first unit); CP452 closes RP14 and points to CP00-453/RP15.\\n\\nClaude acted as an independent read-only reviewer only; final enterprise-trust approval remains a human responsibility outside this receipt. No P0/P1/P2/P3 findings. The review does not block pack closeout or goal closeout, and there are no unresolved P0 or P1 issues.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"972b3991-b1a3-4d10-a943-284d97d88a90\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5500,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "4ada9a5b-f7d8-4bcf-88b9-c31c973c8cc6",
+    "uuid": "972b3991-b1a3-4d10-a943-284d97d88a90",
+    "total_cost_usd": 3.0488272499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

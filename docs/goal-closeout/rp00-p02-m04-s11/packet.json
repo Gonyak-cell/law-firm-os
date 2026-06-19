@@ -1,0 +1,83 @@
+{
+  "subphase_id": "RP00.P02.M04.S11",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Lock acquisition rule",
+  "status": "production_ready",
+  "created_at": "2026-06-05T21:36:22Z",
+  "deliverable_type": "implementation",
+  "implementation_summary": [
+    "Added the control-plane Claude review Lock acquisition rule slice for RP00.P02.M04.S11.",
+    "The S11 policy, result-field registry, prechecker module, service function, validator, synthetic fixture, contract definition, README, and RP00 validator bind a frozen metadata-only lock rule receipt after RP00.P02.M04.S10.",
+    "The precheck consumes the S10 Idempotency key handling result and requires the S01 service entrypoint contract, S02 normalized request, S03 tenant boundary precheck, S04 Matter trace precheck, S05 Permission precheck, S06 Audit hint precheck, S07 Primary happy path result, S08 Secondary workflow path result, S09 State transition enforcement result, S10 Idempotency key handling result, RP00.P02.M03.S20 Hermes Validation denied-path evidence refs, and the permission/audit baseline RP00.P00.M05.S01 to remain intact.",
+    "The allowed path emits an allow_metadata_only lock receipt only when the carried S10 idempotency decision is allow_metadata_only, the S10 result is marked applied, the entrypoint is claude_review, the model is claude-opus-4-8, effort is max, read-only review metadata remains present, the S10 idempotency receipt is present, and an audit event ref is present.",
+    "Missing S10 results, wrong upstream markers, denied idempotency decisions, non-Claude-review entrypoints, wrong model or effort, non-read-only review metadata, missing idempotency receipts, missing audit refs, lock acquisition claims, lock record/store persistence claims, service execution claims, runtime route claims, product write claims, runtime Claude/review queue claims, audit write claims, runtime permission/AuthZ/permission-engine claims, source-completion claims, and unknown truthy lock claims fail closed.",
+    "The S11 result hard-codes no lock acquisition, no lock record write, no lock store write, no idempotency record write, no audit ledger append, no audit event write, no runtime Claude invocation, no review queue write, no review assignment write, no review notification, no service logic execution, no runtime route creation, no runtime permission evaluation, no AuthZ evaluator call, no permission engine execution, no product-state write, no database write, no storage write, and no UI creation.",
+    "The dedicated service tests prove policy binding, metadata-only lock receipt emission, firm-level metadata acceptance, result drift rejection, unsafe-claim and wrong-source failures, prechecker no-write boundaries, S12 handoff, and synthetic fixture parity.",
+    "The RP00 validator now enforces S11 contract definition, policy module, service module, validators, fixture metadata, weighted-ledger presence, and construction inspection flag control_plane_claude_review_lock_acquisition_rule_verified.",
+    "The boundary is metadata-only and does not acquire runtime locks, persist lock records, write lock stores, persist idempotency records, append audit ledgers, write audit events, invoke Claude at runtime, mutate review queues, replace human approval, write storage, write databases, create UI, or persist product state.",
+    "RP00.P02.M04 remains open after S11 and hands off to RP00.P02.M04.S12 Persistence boundary; RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m04-s11/packet.json",
+    "docs/goal-closeout/rp00-p02-m04-s11/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m04-s11/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m04-s11/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m04-s11/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 292,
+    "full_test_count": 376,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s11_evidence_files",
+    "final_rp00_gate_status": "passed_after_evidence_creation"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "e6627627-0572-4a74-ba0a-005f55440198",
+    "uuid": "55cdead5-4d81-4932-bc21-5b526d350506",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_adjudication": "GO",
+    "production_ready_verdict_after_adjudication": "GO",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 3
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "none",
+    "p3_status": "informational_deferred_with_explicit_boundary",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": false,
+    "completed_micro_phase_id": null,
+    "next_micro_phase_id": "RP00.P02.M04",
+    "next_subphase": "RP00.P02.M04.S12",
+    "does_not_complete_RP00_P02_M04": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M04.S12"
+}

@@ -1,0 +1,119 @@
+{
+  "subphase_id": "RP00.P02.M04.S11",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Lock acquisition rule",
+  "created_at": "2026-06-05T21:36:22Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s11-claude-review.json",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s11-review-packet.diff",
+  "session_id": "e6627627-0572-4a74-ba0a-005f55440198",
+  "uuid": "55cdead5-4d81-4932-bc21-5b526d350506",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 3.4289992500000004,
+  "usage": {
+    "input_tokens": 53,
+    "cache_creation_input_tokens": 184177,
+    "cache_read_input_tokens": 2601146,
+    "output_tokens": 22212,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 184177,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "GO",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    "P3: lock_receipt carries matter_id, idempotency_behavior_ref, and decision_reason beyond the declared lock_receipt_fields list. This is accepted because the validator checks each by value, the receipt mirrors the established S10 precedent, and the additional fields are deterministic metadata only.",
+    "P3: the fail_closed_on label unknown_truthy_lock_claim is narrower than the actual strictness because non-false values such as 0 are rejected. This is accepted because the stricter behavior is safer and tested.",
+    "P3: the prechecker repeats idempotency_decision and idempotency_key_handling_applied checks after the S10 validator already revalidates the input. This is accepted as harmless defensive duplication."
+  ],
+  "review_text": "Claude returned PASS and GO for RP00.P02.M04.S11 with no P0, P1, or P2 findings. Claude verified that precheckControlPlaneClaudeReviewLockAcquisitionRule consumes and revalidates the S10 Idempotency key handling result, preserves claude_review plus claude-opus-4-8 plus max plus read-only metadata, requires S10 idempotency receipt and audit event ref, emits a frozen synthetic metadata-only lock acquisition rule receipt, rejects forbidden and unknown unsafe lock claims, keeps RP00.P02.M04 open, hands off to RP00.P02.M04.S12, and does not acquire locks, persist lock records, write lock stores, create UI, invoke runtime Claude, write review queues, append audit ledgers or events, execute runtime permission/AuthZ/permission-engine logic, execute service logic, create runtime routes, or write product state. Three P3 observations were informational only and explicitly deferred.",
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "e6627627-0572-4a74-ba0a-005f55440198",
+    "uuid": "55cdead5-4d81-4932-bc21-5b526d350506",
+    "total_cost_usd": 3.4289992500000004,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s11-claude-review.json",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s11-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Lock receipt carries deterministic metadata beyond the declared field list.",
+        "body": "No action required. The validator checks matter_id, idempotency_behavior_ref, and decision_reason by value, and the additional receipt fields mirror the established S10 metadata-only receipt precedent.",
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Fail-closed label is narrower than actual strictness.",
+        "body": "No action required. The code rejects non-false lock claims, including 0, which is stricter and safer than the label unknown_truthy_lock_claim implies, and the behavior is covered by tests.",
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Post-revalidation idempotency checks are defensive duplication.",
+        "body": "No action required. The S10 validator already checks these fields, but the repeated S11 checks are harmless and preserve an explicit boundary at the prechecker.",
+        "status": "deferred_with_explicit_boundary"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T21:36:22Z",
+  "production_ready": true
+}

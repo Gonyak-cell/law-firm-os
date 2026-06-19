@@ -1,0 +1,77 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M02.S01",
+  "source_micro_phase_id": "RP00.P00.M02",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Define field types, enums, stable identifiers, reference rules, and ownership metadata for ProductContract, AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, and BlockedClaim.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "docs/goal-closeout/rp00-p00-m02-s01/packet.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/permission-kernel-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-spec-requirement-ledger.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands.rp00_control_plane_contract_validate",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids"
+  ],
+  "requirement_refs": [],
+  "risk_focus": [
+    "field_shape_missing_required_contract_field",
+    "enum_ref_without_registry",
+    "reference_field_without_target",
+    "tenant_scoped_shape_without_tenant_id",
+    "ownership_metadata_claiming_mutation_authority",
+    "type_shape_claimed_as_runtime_model_implementation"
+  ],
+  "claude_questions": [
+    "Do the field_shapes cover every required field declared in the M01 contract shell for all six control-plane entities?",
+    "Are enum_ref and reference fields backed by registries or explicit targets?",
+    "Do tenant-scoped shapes all include tenant_id and preserve fail-closed tenant boundary semantics?",
+    "Does ownership_metadata preserve Hermes as evidence-only, Claude as read-only review, and HumanApproval as non-delegable?",
+    "Is anything missing before RP00.P00.M02.S01 can be promoted from implemented to production_ready?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run spec:requirements:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate",
+    "npm test"
+  ]
+}

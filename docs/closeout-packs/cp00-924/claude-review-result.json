@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-924",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-924/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-924/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "2cbcbf65-f3b7-43f8-9d40-f900cf6c157f",
+    "uuid": "5a11ab50-575f-4efd-aca9-8b60586b86c0",
+    "total_cost_usd": 2.2203155,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6243,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-924 is a descriptor-only RP30 embedded-HRX bridge pack (CandidateApi tail S03-S05, EvidenceApi S01-S05, HROperations S01-S02; 10 units, risk A). It does not claim production_ready (validation-report, manifest review block, construction-inspection all show production_ready=false / runtime_ready=false / status pending_review), and its only positive claim is descriptor verification. Direct inspection confirms the claim is supported: HRX_CP924_PACK_BINDING (registry.js:542) chains consistently CP923->CP924->CP925 and matches the manifest/baseline range and 10-unit distribution; HRX_CP924_REQUIREMENTS (registry.js:1986) and manifest micro_title_distribution match (CandidateApi 3 / EvidenceApi 5 / HROperations 2). The row factory (registry.js:2078) sets every runtime/record-write/payload/policy-execution/finalization/real-data/secret flag to false, and validateHrxCp924CandidateEvidenceHrOperationsBridgeDescriptor (validators.js:4776) actively rejects any non-false boundary field, missing fields, non-read-only Claude packet, runtime-receipt emission, enterprise-trust claim, or handoff/capability/safety-gate/no-leak-guard drift. Authority boundary holds: claude_is_final_approval=false, promotes_claude_to_final_approval=false, human_final_approval_required_for_runtime_opening=true, Hermes packet emits_runtime_receipt=false (Hermes used only for deterministic review/evidence packet handling, not product runtime). Tests (model.test.js:1482-1560) assert these boundaries meaningfully; the generated contract JSON matches the projection with validation.valid=true and no real-data/secret leakage. Review-hardening checks pass: prompt 2419B < 25600B limit, no full source/diff inlined, schema present, tools restricted to Read/Grep/Glob, no forbidden tools, auth preflight exit 0 with valid JSON result. No P0/P1/P2 findings. One P3: command-evidence.json captures only the HRX-specific deterministic subset (6 commands, all exit 0), not the full 10-command closeout ladder named in the prompt; the pack notes and adjudication.md explicitly defer that ladder to the post-promotion run before commit and keep production_ready=no until then, so closeout remains correctly gated. As a read-only reviewer (Bash prohibited) I could not execute that ladder. Claude remains a read-only independent reviewer, not the final approver; the pack makes no runtime or enterprise-trust claim, so neither pack nor goal closeout is blocked by this review.",
+    "findings": [
+      {
+        "id": "CP924-P3-01",
+        "severity": "P3",
+        "title": "Full closeout validation ladder not present in pre-review command evidence",
+        "file": "docs/closeout-packs/cp00-924/command-evidence.json",
+        "line": 7,
+        "details": "command-evidence.json records only the HRX-specific deterministic subset (node --check on registry/validators/validate script, node --test on hrx tests, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate) with exit_code 0 each. The broader 10-command closeout ladder named in the review prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not captured in the evidence at review time. The artifact notes state these pre-review checks 'must be re-confirmed by the post-promotion validation ladder before commit,' and adjudication.md keeps production_ready=no until that full ladder completes. As a read-only reviewer with Bash prohibited, I cannot independently execute or confirm those commands.",
+        "recommendation": "Before promoting/committing CP00-924, run and capture the full deterministic validation ladder; ensure all pass and git diff --check is clean, and do not flip production_ready to true until then. Optionally append the ladder results to command-evidence.json for an auditable post-review record.",
+        "post_review_disposition": "Expected sequencing per pack notes and adjudication.md (review -> adjudication -> queue regen -> full ladder -> commit); not an implementation defect. Non-blocking for this review. Closeout correctly remains gated on the full ladder."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

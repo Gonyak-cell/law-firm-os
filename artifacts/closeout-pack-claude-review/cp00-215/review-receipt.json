@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-215",
+  "normalized_at": "2026-06-10T06:31:08.455Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-215/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-215/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-215/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-215/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "971861c0-ba35-44f3-922f-601f46b5a73e",
+    "uuid": "a2ad0eb6-8336-4eb4-9d09-1abbc640a68c",
+    "total_cost_usd": 2.2562945,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7215,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-215 is a descriptor-only RP06 DMS Core pack (risk C, 150 units, RP06.P04.M06.S03-RP06.P05.M02.S14) closing the P04 UI cycle tail and opening the P05 fixture-case foundation. Read-only inspection of registry.js, service.js, validators.js, the contract, and model.test.js confirms the pack's claims are internally consistent and supported: pack binding, deliverable/phase/micro-title distributions match the baseline exactly and are drift-enforced by validators.js; no-write/no-real-data/descriptor-only boundaries are enforced in code AND asserted in tests (synthetic-only fixtures, runtime_execution=false, dispatches_ai_runtime=false, cross_tenant_access_allowed=false, real_client_data_loaded=false). The dms package has no fs-write/network/child_process/env/eval/secret surface; the validate script is read-only. Claude is constrained to read-only Read/Grep/Glob and is not final approver (claude_is_final_approval=false throughout); Hermes is used only for deterministic descriptor review packet/receipt handling (hermes_runtime_embedded_in_product=false, emits_hermes_runtime_receipt=false). CP178+ review hardening (forbidden_review_evidence + hardened_review_sequence) is present and the readiness auth-preflight passed with non-zero valid-JSON stdout. The pack correctly claims production_ready=false / implemented_pending_review and does NOT claim production readiness or enterprise trust from local validation, so no production_ready gate is weakened. No P0/P1/P2 findings. Two P3 scope notes: (1) producer-reported command results in command-evidence.json were not re-executed in this read-only review and were verified only by source/contract/test/validator inspection; (2) post-review pack artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are not yet present, consistent with the pending pre-review state and must be produced/validated before commit. Final approval and enterprise-trust closure remain a human gate outside this review.",
+    "findings": [
+      {
+        "id": "CP00-215-P3-01",
+        "severity": "P3",
+        "title": "Producer-reported validation command results not independently re-executed in read-only review",
+        "file": "docs/closeout-packs/cp00-215/command-evidence.json",
+        "line": 9,
+        "details": "command-evidence.json records exit_code 0 for npm test, npm run build, npm run validate, npm run rp06:dms-core:validate, git diff --check, and the other plan/spec/control-plane validators. As a read-only reviewer (Read/Grep/Glob, no Bash) I verified the underlying source, contract, test, and validator consistency by inspection (e.g. validators.js:3870-3890 enforces CP215 distribution/drift; model.test.js:1737-1791 asserts the descriptor-only and authority-boundary invariants; contract current_pack=CP00-215 with writes_product_state=false), but I did not re-run the commands themselves. This bounds what this review attests to: code-level consistency, not live command re-execution.",
+        "recommendation": "Keep the post-review gated validation commands (closeout-pack:review:run/normalize/receipt:validate, closeout-pack:validate, git diff --check --cached) as the authoritative pre-commit gate, and rely on the deterministic Hermes receipt + human final approval for the runtime/enterprise-trust claim rather than this read-only review.",
+        "post_review_disposition": "Accept as scope limitation; not blocking. Final closeout remains gated on post-review validation commands and human approval."
+      },
+      {
+        "id": "CP00-215-P3-02",
+        "severity": "P3",
+        "title": "Post-review pack artifacts not yet present (expected pending pre-review state)",
+        "file": "docs/closeout-packs/cp00-215/manifest.json",
+        "line": 5949,
+        "details": "manifest.json evidence_refs/required_pack_artifacts list claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in docs/closeout-packs/cp00-215/. This is consistent with pack_level_claude_review.status='pending' and valid_review_receipts=[]: these artifacts are produced after this read-only review by the later hardened-sequence steps (normalize, receipt_validate, adjudication, construction_inspection). It is the correct pre-review state, not a defect, but is recorded so the requirement is tracked.",
+        "recommendation": "Before commit/closeout, ensure claude-review-result.json (normalized from this review), adjudication.md, and construction-inspection.json are generated and pass receipt/closeout-pack validation per the hardened_review_sequence; do not mark the pack closed until they exist and validate.",
+        "post_review_disposition": "Expected sequencing; not blocking. Must be produced and validated before commit per the hardened review sequence."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP18",
+  "program_title": "AI Legal Workflows",
+  "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+  "ai_owner": "Codex",
+  "hermes_gate": "H18",
+  "claude_gate": "C18",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP18.P00.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Precedent, clause, markup, DD extraction, drafting, reports requirements and identify hallucinated clause, unapproved markup, and missing citation as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future AI Legal Workflows contract shape for PrecedentSearch, ClauseCandidate, MarkupSuggestion, DDExtraction, DraftingJob, AIReport.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns PrecedentSearch, ClauseCandidate, and MarkupSuggestion, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for precedent search, clause suggestion, and document markup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how AI Legal Workflows records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before AI Legal Workflows behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that AI Legal Workflows examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify AI Legal Workflows planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H18 preflight",
+      "objective": "Define the fields Hermes records before AI Legal Workflows implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C18 design brief",
+      "objective": "Prepare Claude Code questions around hallucinated clause, unapproved markup, missing citation, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P00.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP18.P00 handoff",
+      "objective": "Hand off a contract-first AI Legal Workflows implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "contracts/ai-workflows-contract.json",
+        "packages/ai-workflows/README.md",
+        "contracts/ai-legal-workflows-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/ai-workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement PrecedentSearch model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for PrecedentSearch.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement ClauseCandidate model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for ClauseCandidate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement MarkupSuggestion model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for MarkupSuggestion.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement DDExtraction model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for DDExtraction.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement DraftingJob model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for DraftingJob.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among PrecedentSearch, ClauseCandidate, MarkupSuggestion, DDExtraction, DraftingJob, AIReport and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export AI Legal Workflows model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P01.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the AI Legal Workflows model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/model.js",
+        "packages/ai-workflows/src/states.js",
+        "packages/ai-workflows/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for precedent search, clause suggestion, and document markup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement precedent search",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for precedent search.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement clause suggestion",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for clause suggestion.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement document markup",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for document markup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement due diligence extraction",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for due diligence extraction.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement report drafting",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for report drafting.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for hallucinated clause, unapproved markup, and missing citation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky AI Legal Workflows operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H18.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous AI Legal Workflows outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P02.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm AI Legal Workflows services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/service.js",
+        "packages/ai-workflows/src/policies.js",
+        "packages/ai-workflows/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose AI Legal Workflows models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define precedent search API",
+      "objective": "Lock request, response, permission, audit, and error shape for precedent search.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define clause suggestion API",
+      "objective": "Lock request, response, permission, audit, and error shape for clause suggestion.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define document markup API",
+      "objective": "Lock request, response, permission, audit, and error shape for document markup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define due diligence extraction API",
+      "objective": "Lock request, response, permission, audit, and error shape for due diligence extraction.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define report drafting API",
+      "objective": "Lock request, response, permission, audit, and error shape for report drafting.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure AI Legal Workflows API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for hallucinated clause, unapproved markup, missing citation, privileged data leak, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H18 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C18 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P03.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze AI Legal Workflows public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/index.js",
+        "packages/ai-workflows/src/api-contract.js",
+        "packages/ai-workflows/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify AI assistant panel, clause comparison, markup review, and DD extraction table in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan AI assistant panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for AI assistant panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan clause comparison",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for clause comparison.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan markup review",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for markup review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan DD extraction table",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for DD extraction table.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk AI Legal Workflows outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized AI Legal Workflows rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep AI Legal Workflows context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override AI Legal Workflows service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P04.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp18-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define precedent cited golden case",
+      "objective": "Create a synthetic golden case proving precedent cited.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define clause suggestion reviewed golden case",
+      "objective": "Create a synthetic golden case proving clause suggestion reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define markup requires approval golden case",
+      "objective": "Create a synthetic golden case proving markup requires approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define DD extraction traceable golden case",
+      "objective": "Create a synthetic golden case proving DD extraction traceable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define hallucinated clause failure fixture",
+      "objective": "Create a synthetic failing case that proves hallucinated clause is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define unapproved markup failure fixture",
+      "objective": "Create a synthetic failing case that proves unapproved markup is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define missing citation failure fixture",
+      "objective": "Create a synthetic failing case that proves missing citation is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize AI Legal Workflows fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If AI Legal Workflows appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P05.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm AI Legal Workflows fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/fixtures.js",
+        "packages/ai-workflows/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for precedent search, clause suggestion, document markup, and due diligence extraction.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for AI Legal Workflows view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for AI Legal Workflows mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for AI Legal Workflows export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for AI Legal Workflows where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for AI Legal Workflows obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H18 audit evidence",
+      "objective": "Record which AI Legal Workflows decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P06.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm AI Legal Workflows cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/src/security-contract.js",
+        "packages/ai-workflows/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define hallucinated clause failure",
+      "objective": "Fail closed or require review when hallucinated clause appears in AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define unapproved markup failure",
+      "objective": "Fail closed or require review when unapproved markup appears in AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define missing citation failure",
+      "objective": "Fail closed or require review when missing citation appears in AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define privileged data leak failure",
+      "objective": "Fail closed or require review when privileged data leak appears in AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define review bypass failure",
+      "objective": "Fail closed or require review when review bypass appears in AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any AI Legal Workflows operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed AI Legal Workflows operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed AI Legal Workflows micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P07.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous AI Legal Workflows ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "packages/ai-workflows/test/failure-cases.test.js",
+        "docs/rp18-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-workflows/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H18 command matrix",
+      "objective": "Record exact product commands Hermes should run for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H18 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H18 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H18 no-real-data evidence",
+      "objective": "Record that AI Legal Workflows fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H18 blocked-claim evidence",
+      "objective": "Record unsafe AI Legal Workflows claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H18 Claude dependency",
+      "objective": "Mark C18 review mandatory before AI Legal Workflows closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H18 human approval note",
+      "objective": "Record what the human must approve for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H18 command availability",
+      "objective": "Ensure npm scripts required by H18 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H18 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during AI Legal Workflows implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H18 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H18.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P08.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates AI Legal Workflows behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp18-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M00",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP18 architecture review questions",
+      "objective": "Ask whether AI Legal Workflows module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M01",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP18 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M02",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP18 bypass review questions",
+      "objective": "Ask Claude to find hallucinated clause, unapproved markup, missing citation, privileged data leak, and review bypass bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M03",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP18 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for AI Legal Workflows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M04",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP18 downstream readiness questions",
+      "objective": "Ask whether AI Legal Workflows is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M05",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP18 risk register",
+      "objective": "List unresolved AI Legal Workflows risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M06",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for AI Legal Workflows findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M07",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for AI Legal Workflows closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M08",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP18.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M09",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before AI Legal Workflows can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP18.P09.M10",
+      "program_id": "RP18",
+      "program_title": "AI Legal Workflows",
+      "program_scope": "Precedent, clause, markup, DD extraction, drafting, reports",
+      "phase_id": "RP18.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP18 detailed plan",
+      "objective": "Confirm AI Legal Workflows is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H18",
+      "claude_gate": "C18",
+      "target_files": [
+        "docs/rp18-claude-cross-validation-brief.md",
+        "docs/rp18-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H18 evidence or blocked reason can be recorded.",
+        "Claude C18 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

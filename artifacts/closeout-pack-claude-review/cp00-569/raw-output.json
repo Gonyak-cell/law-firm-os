@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-569",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T21:30:31.578Z",
+  "finished_at": "2026-06-12T21:34:23.753Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":231543,\"duration_api_ms\":232139,\"ttft_ms\":3242,\"num_turns\":39,\"result\":\"Review complete. CP00-569 passes with no findings.\\n\\n**Verdict: PASS** — does not block pack closeout or goal closeout; no unresolved P0/P1.\\n\\nThe pack is a descriptor-only RP18.P06 foundation slice (10 units, risk A) that is internally consistent across registry, service, validators, contract JSON, tests, and the validator script. I inspected the security-relevant source directly (required because the pack carries 2 security_audit deliverables): all 10 rows — including the Permission matrix row, Audit hint fields, and 6 decision-binding implementation rows — are descriptor-only with `runtime_execution:false`, and the no-write attestation expands to all-false runtime/write/leak flags. All validation gates show exit 0, the auth preflight passed, the read-only/no-final-approval authority boundary is preserved, and `production_ready:false`/`runtime_ready:false` are honestly set. The three post-review artifacts are legitimately absent because this review produces them downstream.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e7fec337-aa49-40b0-abb2-e0b6479f4394\",\"total_cost_usd\":1.7406867500000003,\"usage\":{\"input_tokens\":48,\"cache_creation_input_tokens\":98705,\"cache_read_input_tokens\":1361929,\"output_tokens\":17656,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":98705,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":332,\"cache_read_input_tokens\":93994,\"cache_creation_input_tokens\":5564,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5564},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1071,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001176,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":17656,\"cacheReadInputTokens\":1361929,\"cacheCreationInputTokens\":98705,\"webSearchRequests\":0,\"costUSD\":1.7395107500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-569 is a clean descriptor-only pack covering RP18.P06.M02.S21-RP18.P06.M03.S08 (10 units, risk A), faithfully following the established RP18 pattern. Verified through Read/Grep/Glob only. Pack binding (registry.js:307-322), requirements (registry.js:1700-1741), contract projection (contracts/ai-legal-workflows-core-contract.json:20554-20762), validators, tests (test/model.test.js:1249-1298), and validator script are mutually consistent: pack_id, risk_class A, unit_count 10, range, next_subphase RP18.P06.M03.S09, deliverable distribution {test:2,security_audit:2,implementation:6}, and micro-title distribution {Type And Shape Definition:2, Primary Implementation Slice:8} all match the baseline. All 7 public exports exist and are wildcard re-exported via index.js (explaining its unmodified-but-referenced status). Since security_audit deliverables are present, summary-only review was prohibited and source was inspected directly: all 10 descriptor rows (including the 2 security_audit rows Permission matrix row + Audit hint fields and the 6 decision-binding implementation rows) are descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false. The no-write attestation expands to all-false runtime/write/leak/exposure flags (no runtime permission evaluation, no audit-event write, no state write, no real data). command-evidence.json shows all 27 commands at exit 0 including the prompt-required gates; closeout-pack:validate is legitimately deferred as a post-review gated command. Readiness auth preflight passed (exit 0, valid JSON). Authority boundary preserved: claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true; Hermes appears only as deterministic evidence-packet strings (emits_hermes_runtime_receipt=false), not product runtime. production_ready=false and runtime_ready=false are honestly set — the production_ready_flag is a descriptor-verification label, not a runtime claim. The 3 post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly absent at this stage as they are produced by this review and downstream steps; no prior invalid attempts exist; unrelated dirty UI files are correctly excluded from pack scope. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"8cfbf590-3cb7-440f-ae6b-89e6ee5992a2\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5044,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e7fec337-aa49-40b0-abb2-e0b6479f4394",
+    "uuid": "8cfbf590-3cb7-440f-ae6b-89e6ee5992a2",
+    "total_cost_usd": 1.7406867500000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

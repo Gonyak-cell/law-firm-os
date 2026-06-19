@@ -1,0 +1,86 @@
+{
+  "subphase_id": "RP00.P02.M05.S03",
+  "source_micro_phase_id": "RP00.P02.M05",
+  "title": "Tenant boundary precheck",
+  "micro_title": "Permission And Audit Binding",
+  "status": "production_ready",
+  "created_at": "2026-06-06T00:50:21.000Z",
+  "deliverable_type": "implementation",
+  "implementation_summary": [
+    "Added deterministic metadata-only Permission And Audit Binding tenant boundary precheck for RP00.P02.M05.S03.",
+    "The S03 policy, prechecker module, getter, validator assertions, synthetic fixture, contract definition, README entry, RP00 validator checks, and service tests bind a frozen tenant-boundary surface after RP00.P02.M05.S02 request normalization.",
+    "The precheck accepts only S02 normalized permission_audit_binding metadata and explicitly re-gates on entrypoint_id, normalization_subphase_id, and source_micro_phase_id.",
+    "Same-tenant actor, resource, and Matter metadata is allowed as allow_metadata_only; firm-level metadata with no Matter context is also allowed.",
+    "Actor tenant mismatch, resource tenant mismatch, missing Matter tenant for Matter-scoped metadata, and Matter tenant mismatch are denied with specific blocked.synthetic.permission_audit_binding.tenant_boundary refs.",
+    "The implementation rejects forbidden and unknown boundary claims fail-closed, including runtime permission, AuthZ evaluator, permission engine, security trimming, audit write, persistence, service execution, runtime route, human approval bypass, Claude review bypass, and source completion claims.",
+    "The result carries S01 service entrypoint contract refs, S14 Claude review required-routing refs, permission/audit/role/deny/security-trim refs, binding contexts, required evidence refs, and acceptance gate IDs.",
+    "The allowed scope remains metadata-only and does not execute service logic, create runtime routes, evaluate runtime permissions, call AuthZ evaluators, run permission engines, apply security trimming, append audit ledgers, write audit events, write database, write storage, persist product state, mutate entity registries, or replace human approval.",
+    "Claude Opus 4.8 max read-only review returned PASS / GO with no P0, P1, or P2 findings. Three informational advisories were adjudicated as non-blocking.",
+    "RP00.P02.M05 remains open and hands off to RP00.P02.M05.S04 Matter trace precheck. RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m05-s03/packet.json",
+    "docs/goal-closeout/rp00-p02-m05-s03/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m05-s03/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m05-s03/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m05-s03/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 326,
+    "full_test_count": 410,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s03_evidence_files",
+    "final_rp00_gate_status": "passed_after_evidence_creation",
+    "final_rp00_gate_recorded_at": "2026-06-06T00:50:21.000Z"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "session_id": "ec45a3d3-5a90-4f3a-8be7-f5ee1db7073c",
+    "uuid": "f1d45635-f99a-4932-a6d9-6b17439c84cb",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_adjudication": "PASS_WITH_ADVISORY",
+    "production_ready_verdict_after_adjudication": "APPROVE",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "advisory": 3
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "none",
+    "advisory_status": "adjudicated_non_blocking",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": false,
+    "completed_micro_phase_id": null,
+    "next_micro_phase_id": "RP00.P02.M05",
+    "next_subphase": "RP00.P02.M05.S04",
+    "does_not_complete_RP00_P02_M05": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M05.S04",
+  "gate_outcome": "passed_after_evidence_creation"
+}

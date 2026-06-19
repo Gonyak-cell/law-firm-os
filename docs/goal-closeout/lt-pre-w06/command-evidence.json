@@ -1,0 +1,132 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W06",
+  "title": "external leadtime kickoff tracking",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "blocked_pending_external_actions",
+  "recorded_at": "2026-06-18T10:12:26Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:12:26Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W06-T01",
+      "title": "Confirm AMIC M365 tenant administrator access",
+      "status": "blocked_pending_external_confirmation",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/external-leadtime/m365-admin-access-confirmation.md"
+      ],
+      "acceptance": {
+        "confirmation_record_present": true,
+        "secured_or_not_secured_decision_present": false,
+        "holder_role_present": false,
+        "confirmation_date_present": false,
+        "l3_7_dependency_reference_present": true
+      },
+      "blocked_reason": "No repo evidence confirms M365 tenant admin access. Codex cannot assert secured or not secured without external confirmation."
+    },
+    {
+      "tuw_id": "LT-PRE-W06-T02",
+      "title": "Kick off external AI PIPA and confidentiality legal review",
+      "status": "blocked_pending_external_kickoff",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/external-leadtime/ai-legal-review-scope.md"
+      ],
+      "acceptance": {
+        "processing_delegation_section_present": true,
+        "cross_border_transfer_section_present": true,
+        "attorney_confidentiality_section_present": true,
+        "assigned_reviewer_role_present": false,
+        "request_date_present": false,
+        "response_deadline_present": false,
+        "boundary_l1_3_present": true
+      },
+      "blocked_reason": "Scope is drafted, but no external kickoff evidence, reviewer role, request date, or deadline has been supplied."
+    },
+    {
+      "tuw_id": "LT-PRE-W06-T03",
+      "title": "Start external penetration test vendor outreach",
+      "status": "blocked_pending_vendor_outreach",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/external-leadtime/pentest-scope-draft.md"
+      ],
+      "acceptance": {
+        "authorization_bypass_section_present": true,
+        "tenant_isolation_section_present": true,
+        "authentication_session_section_present": true,
+        "prompt_injection_section_present": true,
+        "candidate_vendor_present": false,
+        "contact_evidence_present": false,
+        "target_contract_timing_present": false,
+        "escalation_path_present": false
+      },
+      "blocked_reason": "Scope is drafted, but no vendor candidate/contact evidence/target contract timing has been supplied."
+    },
+    {
+      "tuw_id": "LT-PRE-W06-T04",
+      "title": "Create external leadtime register and assemble WP evidence",
+      "status": "blocked_pending_external_actions",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/external-leadtime/external-leadtime-register.md",
+        "docs/goal-closeout/lt-pre-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "register_row_count": 3,
+        "tuw_ids_present": [
+          "LT-PRE-W06-T01",
+          "LT-PRE-W06-T02",
+          "LT-PRE-W06-T03",
+          "LT-PRE-W06-T04"
+        ],
+        "all_external_evidence_complete": false,
+        "final_state": "blocked_pending_external_actions"
+      },
+      "blocked_reason": "The register exists, but real external action evidence is still missing for all three dependencies."
+    }
+  ],
+  "commands": [
+    {
+      "command": "grep -n \"## Processing Delegation\\|## Cross-Border Transfer\\|## Attorney Confidentiality\" docs/launch/external-leadtime/ai-legal-review-scope.md",
+      "exit_code": 0,
+      "output": "9:## Processing Delegation\n13:## Cross-Border Transfer\n17:## Attorney Confidentiality",
+      "purpose": "Verify external AI legal review scope topics"
+    },
+    {
+      "command": "grep -n \"## Authorization Bypass\\|## Tenant Isolation\\|## Authentication Session\\|## Prompt Injection\" docs/launch/external-leadtime/pentest-scope-draft.md",
+      "exit_code": 0,
+      "output": "9:## Authorization Bypass\n13:## Tenant Isolation\n17:## Authentication Session\n21:## Prompt Injection",
+      "purpose": "Verify external pentest scope topics"
+    },
+    {
+      "command": "grep -c \"^| EXT-\" docs/launch/external-leadtime/external-leadtime-register.md",
+      "exit_code": 0,
+      "output": "3",
+      "purpose": "Verify external leadtime register has three dependency rows"
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "output": "TUW total 344, WP 72, violations 0, PASS",
+      "purpose": "Launch TUW workbook ledger integrity check"
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim M365 admin access is secured.",
+    "This record does not claim an AI legal review was sent.",
+    "This record does not claim pentest vendor outreach occurred.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

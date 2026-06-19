@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-791",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-16T00:07:06.403Z",
+  "finished_at": "2026-06-16T00:11:42.767Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":275573,\"duration_api_ms\":276130,\"ttft_ms\":3708,\"num_turns\":42,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-791 can close; no blocking (P0/P1/P2) findings.\\n\\nKey conclusions:\\n- The descriptor-only foundation pack makes an honest, bounded claim: `production_ready: false`, `runtime_ready: false`; only the descriptor-foundation flag is asserted, with verification booleans correctly false pending this review.\\n- 150-unit deliverable and micro-title distributions match the baseline exactly and are enforced in code (`validators.js:58`) and by passing tests; all 14 local validation commands exit 0 with `git diff --check` clean.\\n- No-write/no-real-data boundaries are strongly enforced; Claude stays read-only/non-final; Hermes is evidence-only (no runtime).\\n- `blocks_pack_closeout=false`, `blocks_goal_closeout=false`, `no_unresolved_p0/p1=true`.\\n- One **P3 informational** note only: the `production_ready_flag` label carries a `_verified` suffix while the actual verification booleans are (correctly) false pre-review — recorded so the adjudicator doesn't conflate the label with achieved state.\",\"stop_reason\":\"end_turn\",\"session_id\":\"21218855-03e9-468c-8b22-f6326743dbb1\",\"total_cost_usd\":2.1712089999999997,\"usage\":{\"input_tokens\":189,\"cache_creation_input_tokens\":126088,\"cache_read_input_tokens\":1782922,\"output_tokens\":19578,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":126088,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":421,\"cache_read_input_tokens\":119588,\"cache_creation_input_tokens\":6815,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6815},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1198,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0013030000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":189,\"outputTokens\":19578,\"cacheReadInputTokens\":1782922,\"cacheCreationInputTokens\":126088,\"webSearchRequests\":0,\"costUSD\":2.169906,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-791 (RP26 Enterprise SaaS Hardening, risk C, 150 units, RP26.P01.M06.S05-RP26.P02.M02.S22) is a descriptor-only fixture/review/service-foundation pack and passes hardened read-only review with no blocking findings. The pack-level claim is honest and bounded: manifest production_ready=false and runtime_ready=false; only the descriptor-foundation flag (enterprise_saas_fixture_review_service_foundation_descriptor_verified) is asserted, with production_ready_descriptor_verified=false pending this review and human adjudication. Deliverable distribution (impl 77 / ui 23 / fixture 4 / test 20 / hermes_evidence 4 / claude_review 7 / contract 3 / security_audit 6 / failure_recovery 6 = 150) and micro-title distribution match the prompt baseline exactly and are enforced in code by validateCoverage (packages/enterprise/src/validators.js:58) plus the model.test.js coverage assertions; all 14 local validation commands recorded in command-evidence.json exit 0 (npm test, validate, weighted/fullplan/goal:closeout/rp00 control-plane, git diff --check). No-write/no-real-data boundaries are strongly enforced via ENTERPRISE_SAAS_NO_WRITE_ATTESTATION (registry.js:120) and the SSO/SCIM validators that reject runtime, secret, or payload drift; command-evidence reports no_real_data=true and writes_product_state=false. Claude remains a read-only, non-final reviewer (authority_boundary.claude_is_final_approval=false, claude_packet.read_only=true, promotes_claude_to_final_approval=false) and Hermes patterns are used only for descriptor-only evidence packets/receipts (emits_runtime_receipt=false, receipt_shape descriptor_only_enterprise_saas_no_write), not product runtime. The hardening contract is internally consistent (validation.valid=true, latest_pack/latest_projection=CP00-791) and the live plan cursor (CP00-791 -> CP00-792 / RP26.P02.M03.S01) is consistent across binding, handoff, and plan. Pre-closeout artifacts (construction-inspection, adjudication, claude-review-result) are in the expected PENDING state with empty valid_review_receipts; no auth failure, 0-byte, malformed, fenced, or tool-call-shaped output is presented as valid review evidence. blocks_goal_closeout=false because this pack explicitly disclaims runtime and enterprise-trust (claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true) and the human/enterprise-trust authority boundary is outside this receipt. One P3 informational note only.\",\"findings\":[{\"id\":\"CP00-791-P3-01\",\"severity\":\"P3\",\"title\":\"production_ready_flag label contains '_verified' suffix while verification booleans are correctly false pending review\",\"file\":\"docs/closeout-packs/cp00-791/manifest.json\",\"line\":1541,\"details\":\"The pack target label production_ready_flag is the string 'enterprise_saas_fixture_review_service_foundation_descriptor_verified' (manifest.json:1541 and registry.js:115), whose '_verified' suffix could be misread as an achieved-state assertion. The actual verification booleans are correctly negative pre-review: manifest.production_ready=false (line 6), implementation_summary.production_ready_descriptor_verified=false (line 1563), and construction-inspection.json enterprise_saas_fixture_review_service_foundation_descriptor_verified=false (line 17). This is by design (the flag is a target identifier, not a current-state claim) and there is no over-claim, but it is recorded so the human adjudicator does not conflate the label name with verification status when promoting production_ready at closeout.\",\"recommendation\":\"No code change required. At adjudication, treat the descriptor-verified flag as a target label and rely on the explicit boolean gates (production_ready_descriptor_verified, construction-inspection verdict) plus this review for promotion. Optionally, future pack generators could name the flag '<...>_descriptor_target' to remove the ambiguity.\",\"post_review_disposition\":\"informational_no_action_required_expected_pre_review_state\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"41d3baab-b7e3-45ee-8b73-81f34ea66507\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6734,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "21218855-03e9-468c-8b22-f6326743dbb1",
+    "uuid": "41d3baab-b7e3-45ee-8b73-81f34ea66507",
+    "total_cost_usd": 2.1712089999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

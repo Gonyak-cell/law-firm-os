@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-273",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-273/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-273/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "041abc02-44ab-4e2f-9ee9-88ba732ac927",
+    "uuid": "5d735861-868e-49c8-828b-d5bbb5855ab5",
+    "total_cost_usd": 2.04156975,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-273 is a descriptor-only RP08 email-dms-core model/storage slice pack (risk B, 40 units, RP08.P01.M02.S09-RP08.P01.M04.S06). The pack-level production_ready claim is correctly NOT asserted: manifest.json shows production_ready:false / status:implemented_pending_review and command-evidence.json shows production_ready:false with gate_outcome:implementation_gates_passed_post_review_closeout_pending, all recorded validation/test/contract commands at exit_code 0. The live closeout-pack-plan.json CP00-273 entry, contracts/email-dms-core-contract.json (current_pack + program + historical bindings tail), the registry pack binding, and the manifest plan_binding_snapshot all agree on risk_class B, unit_count 40, range, and the deliverable distribution (implementation:23, ui:5, fixture:2, test:6, hermes_evidence:2, claude_review:2) and micro-title distribution (12/22/6), which reconcile to 40. registry.js/service.js/validators.js are pure frozen-descriptor builders and validators with no I/O, DB, network, object storage, or state writes; row guards (descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false, plus tenant/matter/state/validation/fixture/test/hermes/claude guards) are backed by ROW_EXTRAS and asserted by the model test and the rp08 validator. Read-only reviewer boundary is preserved end-to-end: claude_is_final_approval:false, human_final_approval_required, promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false in contract, descriptor, and no-write attestation. CP178+ hardening is satisfied: readiness auth-preflight passed (exit_code 0, valid non-zero JSON stdout, no fenced/tool-shaped output), forbidden_review_evidence enumerated, invalid_review_attempts empty, and post-review artifacts (raw-output, receipt, claude-review-result, adjudication, construction-inspection) are correctly absent pre-review. Hermes patterns appear only as descriptor evidence packet/receipt shapes (emits_hermes_runtime_receipt:false; hermes_runtime_embedded_in_product:false), not product runtime. No P0/P1/P2 findings; one P3 transparency note on a scope-helper artifact classification that does not affect pack contents or closeout.",
+    "findings": [
+      {
+        "id": "CP00-273-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json dual-classifies new-session-handoff.md as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-273/changed-file-scope.json",
+        "line": 96,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed in both untracked_implementation_files (line 96) and unrelated_dirty_files_preserved (line 102). The manifest's worktree_transition_policy.unrelated_dirty_files_preserved lists only the .docx and the ldip invalid-attempt JSON, not this handoff note. This is a cosmetic classification ambiguity in the scope-helper artifact only: the pack's actual implementation_refs are the eight tracked email-dms files, active_untracked_implementation_files_omitted is empty, and validation-report.json confirms no active implementation files were omitted. It has no bearing on pack contents, the descriptor-only boundaries, or the production_ready determination.",
+        "recommendation": "Optionally reconcile the scope generator so a plan-handoff note is classified in a single category (treat docs/closeout-pack-plan/new-session-handoff.md as unrelated dirty rather than untracked implementation). Non-blocking; no change required for CP00-273 closeout.",
+        "post_review_disposition": "non_blocking_acknowledged_will_not_fix_in_pack"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

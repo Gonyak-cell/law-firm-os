@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-236",
+  "normalized_at": "2026-06-10T12:15:12.286Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-236/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-236/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-236/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-236/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "8e7c2993-7f77-470d-a6b4-c93993d03463",
+    "uuid": "7cb94b59-9a7f-4b9d-810e-6749a7a67906",
+    "total_cost_usd": 2.5931355000000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4566,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-236 passes independent read-only review with one non-blocking P3 informational finding; no P0/P1/P2 issues, and pack/goal closeout are not blocked by this review.",
+    "findings": [
+      {
+        "id": "CP236-P3-01",
+        "severity": "P3",
+        "title": "M02 type/shape tail rows rely on generic descriptor checks only; row-specific semantic guards are asserted against the M03 copies",
+        "file": "packages/search/src/validators.js",
+        "line": 311,
+        "details": "validateSearchCoreCp236ModelStorageSliceDescriptor applies its row-specific semantic assertions (validation_helper.validation_error_detail_included, fixture_model.real_client_data_loaded, model_unit_test.executes_unit_test_runtime_paths, invalid_reference_test.expected_outcome, ownership_drift_test.ownership_drift_detected, hermes_model_summary.emits_hermes_runtime_receipt, claude_model_review_prompt.claude_final_approval_claimed, documentation_entry, index_export_check) only to sections['RP07.P01.M03'] (lines 311-320) and tenant/matter checks to sections['RP07.P01.M04'] (lines 321-323). The RP07.P01.M02 section in this pack also contains validation_helper, fixture_model, model_unit_test, invalid_reference_test, ownership_drift_test, hermes_model_summary, and claude_model_review_prompt rows (required_section_rows['RP07.P01.M02'] in registry.js), but those M02 copies receive only the generic per-row loop checks (descriptor_only, runtime_execution=false, customer_safe_errors_only, raw_payload_included=false), not the dedicated semantic assertions.",
+        "recommendation": "Optionally extend the descriptor validator to assert the same semantic guard fields on the M02 tail rows (or iterate the shared row-key guard map across every section that contains the key) so future edits that make the case-set builder section-aware cannot silently diverge M02 from M03.",
+        "post_review_disposition": "Informational / non-blocking; accept as-is for CP00-236. No boundary impact: every row in every section (M02/M03/M04) is already checked for descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, and raw_payload_included=false, and the per-key semantic fields originate from the single frozen SEARCH_CORE_CP236_ROW_EXTRAS constant applied uniformly by key in service.js, so M02 and M03 rows sharing a key are identical by construction. This does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

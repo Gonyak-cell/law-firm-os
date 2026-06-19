@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-298",
+  "normalized_at": "2026-06-11T01:06:06.596Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-298/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-298/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-298/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-298/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "1756ef9e-e7e5-47d2-b920-2b2ffcba8918",
+    "uuid": "67eb1279-00b6-4174-af65-80b36c94c126",
+    "total_cost_usd": 2.8986822500000007,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7016,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-298 is a descriptor-only closeout pack that closes the RP08.P09 review phase and the entire RP08 program descriptor scope, handing off to CP00-299 / RP09.P00.M00.S01. Independent read-only inspection confirms the pack-level claim (\"implementation_and_plan_gates_passed_pending_final_closeout\", production_ready=false) is supported by source, tests, contract/validator pins, and boundary attestations. (1) The CP298 pack binding (registry.js:469) matches the baseline exactly — 92 units, risk C, range RP08.P09.M06.S01-RP08.P09.M10.S10, upstream CP00-297, next CP00-299 with next_subphase RP09.P00.M00.S01 — and is deep-equaled by the contract current_pack (contract:16-31) and the contract validator script (validate-rp08-email-dms-core-contract.mjs:357). (2) Coverage math is exact: micro-phase counts 20/22/20/20/10 and deliverable counts (claude_review 14, hermes_evidence 1, implementation 57, security_audit 10, test 5, ui 5) both total 92 and match the baseline distributions; validateEmailDmsCoreCp298Coverage (validators.js:6020) enforces pack_id/risk/unit_count/first+last unit/no-duplicate/RP08-only plus every distribution and per-section row title. (3) All 7 required public exports exist and are wired through index.js, exercised by three dedicated tests (model.test.js:1696-1745) asserting coverage.valid, descriptor validity, descriptor-only rows, and the RP08->RP09 handoff. (4) No-write/no-real-data/no-runtime boundaries are thoroughly attested in freezeCp298Result (service.js:3675), the CP298 no-write attestation, and the manifest boundary block (manifest:3643-3677). (5) Authority boundary is correct: Claude is not final approver, human final approval required, and enterprise trust is not claimed from local validation (descriptor authority_boundary; manifest:3664-3665; validators.js:6108-6115). (6) CP178+ review-evidence hardening is encoded in forbidden_review_evidence (registry.js:652), rejecting auth failures, zero-byte stdout, malformed/fenced JSON, tool-call-shaped output, disabled-tool runs, and missing references. (7) Hermes control-plane patterns are used only for deterministic descriptor evidence packets/receipts (emits_hermes_runtime_receipt=false; hermes_runtime_embedded_in_product=false). The untracked docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json belongs to a separate LDIP workstream and is correctly classified as unrelated; the injection vector it reported in new-session-handoff.md is not present in the current file. One cosmetic, non-blocking classification note is recorded below. No P0/P1/P2 issues; pack and goal closeout are not blocked. Per the authority boundary, this read-only review is independent input only and is not final approval — human final approval remains required.",
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "changed-file-scope lists the pack's own cp00-298 artifact directory under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-298/changed-file-scope.json",
+        "line": 103,
+        "details": "unrelated_dirty_files_preserved (lines 100-105) includes docs/closeout-packs/cp00-298/ and docs/closeout-pack-plan/new-session-handoff.md, but docs/closeout-packs/cp00-298/ is this pack's own manifest/command-evidence directory and is simultaneously (and correctly) listed under untracked_implementation_files (line 97). The label 'unrelated' is therefore semantically imprecise for a pack-owned artifact directory. This is cosmetic only: the authoritative untracked_implementation_files field classifies it correctly, active_untracked_implementation_files_omitted is empty, and the preservation list's actual purpose (record untracked files that were preserved rather than cleaned) is still satisfied. No closeout gate depends on this label.",
+        "recommendation": "Optionally tighten the scope generator so pack-owned untracked artifacts (the docs/closeout-packs/<pack>/ directory) are not also enumerated in unrelated_dirty_files_preserved, to avoid future readers/automation inferring the pack's own evidence is unrelated. Non-blocking; no action required for CP00-298 closeout.",
+        "post_review_disposition": "informational_non_blocking; acknowledged as cosmetic classification overlap; does not block pack or goal closeout and requires no remediation before commit"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

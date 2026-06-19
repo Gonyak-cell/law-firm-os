@@ -1,0 +1,1115 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L4-W01",
+  "title": "Wave 1 screen group build",
+  "phase": "L4",
+  "gate": "L4-EXIT",
+  "status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+  "recorded_at": "2026-06-18T10:56:59Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:48:21Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L4-W01-T02",
+      "title": "Matter Home 11-area IA",
+      "status": "draft_completed_pending_l1_w01_scope_decision",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/ia/matter-home.md",
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "matter_home_area_rows": 11,
+        "required_columns_per_area": [
+          "data_source_contract_api_field",
+          "empty_state_copy",
+          "permission_state_handling",
+          "backend_wp_dependency"
+        ],
+        "rows_with_required_columns": 11,
+        "ai_candidates_wave1_dark_launch_placeholder": true,
+        "implementation_split_core_5_and_collaboration_6_present": true,
+        "code_or_route_changed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count MH rows and required columns in docs/product-ui/ia/matter-home.md ... NODE",
+          "exit_code": 0,
+          "output": "{\"area_rows\":11,\"rows_with_required_columns\":11,\"ai_dark_launch\":true,\"core_split\":5,\"collaboration_split\":6,\"code_or_route_changed\":false}",
+          "purpose": "Verify the Matter Home IA covers all 11 areas and keeps Wave 1 AI dark-launch boundary"
+        },
+        {
+          "command": "grep -c \"^| MH-\" docs/product-ui/ia/matter-home.md",
+          "exit_code": 0,
+          "output": "11",
+          "purpose": "Verify the Matter Home IA table has 11 area rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an IA artifact only; no apps/web code, runtime route, or product state was changed.",
+        "LT-L4-W01 remains open because T01 and T03-T21 are not complete and Wave 1 owner scope confirmation is still absent."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T06",
+      "title": "Work Queue lane IA",
+      "status": "draft_completed_pending_l1_w01_scope_decision",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/ia/work-queue.md",
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "work_queue_lane_rows": 4,
+        "lanes": [
+          "My Tasks",
+          "Overdue",
+          "Review Needed",
+          "Approval Requests"
+        ],
+        "rows_with_data_source_sorting_and_state_transition": 4,
+        "hr_task_lane_wave1_excluded": true,
+        "runtime_route_or_write_api_claimed": false,
+        "code_or_route_changed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count WQ rows, lane fields, HR exclusion, and runtime blockers ... NODE",
+          "exit_code": 0,
+          "output": "{\"lane_rows\":4,\"rows_with_required_fields\":4,\"hr_exclusion\":true,\"runtime_blockers\":4,\"code_or_route_changed\":false}",
+          "purpose": "Verify Work Queue IA covers four lanes, excludes HR tasks from Wave 1, and preserves runtime blockers"
+        },
+        {
+          "command": "grep -c \"^| WQ-\" docs/product-ui/ia/work-queue.md",
+          "exit_code": 0,
+          "output": "4",
+          "purpose": "Verify the Work Queue IA table has four lane rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an IA artifact only; no apps/web code, runtime route, write API, or product state was changed.",
+        "LT-L4-W01 remains open because T01, implementation, permission gates, and E2E evidence are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T09",
+      "title": "Document Workspace IA",
+      "status": "draft_blocked_pending_mat_dec_03_storage_decision",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/ia/document-workspace.md",
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "document_workspace_column_rows": 5,
+        "required_columns": [
+          "status",
+          "version",
+          "source",
+          "qc_result",
+          "related_issue"
+        ],
+        "mat_dec_03_cited": true,
+        "file_ref_display_rule_provisional": true,
+        "original_link_rule_blocked_until_storage_decision": true,
+        "code_or_route_changed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count DW-COL rows, MAT-DEC-03 markers, file_ref rules, and no direct URL rule ... NODE",
+          "exit_code": 0,
+          "output": "{\"column_rows\":5,\"mat_dec_03\":true,\"pending_storage_decision\":true,\"file_ref\":true,\"no_direct_url\":true,\"code_or_route_changed\":false}",
+          "purpose": "Verify Document Workspace IA covers required columns and blocks original-link behavior until MAT-DEC-03 is decided"
+        },
+        {
+          "command": "grep -c \"^| DW-COL-\" docs/product-ui/ia/document-workspace.md",
+          "exit_code": 0,
+          "output": "5",
+          "purpose": "Verify the Document Workspace IA table has five required column rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an IA artifact only; no apps/web code, runtime route, file upload/download behavior, original-link behavior, or product state was changed.",
+        "LT-L4-W01-T09 remains blocked because MAT-DEC-03 has not selected SharePoint/OneDrive, object storage, or a hybrid storage model.",
+        "LT-L4-W01 remains open because implementation, permission gates, E2E evidence, and owner scope/storage decisions are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T15",
+      "title": "Issue Ledger IA",
+      "status": "draft_completed_pending_l1_w01_scope_and_pre_w04_disposition",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/ia/issue-ledger.md",
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "issue_flow_rows": 8,
+        "state_transition_rows": 12,
+        "required_flow_steps_mapped": [
+          "candidate_discovery",
+          "issue_creation",
+          "source_link",
+          "position_record",
+          "proposed_language",
+          "status_transition",
+          "resolution",
+          "knowledge_candidate"
+        ],
+        "draft_enum_not_final_owner_decision": true,
+        "code_or_route_changed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count IL-FLOW rows, IL-STATE rows, source flow phrases, and no route/code change ... NODE",
+          "exit_code": 0,
+          "output": "{\"flow_rows\":8,\"state_rows\":12,\"need_client_input\":true,\"negotiating\":true,\"knowledge_candidate\":true,\"draft_enum_not_final\":true,\"code_or_route_changed\":false}",
+          "purpose": "Verify Issue Ledger IA maps the 8-step source flow and includes a draft transition table without claiming final enum approval"
+        },
+        {
+          "command": "grep -c \"^| IL-FLOW-\" docs/product-ui/ia/issue-ledger.md",
+          "exit_code": 0,
+          "output": "8",
+          "purpose": "Verify the Issue Ledger IA maps eight source flow steps"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an IA artifact only; no apps/web code, runtime route, issue write API, state transition runtime, or product state was changed.",
+        "The issue enum is a draft IA state model and does not replace owner-approved L1 scope or PRE-W04 overlay/defer disposition.",
+        "LT-L4-W01 remains open because implementation, permission gates, E2E evidence, and owner scope/disposition decisions are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T18",
+      "title": "Admin Console IA",
+      "status": "draft_completed_pending_l1_w01_scope_and_l2_permission_runtime",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/ia/admin-console.md",
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "admin_function_sections": 4,
+        "admin_ux_principle_rows": 5,
+        "wave1_functions": [
+          "user_directory",
+          "permission_view",
+          "policy_read",
+          "audit_read"
+        ],
+        "ai_policy_mutation_excluded": true,
+        "vault_admin_excluded": true,
+        "code_or_route_changed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count AC-FUNC rows, AC-UX rows, exclusions, and no code/route change ... NODE",
+          "exit_code": 0,
+          "output": "{\"function_rows\":4,\"ux_rows\":5,\"ai_policy_excluded\":true,\"vault_excluded\":true,\"hr_excluded\":true,\"t18\":true,\"code_or_route_changed\":false}",
+          "purpose": "Verify Admin Console IA covers four Wave 1 admin functions, five Admin UX principles, and later-wave exclusions"
+        },
+        {
+          "command": "grep -c \"^| AC-FUNC-\" docs/product-ui/ia/admin-console.md && grep -c \"^| AC-UX-\" docs/product-ui/ia/admin-console.md",
+          "exit_code": 0,
+          "output": "4\n5",
+          "purpose": "Verify the Admin Console IA has four function rows and five UX principle rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an IA artifact only; no apps/web code, AdminSurface implementation, admin route, permission mutation, policy mutation, audit query runtime, or product state was changed.",
+        "AI policy mutation, Vault export/import administration, and HR sensitive administration are excluded from Wave 1 in this IA.",
+        "LT-L4-W01 remains open because implementation, permission gates, E2E evidence, and owner scope/runtime decisions are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T12",
+      "title": "Outlook Add-in Task Pane IA",
+      "status": "draft_blocked_pending_mat_dec_03_and_m365_decisions",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/ia/outlook-addin-pane.md",
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "outlook_pane_flow_rows": 8,
+        "mat_dec_03_cited": true,
+        "attachment_storage_target_not_final": true,
+        "ai_summary_candidates_and_smart_alerts_wave2": true,
+        "apps_addin_created": false,
+        "code_or_route_changed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count OA-FLOW rows, MAT-DEC-03 markers, attachment pending rules, Wave 2 AI/Smart Alerts, and no code change ... NODE",
+          "exit_code": 0,
+          "output": "{\"flow_rows\":8,\"mat_dec_03\":true,\"storage_pending\":true,\"smart_alerts_wave2\":true,\"ai_wave2\":true,\"apps_addin_created\":false,\"code_or_route_changed\":false}",
+          "purpose": "Verify Outlook Add-in IA maps eight pane states and blocks attachment storage/runtime claims pending MAT-DEC-03 and M365 decisions"
+        },
+        {
+          "command": "grep -c \"^| OA-FLOW-\" docs/product-ui/ia/outlook-addin-pane.md",
+          "exit_code": 0,
+          "output": "8",
+          "purpose": "Verify the Outlook Add-in Task Pane IA maps eight source flow steps"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an IA artifact only; no apps/addin code, Outlook manifest, Office.js runtime, Graph scope request, filing write API, attachment storage runtime, or product state was changed.",
+        "Attachment storage target is provisional because MAT-DEC-03 has not selected SharePoint/OneDrive, object storage, or a hybrid storage model.",
+        "AI summary, AI task/deadline/issue candidates, and Smart Alerts are Wave 2 or later in this IA."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T01",
+      "title": "공통 앱 셸·내비게이션을 Wave 1 제품 라우팅으로 전환한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Amplitude 데모 셸의 내비게이션·라우팅이 Wave 1 6화면 중심 제품 셸로 교체되어, 인증 세션 기반 라우트 게이팅 골격 위에서 각 화면 TUW가 독립적으로 끼워질 수 있는 상태가 된다.",
+      "deliverables": [
+        "apps/web/src/data/nav.js",
+        "apps/web/src/App.jsx",
+        "apps/web/src/components/Shell.jsx"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "apps/web/src/App.jsx",
+        "apps/web/src/data/nav.js",
+        "apps/web/src/components/Shell.jsx",
+        "docs/ui-reference/contract-screen-map.md"
+      ],
+      "acceptance_criteria": [
+        "apps/web/src/data/nav.js가 Wave 1 6화면 라우트 항목(matter-home, work-queue, document-workspace, addin-pane, issue-ledger, admin-console)을 노출하고 Amplitude 데모 전용 표면(analytics/dashboards/ask/experiments)이 기본 내비게이션 배열에서 분리되어 있다(파일 내용 존재 판정).",
+        "미인증 세션으로 Wave 1 라우트 직접 URL 접근 시 로그인 표면으로 회귀한다(수동 절차 판정).",
+        "`npm --workspace apps/web run build` 종료코드 0."
+      ],
+      "verification_contract": {
+        "method": "npm --workspace apps/web run build 실행 후 수동검증: 1) npm --workspace apps/web run dev 기동 2) 6개 Wave 1 라우트 순회 스크린샷 3) 미인증 상태 직접 URL 접근 시 로그인 표면 회귀 확인",
+        "evidence": "빌드 로그(exit code)+라우트별 스크린샷을 docs/goal-closeout/lt-l4-w01/command-evidence.json에 TUW ID로 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "apps/web/src/App.jsx",
+        "apps/web/src/data/nav.js",
+        "apps/web/src/components/Shell.jsx",
+        "docs/ui-reference/contract-screen-map.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T03",
+      "title": "Matter Home 코어 5영역을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Matter Summary·Today's Actions·Critical Deadlines·Open Issues·Recent Documents 5영역이 합성 시드 데이터를 읽어 렌더되는 Matter Home 1차 화면이 가동된다.",
+      "deliverables": [
+        "apps/web/src/components/MatterHomeSurface.jsx",
+        "apps/web/src/data/matterHomeClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/matter-home.md",
+        "contracts/matter-core-contract.json",
+        "apps/web/src/data/apiClient.js"
+      ],
+      "acceptance_criteria": [
+        "5영역 각각이 합성 시드로 데이터 렌더된다(영역별 DOM 노드 존재 판정 — 5개 전부).",
+        "데이터 0건 영역은 IA 문서에 정의된 빈 상태 카피를 노출한다(영역별 판정).",
+        "MatterHomeSurface에서 mockData.js import가 0건이다(grep -c \"mockData\" apps/web/src/components/MatterHomeSurface.jsx = 0)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) dev 서버에서 matter-home 라우트 진입 2) 5영역 DOM 존재·데이터 렌더 확인 3) 합성 시드를 0건으로 바꿔 빈 상태 확인; 이후 grep -c \"mockData\" apps/web/src/components/MatterHomeSurface.jsx 실행",
+        "evidence": "영역별 스크린샷 5매+grep 출력(0)을 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/matter-home.md",
+        "contracts/matter-core-contract.json",
+        "apps/web/src/data/apiClient.js"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T04",
+      "title": "Matter Home 협업·상태 6영역을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Recent Emails·Client Pending·Counterparty Pending·AI Candidates(dark-launch 플레이스홀더)·Billing/Workload·Knowledge Candidates 6영역이 추가되어 Matter Home 11영역 전체가 단일 화면으로 완성된다.",
+      "deliverables": [
+        "apps/web/src/components/MatterHomeSurface.jsx",
+        "apps/web/src/data/matterHomeClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/matter-home.md",
+        "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md"
+      ],
+      "acceptance_criteria": [
+        "Matter Home에 렌더되는 영역 총수가 11이다(DOM 영역 카운트 판정).",
+        "AI Candidates 영역은 'Wave 2 예정' 플레이스홀더이며 인터랙티브 컨트롤이 0개다(클릭 가능 요소 카운트 판정).",
+        "Recent Emails 영역은 filing 완료 스레드만 표시한다(합성 시드의 미filing 스레드 비노출 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) matter-home 라우트에서 영역 카운트=11 확인 2) AI Candidates 영역 내 button/a 요소 0개 확인 3) 합성 시드에 미filing 스레드 1건 포함시켜 비노출 확인",
+        "evidence": "전체 화면 스크린샷+영역 카운트 기록을 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/matter-home.md",
+        "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T05",
+      "title": "Matter Home에 권한 게이트를 연결한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Matter Home이 서버측 권한 컨텍스트의 3상태(allow/denied/review_required)를 영역 단위까지 fail-closed로 반영하여, matter 비멤버에게 데이터가 누출되지 않는다.",
+      "deliverables": [
+        "apps/web/src/components/MatterHomeSurface.jsx",
+        "apps/web/src/data/matterHomeClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-2",
+        "contracts/permission-kernel-contract.json",
+        "apps/web/src/data/apiClient.js"
+      ],
+      "acceptance_criteria": [
+        "matter 비멤버 컨텍스트에서 Matter Home 진입 시 화면 전체가 거부 상태로 대체되고 11영역 중 데이터가 렌더되는 영역이 0이다.",
+        "review_required 응답 시 검토 필요 상태 화면이 표시된다(거부와 구분되는 별도 상태 판정).",
+        "영역 단위 부분 거부(예: Billing/Workload만 거부) 시 해당 영역만 마스킹되고 나머지 영역은 정상 렌더된다."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 합성 권한 컨텍스트 allow/denied/review 3종으로 matter-home 진입 비교 2) denied에서 영역 데이터 렌더 0 확인 3) 영역 단위 거부 시드로 부분 마스킹 확인",
+        "evidence": "3상태 스크린샷 세트를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-2",
+        "contracts/permission-kernel-contract.json",
+        "apps/web/src/data/apiClient.js"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T07",
+      "title": "Work Queue 화면을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "4개 레인이 합성 시드로 렌더되고 task 상태 변경이 write API를 경유해 반영되는 Work Queue 화면이 가동된다.",
+      "deliverables": [
+        "apps/web/src/components/WorkQueueSurface.jsx",
+        "apps/web/src/data/workQueueClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L2-3",
+        "docs/product-ui/ia/work-queue.md",
+        "workbook/matter_dev_docs/22_API_이벤트_통합_명세.md"
+      ],
+      "acceptance_criteria": [
+        "4개 레인(내 task/overdue/review needed/approval request)이 렌더되고 HR task 레인은 존재하지 않는다(레인 카운트=4 판정).",
+        "task 상태 변경 액션이 write API 호출로 반영되고 성공 응답 후 목록이 갱신된다(왕복 판정).",
+        "write 실패(서버 5xx 합성) 시 목록이 변경 전 상태를 유지하고 에러 상태가 표시된다(partial state 부재 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) work-queue 라우트에서 레인 카운트=4 확인 2) task 상태 변경→서버 반영→재조회 일치 확인 3) 서버 에러 주입 후 목록 불변+에러 표시 확인",
+        "evidence": "상태 변경 전후 스크린샷+API 응답 로그를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L2-3",
+        "docs/product-ui/ia/work-queue.md",
+        "workbook/matter_dev_docs/22_API_이벤트_통합_명세.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T08",
+      "title": "Work Queue에 권한 게이트를 연결한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Work Queue가 역할 기반으로 트리밍되어 본인 task 외 비노출, approval request 레인은 승인자 역할에서만 항목이 보인다.",
+      "deliverables": [
+        "apps/web/src/components/WorkQueueSurface.jsx",
+        "apps/web/src/data/workQueueClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md"
+      ],
+      "acceptance_criteria": [
+        "비승인자 역할 컨텍스트에서 approval request 레인의 항목 수가 0이다(역할별 비교 판정).",
+        "타인 소유 task가 '내 task' 레인에 노출되지 않는다(합성 2인 시드 교차 판정).",
+        "denied 컨텍스트에서 task 상태 변경 컨트롤이 비활성이고 강제 호출 시 서버 거부가 에러 상태로 표시된다."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 승인자/비승인자 2개 합성 컨텍스트로 approval 레인 항목 수 비교 2) 2인 시드 교차 노출 점검 3) denied 컨텍스트에서 변경 시도→거부 표시 확인",
+        "evidence": "역할별 스크린샷 비교 세트를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T10",
+      "title": "Document Workspace 화면을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "matter 단위 문서 목록·버전 이력·상태·QC 결과·관련 issue가 합성 시드로 렌더되고 문서 메타데이터 변경이 write API를 경유하는 Document Workspace가 가동된다.",
+      "deliverables": [
+        "apps/web/src/components/DocumentWorkspaceSurface.jsx",
+        "apps/web/src/data/documentClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/document-workspace.md",
+        "contracts/dms-core-contract.json",
+        "docs/ui-reference/contract-screen-map.md"
+      ],
+      "acceptance_criteria": [
+        "문서 목록이 file_ref 기반 원본 링크와 함께 렌더된다(목록 행마다 원본 링크 존재 판정).",
+        "문서 1건의 버전 이력 패널이 버전 수만큼 행을 표시한다(합성 시드 버전 수와 일치 판정).",
+        "문서 상태 변경이 write API 왕복으로 반영되고 audit hint가 요청에 포함된다(요청 페이로드 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) document-workspace 라우트에서 목록·원본 링크 렌더 확인 2) 버전 패널 행 수=시드 버전 수 대조 3) 상태 변경 요청 페이로드 캡처로 audit hint 필드 확인",
+        "evidence": "스크린샷+요청/응답 캡처를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/document-workspace.md",
+        "contracts/dms-core-contract.json",
+        "docs/ui-reference/contract-screen-map.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T11",
+      "title": "Document Workspace에 권한 게이트를 연결한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "문서 기밀분류·privilege 표시가 렌더되고, 접근 불가 문서가 목록에서 제외되거나 메타데이터 마스킹 상태로만 표시되어 제한객체가 누출되지 않는다.",
+      "deliverables": [
+        "apps/web/src/components/DocumentWorkspaceSurface.jsx",
+        "apps/web/src/data/documentClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §4-5",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md",
+        "contracts/permission-kernel-contract.json"
+      ],
+      "acceptance_criteria": [
+        "합성 ACL 시드에서 denied 문서가 목록에 비노출된다(노출 건수=allow 건수 일치 판정).",
+        "기밀분류·privilege 라벨이 문서 행에 렌더된다(라벨 DOM 존재 판정).",
+        "review_required 문서는 내용 접근 없이 검토 요청 상태로만 표시된다(별도 상태 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) allow n건+denied m건 합성 시드로 목록 노출 건수=n 확인 2) privilege 라벨 렌더 확인 3) review_required 문서 행 상태 확인",
+        "evidence": "시드 구성표+노출 건수 기록+스크린샷을 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §4-5",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md",
+        "contracts/permission-kernel-contract.json"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T13",
+      "title": "Outlook Add-in Task Pane을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Office 컨텍스트에서 로드되는 task pane이 matter 검색→email filing→첨부 저장→task/deadline/issue 생성 호출을 write API로 수행하고, filing마다 audit 이벤트가 생성된다.",
+      "deliverables": [
+        "apps/addin/",
+        "docs/product-ui/ia/outlook-addin-pane.md 대비 구현 차이 기록"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-9",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+        "docs/product-ui/ia/outlook-addin-pane.md"
+      ],
+      "acceptance_criteria": [
+        "테스트 mailbox에서 pane이 로드되고 matter 검색 결과가 렌더된다(사이드로드 판정).",
+        "email filing 1건 수행 시 대상 matter에 스레드가 귀속되고 대응 audit 이벤트가 조회된다(filing→audit 왕복 판정).",
+        "첨부 1건 저장 시 file_ref가 생성되어 Document Workspace 목록에서 조회된다(교차 화면 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) manifest 사이드로드 후 테스트 mailbox에서 pane 로드 2) filing 1건 실행→matter 귀속·audit 이벤트 조회 3) 첨부 저장→file_ref 생성 확인",
+        "evidence": "단계별 스크린샷+audit 이벤트 ID 기록을 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-OUT-001",
+          "VC-M365-001",
+          "VC-AUD-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L3-9",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+        "docs/product-ui/ia/outlook-addin-pane.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T14",
+      "title": "Outlook Add-in Pane에 권한 게이트를 연결한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "무권한 matter로의 filing 시도가 pane에서 차단·사유 표시되고, matter 검색 결과가 권한 트리밍되어 비멤버 matter가 노출되지 않는다.",
+      "deliverables": [
+        "apps/addin/"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md"
+      ],
+      "acceptance_criteria": [
+        "비멤버 matter가 pane의 matter 검색 결과에 노출되지 않는다(2인 합성 시드 교차 판정).",
+        "denied matter에 강제 filing 호출 시 서버 거부가 pane에 사유와 함께 표시되고 스레드 귀속이 발생하지 않는다.",
+        "review_required matter 선택 시 filing이 보류 상태로 표시된다(즉시 귀속 부재 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 2개 합성 컨텍스트로 검색 결과 차집합 확인 2) denied filing 시도→거부 표시+귀속 부재 확인 3) review_required 보류 상태 확인",
+        "evidence": "컨텍스트별 검색 결과 캡처+거부 응답 로그를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T16",
+      "title": "Issue Ledger 화면을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "issue 생성→source 연결→상태 전환→resolution 기록의 왕복이 write API를 경유해 동작하는 Issue Ledger 화면이 가동된다.",
+      "deliverables": [
+        "apps/web/src/components/IssueLedgerSurface.jsx",
+        "apps/web/src/data/issueClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L2-3",
+        "docs/product-ui/ia/issue-ledger.md",
+        "workbook/matter_dev_docs/22_API_이벤트_통합_명세.md"
+      ],
+      "acceptance_criteria": [
+        "issue 신규 생성이 write API 왕복으로 목록에 반영된다(생성 전후 건수 +1 판정).",
+        "issue 1건에 source(문서·이메일) 연결이 기록되고 상세 화면에 연결 항목이 렌더된다.",
+        "상태 전환이 IA의 전이표에 정의된 경로만 허용된다(비정의 전환 시도 시 UI 차단 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) issue 생성→건수 +1 확인 2) source 연결→상세 렌더 확인 3) 비정의 상태 전환 시도→차단 확인",
+        "evidence": "생성·전환 전후 스크린샷+API 로그를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "workbook/matter-post-cp-launch-plan.md §5 L2-3",
+        "docs/product-ui/ia/issue-ledger.md",
+        "workbook/matter_dev_docs/22_API_이벤트_통합_명세.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T17",
+      "title": "Issue Ledger에 권한 게이트를 연결한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "issue 작성·상태 전환 권한이 서버측 권한 평가와 일치하게 화면에서 강제되고, 비멤버에게 쟁점 내용(position·proposed language)이 노출되지 않는다.",
+      "deliverables": [
+        "apps/web/src/components/IssueLedgerSurface.jsx",
+        "apps/web/src/data/issueClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md"
+      ],
+      "acceptance_criteria": [
+        "denied 컨텍스트에서 issue 본문·position 필드가 마스킹 상태로 표시되고 원문 텍스트가 응답에 부재한다(네트워크 응답 판정).",
+        "작성 권한 없는 컨텍스트에서 생성·전환 컨트롤이 비활성이다(컨트롤 상태 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) denied 컨텍스트 응답 페이로드에서 본문 필드 부재 확인 2) 무권한 컨텍스트에서 컨트롤 비활성 확인 3) allow 컨텍스트 대조",
+        "evidence": "컨텍스트별 응답 캡처+스크린샷을 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T19",
+      "title": "Admin Console 화면을 구현한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "보안 트리밍된 사용자·역할 목록, 정책 조회, audit 이벤트 조회가 라이브 데이터로 동작하는 Admin Console이 가동된다.",
+      "deliverables": [
+        "apps/web/src/components/AdminSurface.jsx",
+        "apps/web/src/data/adminClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/admin-console.md",
+        "contracts/audit-compliance-contract.json",
+        "docs/ui-reference/contract-screen-map.md"
+      ],
+      "acceptance_criteria": [
+        "사용자·역할 목록이 라이브 응답으로 렌더되고 합성 시드 사용자 수와 일치한다(건수 대조 판정).",
+        "audit 이벤트 조회 화면이 시간 역순으로 이벤트를 렌더하고 필터(actor·action) 적용 결과 건수가 시드와 일치한다.",
+        "정책 조회 화면이 read-only로 렌더되고 변경 컨트롤이 존재하지 않는다(Wave 1 범위 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) admin-console 라우트에서 사용자 목록 건수=시드 수 대조 2) audit 필터 2종 적용 건수 대조 3) 정책 화면 변경 컨트롤 0개 확인",
+        "evidence": "화면별 스크린샷+건수 대조표를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1",
+        "docs/product-ui/ia/admin-console.md",
+        "contracts/audit-compliance-contract.json",
+        "docs/ui-reference/contract-screen-map.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T20",
+      "title": "Admin Console에 권한 게이트와 변경 preview·audit 표시를 연결한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "비관리자 역할의 admin 라우트 접근이 차단되고, 권한 관련 화면이 preview(영향범위)와 audit 기록 표시를 갖춰 Admin UX 원칙을 충족한다.",
+      "deliverables": [
+        "apps/web/src/components/AdminSurface.jsx",
+        "apps/web/src/data/adminClient.js"
+      ],
+      "source_refs": [
+        "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1"
+      ],
+      "acceptance_criteria": [
+        "비관리자 컨텍스트로 admin 라우트 직접 접근 시 거부 화면이 표시되고 관리 데이터 렌더가 0건이다.",
+        "권한 조회 화면에서 항목 선택 시 영향범위 preview 패널이 렌더된다(패널 DOM 판정).",
+        "각 관리 화면에 해당 객체의 최근 audit 기록 표시 영역이 존재한다(4개 화면 전부 판정)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 비관리자 컨텍스트 직접 URL 접근→거부 확인 2) preview 패널 렌더 확인 3) 4개 화면 audit 표시 영역 존재 확인",
+        "evidence": "역할별 접근 결과 캡처를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md",
+        "contracts/permission-kernel-contract.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4-1"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W01-T21",
+      "title": "Wave 1 화면군 staging 합성 시드 E2E를 실행하고 WP 완료 증거를 조립한다",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "objective": "Wave 1 6화면이 staging에서 합성 시드로 단일 E2E 시나리오(로그인→matter 생성→문서 filing→work queue 처리→audit 조회)를 통과했음이 증거로 보존되고, LT-L4-W01의 goal-closeout 증거 5종이 조립된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l4-w01/",
+        "E2E 단계별 기록 문서"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L4 완료 게이트",
+        "scripts/verify-matter-live-data.mjs",
+        "docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.md"
+      ],
+      "acceptance_criteria": [
+        "staging에서 E2E 시나리오 5단계(로그인→matter 생성→문서 filing→work queue 처리→audit 조회) 전 단계가 성공하고 단계별 타임스탬프·결과가 기록되어 있다(5단계 전부 판정).",
+        "E2E 중 생성된 audit 이벤트가 시나리오 단계 수 이상 조회된다(audit 무누락 1차 판정).",
+        "`npm test`와 `npm run build`의 종료코드가 각각 0이다.",
+        "docs/goal-closeout/lt-l4-w01/ 증거 5종이 존재하고 본 WP 전 TUW의 검증 출력이 command-evidence.json에 TUW ID로 귀속되어 있다(21건 판정)."
+      ],
+      "verification_contract": {
+        "method": "npm test && npm run build 실행 후 수동검증: 1) staging URL에서 E2E 5단계 순차 실행·단계별 기록 2) audit 조회 화면에서 시나리오 이벤트 카운트 3) 증거 5종 존재 점검",
+        "evidence": "E2E 단계 기록+테스트/빌드 exit code를 docs/goal-closeout/lt-l4-w01/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-FUNC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L4 완료 게이트",
+        "scripts/verify-matter-live-data.mjs",
+        "docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L4-W01 is complete.",
+    "This record does not implement Matter Home UI code or runtime routes.",
+    "This record does not implement Work Queue UI code, runtime routes, or write APIs.",
+    "This record does not implement Document Workspace UI code, document runtime routes, file upload/download, original-link behavior, or storage selection.",
+    "This record does not implement Issue Ledger UI code, runtime routes, write APIs, or state transition runtime.",
+    "This record does not implement Admin Console UI code, admin routes, permission mutations, policy mutations, or audit query runtime.",
+    "This record does not implement Outlook Add-in code, Office.js task pane runtime, manifest deployment, Graph scopes, email filing writes, or attachment storage.",
+    "This record does not admit AI policy mutation, Vault export/import administration, or HR sensitive administration into Wave 1.",
+    "This record does not admit AI summary, AI task/deadline/issue candidates, or Smart Alerts into Wave 1.",
+    "This record does not approve a final issue enum or resolve PRE-W04 issue/practice overlay disposition.",
+    "This record does not resolve MAT-DEC-03 or choose SharePoint/OneDrive, object storage, or hybrid storage.",
+    "This record does not open AI Candidates interactions during Wave 1.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 21,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

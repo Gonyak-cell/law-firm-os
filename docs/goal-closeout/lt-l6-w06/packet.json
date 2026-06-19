@@ -1,0 +1,45 @@
+{
+  "work_package_id": "LT-L6-W06",
+  "title": "KPI measurement infrastructure",
+  "created_at": "2026-06-18T14:53:52Z",
+  "status": "t01_definitions_t02_target_brief_t03_synthetic_collector_blocked_pending_staging_dashboard_targets_and_24h_refresh",
+  "phase": "L6",
+  "gate_binding": [
+    "G6",
+    "L6-EXIT"
+  ],
+  "terminal_tuw": "LT-L6-W06-T03",
+  "artifacts": [
+    "docs/launch/kpi/kpi-definitions.md",
+    "docs/launch/kpi/kpi-target-decision.md",
+    "apps/ops-kpi/collect.mjs",
+    "apps/ops-kpi/panels/dashboard-panels.json",
+    "docs/launch/kpi/kpi-collection-commands.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l6-w06/packet.json",
+    "docs/goal-closeout/lt-l6-w06/command-evidence.json",
+    "docs/goal-closeout/lt-l6-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-l6-w06/adjudication.md",
+    "docs/goal-closeout/lt-l6-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "kpi_definition_rows": 7,
+    "kpi_target_rows": 7,
+    "panel_count": 7,
+    "synthetic_only": true,
+    "aggregate_only": true,
+    "numeric_targets_set": false,
+    "staging_source": false,
+    "dashboard_published": false,
+    "auto_refresh_24h_verified": false,
+    "target_comparison_available": false,
+    "g6_satisfied": false,
+    "l6_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "subphase_id": "RP00.P02.M03.S02",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Request normalization",
+  "micro_title": "Hermes Validation",
+  "status": "PASS",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T05:41:05Z",
+  "construction_inspection_required": true,
+  "control_plane_hermes_validation_request_normalization_verified": true,
+  "implemented_surface": "ControlPlaneHermesValidationRequestNormalization",
+  "verified_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "verified_behaviors": [
+    "Binds RP00.P02.M03.S02 to Hermes Validation Request normalization",
+    "Accepts only M00 S03 tenant-boundary allow_metadata_only precheck results for entrypoint hermes_validation",
+    "Carries S01 Hermes Validation service entrypoint validation context ids, TEN-001 through TEN-008 trace refs, and acceptance gates",
+    "Emits a frozen normalized request with S02 normalization marker and S01 service entrypoint contract ref",
+    "Rejects unsafe, unknown, bypass, runtime, Hermes execution, Hermes evidence creation, product-write, and tenant-lifecycle mutation claims fail-closed",
+    "Defers tenant boundary, Matter trace, permission, and audit hint prechecks to RP00.P02.M03.S03 through S06",
+    "Does not create runtime routes or execute service logic",
+    "Does not mutate tenant lifecycle state",
+    "Does not run Hermes validation or create Hermes evidence as product runtime behavior",
+    "Does not replace human approval, H00, or C00",
+    "Does not use real data or write product state",
+    "Hands off to RP00.P02.M03.S03 Tenant boundary precheck"
+  ],
+  "boundary_checks": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_execute_service_logic": true,
+    "does_not_create_runtime_route": true,
+    "does_not_mutate_tenant_lifecycle": true,
+    "does_not_run_hermes_validation": true,
+    "does_not_create_hermes_evidence": true,
+    "does_not_replace_human_approval": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_claim_runtime_capability": true,
+    "tenant_matter_permission_audit_deferred_to_next_subphases": true
+  },
+  "claude_review": {
+    "status": "completed",
+    "reported_verdict": "PASS_WITH_FINDINGS",
+    "adjudicated_verdict": "PASS_WITH_FINDINGS",
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "p2_findings": 0,
+    "blocks_subphase_closeout": false
+  },
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 1,
+    "p3_status": "accepted_deferred_cleanup_non_blocking"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "No human approval is required for this deterministic synthetic metadata-only control-plane subphase; explicit next boundary is RP00.P02.M03.S03 Tenant boundary precheck.",
+  "result": "production_ready"
+}

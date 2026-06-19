@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-225",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T09:47:33.620Z",
+  "finished_at": "2026-06-10T09:53:40.864Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":366682,\"duration_api_ms\":366834,\"ttft_ms\":3871,\"num_turns\":53,\"result\":\"Review complete — **PASS**, no findings.\\n\\nCP00-225 is a clean descriptor-only failure-binding-slice pack. Every dimension in the review focus checked out:\\n- Pack-level descriptor-verification claim is supported by implementation (all 7 exports), tests, and the full validation suite (19 commands, exit 0).\\n- No-write/no-real-data boundaries are both attested and structurally enforced (frozen flags + validator assertions); contract projection leaks no payloads.\\n- Claude stays a read-only reviewer (Read/Grep/Glob), not final approver; human final approval is preserved as the gate for any enterprise-trust/runtime opening.\\n- Hermes patterns are confined to review packet/receipt handling, with no product-runtime receipt emission.\\n- `production_ready:false` is intentional for this stage and consistent across manifest, command-evidence, and contract.\\n\\nDoes not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"b716605d-d936-42ec-bd60-813392cc6b76\",\"total_cost_usd\":2.8044547499999997,\"usage\":{\"input_tokens\":153,\"cache_creation_input_tokens\":101187,\"cache_read_input_tokens\":3039688,\"output_tokens\":26009,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":101187,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":333,\"cache_read_input_tokens\":136480,\"cache_creation_input_tokens\":3293,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3293},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1097,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012020000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":153,\"outputTokens\":26009,\"cacheReadInputTokens\":3039688,\"cacheCreationInputTokens\":101187,\"webSearchRequests\":0,\"costUSD\":2.8032527499999995,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-225 is a descriptor-only DMS-core \\\"failure binding slice\\\" pack covering exactly 40 RP06 units (RP06.P07.M04.S06-RP06.P07.M05.S20): the M04 Secondary Workflow Slice tail (20 rows) plus the M05 Permission And Audit Binding head (20 rows). Read-only inspection (Read/Grep/Glob) confirms the pack-level descriptor-verification claim is supported and the no-write/no-real-data boundaries hold. Evidence reviewed: (1) Implementation — all 7 required public exports exist (createDmsCoreCp225FailureBindingSliceDescriptor/CaseSet in service.js:4808/4841; validateDmsCoreCp225Coverage, validateDmsCoreCp225FailureBindingSliceDescriptor, createDmsCoreCp225HermesEvidencePacket/ClaudeReviewPacket/CloseoutHandoff in validators.js:6059-6204; re-exported via index.js). (2) Coverage/distribution — registry DMS_CORE_CP225_REQUIREMENTS and baseline included_units match the prompt deliverable_distribution exactly (failure_recovery:19, security_audit:4, implementation:6, hermes_evidence:4, fixture:2, test:4, claude_review:1 = 40) and micro_title split 20/20. (3) No-write/no-real-data — freezeCp225Result (service.js:4755) freezes 40+ boundary flags false; no-write attestation chain (registry.js:877) inherits silent_success_detected/leak_detected/promotes_claude_to_final_approval/claims_enterprise_trust_from_local_validation=false; contract projection (dms-core-contract.json:44005) is descriptor-only with raw_payload_included=false and *_detail_included=false; command-evidence reports production_ready=false, no_real_data=true, writes_product_state=false. (4) Authority — descriptor authority_boundary.claude_is_final_approval=false with human_final_approval_required_for_runtime_opening=true; review-request is read_only with tools Read/Grep/Glob, model claude-opus-4-8, effort max, matching createDmsCoreCp225ClaudeReviewPacket. (5) Hermes — control-plane patterns used only for the H06 review/evidence packet and descriptor receipt shape (emits_hermes_runtime_receipt=false), not product runtime. (6) Review hardening — readiness auth-preflight passed with valid non-empty JSON (exit 0, 1457-byte stdout); validate-rp06-dms-core-contract.mjs asserts coverage validity, descriptor-only rows, deny-over-allow, excluded lock tokens, and authority boundaries; all 19 command-evidence commands exit 0 (full repo suite incl. npm test, npm run validate, git diff --check). (7) Changed-file scope correctly isolates the 8 active refs and preserves unrelated dirty/untracked files without inferring pack membership. production_ready=false is intentional for this descriptor-only stage pending human final approval; Claude remains a read-only independent reviewer and is not treated as final approval authority. No P0-P3 findings; does not block pack or goal closeout.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"eb8adb1c-a3f6-424c-802e-e32bf319feb8\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5390,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "b716605d-d936-42ec-bd60-813392cc6b76",
+    "uuid": "eb8adb1c-a3f6-424c-802e-e32bf319feb8",
+    "total_cost_usd": 2.8044547499999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

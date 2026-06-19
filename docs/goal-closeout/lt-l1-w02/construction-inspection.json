@@ -1,0 +1,22 @@
+{
+  "work_package_id": "LT-L1-W02",
+  "inspected_at": "2026-06-18T14:44:26Z",
+  "verdict": "BLOCKED_OWNER_DECISION_ROUND_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "required_key_count": 9,
+    "critical_oq_key_count": 6,
+    "prd8_mapping_rows": 6,
+    "launch_decision_register_rows_added": 0,
+    "owner_decisions_complete": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_decisions_synthesized": false,
+    "launch_register_mutated_without_approval": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

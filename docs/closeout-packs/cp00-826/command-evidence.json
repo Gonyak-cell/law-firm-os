@@ -1,0 +1,97 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-826",
+  "subphase_id": "RP27.P02.M06.S01",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, secret, API key, webhook secret, or workflow payload data used; CP00-826 uses descriptor-only RP27 Platform Extensibility synthetic fixture and interface bridge evidence."
+  ],
+  "commands": [
+    {
+      "id": "closeout_pack_plan_validate",
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "validate_closeout_pack_script_syntax",
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_validate_all",
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_test",
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_validate",
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "weighted_validate",
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "fullplan_validate",
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "goal_closeout_validate",
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "critical_rps_validate",
+      "command": "npm run critical-rps:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp27_validate",
+      "command": "npm run rp27:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp27_platform_extensibility_validate",
+      "command": "npm run rp27:platform-extensibility:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "build",
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "id": "git_diff_check",
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

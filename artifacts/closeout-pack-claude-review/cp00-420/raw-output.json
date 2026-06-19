@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-420",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T02:12:08.500Z",
+  "finished_at": "2026-06-12T02:17:24.091Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":314282,\"duration_api_ms\":314840,\"ttft_ms\":4157,\"num_turns\":40,\"result\":\"Review complete. CP00-420 passes as a descriptor-only pack with all boundaries intact — verdict **PASS_WITH_FINDINGS** (0 P0/P1/P2, 1 non-blocking P3 on scope-ledger bookkeeping). It does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"47d280d6-0c7b-41bc-b9bb-730c3397bd67\",\"total_cost_usd\":1.8363724999999997,\"usage\":{\"input_tokens\":133,\"cache_creation_input_tokens\":93006,\"cache_read_input_tokens\":1342180,\"output_tokens\":23286,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":93006,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":137,\"cache_read_input_tokens\":94211,\"cache_creation_input_tokens\":7190,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7190},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1075,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00118,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":133,\"outputTokens\":23286,\"cacheReadInputTokens\":1342180,\"cacheCreationInputTokens\":93006,\"webSearchRequests\":0,\"costUSD\":1.8351925,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-420 is a faithful descriptor-only continuation of the RP13.P09.M07 Test And Golden Case Set slice (10 units, S02-S11, risk A). The manifest plan_binding_snapshot matches the live closeout-pack-plan.json entry exactly and next-pack-queue.json (live_latest_pack_id CP00-419) confirms CP00-420 is the correct next pack, so deviation_from_plan:false is accurate. The CP420 pack binding, no-write attestation, requirements, descriptor projection, case-set builder, validators, contract embedding, validate script, README entry, and tests are mutually consistent. The case-set rows hard-code descriptor_only:true / runtime_execution:false / customer_safe_errors_only:true / raw_payload_included:false with guard fields ordered after spreads (cannot be overridden), and validators re-check every guard plus the authority boundary and handoff target. command-evidence.json records all required validation commands (npm test, npm run validate, build, git diff --check, Hermes H13 control-plane validates) at exit_code 0. The authority boundary is preserved end-to-end: production_ready:false and runtime_ready:false, a descriptor-scoped production_ready_flag, Claude as read-only reviewer (not final approver), enterprise trust not claimed from local validation, and Hermes present only as deterministic review-packet/receipt metadata (no product runtime). forbidden_review_evidence covers all CP178+ hardening categories and the readiness auth-preflight passed with valid JSON. No P0/P1/P2 issues found; one non-blocking P3 bookkeeping observation in the changed-file-scope ledger. The pack supports its descriptor-verified claim and is safe to close.\",\"findings\":[{\"id\":\"CP00-420-P3-01\",\"severity\":\"P3\",\"title\":\"changed-file-scope.json dual-lists the pack's own evidence dir as both implementation and unrelated-preserved\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-420/changed-file-scope.json\",\"line\":130,\"details\":\"docs/closeout-packs/cp00-420/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (line 130) and unrelated_dirty_files_preserved (line 135). The cp00-420/ directory is the pack's own required-artifact directory (it holds manifest.json and command-evidence.json, both validated by the test suite via readFileSync), so labeling it 'unrelated' is internally inconsistent. Relatedly, manifest.worktree_transition_policy.active_pack_required_untracked_files is [] even though the pack's required artifacts are untracked. This is a categorization/labeling quirk in hardening bookkeeping artifacts only; it does not affect implementation correctness, the descriptor-only boundary, no-write/no-real-data claims, validation outcomes, or the authority boundary.\",\"recommendation\":\"In a future generator pass, classify the pack's own evidence directory as pack-scoped evidence rather than 'unrelated_dirty_files_preserved', and make active_pack_required_untracked_files reflect the untracked required artifacts. No action required for this closeout.\",\"post_review_disposition\":\"Non-blocking. Cosmetic scope-ledger inconsistency with no effect on the production_ready/descriptor claim or boundaries. Safe to proceed with CP00-420 closeout.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"8a3d74b0-829c-41d0-82b9-69e37da002de\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5104,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "47d280d6-0c7b-41bc-b9bb-730c3397bd67",
+    "uuid": "8a3d74b0-829c-41d0-82b9-69e37da002de",
+    "total_cost_usd": 1.8363724999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

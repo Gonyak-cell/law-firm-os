@@ -1,0 +1,1857 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-683",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "program_id": "RP22",
+  "risk_class": "B",
+  "planned_pack_id": "CP00-683",
+  "planned_risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "primary_subphase_id": "RP22.P06.M09.S02",
+  "next_subphase": "RP22.P06.M09.S03",
+  "production_ready_flag": "external_integrations_i_p06_test_golden_evidence_review_bridge_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "runtime_opened": false,
+    "summary": "CP00-683 bridges the RP22 External Integrations I P06 test/golden tail, Hermes evidence packet, and Claude review packet head over 40 planned units from RP22.P06.M07.S07 through RP22.P06.M09.S02 while keeping runtime paths closed.",
+    "source_refs": [
+      "contracts/integrations-core-contract.json",
+      "contracts/external-integrations-i-contract.json",
+      "packages/integrations-core/src/registry.js",
+      "packages/integrations-core/src/service.js",
+      "packages/integrations-core/src/validators.js",
+      "packages/integrations-core/test/model.test.js",
+      "scripts/validate-rp22-external-integrations-i-contract.mjs",
+      "docs/closeout-packs/cp00-683/manifest.json",
+      "docs/closeout-packs/cp00-683/command-evidence.json",
+      "docs/closeout-packs/cp00-683/claude-review-result.json",
+      "docs/closeout-packs/cp00-683/adjudication.md",
+      "docs/closeout-packs/cp00-683/construction-inspection.json",
+      "artifacts/closeout-pack-claude-review/cp00-683/"
+    ]
+  },
+  "delivery_counts": {
+    "implementation": 12,
+    "security_audit": 10,
+    "ui": 8,
+    "claude_review": 2,
+    "test": 8
+  },
+  "micro_phase_counts": {
+    "RP22.P06.M07": 16,
+    "RP22.P06.M08": 22,
+    "RP22.P06.M09": 2
+  },
+  "micro_title_counts": {
+    "Test And Golden Case Set": 16,
+    "Hermes Evidence Packet": 22,
+    "Claude Review Packet": 2
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-683/manifest.json",
+    "docs/closeout-packs/cp00-683/command-evidence.json",
+    "docs/closeout-packs/cp00-683/claude-review-result.json",
+    "docs/closeout-packs/cp00-683/adjudication.md",
+    "docs/closeout-packs/cp00-683/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [
+      "docs/closeout-packs/cp00-683/manifest.json",
+      "docs/closeout-packs/cp00-683/command-evidence.json",
+      "docs/closeout-packs/cp00-683/claude-review-result.json",
+      "docs/closeout-packs/cp00-683/adjudication.md",
+      "docs/closeout-packs/cp00-683/construction-inspection.json"
+    ],
+    "unrelated_dirty_files_preserved": [
+      "scripts/progress-control-room-data.mjs",
+      "tools/progress-control-room/index.html",
+      "Law_Firm_OS_Enterprise_SaaS_사양명세서_v2.0.docx",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/launch-tuw/",
+      "workbook/matter-post-cp-launch-plan.md",
+      "workbook/matter_dev_docs/matter_개발문서_통합본.md",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "commit_policy": {
+    "required": true,
+    "stage_only_pack_files": true,
+    "preserve_unrelated_worktree_changes": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json",
+    "parsed_verdict": "PASS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  },
+  "review_artifacts": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-683/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-683/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+  },
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-683",
+    "planned_pack_id": "CP00-683",
+    "title": "CP00-683 RP22.P06.M07.S07-RP22.P06.M09.S02 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP22.P06.M07.S07",
+      "last_unit_id": "RP22.P06.M09.S02",
+      "description": "RP22.P06.M07.S07-RP22.P06.M09.S02"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP22.P06.M07.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M07.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M07.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M07.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M07.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M07.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M07.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M07.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP22.P06.M07.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M07.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M07.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M07.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M07.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M07.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M07.S21",
+        "title": "Cross-tenant test",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M07.S22",
+        "title": "Leak prevention test",
+        "source_micro_phase_id": "RP22.P06.M07",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M08.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M08.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M08.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP22.P06.M08.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M08.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M08.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M08.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP22.P06.M08.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP22.P06.M08.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M08.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M08.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M08.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M08.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M08.S21",
+        "title": "Cross-tenant test",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M08.S22",
+        "title": "Leak prevention test",
+        "source_micro_phase_id": "RP22.P06.M08",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP22.P06.M09.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP22.P06.M09",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP22.P06.M09.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP22.P06.M09",
+        "program_id": "RP22",
+        "phase_id": "RP22.P06",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP22.P06.M07.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S21",
+      "title": "Cross-tenant test",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M07.S22",
+      "title": "Leak prevention test",
+      "source_micro_phase_id": "RP22.P06.M07",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S21",
+      "title": "Cross-tenant test",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M08.S22",
+      "title": "Leak prevention test",
+      "source_micro_phase_id": "RP22.P06.M08",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M09.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP22.P06.M09",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    },
+    {
+      "id": "RP22.P06.M09.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP22.P06.M09",
+      "program_id": "RP22",
+      "phase_id": "RP22.P06",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/integrations-core-contract.json",
+        "contracts/external-integrations-i-contract.json",
+        "packages/integrations-core/src/registry.js",
+        "packages/integrations-core/src/service.js",
+        "packages/integrations-core/src/validators.js",
+        "packages/integrations-core/test/model.test.js",
+        "scripts/validate-rp22-external-integrations-i-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-683/manifest.json",
+        "docs/closeout-packs/cp00-683/command-evidence.json",
+        "docs/closeout-packs/cp00-683/claude-review-result.json",
+        "docs/closeout-packs/cp00-683/adjudication.md",
+        "docs/closeout-packs/cp00-683/construction-inspection.json"
+      ],
+      "production_ready": true,
+      "closeout_pack_id": "CP00-683",
+      "evidence_ref": "docs/closeout-packs/cp00-683/manifest.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-683/review-receipt.json"
+    }
+  ]
+}

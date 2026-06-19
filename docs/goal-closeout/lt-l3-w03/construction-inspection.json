@@ -1,0 +1,29 @@
+{
+  "work_package_id": "LT-L3-W03",
+  "inspected_at": "2026-06-18T13:17:48Z",
+  "verdict": "BLOCKED_NETWORK_TRUST_BOUNDARY_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "proxy_tls_certificate_file_count": 0,
+    "vault_secret_config_file_count": 0,
+    "api_binding": "127.0.0.1",
+    "cors_options_handling": false,
+    "deployment_topology_exists": false,
+    "network_trust_boundary_doc_exists": false,
+    "vault_secret_inventory_exists": false,
+    "https_staging_evidence_exists": false,
+    "cors_allowlist_evidence_exists": false,
+    "vault_audit_log_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "network_access_opened": false,
+    "secret_values_created_or_committed": false,
+    "owner_decision_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

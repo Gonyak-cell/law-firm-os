@@ -1,0 +1,44 @@
+{
+  "work_package_id": "LT-L4-W05",
+  "title": "i18n policy, glossary, and product naming",
+  "created_at": "2026-06-18T14:51:37Z",
+  "status": "t01_i18n_policy_t02_glossary_t03_app_copy_audit_blocked_pending_owner_policy_and_source_cleanup",
+  "phase": "L4",
+  "gate_binding": [
+    "L4-EXIT"
+  ],
+  "terminal_tuw": "LT-L4-W05-T03",
+  "artifacts": [
+    "docs/product-ui/i18n-policy.md",
+    "docs/product-ui/glossary.md",
+    "docs/product-ui/app-copy-audit.md",
+    "apps/web/src/i18n.js",
+    "apps/web/src/components/MatterLogo.jsx"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l4-w05/packet.json",
+    "docs/goal-closeout/lt-l4-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l4-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l4-w05/adjudication.md",
+    "docs/goal-closeout/lt-l4-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "decision_options": 3,
+    "wave1_screen_rows": 6,
+    "term_rows": 36,
+    "product_name_layer_rows": 4,
+    "string_candidate_count": 79,
+    "old_ui_brand_phrase_count": 0,
+    "matter_logo_aria_ok": true,
+    "app_source_files_modified": 0,
+    "owner_i18n_policy_decision_present": false,
+    "source_copy_cleanup_applied": false,
+    "rendered_ui_validation_complete": false,
+    "l4_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

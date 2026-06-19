@@ -1,0 +1,79 @@
+{
+  "subphase_id": "RP00.P02.M03.S20",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Unit test: denied path",
+  "status": "production_ready",
+  "created_at": "2026-06-05T15:11:57Z",
+  "deliverable_type": "test",
+  "implementation_summary": [
+    "Added control-plane Hermes Validation unit denied-path test policy for RP00.P02.M03.S20.",
+    "The S20 policy, module descriptor, validator, synthetic fixture, contract definition, and README bind a golden denied-path unit test over the S18 retry behavior input and S19 happy-path proof.",
+    "The dedicated service test proves the valid S18 retry behavior baseline still passes and all 36 denied cases fail closed.",
+    "The denied cases cover 30 forbidden retry/runtime/write/Hermes/audit/recovery/real-data claims, one unknown truthy claim, four input-drift cases, one non-object claims case, and a falsy non-false forbidden claim.",
+    "After Claude review, the denied-path helper was hardened to consume each case's expectedFailClosedOn metadata and assert the exact deterministic Error.message for the expected fail-closed reason.",
+    "The S20 fixture records a synthetic deterministic tenant-scoped denied-path proof with no real client data, no real matter data, no credentials, no secrets, no product-state writes, and exact case taxonomy parity with the S20 policy.",
+    "The S20 boundary remains test-only: it does not execute service logic, create runtime routes, run Hermes validation, create Hermes evidence, enqueue retry, execute retry, write retry queue or attempt records, persist retry schedules, start retry timers, dispatch retry workers, execute rollback, execute compensation, notify customers, write incident traces, append observability events, write audit events, write databases, write storage, or persist product state.",
+    "RP00.P02.M03 is complete at S20 and hands off to RP00.P02.M04.S01 Service entrypoint contract; RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s20/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s20/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s20/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s20/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s20/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 225,
+    "full_test_count": 309,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s20_evidence_files"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "dca0cc51-f085-470d-a749-403765dd22c8",
+    "uuid": "48250961-d72a-4ce7-af37-042dd43703a6",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_adjudication": "GO_WITH_NON_BLOCKING_FINDINGS",
+    "production_ready_verdict_after_adjudication": "GO",
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 2
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_by_expected_fail_closed_reason_assertions",
+    "p3_status": "informational_deferred_with_explicit_boundary",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": true,
+    "completed_micro_phase_id": "RP00.P02.M03",
+    "next_micro_phase_id": "RP00.P02.M04",
+    "next_subphase": "RP00.P02.M04.S01",
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M04.S01"
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-078",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "bd5d89b3-c235-4343-8081-c1685a4f0f48",
+    "uuid": "677728c3-58d1-46c9-acad-a5b3a31db8ee",
+    "total_cost_usd": 0.9452442499999999,
+    "duration_ms": 224544,
+    "permission_denials": []
+  },
+  "invalid_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"read-only code reviewer\" --output-format json \"$(cat /tmp/cp00-078-review-prompt.txt)\"",
+      "exit_code": 1,
+      "reason": "Sandboxed CLI could not access Claude authentication/keychain and returned Not logged in with zero input tokens; not counted as a valid pack-level review.",
+      "session_id": "c9da6e3c-1ad4-4242-8c35-50085b6de976",
+      "uuid": "a1b7b19a-4a8a-404b-9778-8d47b1963932"
+    }
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "p0": [],
+    "p1": [],
+    "p2": [],
+    "p3": [
+      {
+        "id": "CP00-078-F1",
+        "severity": "P3",
+        "title": "Validation is self-referential anti-drift coverage rather than external functional proof",
+        "status": "adjudicated_not_blocking",
+        "finding": "Policy, fixture, contract, and assembler validate mutual consistency for a metadata-only pack. This is expected for the control-plane closeout series and does not block pack closeout.",
+        "recommendation": "Keep evidence/adjudication explicit that CP00-078 closes metadata binding, not runtime permission behavior."
+      },
+      {
+        "id": "CP00-078-F2",
+        "severity": "P3",
+        "title": "Contract top-level audit/matched-rule arrays lacked direct test assertions",
+        "status": "fixed",
+        "finding": "The contract mirror test did not directly deepEqual definition.audit_hint_fields and definition.matched_rule_capture_fields against policy.",
+        "recommendation": "Fixed by adding explicit deepEqual assertions in the CP00-078 contract mirror test after review."
+      },
+      {
+        "id": "CP00-078-F3",
+        "severity": "P3",
+        "title": "production_ready is metadata-closeout readiness, not runtime permission system readiness",
+        "status": "adjudicated_not_blocking",
+        "finding": "The pack marks included units production_ready while preserving no-runtime/no-write flags.",
+        "recommendation": "No code change required; construction inspection and evidence retain the metadata-only boundary."
+      },
+      {
+        "id": "CP00-078-F4",
+        "severity": "P3",
+        "title": "Source microphase boundary should be confirmed during evidence creation",
+        "status": "evidence_resolved",
+        "finding": "Reviewer asked to confirm M07 terminates at S20 and upstream CP00-077 evidence refs resolve.",
+        "recommendation": "Resolved by checking docs/weighted-implementation-ledger.json: RP00.P06.M07 has 20 subphases and terminates at RP00.P06.M07.S20; CP00-077 evidence refs exist in repo."
+      }
+    ],
+    "required_fixes": [],
+    "notes": [
+      "Single valid CP00-078 Claude Opus 4.8 max read-only review completed with PASS_WITH_FINDINGS and no P0/P1/P2 findings.",
+      "One sandbox authentication failure occurred before the valid review and is recorded as invalid_attempts; it had zero input tokens and is not counted as the pack-level review.",
+      "P3-F2 was fixed after review; P3-F1/F3/F4 were adjudicated or evidence-resolved."
+    ]
+  },
+  "raw_result": "{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"findings\":[{\"id\":\"CP00-078-F1\",\"severity\":\"P3\"},{\"id\":\"CP00-078-F2\",\"severity\":\"P3\"},{\"id\":\"CP00-078-F3\",\"severity\":\"P3\"},{\"id\":\"CP00-078-F4\",\"severity\":\"P3\"}],\"required_fixes\":[]}",
+  "raw_output_ref": "Codex tool output for CP00-078 Claude review session bd5d89b3-c235-4343-8081-c1685a4f0f48; prompt at /tmp/cp00-078-review-prompt.txt"
+}

@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-PRE-W07",
+  "inspected_at": "2026-06-18T14:39:45Z",
+  "verdict": "PASSED_LOCAL_EVIDENCE_RECORDED_REVIEW_WAIVED",
+  "production_ready": false,
+  "quality_gates": {
+    "product_strategy_mat_dec_04_decided": true,
+    "decision_register_mat_dec_04_decided": true,
+    "naming_rules_present": true,
+    "machine_identifier_rename_ban_present": true,
+    "matter_logo_aria_label_exact_count": 1,
+    "test_suite_passed": true,
+    "web_build_passed": true,
+    "terminal_tuw_closed": true
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "machine_identifiers_renamed": false,
+    "closed_cp_evidence_rewritten": false,
+    "go_live_approval_claimed": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

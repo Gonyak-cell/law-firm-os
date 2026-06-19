@@ -1,0 +1,41 @@
+{
+  "work_package_id": "LT-L9-W01",
+  "title": "Four-week hypercare",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_hypercare_templates_recorded",
+  "artifacts": [
+    "docs/launch/hypercare-operations.md",
+    "docs/launch/hypercare-daily-log.md",
+    "docs/launch/champion-roster.md",
+    "docs/launch/stabilization-closure.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l9-w01/packet.json",
+    "docs/goal-closeout/lt-l9-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l9-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l9-w01/adjudication.md",
+    "docs/goal-closeout/lt-l9-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "hypercare_started": false,
+    "first_week_daily_records_complete": false,
+    "weekly_reviews_complete": false,
+    "stabilization_closure_signed": false,
+    "go_live_completed": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false
+  },
+  "boundaries": {
+    "production_ready_claim": false,
+    "normal_operations_handoff": false,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "terminal_tuw": "LT-L9-W01-T03",
+  "gate_binding": [
+    "L9-EXIT"
+  ],
+  "phase": "L9"
+}

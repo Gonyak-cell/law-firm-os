@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-676",
+  "normalized_at": "2026-06-14T11:57:02.625Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-676/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-676/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-676/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-676/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "11349236-df45-4f3f-81f6-9b3102ae0b33",
+    "uuid": "87ba8c91-3fcc-4058-807f-564ad402c2a2",
+    "total_cost_usd": 3.20080625,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7440,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-676 is a descriptor-only RP22 External Integrations I \"UI evidence foundation bridge\" pack (150 units, RP22.P03.M06.S13–RP22.P04.M03.S20, risk C). Read-only inspection (Read/Grep/Glob) confirms the production_ready posture is supported and the pack is correctly in its pre-review state (manifest/inspection/adjudication/command-evidence/claude-review-result all report production_ready=false, status in_progress, pending_review). Directly verified: (1) registry.js:1633-1881 CP676 binding+requirements match the pack baseline exactly — unit_count 150, range, deliverable distribution {test:13,hermes_evidence:7,claude_review:11,implementation:53,contract:17,security_audit:16,ui:30,fixture:3} and micro-title distribution both sum to 150; (2) service.js:2204-2406 descriptor/hermes/claude/handoff functions are descriptor-only with every runtime flag false, Claude read-only and not promoted to final approval, handoff to CP00-677/RP22.P04.M03.S21; (3) validators.js:583-612 and 1273-1380 enforce descriptor_only/no-runtime/no-raw-payload/customer-safe and Claude-not-final, chained into the contract-projection validation; (4) model.test.js:286-296,519-563 assert coverage valid and boundaries closed; (5) both contract files are generated_from_pack_id CP00-676 with a complete no-write/no-real-data attestation (all write/runtime keys false, claude_is_final_approval=false, local_validation_claims_enterprise_trust=false); (6) index.js re-exports all CP676 symbols; (7) plan live_state and next-pack-queue agree on CP00-676 → RP22.P04.M03.S21. Hermes patterns are confined to deterministic review-packet/evidence-gate handling (H22), not product runtime (runtime_receipt_emitted=false). Claude remains read-only and is not the final approver; the enterprise-trust/human-approval boundary is closed outside this receipt, consistent with the authority boundary. Review-hardening checks pass: readiness auth-preflight succeeded with well-formed JSON (no auth failure, non-zero stdout), read-tools-only mode, no forbidden tools, summary-only correctly prohibited for a risk-C pack with security/review deliverables. Provenance note: the 22/22 validation commands in command-evidence.json (npm test, full validate suite, build, git diff --check) are self-reported by the construction process; as a read-only reviewer I did not re-execute them, but static inspection of the validators, tests, and contracts they exercise corroborates the reported PASS outcomes. One non-blocking P3 (defense-in-depth) is recorded below. No P0/P1/P2 issues; nothing blocks pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP676-P3-01",
+        "severity": "P3",
+        "title": "Standalone per-key no-write attestation enforcement covers only cp666_no_write_attestation",
+        "file": "packages/integrations-core/src/validators.js",
+        "line": 1463,
+        "details": "validateExternalIntegrationsICoreContractProjection applies the standalone per-key false/true enforcement loop (validators.js:1463-1469) and the direct deep-equality check (1460) only to contractProjection.cp666_no_write_attestation. The current pack's cp676_no_write_attestation (service.js:2553) is sourced from the same frozen EXTERNAL_INTEGRATIONS_I_CP666_NO_WRITE_ATTESTATION constant and is validated only via full-projection deep-equality when options.expectedProjection is supplied. In the closeout flow this is safe — the script and model test always pass expectedProjection (validate-rp22-external-integrations-i-contract.mjs:318-319; model.test.js:541-563) and the shared frozen constant cannot diverge in the generated projection — so no drift is currently possible. The asymmetry is only that a call without expectedProjection against an externally-supplied contract would independently re-assert cp666's no-write keys but not cp676's.",
+        "recommendation": "Optionally extend the standalone per-key false/true no-write enforcement to the current-pack attestation (cp676_no_write_attestation) so the boundary is independently re-asserted even when expectedProjection is absent. Non-blocking; current shared-constant + deep-equality coverage already prevents drift in the validated path.",
+        "post_review_disposition": "open_non_blocking_defense_in_depth"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

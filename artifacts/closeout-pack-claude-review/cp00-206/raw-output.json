@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-206",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T02:20:24.790Z",
+  "finished_at": "2026-06-10T02:25:10.970Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":285602,\"duration_api_ms\":286784,\"ttft_ms\":4113,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — does not block pack or goal closeout.\\n\\nCP00-206's descriptor-only DMS synthetic fixture service pack is clean and internally consistent across all 8 implementation refs. The `production_ready_flag` is supported by coherent frozen descriptor code, synthetic-only fixtures (zeroed sha256, byte_size 0, reserved no-read pointer), comprehensive tests, and a matching contract/validator/plan/README. No runtime dispatch, product-state writes, or payload/detail leaks — every such flag is explicitly `false`. Authority boundary holds: Claude stays a read-only reviewer (not final approver), enterprise trust isn't claimed from local validation, and Hermes patterns are confined to deterministic packet/receipt handling.\\n\\n- **P0/P1/P2: 0**\\n- **P3: 1** — closeout-gating evidence (empty `commands[]`, PENDING adjudication/inspection, `production_ready:false`) is the expected state at this `read_only_claude_run_raw_capture` step; it's populated by the downstream hardening steps before commit. Non-blocking, flagged only for closeout completeness.\",\"stop_reason\":\"end_turn\",\"session_id\":\"0668f8b0-8e4f-4bb1-bbaa-84bbba30ddde\",\"total_cost_usd\":2.3414585000000003,\"usage\":{\"input_tokens\":40,\"cache_creation_input_tokens\":117470,\"cache_read_input_tokens\":2132102,\"output_tokens\":21593,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":117470,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":438,\"cache_read_input_tokens\":151366,\"cache_creation_input_tokens\":4626,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4626},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1095,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001195,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":40,\"outputTokens\":21593,\"cacheReadInputTokens\":2132102,\"cacheCreationInputTokens\":117470,\"webSearchRequests\":0,\"costUSD\":2.3402635000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-206 is a descriptor-only DMS synthetic fixture service pack (10 RP06 units, RP06.P02.M05.S21-RP06.P02.M06.S05, risk A). Read-only inspection of the 8 active implementation refs confirms the production_ready_flag \\\"dms_core_synthetic_fixture_service_descriptor_verified\\\" is supported. registry.js (CP206 pack binding, no-write attestation, requirements), service.js (createDmsCoreCp206SyntheticFixtureServiceCaseSet/Descriptor, Hermes/Claude packets, closeout handoff), and validators.js (coverage + descriptor validation) are coherent, frozen, descriptor-only code with every runtime/write/leak vector explicitly false. The synthetic fixture uses only synthetic IDs, a zeroed sha256, byte_size 0, and a reserved no-read storage pointer — no real client/matter/document data. The 3 CP206 tests assert coverage (deliverable distribution test:2/fixture:1/hermes_evidence:1/claude_review:1/contract:1/implementation:3/security_audit:1), descriptor-only review/smoke/fixture/precheck boundaries, and authority boundaries; the integration chain CP206->CP205 tail case set->CP202 route matrix yields review_required:true as asserted. The contract, validator script, closeout-pack-plan, and README all reference CP00-206 consistently, and no leak/runtime flag is set to true anywhere in contract or source. Authority boundary is preserved: Claude is a read-only reviewer (not final approver), enterprise trust is not claimed from local validation, and Hermes patterns are confined to deterministic review packet/receipt handling, not product runtime. Review-hardening inputs are sound: 2229-byte prompt with no embedded full source/diff, auth preflight passed with valid JSON and non-zero stdout, tools limited to Read/Grep/Glob, and changed-file-scope correctly isolates pack refs from unrelated dirty files. No P0/P1/P2 issues. One non-blocking P3 observation: closeout-gating evidence (manifest production_ready:false, command-evidence commands:[], adjudication/construction-inspection PENDING) is the expected state at this read_only_claude_run_raw_capture step and is completed by the downstream hardening steps before commit. This review does not constitute final approval; human approval remains required for any enterprise-trust claim.\",\"findings\":[{\"id\":\"CP00-206-OBS-01\",\"severity\":\"P3\",\"title\":\"Closeout-gating evidence is a pending placeholder awaiting downstream hardening steps\",\"file\":\"docs/closeout-packs/cp00-206/command-evidence.json\",\"line\":9,\"details\":\"At this read_only_claude_run_raw_capture step the pack's closeout-gating evidence is intentionally pending: command-evidence.json has commands:[] with status 'pending' and production_ready:false; manifest.json reports status 'in_progress' and production_ready:false; claude-review-result.json shows exactly_one_valid_pack_level_claude_review_run:false with verdict PENDING; adjudication.md and construction-inspection.json are PENDING. This is the correct/expected state because the hardened review sequence orders this read-only review BEFORE normalize, receipt_validate, finding_adjudication, construction_inspection, and final_closeout_validation. It is therefore not a defect in the reviewed descriptor-only content (implementation, tests, contract, validator, plan, README are all complete and consistent), but the 11 validation commands listed in the baseline are not yet recorded as executed with passing results.\",\"recommendation\":\"During the remaining hardening steps, record passing results for the 11 validation commands (npm run closeout-pack-plan:validate, closeout-pack:validate, rp05:matter-core:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) into command-evidence.json, finalize adjudication.md and construction-inspection.json, and only then flip manifest production_ready to true at commit. No change to reviewed source is required.\",\"post_review_disposition\":\"Non-blocking; expected-by-design at the read_only_claude_run_raw_capture stage. Tracked for closeout completeness. Does not block pack or goal closeout.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"16b5988a-e250-4289-b8f2-950f6e3e2a3c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6933,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "0668f8b0-8e4f-4bb1-bbaa-84bbba30ddde",
+    "uuid": "16b5988a-e250-4289-b8f2-950f6e3e2a3c",
+    "total_cost_usd": 2.3414585000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

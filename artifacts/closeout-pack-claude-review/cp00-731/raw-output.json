@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-731",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T08:01:53.878Z",
+  "finished_at": "2026-06-15T08:06:41.699Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":287247,\"duration_api_ms\":288957,\"ttft_ms\":5400,\"num_turns\":33,\"result\":\"Review complete. **Verdict: PASS** — no findings, no blockers to CP00-731 closeout.\\n\\nCP00-731 is a clean descriptor-only RP24 Korean Legal Depth bridge pack (150 units) that follows the already-closed CP722–CP730 pattern. I independently confirmed via read-only inspection that the deliverable/micro-title distributions match the baseline exactly, the no-write/no-real-data/runtime-closed boundaries are structurally enforced, the contract projects `latest_pack=CP00-731` with `validation.valid=true`, the manifest honestly reports its pre-review `in_progress`/`production_ready:false` state, Claude stays read-only and non-final, and Hermes is control-plane only. The only item I could not independently re-execute is the recorded validation-ladder exit codes (read-only review, no Bash) — but the directly-inspected structure corroborates them.\",\"stop_reason\":\"end_turn\",\"session_id\":\"71c808ec-09cc-45fa-ae7e-5bdd1c855d66\",\"total_cost_usd\":1.9348902500000003,\"usage\":{\"input_tokens\":676,\"cache_creation_input_tokens\":139023,\"cache_read_input_tokens\":1081021,\"output_tokens\":20832,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":139023,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":303,\"cache_read_input_tokens\":135005,\"cache_creation_input_tokens\":4299,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4299},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1201,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001306,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":676,\"outputTokens\":20832,\"cacheReadInputTokens\":1081021,\"cacheCreationInputTokens\":139023,\"webSearchRequests\":0,\"costUSD\":1.9335842500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-731 is a Risk C, descriptor-only RP24 Korean Legal Depth \\\"P02/P03 interface fixture bridge\\\" pack (150 units, RP24.P02.M09.S09-RP24.P03.M06.S12). Read-only inspection of registry.js, service.js, validators.js, index.js, model.test.js, the generated contract, manifest, plan, queue, and README confirms the pack content supports a descriptor-only closeout with no blockers. Directly verified: CP731 deliverable_counts {ui:6, implementation:63, claude_review:6, failure_recovery:4, test:20, contract:31, security_audit:16, hermes_evidence:4} and micro_title_row_counts match the pack baseline exactly and sum to 150 across phases P02(34)+P03(116); the implementation follows the established, already-closed CP722-CP730 pattern with deep-frozen objects and a freezeResult that forces the no-write attestation; validators enforce descriptor_only, no runtime execution, no sensitive payloads, no runtime opening, no cross-tenant/permission/audit-body leakage, Claude non-final, and no enterprise-trust claim; the contract projects latest_pack=CP00-731 with validation.valid=true and CP722-730 retained historical; manifest correctly shows status in_progress / production_ready false / runtime_ready false / writes_product_state false awaiting exactly one valid hardened review (this one); no real-data, secret, or Korean-legal-text leakage exists in packages/korean-legal/src; plan current_pack and queue live_latest_pack_id are both CP00-731 with next unit RP24.P03.M06.S13; and the readiness report shows the auth preflight passing with valid non-zero JSON, clearing the CP178+ invalid-evidence checks. Claude remains a read-only, non-final reviewer and Hermes is used only as a deterministic control-plane review/evidence pattern (emits_runtime_receipt=false, not embedded in product runtime). Provenance note: the 25 validation-ladder exit codes in command-evidence.json are recorded claims that could not be re-executed under this read-only review, but the directly-inspected structure and boundaries independently corroborate them. The pack makes no runtime or enterprise-trust claim, so the human-final-approval authority boundary lies outside this receipt and does not block this CP closeout goal. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e6e0792e-2847-4b9d-88f0-05ef3e8b3bd2\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4784,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "71c808ec-09cc-45fa-ae7e-5bdd1c855d66",
+    "uuid": "e6e0792e-2847-4b9d-88f0-05ef3e8b3bd2",
+    "total_cost_usd": 1.9348902500000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

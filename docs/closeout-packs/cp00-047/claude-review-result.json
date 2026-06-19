@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-047",
+  "subphase_id": "RP00.P02.M07.S19",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "02ccec54-7d7a-4bac-8cb4-9695ffa5fd79",
+    "uuid": "2d15fcee-56a6-4fec-8d60-4ea4b94e0606",
+    "duration_ms": 29546,
+    "duration_api_ms": 32013,
+    "total_cost_usd": 0.632023,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-047-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "not_returned_non_adjudicative_payload",
+    "raw_review_result_form": "json_result_with_tool_call_payload",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-1",
+          "area": "claude-review-output-format",
+          "note": "The single Claude Opus 4.8 max read-only run completed successfully with no permission denials but returned a tool-call payload instead of a findings body. No P0/P1/P2 blockers were stated. The run was not repeated to preserve the one-review constraint.",
+          "disposition": "recorded_non_blocking_one_review_constraint_preserved"
+        }
+      ]
+    },
+    "boundary_checks": {
+      "proves_s01_through_s18_retry_behavior_chain": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "consumes_only_s18_retry_behavior_metadata": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "preserves_test_only_no_runtime_no_write_boundaries": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "records_synthetic_deterministic_tenant_scoped_fixture_integrity": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "forbids_test_execution_and_golden_fixture_generation_or_persistence": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "rejects_retry_enqueue_execution_queue_attempt_schedule_timer_worker_claims": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "rejects_rollback_compensation_operator_customer_incident_observability_claims": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "rejects_product_state_database_storage_audit_permission_authz_security_real_data_claims": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "keeps_source_micro_phase_open": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "hands_off_to_s20": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES"
+    }
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":29546,\"duration_api_ms\":32013,\"ttft_ms\":22028,\"num_turns\":2,\"result\":\"Let me examine the files this diff depends on to verify correctness.\\n\\n*I'll search for the key helper functions and constants the diff relies on, in parallel.*\\n\\n<Grep>\\n<parameter name=\\\"pattern\\\">createTestAndGoldenCaseSetRetryBehaviorResult</parameter>\\n<parameter name=\\\"path\\\">/Users/jws/Documents/Codex/Law Firm OS/packages/control-plane/test/service.test.js</parameter>\\n<parameter name=\\\"output_mode\\\">content</parameter>\\n<parameter name=\\\"-n\\\">true</parameter>\\n</Grep>\",\"stop_reason\":\"end_turn\",\"session_id\":\"02ccec54-7d7a-4bac-8cb4-9695ffa5fd79\",\"total_cost_usd\":0.632023,\"usage\":{\"input_tokens\":3,\"cache_creation_input_tokens\":76136,\"cache_read_input_tokens\":79868,\"output_tokens\":2629,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":76136,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":236,\"cache_read_input_tokens\":76810,\"cache_creation_input_tokens\":2384,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2384},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":50404,\"outputTokens\":19,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.050498999999999995,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3,\"outputTokens\":2629,\"cacheReadInputTokens\":79868,\"cacheCreationInputTokens\":76136,\"webSearchRequests\":0,\"costUSD\":0.581524,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"2d15fcee-56a6-4fec-8d60-4ea4b94e0606\"}"
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-plan.v1",
+  "generated_at": "2026-06-18T09:35:32.264Z",
+  "generated_by": "scripts/generate-closeout-pack-plan.mjs",
+  "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+  "source_ledger_path": "docs/weighted-implementation-ledger.json",
+  "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+  "source_ledger_unit_count": 55256,
+  "expanded_product_scope": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os",
+    "hrx_units_in_plan_source": true,
+    "hrx_source_ledger_path": "docs/hrx-weighted-implementation-ledger.json",
+    "hrx_source_ledger_sha": "2077f543bceca3d5c3a2dcc9bfb9428cf0c522990674d58960998546be613b3f",
+    "hrx_source_ledger_units": 901,
+    "current_pack_plan_source_note": "All source ledger units are closed by live closeout state. HRX remains embedded scope inside Law Firm OS."
+  },
+  "risk_ranges": {
+    "A": {
+      "min": 1,
+      "max": 10
+    },
+    "B": {
+      "min": 10,
+      "max": 40
+    },
+    "C": {
+      "min": 40,
+      "max": 150
+    }
+  },
+  "risk_classification_rules_ref": "docs/closeout-pack-plan/risk-classification-rules.md",
+  "live_state": {
+    "pack_id": "CP00-987",
+    "pack_number": 987,
+    "manifest_path": "docs/closeout-packs/cp00-987/manifest.json",
+    "primary_subphase_id": "RP30.P09.M10.S10",
+    "next_subphase": null
+  },
+  "requested_queue_policy": {
+    "requested_first_pack_id": "CP00-051",
+    "requested_first_unit_id": "RP00.P02.M09.S01",
+    "requested_rp01_start_pack_id": "CP00-094",
+    "correction_policy": "live_repo_state_overrides_requested_queue_when_the_two_conflict",
+    "correction_events": [
+      {
+        "type": "all_source_units_closed_by_live_state",
+        "live_latest_pack_id": "CP00-987",
+        "live_latest_unit_id": "RP30.P09.M10.S10",
+        "correction_reason": "Live closeout state covers the final source ledger unit; no additional closeout packs remain."
+      }
+    ],
+    "actual_first_planned_pack_id": null,
+    "actual_first_planned_unit_id": null,
+    "actual_generated_pack_start_pack_id": null,
+    "actual_generated_first_unit_id": null,
+    "actual_rp01_start_pack_id": null
+  },
+  "pack_count_estimate_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "risk_based_execution_estimate": true
+  },
+  "summary": {
+    "closeout_complete": true,
+    "planned_pack_count": 0,
+    "planned_unit_count": 0,
+    "first_planned_pack_id": null,
+    "first_planned_unit_id": null,
+    "last_planned_pack_id": null,
+    "last_planned_unit_id": null,
+    "generated_pack_start_pack_id": null,
+    "risk_pack_distribution": {},
+    "planned_unit_distribution_by_program": {}
+  },
+  "packs": []
+}

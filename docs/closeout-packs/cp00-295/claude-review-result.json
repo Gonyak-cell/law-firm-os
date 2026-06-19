@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-295",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-295/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-295/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5145ec19-280b-4e72-931e-d0d3014e0d8e",
+    "uuid": "573bd280-bb81-41f1-bb16-8bc0af797052",
+    "total_cost_usd": 2.3249,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-295 is a descriptor-only RP08 email/DMS Hermes binding slice pack (risk B, 40 units, RP08.P08.M04.S13-RP08.P08.M06.S08) and passes read-only review with no blocking findings. The CP295 pack binding (registry.js:415), requirements (registry.js:2192), no-write attestation (registry.js:2186), contract projection, validator script (scripts/validate-rp08-email-dms-core-contract.mjs:1148-1175), tests (packages/email-dms/test/model.test.js:1506-1553), README, and manifest are mutually consistent. Deliverable distribution {implementation:18, hermes_evidence:19, test:2, claude_review:1} and micro-title distribution {Secondary Workflow Slice:10, Permission And Audit Binding:22, Synthetic Fixture Set:8} reconcile with the baseline included_units and prompt. All 7 required public exports exist and are re-exported via index.js. Descriptor-only/no-runtime/no-real-data/no-leak boundaries are enforced in code (freezeCp295Result at service.js:3250 plus strict !== false guards in validateEmailDmsCoreCp295HermesBindingSliceDescriptor at validators.js:5353), not merely declared. Authority boundary is preserved: claude_is_final_approval=false, human final approval required, enterprise trust not claimed from local validation; pack-level production_ready=false with claude review status pending. Hermes patterns are confined to deterministic descriptor/evidence-packet/receipt handling (emits_hermes_runtime_receipt=false, executes_command_runtime=false), not product runtime. CP178+ review hardening is supported: forbidden_review_evidence (registry.js:598) rejects auth-failure, zero-byte, malformed-JSON, fenced-JSON, tool-call-shaped, and missing-field evidence, and the readiness auth-preflight passed with valid JSON. Unrelated dirty/untracked files (including docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json) are correctly scoped out and not treated as this pack's review evidence. Post-review gated commands (closeout-pack:validate, closeout-pack:generate) are appropriately deferred per the hardened review sequence.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "none",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

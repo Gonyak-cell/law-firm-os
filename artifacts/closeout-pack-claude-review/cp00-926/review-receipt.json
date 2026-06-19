@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-926",
+  "normalized_at": "2026-06-17T20:12:44.831Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-926/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-926/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-926/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-926/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4cf8060f-23a7-4ded-80d1-ac313aed8cb5",
+    "uuid": "2035337b-3863-45aa-939f-dae5b2e59468",
+    "total_cost_usd": 1.99609925,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8427,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-926 is a descriptor-only RP30 P04 HRX bridge pack (10 units, RP30.P04.M01.S04-RP30.P04.M02.S04; 6 EmployeePortal tail + 4 CandidatePortal foundation rows) that honestly claims production_ready=false and runtime_ready=false. Read-only inspection (Read/Grep/Glob only) confirms the claim is supported: (1) the CP926 pack binding, requirements, required-section rows, and descriptor in packages/hrx/src/registry.js match the live plan entry (closeout-pack-plan.json:392) and the manifest plan_binding_snapshot exactly (risk A, 10 units, distribution EmployeePortal:6/CandidatePortal:4); (2) packages/hrx/src/validators.js deterministically enforces coverage plus every descriptor boundary - descriptor_only, no portal runtime, no record/permission/audit/product-state writes, no real employee/candidate/payroll data, no credentials/secrets, no separate HRX product, no runtime receipts, Claude-not-final-approver, local-validation-not-enterprise-trust, and human approval required to open runtime at CP00-927; (3) packages/hrx/test/model.test.js asserts these properties with non-trivial checks; (4) the generated contracts/hrx-people-contract.json carries latest_pack CP00-926, latest_projection HrxCp926EmployeeCandidatePortalBridgeDescriptor, validation.valid=true, and the full no_write_attestation; (5) scripts/validate-rp30-hrx-people-contract.mjs ties the CP897->CP926->CP927 binding chain to the same coverage/descriptor/contract gates and exits non-zero on any drift. No real-data or secret patterns were found in the descriptor artifacts. The Hermes pattern is used only for a deterministic evidence/receipt packet (emits_runtime_receipt=false), not product runtime; hermes_runtime_embedded_in_product=false holds. Claude remains a read-only reviewer, not final approver, and the prior claude-review-result.json correctly records pending_review with zero valid receipts (no fabricated/0-byte/auth-failed evidence passed off as valid); readiness auth-preflight passed with valid JSON. Unrelated dirty files (scripts/progress-control-room-data.mjs, tools/progress-control-room/index.html) and the untracked workbook/docs files are out of scope per changed-file-scope.json and are correctly excluded. Two P3 transparency notes (the full deterministic closeout ladder executes at closeout and was verified here by static inspection only since the reviewer cannot run Bash; adjudication.md and construction-inspection.json are expected pre-review placeholders to be finalized post-receipt) do not block closeout. No P0/P1/P2 issues found.",
+    "findings": [
+      {
+        "id": "CP926-P3-01",
+        "severity": "P3",
+        "title": "Deterministic closeout validation ladder verified by static inspection only (reviewer is read-only, no Bash)",
+        "file": "docs/closeout-packs/cp00-926/command-evidence.json",
+        "line": 9,
+        "details": "The pre-review command-evidence records HRX-scoped checks all at exit_code 0 (node --check on registry.js/validators.js/the validate script, node --test, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate, closeout-pack:validate -- CP00-926). The full closeout ladder named in the prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet captured in any readable evidence file and is expected to run at closeout after this review. As a read-only reviewer I confirmed by source inspection that registry.js, validators.js, scripts/validate-rp30-hrx-people-contract.mjs and packages/hrx/test/model.test.js are structurally consistent with the CP00-926 binding/live-plan entry and will satisfy these gates, but I did not execute them. Note the worktree also carries unrelated modified files preserved by policy, so the closeout 'git diff --check' should be confirmed against the committed pack scope.",
+        "recommendation": "Execute the full deterministic validation ladder at closeout and confirm every command exits 0 (including git diff --check on the committed scope) before flipping the pack to closed/committed.",
+        "post_review_disposition": "Non-blocking. Expected: ladder executes post-review at closeout; static inspection found no structural reason for failure."
+      },
+      {
+        "id": "CP926-P3-02",
+        "severity": "P3",
+        "title": "adjudication.md and construction-inspection.json are pre-review placeholders pending post-receipt finalization",
+        "file": "docs/closeout-packs/cp00-926/construction-inspection.json",
+        "line": 7,
+        "details": "construction-inspection.json is status pending_review / verdict PENDING with pack_level_claude_review_completed=false, runtime_ready=null, claude_findings=null; adjudication.md states 'pending hardened read-only Claude review' with 'Production ready after adjudication: no'; claude-review-result.json shows status pending_review with valid_review_receipts=[] and exactly_one_valid_pack_level_claude_review_run=false. These are the correct pre-review placeholder states for a descriptor-only pack that honestly claims production_ready=false - not defects - but they must be finalized with this review's receipt before the manifest pack_level_claude_review gate (exactly_one_valid_pack_review_required) and commit_policy are satisfied.",
+        "recommendation": "After recording this read-only review receipt, finalize adjudication.md, construction-inspection.json, the manifest pack_level_claude_review block, and claude-review-result.json, then proceed to the closeout commit. Do not set production_ready/runtime_ready true or assert enterprise trust without the required human final approval.",
+        "post_review_disposition": "Non-blocking. Expected pre-review state; orchestrator finalizes post-receipt."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

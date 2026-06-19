@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-193",
+  "normalized_at": "2026-06-09T21:08:44.538Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-193/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-193/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-193/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-193/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "55be2101-205e-4916-83b9-59f3ba895638",
+    "uuid": "5317d359-97e6-4bff-8140-9d14b26c8dd7",
+    "total_cost_usd": 4.091481750000001,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7050,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-193 (RP05 Matter Core, Risk C, 150 units, RP05.P07.M06.S09-RP05.P08.M04.S19) makes an honest NEGATIVE production_ready claim that is consistently supported by evidence. manifest.json (production_ready:false, status in_progress, every one of 150 included_units production_ready:false, pack_level_claude_review.status pending_hardened_review), command-evidence.json (in_progress, production_ready:false, 8 commands exit 0, hermes_gate H05 pending_final_validation), construction-inspection.json (verdict PENDING, all_passed:false, valid_review:false, review_receipt_ref:null), adjudication.md (\"Production ready after adjudication: no\"), and claude-review-result.json (pending_hardened_review placeholder) all agree. Descriptor-only / no-write / no-real-data boundaries are upheld: registry.js CP193 no-write attestation carries ~30 leak/runtime/approval flags all false (synthetic_only:true, promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false); service.js builds Object.frozen descriptor_ref_only rows with leak guards (no_route_dispatch, no_failure_recovery_execution, replay_commands_inert) and claude_review_packet read_only:true / claude_is_final_approval:false / production_or_enterprise_trust_claim:false; validators.js coverage and failure-fixture-evidence-review-bridge validators are fail-closed (valid only when errors.length===0); source greps over packages/matter/src and the validation script find no writeFile/network/child_process/db/eval. Claude is preserved as read_only_independent_reviewer and not final approver, and Hermes (H05) control-plane patterns are used only for deterministic review packet/receipt evidence labels, not product runtime (hermes_runtime_embedded_in_product:false). CP178+ review hardening is satisfied: CP179 forbidden_review_evidence list is complete (auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, disabled_source_tools, missing_raw_output_ref, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim) and this review's own evidence passes it (readiness auth_preflight passed exit 0 with valid JSON, prompt 2458<25600 bytes, tools Read/Grep/Glob only, forbidden_tools_present:false). Changed-file scope is clean: 7 active matter-core implementation refs; unrelated UI/amplitude/control-room dirty/untracked files are correctly segregated under unrelated_dirty_files_preserved and not attributed to the pack. No P0/P1/P2 issues. One non-blocking P3 informational note: validators.js:4790 derives production_ready_candidate = coverage.valid && bridge.valid (true), a coverage-validity candidate signal distinct from and not in conflict with the authoritative manifest.production_ready:false. Pack and goal closeout remain gated on the pending full validation suite (closeout-pack-plan:validate, closeout-pack:validate, rp05:matter-core:validate, test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) and human final approval, which run after this read-only review. Verdict: PASS_WITH_FINDINGS; does not block pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP00-193-P3-01",
+        "severity": "P3",
+        "title": "Hermes production_ready_candidate is a derived coverage signal, distinct from authoritative pack production_ready",
+        "file": "packages/matter/src/validators.js",
+        "line": 4790,
+        "details": "createMatterCoreCp193HermesEvidencePacket sets production_ready_candidate: coverage.valid && bridge.valid, which evaluates true once the 150-unit coverage and failure-fixture-evidence-review-bridge validators pass (asserted true at model.test.js:2526). This is a deterministic coverage+bridge eligibility signal, not the pack's authoritative readiness assertion. The authoritative manifest.production_ready remains false (status in_progress, pending_hardened_review), and command-evidence/construction-inspection/adjudication all report not-yet-production-ready. The two values are not in conflict, but the field name could be misread as a readiness claim by a downstream consumer.",
+        "recommendation": "Keep closeout decisioning keyed off manifest.production_ready (false until the full validation suite passes and human final approval is recorded). Optionally annotate or rename the field (e.g., coverage_and_bridge_valid_candidate) to make explicit it is an eligibility signal and not a production-ready/enterprise-trust claim. No code change is required to close this pack.",
+        "post_review_disposition": "By-design, non-blocking informational note. Acknowledged; the candidate flag is correctly distinct from authoritative production_ready and does not promote readiness or approval. Left as-is for CP00-193."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

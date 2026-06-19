@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-756",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T12:58:13.211Z",
+  "finished_at": "2026-06-15T13:03:40.588Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":326641,\"duration_api_ms\":327027,\"ttft_ms\":2279,\"num_turns\":45,\"result\":\"Review of CP00-756 complete — **PASS**, zero findings.\\n\\nThe Migration Platform scope-contract foundation pack is honestly scoped (descriptor-only, `production_ready=false`, `runtime_ready=false`), fully covers its 150 units with matching distributions, and enforces every required boundary in both code and validators: Claude read-only/non-final, human approval gating runtime, comprehensive no-write/no-real-data attestation, Hermes confined to descriptor-only review/evidence shapes, and all source-system import runtimes closed. Tests (2952/0) and all validation commands pass with no hidden failures. The single filesystem write is the control-plane contract artifact, consistent with sibling RP23/RP24 validators and outside product-state scope. The receipt does not block pack or goal closeout; final human/enterprise-trust approval correctly remains outside this read-only review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"3124dbaa-1364-46b8-8d5a-81ec52c445e5\",\"total_cost_usd\":1.9557797499999998,\"usage\":{\"input_tokens\":3134,\"cache_creation_input_tokens\":97235,\"cache_read_input_tokens\":1510356,\"output_tokens\":23036,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":97235,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":329,\"cache_read_input_tokens\":93737,\"cache_creation_input_tokens\":3849,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3849},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1208,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0013130000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3134,\"outputTokens\":23036,\"cacheReadInputTokens\":1510356,\"cacheCreationInputTokens\":97235,\"webSearchRequests\":0,\"costUSD\":1.9544667499999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-756 is a descriptor-only RP25 Migration Platform scope-contract foundation pack (150 units, risk C, RP25.P00.M00.S01-RP25.P01.M02.S08). Read-only inspection confirms the pack's claims are supported and not overclaimed. Coverage: deliverable/phase/micro-phase/micro-title distributions match across prompt, manifest, review-baseline, and packages/migration/src/registry.js requirements; validateMigrationPlatformCp756ScopeContractFoundationCoverage and validateMigrationPlatformCp756ScopeContractFoundationDescriptor enforce this and pass (math reconciles to 122 RP25.P00 + 28 RP25.P01 = 150). Honesty: manifest production_ready=false, runtime_ready=false, implementation_layer=descriptor, descriptor_only=true, writes_product_state=false — consistent across manifest, command-evidence, construction-inspection, adjudication.md, and claude-review-result.json; no runtime or enterprise-trust claim is made. Boundaries are enforced in code and validators: Claude is read-only and non-final (claude_is_final_approval=false, promotes_claude_to_final_approval=false, allowed_tools=[Read,Grep,Glob]); human approval is required before any runtime opening (deferred to CP00-757/RP25.P01.M02.S09); a comprehensive no-write/no-real-data attestation is applied to every row (no raw/source-system/credential/real-client payloads); Hermes is used only as a descriptor-only review/evidence packet shape (emits_runtime_receipt=false, hermes_packet_body_included=false) and is not embedded in product runtime; file server/SharePoint/Drive/iManage/import runtimes are all closed. Tests and validation pass: npm test 2952 pass / 0 fail, migration model.test.js 4 pass / 0 fail, and every required validation command (closeout-pack-plan:validate, closeout-pack:validate, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, rp25 validators) plus git diff --check exit 0; no 'not ok' or non-zero exits exist in command-evidence. The only filesystem write is the control-plane contract artifact contracts/migration-platform-contract.json produced by scripts/validate-rp25-migration-platform-contract.mjs, which mirrors the deterministic generator output and matches test expectations; this is consistent with sibling RP23/RP24 validators and sits outside the product-state no-write scope. CP178+ review-hardening preconditions hold: prompt contains no full source/diff (2730 bytes), read-only tools only, forbidden tools absent, summary-only review prohibited and not used, and the readiness auth preflight passed with valid JSON (exit 0, 1436-byte stdout). Pending receipt states (review_receipt_ref=null, valid_review_receipts=[], status pending/in_progress) are the expected pre-adjudication condition that this single valid read-only receipt is meant to satisfy, not a defect. No P0/P1/P2/P3 issues identified. This receipt is an independent read-only review and not final human/enterprise-trust approval, which remains correctly reserved outside this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"bb239118-9033-4785-a966-48a9536685f5\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5627,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "3124dbaa-1364-46b8-8d5a-81ec52c445e5",
+    "uuid": "bb239118-9033-4785-a966-48a9536685f5",
+    "total_cost_usd": 1.9557797499999998,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

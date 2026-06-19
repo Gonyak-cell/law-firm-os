@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP17",
+  "program_title": "AI Governance",
+  "program_scope": "Model policy, retrieval scope, audit, citation",
+  "ai_owner": "Codex",
+  "hermes_gate": "H17",
+  "claude_gate": "C17",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP17.P00.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Model policy, retrieval scope, audit, citation requirements and identify unauthorized retrieval, uncited answer, and model policy bypass as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future AI Governance contract shape for ModelPolicy, RetrievalScope, AIJob, Citation, PromptPolicy, AIApproval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns ModelPolicy, RetrievalScope, and AIJob, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for model policy selection, retrieval scope trimming, and citation validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how AI Governance records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before AI Governance behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that AI Governance examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify AI Governance planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H17 preflight",
+      "objective": "Define the fields Hermes records before AI Governance implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C17 design brief",
+      "objective": "Prepare Claude Code questions around unauthorized retrieval, uncited answer, model policy bypass, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P00.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP17.P00 handoff",
+      "objective": "Hand off a contract-first AI Governance implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/README.md",
+        "contracts/ai-governance-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/ai-governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement ModelPolicy model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for ModelPolicy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement RetrievalScope model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for RetrievalScope.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement AIJob model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for AIJob.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement Citation model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for Citation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement PromptPolicy model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for PromptPolicy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among ModelPolicy, RetrievalScope, AIJob, Citation, PromptPolicy, AIApproval and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export AI Governance model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P01.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the AI Governance model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/model.js",
+        "packages/ai-governance/src/states.js",
+        "packages/ai-governance/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for model policy selection, retrieval scope trimming, and citation validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement model policy selection",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for model policy selection.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement retrieval scope trimming",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for retrieval scope trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement citation validation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for citation validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement AI job audit",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for AI job audit.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement human review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for human review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for unauthorized retrieval, uncited answer, and model policy bypass.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky AI Governance operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H17.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous AI Governance outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P02.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm AI Governance services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/policies.js",
+        "packages/ai-governance/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose AI Governance models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define model policy selection API",
+      "objective": "Lock request, response, permission, audit, and error shape for model policy selection.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define retrieval scope trimming API",
+      "objective": "Lock request, response, permission, audit, and error shape for retrieval scope trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define citation validation API",
+      "objective": "Lock request, response, permission, audit, and error shape for citation validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define AI job audit API",
+      "objective": "Lock request, response, permission, audit, and error shape for AI job audit.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define human review API",
+      "objective": "Lock request, response, permission, audit, and error shape for human review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure AI Governance API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for unauthorized retrieval, uncited answer, model policy bypass, AI output treated as legal advice, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H17 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C17 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P03.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze AI Governance public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/api-contract.js",
+        "packages/ai-governance/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify AI policy panel, retrieval scope viewer, citation drawer, and AI review queue in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan AI policy panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for AI policy panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan retrieval scope viewer",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for retrieval scope viewer.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan citation drawer",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for citation drawer.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan AI review queue",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for AI review queue.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk AI Governance outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized AI Governance rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep AI Governance context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override AI Governance service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P04.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp17-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define AI retrieval trimmed golden case",
+      "objective": "Create a synthetic golden case proving AI retrieval trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define citation tied to document version golden case",
+      "objective": "Create a synthetic golden case proving citation tied to document version.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define review-required output blocked golden case",
+      "objective": "Create a synthetic golden case proving review-required output blocked.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define AI audit event emitted golden case",
+      "objective": "Create a synthetic golden case proving AI audit event emitted.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define unauthorized retrieval failure fixture",
+      "objective": "Create a synthetic failing case that proves unauthorized retrieval is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define uncited answer failure fixture",
+      "objective": "Create a synthetic failing case that proves uncited answer is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define model policy bypass failure fixture",
+      "objective": "Create a synthetic failing case that proves model policy bypass is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize AI Governance fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If AI Governance appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P05.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm AI Governance fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/fixtures.js",
+        "packages/ai-governance/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for model policy selection, retrieval scope trimming, citation validation, and AI job audit.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for AI Governance view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for AI Governance mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for AI Governance export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for AI Governance where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for AI Governance obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H17 audit evidence",
+      "objective": "Record which AI Governance decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P06.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm AI Governance cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/src/security-contract.js",
+        "packages/ai-governance/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define unauthorized retrieval failure",
+      "objective": "Fail closed or require review when unauthorized retrieval appears in AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define uncited answer failure",
+      "objective": "Fail closed or require review when uncited answer appears in AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define model policy bypass failure",
+      "objective": "Fail closed or require review when model policy bypass appears in AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define AI output treated as legal advice failure",
+      "objective": "Fail closed or require review when AI output treated as legal advice appears in AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define prompt leakage failure",
+      "objective": "Fail closed or require review when prompt leakage appears in AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any AI Governance operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed AI Governance operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed AI Governance micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P07.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous AI Governance ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "packages/ai-governance/test/failure-cases.test.js",
+        "docs/rp17-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/ai-governance/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H17 command matrix",
+      "objective": "Record exact product commands Hermes should run for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H17 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H17 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H17 no-real-data evidence",
+      "objective": "Record that AI Governance fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H17 blocked-claim evidence",
+      "objective": "Record unsafe AI Governance claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H17 Claude dependency",
+      "objective": "Mark C17 review mandatory before AI Governance closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H17 human approval note",
+      "objective": "Record what the human must approve for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H17 command availability",
+      "objective": "Ensure npm scripts required by H17 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H17 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during AI Governance implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H17 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H17.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P08.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates AI Governance behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp17-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M00",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP17 architecture review questions",
+      "objective": "Ask whether AI Governance module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M01",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP17 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M02",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP17 bypass review questions",
+      "objective": "Ask Claude to find unauthorized retrieval, uncited answer, model policy bypass, AI output treated as legal advice, and prompt leakage bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M03",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP17 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for AI Governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M04",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP17 downstream readiness questions",
+      "objective": "Ask whether AI Governance is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M05",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP17 risk register",
+      "objective": "List unresolved AI Governance risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M06",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for AI Governance findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M07",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for AI Governance closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M08",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP17.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M09",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before AI Governance can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP17.P09.M10",
+      "program_id": "RP17",
+      "program_title": "AI Governance",
+      "program_scope": "Model policy, retrieval scope, audit, citation",
+      "phase_id": "RP17.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP17 detailed plan",
+      "objective": "Confirm AI Governance is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H17",
+      "claude_gate": "C17",
+      "target_files": [
+        "docs/rp17-claude-cross-validation-brief.md",
+        "docs/rp17-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H17 evidence or blocked reason can be recorded.",
+        "Claude C17 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-535",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T17:29:33.852Z",
+  "finished_at": "2026-06-12T17:35:29.427Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":355018,\"duration_api_ms\":355317,\"ttft_ms\":3693,\"num_turns\":49,\"result\":\"CP00-535 review is complete: **PASS** with no findings. The descriptor-only pack is internally consistent across all layers, correctly does not over-claim (`production_ready:false`), enforces the no-write/no-real-data/read-only-Claude/Hermes-not-in-runtime boundaries, and satisfies the CP178+ review-hardening requirements. It does not block pack or goal closeout, and no human gate is weakened — final approval remains a human responsibility.\",\"stop_reason\":\"end_turn\",\"session_id\":\"f9b60b08-097a-4866-bb72-aaacce688771\",\"total_cost_usd\":2.3528372499999994,\"usage\":{\"input_tokens\":114,\"cache_creation_input_tokens\":119483,\"cache_read_input_tokens\":1898217,\"output_tokens\":26206,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":119483,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":156,\"cache_read_input_tokens\":115795,\"cache_creation_input_tokens\":4483,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4483},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1140,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00124,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":114,\"outputTokens\":26206,\"cacheReadInputTokens\":1898217,\"cacheCreationInputTokens\":119483,\"webSearchRequests\":0,\"costUSD\":2.35159725,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-535 is a descriptor-only RP17 AI-governance closeout pack covering RP17.P05.M06.S19-RP17.P06.M02.S20 (risk class C, 150 units), verified through read-only inspection (Read/Grep/Glob) across baseline, manifest, contract projection, registry bindings, service/validators source, tests, validation script, README, and the live next-pack queue. It is internally consistent at every layer: deliverable distribution {implementation:58, fixture:28, claude_review:7, security_audit:23, test:18, hermes_evidence:4, ui:12}=150 matches prompt/baseline/manifest/registry/validator; phase counts (P05:90 + P06:60) and the eight micro-phase row counts both sum to 150; CP00-535 is the legitimate successor to live-latest CP00-534 (registry CP534.next_pack_id=CP00-535, CP535.upstream_pack_id=CP00-534, next_subphase RP17.P06.M02.S21) with matching source_ledger_sha 13c7ed65 and deviation_from_plan:false. Descriptor-only boundaries are enforced everywhere (descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false) plus the CP535 no-write attestation that spreads the CP514 base keeping all critical flags false (writes_product_state, dispatches_*_runtime, evaluates_runtime_permission, writes_audit_event, emits_hermes_runtime_receipt, executes_command_runtime, loads_real_fixture_data, exposes_raw_payload, promotes_claude_to_final_approval, claims_enterprise_trust_from_local_validation); a grep of packages/ai-governance/src and the validator script found no write/network/exec/db primitives. The pack does NOT over-claim: production_ready:false, runtime_ready:false, status implemented_pending_review; the Hermes production_ready_candidate:true reflects descriptor-coverage validity only and weakens no gate. Claude's read-only/non-final-approver and no-enterprise-trust-from-local-validation boundaries are asserted in the no-write attestation, descriptor authority_boundary (human_final_approval_required_for_runtime_opening:true), Claude review packet (read_only:true, tools Read/Grep/Glob), tests, and validator deepEqual checks. Hermes appears only as deterministic evidence-packet/receipt descriptors (H17), not product runtime. no_real_data:true across evidence packets with synthetic-data policy and no-leak guards enforced. CP178+ forbidden_review_evidence covers auth failures, zero-byte output, malformed JSON, fenced JSON, tool-call-shaped output, and missing fields; readiness auth-preflight passed with non-zero well-formed JSON and no invalid attempts. All 7 required CP535 public exports exist (2 in service.js, 5 in validators.js) and re-export via index.js; command-evidence.json records all required validation commands at exit_code 0; the modified progress-control-room files and untracked workbook/docx files are correctly classified as unrelated and excluded from scope; post-review artifacts (raw-output.json, review-receipt.json) are correctly absent at this read_only_claude_run stage. No findings at any severity. As read-only independent reviewer (not final approver), I confirm the pack-level production_ready:false claim is well-supported and the boundaries hold; human final approval remains required for any downstream runtime opening.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"598db6b9-3457-489d-b7fb-f90bda592c80\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5348,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "f9b60b08-097a-4866-bb72-aaacce688771",
+    "uuid": "598db6b9-3457-489d-b7fb-f90bda592c80",
+    "total_cost_usd": 2.3528372499999994,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

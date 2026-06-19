@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v1",
+  "subphase_id": "RP00.P01.M07.S07",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "title": "Reference relationship map",
+  "status": "production_ready",
+  "created_at": "2026-06-04T06:51:09Z",
+  "summary": "Defines the control-plane state enum registry reference relationship map without changing states.js, defining enum values, using real data, or writing product state.",
+  "implemented_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "primary_exports": [
+    "CONTROL_PLANE_STATE_ENUM_REGISTRY_REFERENCE_RELATIONSHIP_TARGETS",
+    "CONTROL_PLANE_STATE_ENUM_REGISTRY_REFERENCE_RELATIONSHIP_POLICY",
+    "validateControlPlaneStateEnumRegistryReferenceRelationships"
+  ],
+  "acceptance_summary": {
+    "reference_relationship_policy_bound": true,
+    "relationship_fields_bound": [
+      "tenant_id",
+      "matter_id",
+      "audit_event_ref",
+      "blocked_claim_refs",
+      "product_contract_refs",
+      "ai_control_rule_refs",
+      "hermes_gate_refs",
+      "claude_review_gate_refs",
+      "human_approval_refs"
+    ],
+    "target_entities_bound": [
+      "Tenant",
+      "Matter",
+      "AuditEventReference",
+      "BlockedClaim",
+      "ProductContract",
+      "AIControlRule",
+      "HermesGate",
+      "ClaudeReviewGate",
+      "HumanApproval"
+    ],
+    "tenant_relationship_required": true,
+    "nullable_matter_relationship_supported": true,
+    "audit_event_reference_required": true,
+    "blocked_claim_refs_optional": true,
+    "product_contract_refs_reference_only": true,
+    "ai_control_rule_refs_reference_only": true,
+    "hermes_gate_refs_reference_only": true,
+    "claude_review_gate_refs_reference_only": true,
+    "human_approval_refs_reference_only": true,
+    "context_mismatch_rejected": true,
+    "cross_tenant_matter_reference_rejected": true,
+    "synthetic_fixture_reference_relationship_map_validates": true,
+    "registry_exposes_state_enum_registry_reference_relationship_policy": true,
+    "field_registries_deferred_to_future_subphases": [
+      "RP00.P01.M07.S08",
+      "RP00.P01.M07.S09"
+    ],
+    "state_transition_map_deferred_to_future_subphase": "RP00.P01.M07.S10",
+    "validation_helper_deferred_to_future_subphase": "RP00.P01.M07.S11",
+    "defines_new_enum_values": false,
+    "states_js_changed": false,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_create_ui": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true
+  },
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m07-s07/packet.json",
+    "docs/goal-closeout/rp00-p01-m07-s07/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m07-s07/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m07-s07/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m07-s07/construction-inspection.json"
+  ],
+  "next_subphase": "RP00.P01.M07.S08"
+}

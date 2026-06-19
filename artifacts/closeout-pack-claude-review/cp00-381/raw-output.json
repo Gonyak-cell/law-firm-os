@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-381",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T21:31:48.677Z",
+  "finished_at": "2026-06-11T21:37:44.385Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":353965,\"duration_api_ms\":351825,\"ttft_ms\":3828,\"num_turns\":44,\"result\":\"Review complete. **Verdict: PASS** — CP00-381 does not block pack or goal closeout; no unresolved P0/P1.\\n\\nThe pack correctly keeps `production_ready=false` pending final closeout, with the Hermes `production_ready_candidate=true` properly deferred to human approval. Identity, scope, deliverable distribution (12/10/8/2/8 = 40), all 7 public exports, descriptor-only/no-write/no-real-data boundaries, the unbroken CP364→CP381 attestation chain, and the read-only-Claude authority boundary all check out across the plan, contract, registry, service, validators, validation script, and tests. Review-hardening preconditions (valid auth preflight JSON, no embedded diff/source, summary-only prohibited, no forbidden tools) are satisfied.\\n\\nOnly one P3 cosmetic note: `changed-file-scope.json` lists the pack's closeout dir under both `untracked_implementation_files` and `unrelated_dirty_files_preserved` — a labeling overlap in the scope generator with no material omission (omitted list is empty).\",\"stop_reason\":\"end_turn\",\"session_id\":\"f0b965c7-4a34-49b6-9777-b98046750427\",\"total_cost_usd\":1.9208969999999996,\"usage\":{\"input_tokens\":60,\"cache_creation_input_tokens\":81390,\"cache_read_input_tokens\":1499637,\"output_tokens\":26436,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":81390,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":398,\"cache_read_input_tokens\":82274,\"cache_creation_input_tokens\":7511,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7511},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1091,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001191,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":60,\"outputTokens\":26436,\"cacheReadInputTokens\":1499637,\"cacheCreationInputTokens\":81390,\"webSearchRequests\":0,\"costUSD\":1.9197059999999995,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-381 (Risk B, 40 units, RP12.P06.M07.S07-RP12.P06.M09.S02, billing core p06 test/Hermes slice descriptor) passes independent read-only review. The pack-level production_ready claim is NOT prematurely asserted: command-evidence records production_ready=false with status \\\"implementation_and_plan_gates_passed_pending_final_closeout\\\", and the Hermes packet's production_ready_candidate=true is correctly a candidate pending human final approval. Identity and scope are consistent across pack binding (registry.js:290), requirements (registry.js:1649), contract current_pack + p06_test_hermes_slice_descriptor projection (billing-core-contract.json:16,20699), the closeout-pack-plan entry (closeout-pack-plan.json:412), and the review baseline: Risk B, 40 units, upstream CP00-380, next CP00-382, next_subphase RP12.P06.M09.S03; the live cursor (next_subphase RP12.P06.M07.S07) confirms CP00-381 is the legitimate next pack. Deliverable distribution (implementation 12 / security_audit 10 / ui 8 / claude_review 2 / test 8 = 40) and micro-title rows (16/22/2) were independently counted from included_units and match the enforced requirements and validateBillingCoreCp381Coverage. All 7 required public exports exist (service.js:2230,2263; validators.js:3336,3371,3427,3448,3471), are surfaced via the index.js wildcard re-export, and are exercised by tests (model.test.js:1192-1242). Descriptor-only/no-write/no-real-data boundaries hold: freezeCp381Result (service.js:2182) sets all runtime/write/leak flags false and no_real_data true, no fs/network/db/exec side-effects exist in the billing source, and the no-write attestation spread chain CP364 to CP381 is unbroken (promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false). Authority boundary is correct: Claude is a read-only reviewer with tools Read/Grep/Glob and is not final approver (claude_is_final_approval=false, read_only=true); human approval gates runtime opening, deferred to CP00-382. Hermes control-plane usage is limited to a descriptor-only, no-write evidence packet/receipt, not product runtime (emits_hermes_runtime_receipt=false). Review-hardening preconditions are satisfied: readiness auth_preflight passed with valid (non-empty, well-formed) JSON output, the prompt embeds no full diff/source, summary-only review is correctly prohibited for this Risk B pack, no forbidden tools are present, and all required validation commands are recorded at exit_code 0. No P0/P1/P2 issues found; one cosmetic scope-report labeling note (P3) that does not affect closeout.\",\"findings\":[{\"id\":\"CP00-381-P3-01\",\"severity\":\"P3\",\"title\":\"Pack closeout dir listed under both untracked implementation files and unrelated-dirty-preserved in changed-file-scope\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-381/changed-file-scope.json\",\"line\":138,\"details\":\"docs/closeout-packs/cp00-381/ appears simultaneously in untracked_implementation_files (line 132) and unrelated_dirty_files_preserved (line 138); the same dual-listing applies to docs/closeout-pack-plan/new-session-handoff.md. The 'unrelated_dirty_files_preserved' label implies the entry is outside pack scope, yet the directory holds this pack's own manifest.json and command-evidence.json closeout evidence. This is a categorization overlap in the scope-report generator, not a defect in the pack itself. The material safety invariant active_untracked_implementation_files_omitted is empty, so no required implementation file was dropped from review, and both the manifest and command-evidence were available and inspected.\",\"recommendation\":\"In the scope-report generator, make untracked_implementation_files and unrelated_dirty_files_preserved mutually exclusive (e.g., exclude entries already classified as implementation-related from the unrelated-preserved list) so the report is unambiguous. No change required to the CP00-381 deliverables.\",\"post_review_disposition\":\"Non-blocking cosmetic bookkeeping note. Does not affect production_ready determination, scope coverage, or closeout; nothing material omitted (active_untracked_implementation_files_omitted is empty).\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"dcaa69fb-e154-4e52-ad40-3819c7ab5b39\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6825,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "f0b965c7-4a34-49b6-9777-b98046750427",
+    "uuid": "dcaa69fb-e154-4e52-ad40-3819c7ab5b39",
+    "total_cost_usd": 1.9208969999999996,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

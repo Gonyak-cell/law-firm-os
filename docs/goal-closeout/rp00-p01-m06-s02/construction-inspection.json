@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M06.S02",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Primary entity identifier",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "inspected_at": "2026-06-04T04:29:17Z",
+  "verdict": "PASS",
+  "status": "PASS",
+  "production_ready": true,
+  "control_plane_synthetic_fixture_set_identifier_verified": true,
+  "identifier_policy_verified": "CONTROL_PLANE_SYNTHETIC_FIXTURE_SET_IDENTIFIER_POLICY",
+  "identifier_field_verified": "fixture_set_id",
+  "stable_prefix_verified": "fs_",
+  "canonical_pattern_verified": "^fs_[a-z0-9]+(?:_[a-z0-9]+)*$",
+  "normalization_helper_verified": "normalizeControlPlaneSyntheticFixtureSetId",
+  "validation_helper_verified": "validateControlPlaneSyntheticFixtureSetId",
+  "noncanonical_identifier_rejection_verified": true,
+  "stored_whitespace_rejection_verified": true,
+  "synthetic_fixture_identifier_record_verified": true,
+  "layout_record_identifier_matches": true,
+  "tenant_scope_deferred_to": "RP00.P01.M06.S03",
+  "next_subphase_verified": "RP00.P01.M06.S03",
+  "registry_exposes_fixture_set_identifier_policy": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "does_not_create_real_fixture_data": true,
+  "does_not_complete_fixture_tenant_scope": true,
+  "permission_denial_adjudicated": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "Next boundary recorded as RP00.P01.M06.S03; no sensitive production action, real fixture import, or tenant-scope completion is approved by this identifier-only subphase.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "adjudicated",
+    "findings": [
+      {
+        "id": "FS-S02-001",
+        "severity": "P3_NOTE",
+        "title": "S02 stamps fixture_set_id onto the S01 layout fixture sub-record",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_required_cross_linking_for_identifier_parity"
+      },
+      {
+        "id": "FS-S02-002",
+        "severity": "P3_NOTE",
+        "title": "Confirm disposition-status validator interaction after evidence lands",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "final_validation_rerun_required_and_recorded"
+      },
+      {
+        "id": "FS-S02-003",
+        "severity": "P3_NOTE",
+        "title": "Non-reusable uniqueness is declared, not runtime-enforced",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_appropriate_for_single_synthetic_fixture_set_identifier_slice"
+      }
+    ]
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "subphase_id": "RP00.P02.M04.S02",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Request normalization",
+  "created_at": "2026-06-05T16:27:27Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit",
+    "Grep",
+    "Glob"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m04-s02-claude-review.json",
+  "stderr_path": "/tmp/lfos-rp00-p02-m04-s02-claude-review.stderr",
+  "review_packet_path": "/tmp/lfos-rp00-p02-m04-s02-review-packet.diff",
+  "stderr_bytes": 0,
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 246032,
+  "duration_api_ms": 246376,
+  "session_id": "858eefaf-1d7a-4462-8542-2011fed27a9d",
+  "uuid": "40e98f7b-f523-46e6-ab19-2a84213d4543",
+  "total_cost_usd": 1.4982205,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 8,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_adjudication": "GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude rated the S02 engineering deliverable GO with no P0/P1/P2 findings. Four P3 notes were optional hardening observations and explicitly deferred because the substantive guarantees are preserved by the fail-closed request-normalization boundary, allowlisted output construction, current validator coverage, and the planned S04 Matter-trace precheck.",
+  "findings": [
+    {
+      "id": "CLAUDE-S02-P3-001",
+      "severity": "P3",
+      "title": "Input-shape deny tests are thinner than claim deny tests",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that missing-field, untrimmed-string, and non-string Matter metadata deny branches exist in normalizeControlPlaneClaudeReviewRequest but are not directly covered by the fail-closed table.",
+      "resolution": "Deferred as optional hardening. The current S02 acceptance gate is covered by policy binding, frozen happy path, unsafe-claim failures, fixture parity, contract validator smoke execution, and assertNormalizedControlPlaneClaudeReviewRequest. Add focused deny rows in a future test-hardening slice if S02 tests are revisited."
+    },
+    {
+      "id": "CLAUDE-S02-P3-002",
+      "severity": "P3",
+      "title": "Request extra keys are tolerated while inputClaims rejects unknown keys",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted an asymmetric strictness rule: unknown truthy inputClaims fail closed, while extra reviewRequest keys are ignored.",
+      "resolution": "Deferred as optional hardening. The output is constructed only from explicit allowlisted fields and does not reflect unknown request keys, so the product-state and runtime boundaries remain intact."
+    },
+    {
+      "id": "CLAUDE-S02-P3-003",
+      "severity": "P3",
+      "title": "No direct normalizer output deepEqual against fixture normalized_request",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that the fixture and generated normalized request are each validated field-by-field against shared constants rather than compared directly.",
+      "resolution": "Deferred as optional hardening. The RP00 validator and service tests already validate policy, normalized fields, arrays, fixture scalars, and normalized request scalars against the same contract constants."
+    },
+    {
+      "id": "CLAUDE-S02-P3-004",
+      "severity": "P3",
+      "title": "Matter ID and Matter tenant pairing intentionally deferred",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that matter_id and matter_tenant_id are not cross-validated during S02 normalization.",
+      "resolution": "Deferred by design to RP00.P02.M04.S04 Matter trace precheck. S02 records the metadata without executing the Matter-boundary decision."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T16:27:27Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [
+    {
+      "attempt": 1,
+      "status": "invalid_manual_termination_not_counted_as_review",
+      "exit_code": 143,
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "result": "The initial Claude CLI process remained at zero stdout/stderr bytes for more than ten minutes and was manually terminated. It produced no review output and is not counted as the completed review evidence unit."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read"
+    ],
+    "write_tools_granted": false,
+    "session_id": "858eefaf-1d7a-4462-8542-2011fed27a9d",
+    "uuid": "40e98f7b-f523-46e6-ab19-2a84213d4543",
+    "duration_ms": 246032,
+    "duration_api_ms": 246376,
+    "total_cost_usd": 1.4982205,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m04-s02-claude-review.json",
+    "review_packet_file": "/tmp/lfos-rp00-p02-m04-s02-review-packet.diff"
+  },
+  "claude_cli": {
+    "command": "claude -p --add-dir /tmp --model claude-opus-4-8 --effort max --permission-mode dontAsk --no-session-persistence --tools Read --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit,Grep,Glob --output-format json",
+    "prompt_source": "review packet diff",
+    "output_file": "/tmp/lfos-rp00-p02-m04-s02-claude-review.json",
+    "stderr_file": "/tmp/lfos-rp00-p02-m04-s02-claude-review.stderr",
+    "stderr_bytes": 0,
+    "duration_ms": 246032,
+    "duration_api_ms": 246376,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "40e98f7b-f523-46e6-ab19-2a84213d4543",
+    "session_id": "858eefaf-1d7a-4462-8542-2011fed27a9d"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "GO",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Input-shape deny test hardening",
+        "location": "packages/control-plane/test/service.test.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Optional additional deny rows could cover missing field, untrimmed string, and non-string Matter metadata."
+      },
+      {
+        "severity": "P3",
+        "title": "Extra request key symmetry",
+        "location": "packages/control-plane/src/service.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Extra reviewRequest keys are ignored by allowlisted output construction; inputClaims remains strict."
+      },
+      {
+        "severity": "P3",
+        "title": "Fixture deepEqual hardening",
+        "location": "packages/control-plane/test/service.test.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Current field-by-field fixture and normalized request checks are sufficient for S02."
+      },
+      {
+        "severity": "P3",
+        "title": "Matter pairing deferred",
+        "location": "RP00.P02.M04.S04 boundary",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Matter ID and Matter tenant pair validation is intentionally deferred to S04."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M04.S03 Tenant boundary precheck as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed S02 is a request-normalization deliverable after RP00.P02.M04.S01.",
+      "Claude confirmed claude_review is not added to the M00 runtime entrypoint list.",
+      "Claude confirmed no runtime Claude invocation, no review queue writes, no audit writes, no service execution, and no runtime route creation.",
+      "Claude confirmed the normalized object is frozen and carries tenant, Matter, permission, audit, review context, evidence, acceptance gate, model, effort, and read-only metadata.",
+      "Claude confirmed RP00.P02.M04 remains open and the next boundary is RP00.P02.M04.S03."
+    ],
+    "summary": "Claude reported GO and no P0/P1/P2 issues. P3 notes are optional hardening."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 4
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m04-s02-claude-review.json",
+    "summary": "Claude returned GO with no P0/P1/P2 findings and four P3 optional hardening notes."
+  },
+  "overall_verdict": "PASS"
+}

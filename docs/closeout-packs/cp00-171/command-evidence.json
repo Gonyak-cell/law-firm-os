@@ -1,0 +1,179 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-171",
+  "subphase_id": "RP04.P07.M06.S06",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/master-data/src/registry.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-171 registry syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/src/service.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-171 service syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/src/validators.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-171 validator syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/test/model.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-171 test syntax validation"
+    },
+    {
+      "command": "node --check scripts/validate-rp04-master-data-contract.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 master data validator syntax validation"
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/master-data-contract.json','utf8')); console.log('contract json ok')\"",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "master data contract JSON parse validation"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "whitespace validation after CP00-171 changes"
+    },
+    {
+      "command": "node --test packages/master-data/test/*.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "focused CP00-171 master data package tests"
+    },
+    {
+      "command": "npm run rp04:master-data:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 master data contract and CP00-171 coverage validator"
+    },
+    {
+      "command": "npm run rp04:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 detailed plan validator"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan validation before CP00-171 artifacts and queue regeneration"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "spec requirement ledger validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "weighted implementation ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full workspace test suite after CP00-171 changes"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "web production build after CP00-171 changes"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP00 control-plane validation"
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack validator syntax validation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan regeneration after CP00-171 artifacts"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full closeout pack validation through CP00-171 after artifacts"
+    },
+    {
+      "command": "claude -p --permission-mode dontAsk --tools \"\" --output-format json 'Return {\"status\":\"ok\"} as strict JSON only.' > /tmp/cp00-171-claude-auth-smoke.json",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "Claude CLI auth smoke test without escalation"
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-171-claude-prompt.txt > /tmp/cp00-171-claude-review-output.json",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "exactly one valid CP00-171 Claude Opus 4.8 max read-only review"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H04",
+    "status": "passed",
+    "command_ids": [
+      "spec_requirement_validate",
+      "rp00_control_plane_contract_validate"
+    ],
+    "evidence_packet": "H04.CP00-171.master_data_failure_taxonomy_sensitive_entry_boundary"
+  },
+  "claude_gate": {
+    "id": "C04",
+    "status": "passed",
+    "review_packet": "C04.CP00-171.master_data_failure_taxonomy_sensitive_entry_boundary",
+    "review_output_path": "/tmp/cp00-171-claude-review-output.json",
+    "cli_duration_ms": 171115,
+    "permission_denials": []
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used in CP00-171 validation.",
+    "Hermes evidence is recorded as closeout command evidence and descriptor packet references; CP00-171 package code does not execute Hermes commands or emit runtime receipts.",
+    "CP00-171 creates descriptor-only Master Data failure taxonomy sensitive entry boundary descriptors for audit hints, Hermes evidence refs, Claude prompt refs, human escalation note refs, and missing-scope failure entries, then hands off to CP00-172 / RP04.P07.M06.S07.",
+    "Claude CLI auth smoke test succeeded; the single valid pack-level Claude review was executed in ordinary shell mode with dontAsk permissions and no permission denials."
+  ]
+}

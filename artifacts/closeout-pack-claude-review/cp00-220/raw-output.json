@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-220",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T08:38:46.049Z",
+  "finished_at": "2026-06-10T08:44:39.273Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":352684,\"duration_api_ms\":353433,\"ttft_ms\":8093,\"num_turns\":65,\"result\":\"CP00-220 review complete — **PASS**, no findings.\\n\\nThe pack is a clean descriptor-only slice with no defects. Every claim checks out against the source: plan binding, deliverable/micro-title distributions, contract projection, and the no-write/no-real-data/no-runtime boundaries are all enforced in code (frozen plain-data builders, local-only imports, validator-enforced negative flags). `production_ready` is correctly held at `false` (status `implemented_pending_review`), so the gate is not weakened. Claude's read-only/non-approver authority boundary and the CP178+ hardening rejection set are both intact, and the unrelated UI/API dirty files are correctly excluded from pack scope.\\n\\nDoes not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"1dae1b2a-89e4-44b4-a8ed-1c639d917b8d\",\"total_cost_usd\":3.3715842499999997,\"usage\":{\"input_tokens\":159,\"cache_creation_input_tokens\":121295,\"cache_read_input_tokens\":4024749,\"output_tokens\":23966,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":121295,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":248,\"cache_read_input_tokens\":155161,\"cache_creation_input_tokens\":4044,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4044},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1071,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001171,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":159,\"outputTokens\":23966,\"cacheReadInputTokens\":4024749,\"cacheCreationInputTokens\":121295,\"webSearchRequests\":0,\"costUSD\":3.3704132500000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-220 is a descriptor-only DMS-core pack (risk A, 10 units, RP06.P06.M02.S21-RP06.P06.M03.S08) closing the RP06.P06.M02 Type-And-Shape tail (cross-tenant test, leak prevention test) and opening the M03 Primary Implementation Slice head (permission matrix row, view/search/mutation/export-download/share/AI-retrieval decision bindings, audit hint fields). Independent read-only inspection confirms the pack-level claims are fully supported. Plan binding is consistent across closeout-pack-plan.json (live), manifest plan_binding_snapshot, review-baseline, registry DMS_CORE_CP220_PACK_BINDING, and the dms-core-contract.json projection (current_pack + permission_matrix_slice_descriptor + no_write_attestation): deliverable distribution {test:2, security_audit:2, implementation:6} and micro-title distribution {Type And Shape Definition:2, Primary Implementation Slice:8} match exactly; next pack CP00-221 / next subphase RP06.P06.M03.S09. The production_ready claim is NOT over-stated: manifest declares production_ready=false with status implemented_pending_review, the production_ready_flag is a milestone name, and the Hermes production_ready_candidate=true is a pre-human-review candidate only. The descriptor-only / no-write / no-real-data boundary holds at the code level — DMS source imports are all local (model/registry), with no fs/child_process/network/process.env/fetch, and all builder functions return Object.freeze'd plain data; validators enforce the negative flags (cross_tenant_access_allowed=false, leak_detected=false, dispatches_ai_runtime=false, executes_file_download=false, external_share_executed=false, audit_hint_detail_included=false, deny-over-allow descriptor enforced). The two security_audit deliverables are handled as descriptor rows with no permission-decision/audit-hint/audit-body detail exposure. Authority boundary is respected: Claude is a read-only reviewer (Read/Grep/Glob only), claude_is_final_approval=false everywhere, no enterprise-trust-from-local-validation, human final approval required to open runtime; Hermes patterns are confined to deterministic evidence packet/receipt handling (emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false). CP178+ review hardening is encoded via forbidden_review_evidence (auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim) and the readiness auth-preflight passed with well-formed JSON. Changed-file scope correctly isolates the 8 DMS implementation refs (index.js unchanged as it wildcard re-exports) and preserves the unrelated UI/API workstream dirty files without attributing them to this pack. The required post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are absent, which is expected since they are produced downstream after this review step. No P0/P1/P2/P3 defects found.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"691c646d-ade3-4104-8f2c-25b59b124070\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5406,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "1dae1b2a-89e4-44b4-a8ed-1c639d917b8d",
+    "uuid": "691c646d-ade3-4104-8f2c-25b59b124070",
+    "total_cost_usd": 3.3715842499999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

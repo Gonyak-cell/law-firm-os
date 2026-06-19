@@ -1,0 +1,69 @@
+{
+  "schema_version": "law-firm-os.subphase-construction-inspection.v0.1",
+  "subphase_id": "RP00.P00.M01.S01",
+  "source_micro_phase_id": "RP00.P00.M01",
+  "program_id": "RP00",
+  "verdict": "PASS",
+  "production_ready": true,
+  "requirement_trace_verified": true,
+  "inspected_at": "2026-06-03T09:34:01Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "human_acceptance_or_explicit_next_goal_boundary": {
+    "status": "explicit_next_goal_boundary_recorded",
+    "current_subphase_sensitive_action": false,
+    "human_approval_required_now": false,
+    "next_subphase": "RP00.P00.M02.S01",
+    "boundary": "This PASS covers only the RP00.P00.M01.S01 contract shell and requirement-trace draft. It does not approve tenant runtime behavior, product mutation, client-facing output, finance action, external sharing, or RP00 closeout."
+  },
+  "checks": [
+    {
+      "id": "goal_scope_satisfied",
+      "status": "passed",
+      "evidence": "contracts/control-plane-contract.json defines six control-plane entity contracts and tenant/NARR-018 requirement anchors."
+    },
+    {
+      "id": "requirement_trace_for_weighted_refs",
+      "status": "passed",
+      "evidence": "TEN-001 through TEN-008 and NARR-018 weighted requirement refs are present in contract_shell.requirement_trace and validator-enforced."
+    },
+    {
+      "id": "all_required_local_commands_pass",
+      "status": "passed",
+      "evidence": "docs/goal-closeout/rp00-p00-m01-s01/command-evidence.json"
+    },
+    {
+      "id": "hermes_gate_passed",
+      "status": "passed",
+      "evidence": "H00 command wiring includes rp00_control_plane_contract_validate and spec_requirement_validate."
+    },
+    {
+      "id": "claude_code_review_result_validated",
+      "status": "passed",
+      "evidence": "docs/goal-closeout/rp00-p00-m01-s01/claude-review-result.json"
+    },
+    {
+      "id": "no_unresolved_P0_or_P1",
+      "status": "passed",
+      "evidence": "Claude C00 rerun returned no P0/P1 findings."
+    },
+    {
+      "id": "all_P2_adjudicated",
+      "status": "passed",
+      "evidence": "docs/goal-closeout/rp00-p00-m01-s01/adjudication.md"
+    },
+    {
+      "id": "weighted_ledger_refs_present",
+      "status": "passed",
+      "evidence": "docs/weighted-implementation-ledger.json includes RP00.P00.M01.S01 with production_ready minimum closeout and H00/C00 plan refs."
+    }
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 3,
+    "p3_status": "recorded"
+  }
+}

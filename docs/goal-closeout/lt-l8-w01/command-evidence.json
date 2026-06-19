@@ -1,0 +1,166 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L8-W01",
+  "created_at": "2026-06-18T12:17:36Z",
+  "status": "local_acceptance_satisfied_review_waived_go_live_not_approved",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "waiver_counts_as_valid_review": false
+  },
+  "boundary": {
+    "local_validator_ready": true,
+    "live_go_readiness_approved": false,
+    "g1_g10_live_evidence_present": false,
+    "g10_human_signoff": false,
+    "review_valid_evidence": false,
+    "closed_cp_evidence_rewritten": false,
+    "synthetic_fixture_only": true,
+    "lt_l8_w01_t01_local_acceptance_satisfied": true,
+    "lt_l8_w01_t02_local_acceptance_satisfied": true,
+    "lt_l8_w01_t03_local_acceptance_satisfied": true,
+    "lt_l8_w01_go_live_approval_closed": false
+  },
+  "tuw_evidence": {
+    "LT-L8-W01-T01": {
+      "contract_exists": true,
+      "contract_json_parses": true,
+      "gate_count": 10,
+      "criteria_nonempty_gates": 10,
+      "evidence_nonempty_gates": 10,
+      "no_go_policy_partial_pass_carryover_forbidden": true,
+      "no_go_policy_p0_p1_adjudication_required": true,
+      "no_go_policy_full_rejudgment_required": true,
+      "contracts_changed_new_file_only_in_staged_scope": true
+    },
+    "LT-L8-W01-T02": {
+      "validator_exists": true,
+      "green_exit_code": 0,
+      "green_gate_count": 10,
+      "green_all_pass": true,
+      "green_failed_gate_ids": [],
+      "red_exit_code": 1,
+      "red_all_pass": false,
+      "red_failed_gate_ids": [
+        "G7"
+      ],
+      "red_missing_evidence": [
+        "G7-E02"
+      ],
+      "threshold_hardcoding_scan_matches": 0,
+      "scripts_changed_new_file_only_in_staged_scope": true
+    },
+    "LT-L8-W01-T03": {
+      "non_weakening_doc_exists": true,
+      "required_non_weakening_sections_present": [
+        "Closed Pack Evidence Is Read-Only",
+        "Retroactive Claims Are Blocked",
+        "Lower Gates Are Not Implied Or Replaced"
+      ],
+      "evidence_file_count": 5,
+      "review_valid_evidence": false,
+      "goal_closeout_claim": "local_acceptance_only_not_go_live_approval"
+    }
+  },
+  "commands": [
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    },
+    {
+      "id": "contract_structure",
+      "command": "node -e \"const fs=require('fs'); const c=JSON.parse(fs.readFileSync('contracts/go-live-gate-contract.json','utf8')); const order=c.gate_order||[]; const gateObj=c.gates||{}; if(order.length!==10||Object.keys(gateObj).length!==10) throw new Error('gate count mismatch'); for (const id of order) { const gate=gateObj[id]; if(!gate?.dimension) throw new Error(id+' dimension missing'); if(!Array.isArray(gate.criteria)||!gate.criteria.length) throw new Error(id+' criteria missing'); if(!Array.isArray(gate.evidence)||!gate.evidence.length) throw new Error(id+' evidence missing'); } const p=c.no_go_policy||{}; for (const k of ['partial_pass_carryover','missing_or_failed_dimension_result','p0_p1_adjudication_required_before_rejudgment','full_gate_rejudgment_required_after_fix','review_waiver_counts_as_valid_review_evidence']) if(!(k in p)) throw new Error('policy missing '+k);\"",
+      "exit_code": 0,
+      "output_summary": {
+        "gate_count": 10,
+        "order_count": 10,
+        "criteria_nonempty": true,
+        "evidence_nonempty": true,
+        "no_go_policy_keys": 6
+      },
+      "writes_product_state": false
+    },
+    {
+      "id": "validator_green_fixture",
+      "command": "node scripts/validate-go-live-readiness.mjs --fixtures docs/goal-closeout/lt-l8-w01/fixtures/green",
+      "exit_code": 0,
+      "output_summary": {
+        "fixture_id": "lt-l8-w01-green-all-gates-satisfied",
+        "gate_count": 10,
+        "all_pass": true,
+        "failed_gate_ids": [],
+        "contract_errors": []
+      },
+      "writes_product_state": false
+    },
+    {
+      "id": "validator_red_fixture",
+      "command": "node scripts/validate-go-live-readiness.mjs --fixtures docs/goal-closeout/lt-l8-w01/fixtures/red",
+      "exit_code": 1,
+      "expected_failure": true,
+      "output_summary": {
+        "fixture_id": "lt-l8-w01-red-g7-missing-ai-off-evidence",
+        "gate_count": 10,
+        "all_pass": false,
+        "failed_gate_ids": [
+          "G7"
+        ],
+        "missing_evidence": [
+          "G7-E02"
+        ],
+        "contract_errors": []
+      },
+      "writes_product_state": false
+    },
+    {
+      "id": "validator_threshold_hardcoding_scan",
+      "command": "rg -n \"RPO|RTO|p95|latency|\\\\b24h\\\\b|<=|>=|percent|100\" scripts/validate-go-live-readiness.mjs",
+      "exit_code": 1,
+      "expected_no_matches": true,
+      "match_count": 0,
+      "writes_product_state": false
+    },
+    {
+      "id": "non_weakening_sections",
+      "command": "rg -n \"^## (Closed Pack Evidence Is Read-Only|Retroactive Claims Are Blocked|Lower Gates Are Not Implied Or Replaced)\" docs/launch/go-live-gate-non-weakening.md",
+      "exit_code": 0,
+      "match_count": 3,
+      "matches": [
+        "Closed Pack Evidence Is Read-Only",
+        "Retroactive Claims Are Blocked",
+        "Lower Gates Are Not Implied Or Replaced"
+      ],
+      "writes_product_state": false
+    },
+    {
+      "id": "staged_scope_name_status",
+      "command": "git diff --cached --name-status",
+      "exit_code": 0,
+      "output_summary": {
+        "files_added": 10,
+        "files_modified": 0,
+        "contracts_entries": [
+          "A contracts/go-live-gate-contract.json"
+        ],
+        "scripts_entries": [
+          "A scripts/validate-go-live-readiness.mjs"
+        ]
+      },
+      "writes_product_state": false
+    }
+  ],
+  "notes": [
+    "The red fixture exit code 1 is expected and proves fail-closed behavior for missing evidence.",
+    "The validator threshold scan is scoped to the validator source; gate thresholds are loaded from the contract and evidence inputs.",
+    "The review waiver is recorded but is not valid review evidence."
+  ],
+  "phase": "L8"
+}

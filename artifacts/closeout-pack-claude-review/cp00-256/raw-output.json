@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-256",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T16:44:02.896Z",
+  "finished_at": "2026-06-10T16:50:08.815Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":365155,\"duration_api_ms\":366872,\"ttft_ms\":4295,\"num_turns\":49,\"result\":\"Review complete — **PASS**, no findings.\\n\\nCP00-256 is a descriptor-only search-core pack (150 RP07 units, risk C) that closes the RP07.P05 fixture tail and opens the RP07.P06 permission/audit foundation. Everything checks out:\\n\\n- **Scope/consistency**: pack binding, contract projection, README, and the live `closeout-pack-plan.json` all agree on range, unit count, and all deliverable/phase/micro-title distributions.\\n- **Boundaries**: descriptor-only with exhaustive no-write/no-runtime/no-real-data attestations; deny-over-allow enforced; no cross-tenant/cross-wall access — all actively asserted by the validators.\\n- **Authority**: Claude stays read-only and explicitly non-final-approver; enterprise trust deferred to human approval at runtime opening (CP00-257).\\n- **Hermes**: used only as deterministic evidence-packet/receipt identifiers, not product runtime.\\n- **CP178+ hardening**: `forbidden_review_evidence` covers all required rejection categories (auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, missing fields, etc.).\\n- **Gates**: contract↔code deep-equality enforced by the validator; all pre-review commands recorded passing; `production_ready: false` correctly deferred to post-review closeout — no gate weakening.\\n\\nThe pack does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"5479523e-9488-4872-95e4-ac45618435ba\",\"total_cost_usd\":2.9736615,\"usage\":{\"input_tokens\":56,\"cache_creation_input_tokens\":122400,\"cache_read_input_tokens\":3049333,\"output_tokens\":27299,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":122400,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":531,\"cache_read_input_tokens\":155683,\"cache_creation_input_tokens\":6247,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6247},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1140,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00124,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":56,\"outputTokens\":27299,\"cacheReadInputTokens\":3049333,\"cacheCreationInputTokens\":122400,\"webSearchRequests\":0,\"costUSD\":2.9724215000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-256 is a generated descriptor-only pack (RP07 search-core, 150 units, range RP07.P05.M06.S19-RP07.P06.M02.S20, risk C) closing the RP07.P05 fixture tail (M06-M10) and opening the RP07.P06 permission/audit foundation (Scope Inventory, Contract Draft, Type And Shape Definition). The pack-level production_ready claim is appropriately scoped and supported: command-evidence.json records production_ready=false with status \\\"implementation_and_plan_gates_passed_pending_final_closeout\\\", and every pre-review validation command (closeout-pack-plan:validate, rp05/rp06/rp07 validators, weighted/fullplan/spec/rp00-control-plane/goal:closeout validators, npm test, npm run validate, build, git diff --check, plus node --check on all changed JS) is recorded exit_code 0. The descriptor-verified production_ready_candidate (coverage.valid && foundation.valid) is backed by the test suite and contract validator.\\n\\nVerification performed via Read/Grep/Glob only: (1) Pack binding (registry.js:379), contract current_pack/cp256_requirements/cp256_no_write_attestation/p05_closeout_p06_permission_foundation_descriptor, README#cp00-256, and the live closeout-pack-plan.json (CP00-256 at line 412) all agree on pack_id, risk C, unit_count 150, first/last unit, upstream CP00-255, next CP00-257, next_subphase RP07.P06.M02.S21, and identical deliverable/phase/micro-phase/micro-title distributions matching the prompt (implementation 58, fixture 28, claude_review 7, security_audit 23, test 18, hermes_evidence 4, ui 12 = 150). (2) No-write/no-real-data boundaries intact: freezeCp256Result (service.js:2817) sets all write/runtime/dispatch flags false, no_real_data true, deny_over_allow_enforced true, no cross-tenant/cross-wall access; the foundation validator (validators.js:4304) actively asserts descriptor_only, no runtime execution, no permission-decision/matched-rule/audit-body exposure, customer-safe errors, and no raw payloads across all 8 sections. (3) Claude remains read-only independent reviewer (allowed_tools Read/Grep/Glob; read_only true; claude_is_final_approval false; promotes_claude_to_final_approval false; claims_enterprise_trust_from_local_validation false; human approval required for runtime opening at CP00-257). (4) Hermes patterns used only for deterministic evidence-packet/receipt identifiers (receipt_shape descriptor_only...no_write; emits_hermes_runtime_receipt false) — no product-runtime execution. (5) CP178+ review hardening list (registry.js:562 forbidden_review_evidence) covers failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, disabled_tools_run, missing_raw_output_reference, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, production_enterprise_trust_claim. (6) Contract-to-code consistency is enforced by deep-equality assertions in validate-rp07-search-core-contract.mjs:1064-1070, and the contract descriptor projection structurally matches the code output. All 7 required public exports exist (2 in service.js, 5 in validators.js) and are re-exported via index.js. No premature production_ready=true and no weakening of production_ready gates. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"6f671405-6346-40b2-8d30-1c74f097c4bf\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6228,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "5479523e-9488-4872-95e4-ac45618435ba",
+    "uuid": "6f671405-6346-40b2-8d30-1c74f097c4bf",
+    "total_cost_usd": 2.9736615,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

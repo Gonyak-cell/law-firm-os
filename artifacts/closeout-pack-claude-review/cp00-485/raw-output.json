@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-485",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T10:39:37.622Z",
+  "finished_at": "2026-06-12T10:43:33.006Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":234019,\"duration_api_ms\":234445,\"ttft_ms\":3890,\"num_turns\":36,\"result\":\"CP00-485 review complete: **PASS** with no findings. The pack is a clean descriptor-only governance slice — coverage matches the 40-unit plan exactly, the no-write/no-real-data and read-only-reviewer/non-final-approver boundaries are intact, Hermes is used only for deterministic evidence packets, `production_ready` is honestly `false`/pending-review with no enterprise-trust over-claim, and the review-evidence pipeline (auth preflight, tooling, source inspection) is healthy. Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e9c99762-dc2e-4575-a719-af0f9f8bae8a\",\"total_cost_usd\":1.7171782500000001,\"usage\":{\"input_tokens\":36,\"cache_creation_input_tokens\":106315,\"cache_read_input_tokens\":1206655,\"output_tokens\":17920,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":106315,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":186,\"cache_read_input_tokens\":110213,\"cache_creation_input_tokens\":4497,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4497},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1102,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001202,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":36,\"outputTokens\":17920,\"cacheReadInputTokens\":1206655,\"cacheCreationInputTokens\":106315,\"webSearchRequests\":0,\"costUSD\":1.7159762500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"PASS — CP00-485 (governance core P02 workflow permission slice, RP16.P02.M04.S19–RP16.P02.M06.S14, risk B, 40 units) is a clean descriptor-only pack with no findings. Source inspection via Read/Grep/Glob confirms: (1) Coverage matches the plan exactly — micro split 4/22/14 across M04/M05/M06 and deliverable split test 8 / contract 2 / implementation 17 / security_audit 4 / ui 5 / claude_review 2 / failure_recovery 2, consistent across closeout-pack-plan.json, manifest.json, review-baseline.json, registry.js binding, and the contract's current_pack/historical_pack_bindings. (2) Descriptor-only boundary preserved: every CP485 result in service.js is frozen with the full no-write/no-real-data attestation (runtime/write/storage/audit/lock/fixture flags all false; synthetic_only and no_real_data true); grep found no write-violation flags set true, no leak markers, no TODO/FIXME/stubs. (3) Authority boundary intact: descriptors and GOVERNANCE_CORE_CP485_NO_WRITE_ATTESTATION set claude_is_final_approval=false and claims_enterprise_trust_from_local_validation=false; review-request is read_only with only Read/Grep/Glob; Hermes appears solely as deterministic evidence-packet/receipt descriptors (emits_hermes_runtime_receipt=false), not product runtime. (4) production_ready is correctly false/'implemented_pending_review' — the *_verified flag is a descriptor-verification label and Hermes production_ready_candidate is a deterministic coverage.valid && slice.valid check, so there is no enterprise-trust over-claim; final closeout properly pends this review plus human approval. (5) validators.js, test/model.test.js (deepEqual against the contract), the contract sections, and README §CP00-485 are mutually consistent and all reference CP00-485. (6) Review-evidence hardening checks pass: readiness auth-preflight succeeded (exit 0, 1443-byte valid JSON result, no auth failure/0-byte/malformed/fenced/tool-call-shaped output), validation-report shows no forbidden tools, source-inspection mode used, and no active untracked implementation files omitted. Unrelated dirty files (progress-control-room, workbook docs, .docx, LDIP invalid-attempt) are correctly scoped out and were not treated as part of the pack. Reported validation commands all record exit_code 0; as a read-only independent reviewer (not final approver) I confirm the static evidence supports the descriptor-verification claim. No P0/P1/P2/P3 issues.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"f7173f10-f28c-4276-a7dd-43a800f34a8a\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4654,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e9c99762-dc2e-4575-a719-af0f9f8bae8a",
+    "uuid": "f7173f10-f28c-4276-a7dd-43a800f34a8a",
+    "total_cost_usd": 1.7171782500000001,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

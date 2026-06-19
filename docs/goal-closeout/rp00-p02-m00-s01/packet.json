@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P02.M00.S01",
+  "source_micro_phase_id": "RP00.P02.M00",
+  "title": "Service entrypoint contract",
+  "status": "production_ready",
+  "created_at": "2026-06-04T12:31:10.000Z",
+  "implemented_surface": "ControlPlaneServiceEntrypointContract",
+  "implemented_slice": "service_entrypoint_contract",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m00-s01/packet.json",
+    "docs/goal-closeout/rp00-p02-m00-s01/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m00-s01/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m00-s01/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m00-s01/construction-inspection.json"
+  ],
+  "implementation_summary": [
+    "Added CONTROL_PLANE_SERVICE_ENTRYPOINT_CONTRACT for the RP00.P02.M00.S01 metadata-only Service Logic entrypoint contract.",
+    "Declared the three canonical entrypoints: plan_authoring, ai_implementation_handoff, and hermes_validation.",
+    "Recorded required context fields tenant_id, actor_id, idempotency_key, permission_decision_ref, and audit_event_ref before any future execution.",
+    "Deferred request normalization to RP00.P02.M00.S02 and tenant boundary precheck to RP00.P02.M00.S03.",
+    "Added fail-closed assertControlPlaneServiceEntrypointContract and listControlPlaneServiceEntrypoints behavior validation.",
+    "Added CONTROL_PLANE_SERVICE_MODULE and deterministic read-only contract accessors without creating runtime routes or executing service logic.",
+    "Recorded synthetic fixture, README, contract, validator, and focused service tests for the S01 slice."
+  ],
+  "scope_boundaries": {
+    "implements_only_control_plane_service_entrypoint_contract": true,
+    "starts_RP00_P02_service_logic_phase": true,
+    "does_not_complete_RP00_P02_M00": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true,
+    "does_not_implement_request_normalization": true,
+    "does_not_implement_tenant_boundary_precheck": true,
+    "does_not_execute_service_logic": true,
+    "does_not_create_runtime_route": true,
+    "does_not_mutate_entity_registry": true,
+    "does_not_mutate_states_js": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "does_not_create_ui": true
+  },
+  "gates": {
+    "hermes": "H00",
+    "claude": "C00",
+    "claude_review_count": 1,
+    "claude_review_session_continued_to_complete_result": false,
+    "construction_inspection": "PASS",
+    "next_subphase": "RP00.P02.M00.S02"
+  }
+}

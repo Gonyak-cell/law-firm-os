@@ -1,0 +1,2659 @@
+{
+  "schema_version": "law-firm-os.launch-tuw-evidence-coverage-audit.v0.1",
+  "generated_at": "2026-06-18T16:06:04.472Z",
+  "source_refs": [
+    "workbook/launch-tuw/launch-tuw-ledger.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-evidence-integrity-audit.json",
+    "docs/goal-closeout/<launch-goal-id>/command-evidence.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "records_tuw_evidence_coverage_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "work_package_count": 72,
+    "ledger_tuw_count": 344,
+    "covered_ledger_tuw_count": 344,
+    "missing_ledger_tuw_count": 0,
+    "all_ledger_tuws_evidence_covered": true,
+    "terminal_tuw_count": 72,
+    "terminal_tuw_evidence_covered_count": 72,
+    "terminal_tuw_missing_evidence_count": 0,
+    "all_terminal_tuws_evidence_covered": true,
+    "wp_with_missing_tuw_evidence_count": 0,
+    "extra_tuw_evidence_id_count": 2,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "missing_ledger_tuw_ids": [],
+  "extra_tuw_evidence_ids": [
+    "LT-L1-W02-PREP",
+    "LT-L1-W06-PREP"
+  ],
+  "work_packages": [
+    {
+      "wp_id": "LT-PRE-W01",
+      "goal_id": "lt-pre-w01",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w01/command-evidence.json",
+      "ledger_tuw_count": 1,
+      "ledger_tuw_ids": [
+        "LT-PRE-W01-T01"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 1,
+      "covered_tuw_ids": [
+        "LT-PRE-W01-T01"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W01-T01",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_owner_ratification": 1
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W02",
+      "goal_id": "lt-pre-w02",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w02/command-evidence.json",
+      "ledger_tuw_count": 1,
+      "ledger_tuw_ids": [
+        "LT-PRE-W02-T01"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 1,
+      "covered_tuw_ids": [
+        "LT-PRE-W02-T01"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W02-T01",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_missed_cp_interleave_window": 1
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W03",
+      "goal_id": "lt-pre-w03",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w03/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-PRE-W03-T01",
+        "LT-PRE-W03-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-PRE-W03-T01",
+        "LT-PRE-W03-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W03-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_storage_decision": 2
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W04",
+      "goal_id": "lt-pre-w04",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w04/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-PRE-W04-T01",
+        "LT-PRE-W04-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-PRE-W04-T01",
+        "LT-PRE-W04-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W04-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 1,
+        "blocked_pending_owner_disposition": 1
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W05",
+      "goal_id": "lt-pre-w05",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w05/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-PRE-W05-T01",
+        "LT-PRE-W05-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-PRE-W05-T01",
+        "LT-PRE-W05-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W05-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_mat_dec_08": 2
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W06",
+      "goal_id": "lt-pre-w06",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w06/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-PRE-W06-T01",
+        "LT-PRE-W06-T02",
+        "LT-PRE-W06-T03",
+        "LT-PRE-W06-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-PRE-W06-T01",
+        "LT-PRE-W06-T02",
+        "LT-PRE-W06-T03",
+        "LT-PRE-W06-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W06-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_external_confirmation": 1,
+        "blocked_pending_external_kickoff": 1,
+        "blocked_pending_vendor_outreach": 1,
+        "blocked_pending_external_actions": 1
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W07",
+      "goal_id": "lt-pre-w07",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w07",
+      "command_evidence_path": "docs/goal-closeout/lt-pre-w07/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-PRE-W07-T01",
+        "LT-PRE-W07-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-PRE-W07-T01",
+        "LT-PRE-W07-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-PRE-W07-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 2
+      }
+    },
+    {
+      "wp_id": "LT-L0-W01",
+      "goal_id": "lt-l0-w01",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l0-w01/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L0-W01-T01",
+        "LT-L0-W01-T02",
+        "LT-L0-W01-T03",
+        "LT-L0-W01-T04",
+        "LT-L0-W01-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L0-W01-T01",
+        "LT-L0-W01-T02",
+        "LT-L0-W01-T03",
+        "LT-L0-W01-T04",
+        "LT-L0-W01-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L0-W01-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 4,
+        "blocked_pending_human_acceptance": 1
+      }
+    },
+    {
+      "wp_id": "LT-L0-W02",
+      "goal_id": "lt-l0-w02",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l0-w02/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L0-W02-T01",
+        "LT-L0-W02-T02",
+        "LT-L0-W02-T03",
+        "LT-L0-W02-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L0-W02-T01",
+        "LT-L0-W02-T02",
+        "LT-L0-W02-T03",
+        "LT-L0-W02-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L0-W02-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 3,
+        "blocked_pending_human_approval": 1
+      }
+    },
+    {
+      "wp_id": "LT-L0-W03",
+      "goal_id": "lt-l0-w03",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l0-w03/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L0-W03-T01",
+        "LT-L0-W03-T02",
+        "LT-L0-W03-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L0-W03-T01",
+        "LT-L0-W03-T02",
+        "LT-L0-W03-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L0-W03-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "partial_source_counts_recorded": 1,
+        "blocked_pending_owner_rejudgment": 1,
+        "blocked_waiting_on_t02_rejudgment": 1
+      }
+    },
+    {
+      "wp_id": "LT-L0-W04",
+      "goal_id": "lt-l0-w04",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l0-w04/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L0-W04-T01",
+        "LT-L0-W04-T02",
+        "LT-L0-W04-T03",
+        "LT-L0-W04-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L0-W04-T01",
+        "LT-L0-W04-T02",
+        "LT-L0-W04-T03",
+        "LT-L0-W04-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L0-W04-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed_with_referrals": 3,
+        "blocked_pending_human_acceptance": 1
+      }
+    },
+    {
+      "wp_id": "LT-L0-W05",
+      "goal_id": "lt-l0-w05",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l0-w05/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L0-W05-T01",
+        "LT-L0-W05-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L0-W05-T01",
+        "LT-L0-W05-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L0-W05-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_contract_shape_recorded_cell_evidence_missing": 1,
+        "blocked_pending_owner_approval_and_unmet_dispositions": 1
+      }
+    },
+    {
+      "wp_id": "LT-L1-W01",
+      "goal_id": "lt-l1-w01",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w01/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L1-W01-T01",
+        "LT-L1-W01-T02",
+        "LT-L1-W01-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L1-W01-T01",
+        "LT-L1-W01-T02",
+        "LT-L1-W01-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W01-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L1-W02",
+      "goal_id": "lt-l1-w02",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w02/command-evidence.json",
+      "ledger_tuw_count": 9,
+      "ledger_tuw_ids": [
+        "LT-L1-W02-T01",
+        "LT-L1-W02-T02",
+        "LT-L1-W02-T03",
+        "LT-L1-W02-T04",
+        "LT-L1-W02-T05",
+        "LT-L1-W02-T06",
+        "LT-L1-W02-T07",
+        "LT-L1-W02-T08",
+        "LT-L1-W02-T09"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 9,
+      "covered_tuw_ids": [
+        "LT-L1-W02-T01",
+        "LT-L1-W02-T02",
+        "LT-L1-W02-T03",
+        "LT-L1-W02-T04",
+        "LT-L1-W02-T05",
+        "LT-L1-W02-T06",
+        "LT-L1-W02-T07",
+        "LT-L1-W02-T08",
+        "LT-L1-W02-T09"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 1,
+      "extra_tuw_evidence_ids": [
+        "LT-L1-W02-PREP"
+      ],
+      "terminal_tuw": "LT-L1-W02-T09",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 9
+      }
+    },
+    {
+      "wp_id": "LT-L1-W03",
+      "goal_id": "lt-l1-w03",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w03/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L1-W03-T01",
+        "LT-L1-W03-T02",
+        "LT-L1-W03-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L1-W03-T01",
+        "LT-L1-W03-T02",
+        "LT-L1-W03-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W03-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_external_legal_review_result": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L1-W04",
+      "goal_id": "lt-l1-w04",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w04/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L1-W04-T01",
+        "LT-L1-W04-T02",
+        "LT-L1-W04-T03",
+        "LT-L1-W04-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L1-W04-T01",
+        "LT-L1-W04-T02",
+        "LT-L1-W04-T03",
+        "LT-L1-W04-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W04-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 2,
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L1-W05",
+      "goal_id": "lt-l1-w05",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w05/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L1-W05-T01",
+        "LT-L1-W05-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L1-W05-T01",
+        "LT-L1-W05-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W05-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_owner_approval": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L1-W06",
+      "goal_id": "lt-l1-w06",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w06/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L1-W06-T01",
+        "LT-L1-W06-T02",
+        "LT-L1-W06-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L1-W06-T01",
+        "LT-L1-W06-T02",
+        "LT-L1-W06-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 1,
+      "extra_tuw_evidence_ids": [
+        "LT-L1-W06-PREP"
+      ],
+      "terminal_tuw": "LT-L1-W06-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 3
+      }
+    },
+    {
+      "wp_id": "LT-L1-W07",
+      "goal_id": "lt-l1-w07",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w07",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w07/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L1-W07-T01",
+        "LT-L1-W07-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L1-W07-T01",
+        "LT-L1-W07-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W07-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L1-W08",
+      "goal_id": "lt-l1-w08",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w08",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w08/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L1-W08-T01",
+        "LT-L1-W08-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L1-W08-T01",
+        "LT-L1-W08-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W08-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L1-W09",
+      "goal_id": "lt-l1-w09",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w09",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w09/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L1-W09-T01",
+        "LT-L1-W09-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L1-W09-T01",
+        "LT-L1-W09-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W09-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L1-W10",
+      "goal_id": "lt-l1-w10",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w10",
+      "command_evidence_path": "docs/goal-closeout/lt-l1-w10/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L1-W10-T01",
+        "LT-L1-W10-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L1-W10-T01",
+        "LT-L1-W10-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L1-W10-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L2-W01",
+      "goal_id": "lt-l2-w01",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w01/command-evidence.json",
+      "ledger_tuw_count": 11,
+      "ledger_tuw_ids": [
+        "LT-L2-W01-T01",
+        "LT-L2-W01-T02",
+        "LT-L2-W01-T03",
+        "LT-L2-W01-T04",
+        "LT-L2-W01-T05",
+        "LT-L2-W01-T06",
+        "LT-L2-W01-T07",
+        "LT-L2-W01-T08",
+        "LT-L2-W01-T09",
+        "LT-L2-W01-T10",
+        "LT-L2-W01-T11"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 11,
+      "covered_tuw_ids": [
+        "LT-L2-W01-T01",
+        "LT-L2-W01-T02",
+        "LT-L2-W01-T03",
+        "LT-L2-W01-T04",
+        "LT-L2-W01-T05",
+        "LT-L2-W01-T06",
+        "LT-L2-W01-T07",
+        "LT-L2-W01-T08",
+        "LT-L2-W01-T09",
+        "LT-L2-W01-T10",
+        "LT-L2-W01-T11"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W01-T11",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_persistent_audit_event_store_absent": 1,
+        "blocked_waiting_on_t01": 2,
+        "blocked_pending_l1_w06_database_decision": 1,
+        "blocked_waiting_on_t04": 1,
+        "blocked_waiting_on_t04_t05": 1,
+        "blocked_waiting_on_t01_t06": 1,
+        "blocked_waiting_on_t07": 1,
+        "blocked_waiting_on_t06": 1,
+        "blocked_waiting_on_t02_t05_t06_t07_t08_t09": 1,
+        "blocked_waiting_on_t01_through_t10_runtime_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L2-W02",
+      "goal_id": "lt-l2-w02",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w02/command-evidence.json",
+      "ledger_tuw_count": 14,
+      "ledger_tuw_ids": [
+        "LT-L2-W02-T01",
+        "LT-L2-W02-T02",
+        "LT-L2-W02-T03",
+        "LT-L2-W02-T04",
+        "LT-L2-W02-T05",
+        "LT-L2-W02-T06",
+        "LT-L2-W02-T07",
+        "LT-L2-W02-T08",
+        "LT-L2-W02-T09",
+        "LT-L2-W02-T10",
+        "LT-L2-W02-T11",
+        "LT-L2-W02-T12",
+        "LT-L2-W02-T13",
+        "LT-L2-W02-T14"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 14,
+      "covered_tuw_ids": [
+        "LT-L2-W02-T01",
+        "LT-L2-W02-T02",
+        "LT-L2-W02-T03",
+        "LT-L2-W02-T04",
+        "LT-L2-W02-T05",
+        "LT-L2-W02-T06",
+        "LT-L2-W02-T07",
+        "LT-L2-W02-T08",
+        "LT-L2-W02-T09",
+        "LT-L2-W02-T10",
+        "LT-L2-W02-T11",
+        "LT-L2-W02-T12",
+        "LT-L2-W02-T13",
+        "LT-L2-W02-T14"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W02-T14",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_l0_l1_owner_decisions": 1,
+        "blocked_waiting_on_t01": 1,
+        "blocked_waiting_on_t02_and_l2_w01_persistent_audit": 1,
+        "blocked_waiting_on_t02_synthetic_issuer": 1,
+        "blocked_waiting_on_t02_and_l2_w01_repositories": 1,
+        "blocked_waiting_on_t03_t05": 1,
+        "blocked_waiting_on_t06_and_l2_w01_policy_acl_repository": 1,
+        "blocked_waiting_on_t07_replacement_path": 1,
+        "blocked_waiting_on_t07": 1,
+        "blocked_waiting_on_t09_and_pre_w05_decision": 1,
+        "blocked_waiting_on_t09_and_l2_w01_persistent_audit": 1,
+        "blocked_waiting_on_t10_t11": 1,
+        "blocked_waiting_on_t08_t11": 1,
+        "blocked_waiting_on_t01_through_t13_runtime_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L2-W03",
+      "goal_id": "lt-l2-w03",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w03/command-evidence.json",
+      "ledger_tuw_count": 18,
+      "ledger_tuw_ids": [
+        "LT-L2-W03-T01",
+        "LT-L2-W03-T02",
+        "LT-L2-W03-T03",
+        "LT-L2-W03-T04",
+        "LT-L2-W03-T05",
+        "LT-L2-W03-T06",
+        "LT-L2-W03-T07",
+        "LT-L2-W03-T08",
+        "LT-L2-W03-T09",
+        "LT-L2-W03-T10",
+        "LT-L2-W03-T11",
+        "LT-L2-W03-T12",
+        "LT-L2-W03-T13",
+        "LT-L2-W03-T14",
+        "LT-L2-W03-T15",
+        "LT-L2-W03-T16",
+        "LT-L2-W03-T17",
+        "LT-L2-W03-T18"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 18,
+      "covered_tuw_ids": [
+        "LT-L2-W03-T01",
+        "LT-L2-W03-T02",
+        "LT-L2-W03-T03",
+        "LT-L2-W03-T04",
+        "LT-L2-W03-T05",
+        "LT-L2-W03-T06",
+        "LT-L2-W03-T07",
+        "LT-L2-W03-T08",
+        "LT-L2-W03-T09",
+        "LT-L2-W03-T10",
+        "LT-L2-W03-T11",
+        "LT-L2-W03-T12",
+        "LT-L2-W03-T13",
+        "LT-L2-W03-T14",
+        "LT-L2-W03-T15",
+        "LT-L2-W03-T16",
+        "LT-L2-W03-T17",
+        "LT-L2-W03-T18"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W03-T18",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_l0_w02_l1_w01_rebaseline": 1,
+        "blocked_waiting_on_l2_w01_l2_w02": 1,
+        "blocked_waiting_on_t02": 1,
+        "blocked_waiting_on_t02_and_l2_w01_unit_of_work": 1,
+        "blocked_api_get_only_waiting_on_t02_t04": 1,
+        "blocked_waiting_on_t05": 4,
+        "blocked_waiting_on_t05_and_l2_w02_classification": 1,
+        "blocked_waiting_on_t05_and_l2_w01_idempotency": 1,
+        "blocked_waiting_on_t08": 1,
+        "blocked_waiting_on_t02_and_l2_w02_pipeline": 1,
+        "blocked_waiting_on_wave1_write_apis": 1,
+        "blocked_waiting_on_t01_surface_map": 1,
+        "blocked_waiting_on_t14_t15": 1,
+        "blocked_waiting_on_t16_measured_runtime": 1,
+        "blocked_waiting_on_t01_through_t17_runtime_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L2-W04",
+      "goal_id": "lt-l2-w04",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w04/command-evidence.json",
+      "ledger_tuw_count": 23,
+      "ledger_tuw_ids": [
+        "LT-L2-W04-T01",
+        "LT-L2-W04-T02",
+        "LT-L2-W04-T03",
+        "LT-L2-W04-T04",
+        "LT-L2-W04-T05",
+        "LT-L2-W04-T06",
+        "LT-L2-W04-T07",
+        "LT-L2-W04-T08",
+        "LT-L2-W04-T09",
+        "LT-L2-W04-T10",
+        "LT-L2-W04-T11",
+        "LT-L2-W04-T12",
+        "LT-L2-W04-T13",
+        "LT-L2-W04-T14",
+        "LT-L2-W04-T15",
+        "LT-L2-W04-T16",
+        "LT-L2-W04-T17",
+        "LT-L2-W04-T18",
+        "LT-L2-W04-T19",
+        "LT-L2-W04-T20",
+        "LT-L2-W04-T21",
+        "LT-L2-W04-T22",
+        "LT-L2-W04-T23"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 23,
+      "covered_tuw_ids": [
+        "LT-L2-W04-T01",
+        "LT-L2-W04-T02",
+        "LT-L2-W04-T03",
+        "LT-L2-W04-T04",
+        "LT-L2-W04-T05",
+        "LT-L2-W04-T06",
+        "LT-L2-W04-T07",
+        "LT-L2-W04-T08",
+        "LT-L2-W04-T09",
+        "LT-L2-W04-T10",
+        "LT-L2-W04-T11",
+        "LT-L2-W04-T12",
+        "LT-L2-W04-T13",
+        "LT-L2-W04-T14",
+        "LT-L2-W04-T15",
+        "LT-L2-W04-T16",
+        "LT-L2-W04-T17",
+        "LT-L2-W04-T18",
+        "LT-L2-W04-T19",
+        "LT-L2-W04-T20",
+        "LT-L2-W04-T21",
+        "LT-L2-W04-T22",
+        "LT-L2-W04-T23"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W04-T23",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_l1_w06_owner_decision": 1,
+        "blocked_waiting_on_t01_l2_w01_l2_w02_l2_w03": 1,
+        "blocked_waiting_on_t02": 1,
+        "blocked_waiting_on_t02_t03": 1,
+        "blocked_waiting_on_t01_l2_w01_l2_w02_l2_w03_pre_w03": 1,
+        "blocked_waiting_on_t05": 1,
+        "blocked_waiting_on_t05_t06": 1,
+        "blocked_waiting_on_t05_l2_w03": 1,
+        "blocked_waiting_on_t08": 1,
+        "blocked_waiting_on_t08_t09": 1,
+        "blocked_waiting_on_t01_t02_l2_w01_l2_w02_l2_w03": 1,
+        "blocked_waiting_on_t11": 1,
+        "blocked_waiting_on_t11_t12": 1,
+        "blocked_waiting_on_l2_w01_l2_w02": 1,
+        "blocked_waiting_on_t14": 1,
+        "blocked_waiting_on_t14_t15": 1,
+        "blocked_waiting_on_t02_l2_w03": 1,
+        "blocked_waiting_on_t17": 1,
+        "blocked_waiting_on_t01_l2_w01_l2_w02": 1,
+        "blocked_waiting_on_t19": 1,
+        "blocked_waiting_on_t14_l2_w02_l2_w03": 1,
+        "blocked_waiting_on_t21": 1,
+        "blocked_waiting_on_eight_context_rtg_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L2-W05",
+      "goal_id": "lt-l2-w05",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w05/command-evidence.json",
+      "ledger_tuw_count": 7,
+      "ledger_tuw_ids": [
+        "LT-L2-W05-T01",
+        "LT-L2-W05-T02",
+        "LT-L2-W05-T03",
+        "LT-L2-W05-T04",
+        "LT-L2-W05-T05",
+        "LT-L2-W05-T06",
+        "LT-L2-W05-T07"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 7,
+      "covered_tuw_ids": [
+        "LT-L2-W05-T01",
+        "LT-L2-W05-T02",
+        "LT-L2-W05-T03",
+        "LT-L2-W05-T04",
+        "LT-L2-W05-T05",
+        "LT-L2-W05-T06",
+        "LT-L2-W05-T07"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W05-T07",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l2_w02_l2_w04_dms_and_storage_decisions": 1,
+        "blocked_waiting_on_l2_w04_dms_and_l2_w03_write_path": 1,
+        "blocked_waiting_on_l2_w04_email_filing": 1,
+        "blocked_waiting_on_l2_w02_permission_pipeline_and_l2_w04_matter": 1,
+        "blocked_waiting_on_t04": 1,
+        "blocked_waiting_on_l2_w02_and_pre_w05": 1,
+        "blocked_waiting_on_t01_through_t06_runtime_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L2-W06",
+      "goal_id": "lt-l2-w06",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w06/command-evidence.json",
+      "ledger_tuw_count": 6,
+      "ledger_tuw_ids": [
+        "LT-L2-W06-T01",
+        "LT-L2-W06-T02",
+        "LT-L2-W06-T03",
+        "LT-L2-W06-T04",
+        "LT-L2-W06-T05",
+        "LT-L2-W06-T06"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 6,
+      "covered_tuw_ids": [
+        "LT-L2-W06-T01",
+        "LT-L2-W06-T02",
+        "LT-L2-W06-T03",
+        "LT-L2-W06-T04",
+        "LT-L2-W06-T05",
+        "LT-L2-W06-T06"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W06-T06",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_human_canonical_status_decision": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 4,
+        "passed": 1
+      }
+    },
+    {
+      "wp_id": "LT-L2-W07",
+      "goal_id": "lt-l2-w07",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w07",
+      "command_evidence_path": "docs/goal-closeout/lt-l2-w07/command-evidence.json",
+      "ledger_tuw_count": 8,
+      "ledger_tuw_ids": [
+        "LT-L2-W07-T01",
+        "LT-L2-W07-T02",
+        "LT-L2-W07-T03",
+        "LT-L2-W07-T04",
+        "LT-L2-W07-T05",
+        "LT-L2-W07-T06",
+        "LT-L2-W07-T07",
+        "LT-L2-W07-T08"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 8,
+      "covered_tuw_ids": [
+        "LT-L2-W07-T01",
+        "LT-L2-W07-T02",
+        "LT-L2-W07-T03",
+        "LT-L2-W07-T04",
+        "LT-L2-W07-T05",
+        "LT-L2-W07-T06",
+        "LT-L2-W07-T07",
+        "LT-L2-W07-T08"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L2-W07-T08",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_runtime_harness_runner_script_launch_script_and_predecessors": 1,
+        "blocked_waiting_on_l2_w01_l2_w02_l2_w03_l2_w04_and_harness": 1,
+        "blocked_waiting_on_l2_w02_server_side_trust_boundary_and_harness": 1,
+        "blocked_waiting_on_l2_w01_l2_w03_durable_audit_and_write_paths": 1,
+        "blocked_waiting_on_harness_and_synthetic_marker_definition": 1,
+        "blocked_waiting_on_l2_w05_controls_and_prohibition_map": 1,
+        "blocked_waiting_on_t02_t03_t04_suites_and_mapping_artifact": 1,
+        "blocked_waiting_on_t01_through_t07_and_launch_integration_green": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W01",
+      "goal_id": "lt-l3-w01",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L3-W01-T01",
+        "LT-L3-W01-T02",
+        "LT-L3-W01-T03",
+        "LT-L3-W01-T04",
+        "LT-L3-W01-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L3-W01-T01",
+        "LT-L3-W01-T02",
+        "LT-L3-W01-T03",
+        "LT-L3-W01-T04",
+        "LT-L3-W01-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W01-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 5
+      }
+    },
+    {
+      "wp_id": "LT-L3-W02",
+      "goal_id": "lt-l3-w02",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w02/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L3-W02-T01",
+        "LT-L3-W02-T02",
+        "LT-L3-W02-T03",
+        "LT-L3-W02-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L3-W02-T01",
+        "LT-L3-W02-T02",
+        "LT-L3-W02-T03",
+        "LT-L3-W02-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W02-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_remote_repo_branch_protection_and_ci_workflow": 1,
+        "blocked_waiting_on_l3_w02_t01_l1_w06_hosting_and_container_definitions": 1,
+        "blocked_waiting_on_t02_l3_w03_network_boundary_and_production_authority": 1,
+        "blocked_waiting_on_t01_t02_t03_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W03",
+      "goal_id": "lt-l3-w03",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w03/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L3-W03-T01",
+        "LT-L3-W03-T02",
+        "LT-L3-W03-T03",
+        "LT-L3-W03-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L3-W03-T01",
+        "LT-L3-W03-T02",
+        "LT-L3-W03-T03",
+        "LT-L3-W03-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W03-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l1_w06_hosting_l3_w02_staging_and_proxy_tls_configuration": 1,
+        "blocked_waiting_on_staging_domain_proxy_or_api_policy_and_cors_implementation": 1,
+        "blocked_waiting_on_l1_w06_hosting_vault_selection_staging_runtime_and_audit_logs": 1,
+        "blocked_waiting_on_t01_t02_t03_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W04",
+      "goal_id": "lt-l3-w04",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w04/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L3-W04-T01",
+        "LT-L3-W04-T02",
+        "LT-L3-W04-T03",
+        "LT-L3-W04-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L3-W04-T01",
+        "LT-L3-W04-T02",
+        "LT-L3-W04-T03",
+        "LT-L3-W04-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W04-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l1_w06_l2_w01_l3_w02_and_worm_store_configuration": 1,
+        "blocked_waiting_on_t01_operational_worm_store_and_staging_sample": 1,
+        "blocked_waiting_on_l1_w06_l3_w02_l3_w03_and_store_infra": 1,
+        "blocked_waiting_on_t01_t02_t03_outputs_and_data_layer_map": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W05",
+      "goal_id": "lt-l3-w05",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w05/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L3-W05-T01",
+        "LT-L3-W05-T02",
+        "LT-L3-W05-T03",
+        "LT-L3-W05-T04",
+        "LT-L3-W05-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L3-W05-T01",
+        "LT-L3-W05-T02",
+        "LT-L3-W05-T03",
+        "LT-L3-W05-T04",
+        "LT-L3-W05-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W05-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "proposal_blocked_pending_owner_approval": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 3,
+        "draft_blocked_pending_rpo_rto_approval_and_restore_rehearsal": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W06",
+      "goal_id": "lt-l3-w06",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w06/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L3-W06-T01",
+        "LT-L3-W06-T02",
+        "LT-L3-W06-T03",
+        "LT-L3-W06-T04",
+        "LT-L3-W06-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L3-W06-T01",
+        "LT-L3-W06-T02",
+        "LT-L3-W06-T03",
+        "LT-L3-W06-T04",
+        "LT-L3-W06-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W06-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "decision_brief_blocked_pending_l1_w06_hosting_decision_and_owner_selection": 1,
+        "draft_blocked_pending_monitoring_stack_and_staging_runtime": 1,
+        "draft_blocked_pending_monitoring_stack_threshold_approval_and_alert_fire_test": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L3-W07",
+      "goal_id": "lt-l3-w07",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w07",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w07/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L3-W07-T01",
+        "LT-L3-W07-T02",
+        "LT-L3-W07-T03",
+        "LT-L3-W07-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L3-W07-T01",
+        "LT-L3-W07-T02",
+        "LT-L3-W07-T03",
+        "LT-L3-W07-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W07-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_ext_m365_admin_external_confirmation": 1,
+        "blocked_waiting_on_l1_w02_oq002_owner_decision_and_ext_m365_admin": 1,
+        "blocked_waiting_on_t01_t02_and_l3_w03_vault_boundary": 1,
+        "blocked_waiting_on_t03_and_admin_consent_export": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W08",
+      "goal_id": "lt-l3-w08",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w08",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w08/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L3-W08-T01",
+        "LT-L3-W08-T02",
+        "LT-L3-W08-T03",
+        "LT-L3-W08-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L3-W08-T01",
+        "LT-L3-W08-T02",
+        "LT-L3-W08-T03",
+        "LT-L3-W08-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W08-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_mat_dec_03_and_l1_w02_oq001_owner_decisions": 1,
+        "blocked_waiting_on_t01_and_l3_w07_admin_consent": 1,
+        "blocked_waiting_on_t02_provisioned_site_library_and_runtime_file_ref_path": 1,
+        "blocked_waiting_on_t01_t02_t03_outputs": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W09",
+      "goal_id": "lt-l3-w09",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w09",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w09/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L3-W09-T01",
+        "LT-L3-W09-T02",
+        "LT-L3-W09-T03",
+        "LT-L3-W09-T04",
+        "LT-L3-W09-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L3-W09-T01",
+        "LT-L3-W09-T02",
+        "LT-L3-W09-T03",
+        "LT-L3-W09-T04",
+        "LT-L3-W09-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W09-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l1_w02_prd8_2_l3_w07_app_registration_and_addin_app": 1,
+        "blocked_waiting_on_t01_l1_w10_pilot_roster_and_ext_m365_admin": 1,
+        "blocked_waiting_on_t02_l3_w08_file_ref_and_l2_w03_write_runtime": 1,
+        "blocked_waiting_on_t03_and_l3_w06_graph_monitoring_alerts": 1,
+        "blocked_waiting_on_t01_through_t04_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L3-W10",
+      "goal_id": "lt-l3-w10",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w10",
+      "command_evidence_path": "docs/goal-closeout/lt-l3-w10/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L3-W10-T01",
+        "LT-L3-W10-T02",
+        "LT-L3-W10-T03",
+        "LT-L3-W10-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L3-W10-T01",
+        "LT-L3-W10-T02",
+        "LT-L3-W10-T03",
+        "LT-L3-W10-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L3-W10-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l3_w07_entra_app_registration_admin_consent_and_policy_export": 1,
+        "blocked_waiting_on_t01_l2_w02_auth_runtime_and_staging_protected_api": 1,
+        "blocked_waiting_on_t02_l2_w04_domain_runtime_mapping_loader_and_audit_count_evidence": 1,
+        "blocked_waiting_on_t01_t02_t03_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L4-W01",
+      "goal_id": "lt-l4-w01",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l4-w01/command-evidence.json",
+      "ledger_tuw_count": 21,
+      "ledger_tuw_ids": [
+        "LT-L4-W01-T01",
+        "LT-L4-W01-T02",
+        "LT-L4-W01-T03",
+        "LT-L4-W01-T04",
+        "LT-L4-W01-T05",
+        "LT-L4-W01-T06",
+        "LT-L4-W01-T07",
+        "LT-L4-W01-T08",
+        "LT-L4-W01-T09",
+        "LT-L4-W01-T10",
+        "LT-L4-W01-T11",
+        "LT-L4-W01-T12",
+        "LT-L4-W01-T13",
+        "LT-L4-W01-T14",
+        "LT-L4-W01-T15",
+        "LT-L4-W01-T16",
+        "LT-L4-W01-T17",
+        "LT-L4-W01-T18",
+        "LT-L4-W01-T19",
+        "LT-L4-W01-T20",
+        "LT-L4-W01-T21"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 21,
+      "covered_tuw_ids": [
+        "LT-L4-W01-T01",
+        "LT-L4-W01-T02",
+        "LT-L4-W01-T03",
+        "LT-L4-W01-T04",
+        "LT-L4-W01-T05",
+        "LT-L4-W01-T06",
+        "LT-L4-W01-T07",
+        "LT-L4-W01-T08",
+        "LT-L4-W01-T09",
+        "LT-L4-W01-T10",
+        "LT-L4-W01-T11",
+        "LT-L4-W01-T12",
+        "LT-L4-W01-T13",
+        "LT-L4-W01-T14",
+        "LT-L4-W01-T15",
+        "LT-L4-W01-T16",
+        "LT-L4-W01-T17",
+        "LT-L4-W01-T18",
+        "LT-L4-W01-T19",
+        "LT-L4-W01-T20",
+        "LT-L4-W01-T21"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L4-W01-T21",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 15,
+        "draft_completed_pending_l1_w01_scope_decision": 2,
+        "draft_blocked_pending_mat_dec_03_storage_decision": 1,
+        "draft_blocked_pending_mat_dec_03_and_m365_decisions": 1,
+        "draft_completed_pending_l1_w01_scope_and_pre_w04_disposition": 1,
+        "draft_completed_pending_l1_w01_scope_and_l2_permission_runtime": 1
+      }
+    },
+    {
+      "wp_id": "LT-L4-W02",
+      "goal_id": "lt-l4-w02",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l4-w02/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L4-W02-T01",
+        "LT-L4-W02-T02",
+        "LT-L4-W02-T03",
+        "LT-L4-W02-T04",
+        "LT-L4-W02-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L4-W02-T01",
+        "LT-L4-W02-T02",
+        "LT-L4-W02-T03",
+        "LT-L4-W02-T04",
+        "LT-L4-W02-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L4-W02-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_wiring_roadmap_and_owner_decision_record": 1,
+        "blocked_waiting_on_t01_l2_w02_and_live_client_header_removal": 1,
+        "blocked_waiting_on_t02_l2_w02_l2_w04_and_live_default_verification": 1,
+        "blocked_waiting_on_t03_l2_w04_and_surface_count_evidence": 1,
+        "blocked_waiting_on_t01_t02_t03_t04_outputs": 1
+      }
+    },
+    {
+      "wp_id": "LT-L4-W03",
+      "goal_id": "lt-l4-w03",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l4-w03/command-evidence.json",
+      "ledger_tuw_count": 1,
+      "ledger_tuw_ids": [
+        "LT-L4-W03-T01"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 1,
+      "covered_tuw_ids": [
+        "LT-L4-W03-T01"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L4-W03-T01",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_owner_decision_real_role_date_basis_scope_and_approval_signature": 1
+      }
+    },
+    {
+      "wp_id": "LT-L4-W04",
+      "goal_id": "lt-l4-w04",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l4-w04/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L4-W04-T01",
+        "LT-L4-W04-T02",
+        "LT-L4-W04-T03",
+        "LT-L4-W04-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L4-W04-T01",
+        "LT-L4-W04-T02",
+        "LT-L4-W04-T03",
+        "LT-L4-W04-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L4-W04-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "passed_sample_harness_only": 1,
+        "blocked_waiting_on_l4_w01_product_screens_and_ia_outputs": 1,
+        "blocked_waiting_on_l4_w02_live_client_and_permission_gating_pattern": 1,
+        "blocked_waiting_on_t02_t03_full_suite": 1
+      }
+    },
+    {
+      "wp_id": "LT-L4-W05",
+      "goal_id": "lt-l4-w05",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l4-w05/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L4-W05-T01",
+        "LT-L4-W05-T02",
+        "LT-L4-W05-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L4-W05-T01",
+        "LT-L4-W05-T02",
+        "LT-L4-W05-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L4-W05-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_owner_language_policy_decision": 1,
+        "draft_blocked_pending_i18n_policy_decision_and_final_ui_copy_validation": 1,
+        "audit_blocked_pending_owner_i18n_policy_wave1_scope_and_source_copy_cleanup": 1
+      }
+    },
+    {
+      "wp_id": "LT-L4-W06",
+      "goal_id": "lt-l4-w06",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l4-w06/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L4-W06-T01",
+        "LT-L4-W06-T02",
+        "LT-L4-W06-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L4-W06-T01",
+        "LT-L4-W06-T02",
+        "LT-L4-W06-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L4-W06-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_runtime_screen_validation_and_l4_w06_t02_captures": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 1,
+        "draft_blocked_pending_l4_w06_t02_captures_walkthrough_and_final_link_check": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W01",
+      "goal_id": "lt-l5-w01",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w01/command-evidence.json",
+      "ledger_tuw_count": 10,
+      "ledger_tuw_ids": [
+        "LT-L5-W01-T01",
+        "LT-L5-W01-T02",
+        "LT-L5-W01-T03",
+        "LT-L5-W01-T04",
+        "LT-L5-W01-T05",
+        "LT-L5-W01-T06",
+        "LT-L5-W01-T07",
+        "LT-L5-W01-T08",
+        "LT-L5-W01-T09",
+        "LT-L5-W01-T10"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 10,
+      "covered_tuw_ids": [
+        "LT-L5-W01-T01",
+        "LT-L5-W01-T02",
+        "LT-L5-W01-T03",
+        "LT-L5-W01-T04",
+        "LT-L5-W01-T05",
+        "LT-L5-W01-T06",
+        "LT-L5-W01-T07",
+        "LT-L5-W01-T08",
+        "LT-L5-W01-T09",
+        "LT-L5-W01-T10"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W01-T10",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l2_w07_l3_w02_staging_profiles_and_harness_files": 1,
+        "blocked_waiting_on_t01_l2_w02_l4_w01_and_vg01_test_directory": 1,
+        "blocked_waiting_on_t01_l2_w04_l3_w04_and_vg02_test_directory": 1,
+        "blocked_waiting_on_t01_l2_w04_and_vg03_test_directory": 1,
+        "blocked_waiting_on_t01_l2_w05_l3_w08_and_vg04_test_directory": 1,
+        "blocked_waiting_on_t01_and_vg05_test_directory": 1,
+        "blocked_waiting_on_t01_and_vg06_test_directory": 1,
+        "blocked_waiting_on_t01_worm_audit_runtime_and_vg07_test_directory": 1,
+        "blocked_waiting_on_t02_through_t08_green_suites_and_run_all_script": 1,
+        "blocked_waiting_on_w01_w07_terminal_evidence_p0_p1_zero_and_owner_signature": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W02",
+      "goal_id": "lt-l5-w02",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w02/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L5-W02-T01",
+        "LT-L5-W02-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L5-W02-T01",
+        "LT-L5-W02-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W02-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l5_w01_harness_l2_w05_runtime_controls_and_ethical_wall_test_directory": 1,
+        "blocked_waiting_on_t01_override_runtime_approval_record_audit_record_and_expiry_reblock_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W03",
+      "goal_id": "lt-l5-w03",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w03/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L5-W03-T01",
+        "LT-L5-W03-T02",
+        "LT-L5-W03-T03",
+        "LT-L5-W03-T04",
+        "LT-L5-W03-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L5-W03-T01",
+        "LT-L5-W03-T02",
+        "LT-L5-W03-T03",
+        "LT-L5-W03-T04",
+        "LT-L5-W03-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W03-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l5_w01_harness_l2_w03_write_runtime_and_bypass_ai_automation_suite": 1,
+        "blocked_waiting_on_l5_w01_harness_l2_w05_runtime_controls_and_bypass_hr_suite": 1,
+        "blocked_waiting_on_l5_w01_harness_l3_w08_storage_decision_and_bypass_share_export_suite": 1,
+        "blocked_waiting_on_l3_w07_l3_w09_addin_manifest_scope_decision_and_scope_check_suite": 1,
+        "blocked_waiting_on_t01_t02_t03_t04_and_matrix_link_validation": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W04",
+      "goal_id": "lt-l5-w04",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w04/command-evidence.json",
+      "ledger_tuw_count": 5,
+      "ledger_tuw_ids": [
+        "LT-L5-W04-T01",
+        "LT-L5-W04-T02",
+        "LT-L5-W04-T03",
+        "LT-L5-W04-T04",
+        "LT-L5-W04-T05"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 5,
+      "covered_tuw_ids": [
+        "LT-L5-W04-T01",
+        "LT-L5-W04-T02",
+        "LT-L5-W04-T03",
+        "LT-L5-W04-T04",
+        "LT-L5-W04-T05"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W04-T05",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_ext_pentest_signed_roe_staging_test_accounts_and_l3_w02_l3_w03": 1,
+        "blocked_waiting_on_t01_l5_w01_t09_and_external_vendor_execution": 1,
+        "blocked_waiting_on_external_report_findings_adjudication_retest_and_security_acceptance_rerun": 1,
+        "blocked_waiting_on_l1_w03_policy_ratification_l3_w04_runtime_evidence_and_legal_reviewer_report": 1,
+        "blocked_waiting_on_t03_t04_evidence_map_and_residual_p0_p1_json": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W05",
+      "goal_id": "lt-l5-w05",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w05/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L5-W05-T01",
+        "LT-L5-W05-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L5-W05-T01",
+        "LT-L5-W05-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W05-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l5_w01_harness_l2_w01_persistence_l3_w04_worm_store_and_l3_w06_monitoring_job": 1,
+        "blocked_waiting_on_t01_audit_worm_mutation_suite_test_records_and_attempt_audit_reconciliation": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W06",
+      "goal_id": "lt-l5-w06",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w06/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L5-W06-T01",
+        "LT-L5-W06-T02",
+        "LT-L5-W06-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L5-W06-T01",
+        "LT-L5-W06-T02",
+        "LT-L5-W06-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W06-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "decision_brief_blocked_pending_owner_approval_l3_w06_slo_approval_and_runtime_harness": 1,
+        "harness_draft_ready_blocked_pending_owner_scale_approval_staging_load_and_t01_threshold_approval": 1,
+        "report_draft_blocked_pending_owner_thresholds_staging_run_and_performance_verdict": 1
+      }
+    },
+    {
+      "wp_id": "LT-L5-W07",
+      "goal_id": "lt-l5-w07",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w07",
+      "command_evidence_path": "docs/goal-closeout/lt-l5-w07/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L5-W07-T01",
+        "LT-L5-W07-T02",
+        "LT-L5-W07-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L5-W07-T01",
+        "LT-L5-W07-T02",
+        "LT-L5-W07-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L5-W07-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l3_w05_dr_runbook_l3_w06_alerting_and_staging_failure_injection_window": 1,
+        "blocked_waiting_on_l3_w05_backup_restore_runbook_approved_backup_artifact_and_staging_restore_window": 1,
+        "blocked_waiting_on_t01_t02_l3_w04_worm_store_index_runtime_and_search_permission_diff_harness": 1
+      }
+    },
+    {
+      "wp_id": "LT-L6-W01",
+      "goal_id": "lt-l6-w01",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l6-w01/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L6-W01-T01",
+        "LT-L6-W01-T02",
+        "LT-L6-W01-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L6-W01-T01",
+        "LT-L6-W01-T02",
+        "LT-L6-W01-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L6-W01-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_l3_w06_monitoring_stack_and_l6_w01_t02_sla_oncall": 1,
+        "decision_brief_blocked_pending_owner_approval_l1_w08_staffing_and_l3_w06_monitoring": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L6-W02",
+      "goal_id": "lt-l6-w02",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l6-w02/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L6-W02-T01",
+        "LT-L6-W02-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L6-W02-T01",
+        "LT-L6-W02-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L6-W02-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_l2_w02_permission_runtime_and_l1_w05_approval_governance": 1,
+        "draft_blocked_pending_support_channel_l4_w06_training_source_and_permission_demo": 1
+      }
+    },
+    {
+      "wp_id": "LT-L6-W03",
+      "goal_id": "lt-l6-w03",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l6-w03/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L6-W03-T01",
+        "LT-L6-W03-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L6-W03-T01",
+        "LT-L6-W03-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L6-W03-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_l1_w05_approval_governance_and_l5_w02_validation": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L6-W04",
+      "goal_id": "lt-l6-w04",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l6-w04/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L6-W04-T01",
+        "LT-L6-W04-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L6-W04-T01",
+        "LT-L6-W04-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L6-W04-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "decision_brief_blocked_pending_owner_approval_l1_w08_staffing_and_wave2_gate_inputs": 1,
+        "draft_blocked_pending_l6_w04_t01_reviewer_roster_and_sla_decision": 1
+      }
+    },
+    {
+      "wp_id": "LT-L6-W05",
+      "goal_id": "lt-l6-w05",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l6-w05/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L6-W05-T01",
+        "LT-L6-W05-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L6-W05-T01",
+        "LT-L6-W05-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L6-W05-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_l3_w02_cicd_deploy_rollback_pipeline": 1,
+        "tabletop_scaffold_blocked_pending_real_change_ci_deploy_regression_and_pipeline_rollback": 1
+      }
+    },
+    {
+      "wp_id": "LT-L6-W06",
+      "goal_id": "lt-l6-w06",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l6-w06/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L6-W06-T01",
+        "LT-L6-W06-T02",
+        "LT-L6-W06-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L6-W06-T01",
+        "LT-L6-W06-T02",
+        "LT-L6-W06-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L6-W06-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_l2_w03_events_and_l6_w06_t02_targets": 1,
+        "decision_brief_blocked_pending_owner_approval_and_l9_2_baseline_policy": 1,
+        "synthetic_collector_ready_blocked_pending_staging_collection_dashboard_publication_target_approval_and_24h_refresh": 1
+      }
+    },
+    {
+      "wp_id": "LT-L7-W01",
+      "goal_id": "lt-l7-w01",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l7-w01/command-evidence.json",
+      "ledger_tuw_count": 10,
+      "ledger_tuw_ids": [
+        "LT-L7-W01-T01",
+        "LT-L7-W01-T02",
+        "LT-L7-W01-T03",
+        "LT-L7-W01-T04",
+        "LT-L7-W01-T05",
+        "LT-L7-W01-T06",
+        "LT-L7-W01-T07",
+        "LT-L7-W01-T08",
+        "LT-L7-W01-T09",
+        "LT-L7-W01-T10"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 10,
+      "covered_tuw_ids": [
+        "LT-L7-W01-T01",
+        "LT-L7-W01-T02",
+        "LT-L7-W01-T03",
+        "LT-L7-W01-T04",
+        "LT-L7-W01-T05",
+        "LT-L7-W01-T06",
+        "LT-L7-W01-T07",
+        "LT-L7-W01-T08",
+        "LT-L7-W01-T09",
+        "LT-L7-W01-T10"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L7-W01-T10",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_l5_security_l5_worm_l6_operating_model_l1_w04_policy_effectiveness_and_real_environment_preflight": 1,
+        "blocked_waiting_on_t01_l7_entry_and_read_only_secure_store_file_server_inventory": 1,
+        "blocked_waiting_on_t01_l7_entry_ext_m365_admin_graph_read_scope_and_sharepoint_inventory": 1,
+        "blocked_waiting_on_t01_l7_entry_ext_m365_admin_graph_read_scope_and_mailbox_inventory": 1,
+        "blocked_waiting_on_t01_l7_entry_and_legacy_matter_register_extract": 1,
+        "blocked_waiting_on_t02_t05_inventory_and_human_oq_012_decision": 1,
+        "blocked_waiting_on_t05_t06_inventory_rule_and_human_sample_confirmation": 1,
+        "blocked_waiting_on_t02_t03_t07_acl_mapping_staging_checker_and_m365_storage_decision": 1,
+        "blocked_waiting_on_t02_t03_t04_t05_inventory_and_human_exclusion_judgment": 1,
+        "blocked_waiting_on_t04_t08_t09_all_inventory_mapping_rule_and_exclusion_artifacts": 1
+      }
+    },
+    {
+      "wp_id": "LT-L7-W02",
+      "goal_id": "lt-l7-w02",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l7-w02/command-evidence.json",
+      "ledger_tuw_count": 6,
+      "ledger_tuw_ids": [
+        "LT-L7-W02-T01",
+        "LT-L7-W02-T02",
+        "LT-L7-W02-T03",
+        "LT-L7-W02-T04",
+        "LT-L7-W02-T05",
+        "LT-L7-W02-T06"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 6,
+      "covered_tuw_ids": [
+        "LT-L7-W02-T01",
+        "LT-L7-W02-T02",
+        "LT-L7-W02-T03",
+        "LT-L7-W02-T04",
+        "LT-L7-W02-T05",
+        "LT-L7-W02-T06"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L7-W02-T06",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_lt_l7_w01_gl_mig_01_package_rp25_engine_runtime_and_staging_environment": 1,
+        "blocked_waiting_on_t01_engine_setup_pilot_scope_and_staging_real_data_policy": 1,
+        "blocked_waiting_on_t02_dryrun_outputs_hash_compare_acl_sample_and_audit_chain_verify": 1,
+        "blocked_waiting_on_t03_dryrun_verification_ext_pilot_team_and_temporary_staging_access": 1,
+        "blocked_waiting_on_t03_dryrun_state_l3_w05_rollback_runbook_and_staging_window": 1,
+        "blocked_waiting_on_t04_t05_verification_inspection_and_rollback_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L7-W03",
+      "goal_id": "lt-l7-w03",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l7-w03/command-evidence.json",
+      "ledger_tuw_count": 7,
+      "ledger_tuw_ids": [
+        "LT-L7-W03-T01",
+        "LT-L7-W03-T02",
+        "LT-L7-W03-T03",
+        "LT-L7-W03-T04",
+        "LT-L7-W03-T05",
+        "LT-L7-W03-T06",
+        "LT-L7-W03-T07"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 7,
+      "covered_tuw_ids": [
+        "LT-L7-W03-T01",
+        "LT-L7-W03-T02",
+        "LT-L7-W03-T03",
+        "LT-L7-W03-T04",
+        "LT-L7-W03-T05",
+        "LT-L7-W03-T06",
+        "LT-L7-W03-T07"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L7-W03-T07",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_waiting_on_lt_l7_w02_gl_mig_02_and_source_inventory_mapping_inputs": 1,
+        "blocked_waiting_on_t01_delta_runbook_and_l8_cutover_mapping": 1,
+        "blocked_waiting_on_lt_l7_w02_rollback_rehearsal_l3_w04_audit_store_and_production_authorization": 1,
+        "blocked_waiting_on_t03_preflight_ext_m365_admin_gl_mig_01_scope_and_production_backfill_approval": 1,
+        "blocked_waiting_on_t04_backfill_outputs_count_hash_sensitive_acl_and_duplicate_version_checks": 1,
+        "blocked_waiting_on_t01_delta_runbook_t04_backfill_baseline_and_legacy_channel_sample": 1,
+        "blocked_waiting_on_t02_t05_t06_and_rollback_ready_snapshot_evidence": 1
+      }
+    },
+    {
+      "wp_id": "LT-L7-W04",
+      "goal_id": "lt-l7-w04",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l7-w04/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L7-W04-T01",
+        "LT-L7-W04-T02",
+        "LT-L7-W04-T03",
+        "LT-L7-W04-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L7-W04-T01",
+        "LT-L7-W04-T02",
+        "LT-L7-W04-T03",
+        "LT-L7-W04-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L7-W04-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 4
+      }
+    },
+    {
+      "wp_id": "LT-L7-W05",
+      "goal_id": "lt-l7-w05",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l7-w05/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L7-W05-T01",
+        "LT-L7-W05-T02",
+        "LT-L7-W05-T03",
+        "LT-L7-W05-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L7-W05-T01",
+        "LT-L7-W05-T02",
+        "LT-L7-W05-T03",
+        "LT-L7-W05-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L7-W05-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 4
+      }
+    },
+    {
+      "wp_id": "LT-L7-W06",
+      "goal_id": "lt-l7-w06",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w06",
+      "command_evidence_path": "docs/goal-closeout/lt-l7-w06/command-evidence.json",
+      "ledger_tuw_count": 4,
+      "ledger_tuw_ids": [
+        "LT-L7-W06-T01",
+        "LT-L7-W06-T02",
+        "LT-L7-W06-T03",
+        "LT-L7-W06-T04"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 4,
+      "covered_tuw_ids": [
+        "LT-L7-W06-T01",
+        "LT-L7-W06-T02",
+        "LT-L7-W06-T03",
+        "LT-L7-W06-T04"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L7-W06-T04",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 4
+      }
+    },
+    {
+      "wp_id": "LT-L8-W01",
+      "goal_id": "lt-l8-w01",
+      "phase": "L8",
+      "evidence_base": "docs/goal-closeout/lt-l8-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l8-w01/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L8-W01-T01",
+        "LT-L8-W01-T02",
+        "LT-L8-W01-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "object",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L8-W01-T01",
+        "LT-L8-W01-T02",
+        "LT-L8-W01-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L8-W01-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "recorded": 2,
+        "local_acceptance_only_not_go_live_approval": 1
+      }
+    },
+    {
+      "wp_id": "LT-L8-W02",
+      "goal_id": "lt-l8-w02",
+      "phase": "L8",
+      "evidence_base": "docs/goal-closeout/lt-l8-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l8-w02/command-evidence.json",
+      "ledger_tuw_count": 10,
+      "ledger_tuw_ids": [
+        "LT-L8-W02-T01",
+        "LT-L8-W02-T02",
+        "LT-L8-W02-T03",
+        "LT-L8-W02-T04",
+        "LT-L8-W02-T05",
+        "LT-L8-W02-T06",
+        "LT-L8-W02-T07",
+        "LT-L8-W02-T08",
+        "LT-L8-W02-T09",
+        "LT-L8-W02-T10"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 10,
+      "covered_tuw_ids": [
+        "LT-L8-W02-T01",
+        "LT-L8-W02-T02",
+        "LT-L8-W02-T03",
+        "LT-L8-W02-T04",
+        "LT-L8-W02-T05",
+        "LT-L8-W02-T06",
+        "LT-L8-W02-T07",
+        "LT-L8-W02-T08",
+        "LT-L8-W02-T09",
+        "LT-L8-W02-T10"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L8-W02-T10",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "blocked_pending_human_acceptance": 1,
+        "blocked_pending_runtime_ready_evidence": 1,
+        "blocked_pending_production_security_rerun": 1,
+        "blocked_pending_dr_and_performance_evidence": 1,
+        "blocked_pending_m365_external_evidence": 1,
+        "blocked_pending_operations_drill_evidence": 1,
+        "blocked_pending_compliance_state_evidence": 1,
+        "blocked_pending_migration_evidence": 1,
+        "blocked_pending_governance_chain": 1,
+        "blocked_pending_owner_signoff": 1
+      }
+    },
+    {
+      "wp_id": "LT-L8-W03",
+      "goal_id": "lt-l8-w03",
+      "phase": "L8",
+      "evidence_base": "docs/goal-closeout/lt-l8-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l8-w03/command-evidence.json",
+      "ledger_tuw_count": 7,
+      "ledger_tuw_ids": [
+        "LT-L8-W03-T01",
+        "LT-L8-W03-T02",
+        "LT-L8-W03-T03",
+        "LT-L8-W03-T04",
+        "LT-L8-W03-T05",
+        "LT-L8-W03-T06",
+        "LT-L8-W03-T07"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 7,
+      "covered_tuw_ids": [
+        "LT-L8-W03-T01",
+        "LT-L8-W03-T02",
+        "LT-L8-W03-T03",
+        "LT-L8-W03-T04",
+        "LT-L8-W03-T05",
+        "LT-L8-W03-T06",
+        "LT-L8-W03-T07"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L8-W03-T07",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "partial_runbook_created_tabletop_blocked": 1,
+        "blocked_pending_owner_approval": 1,
+        "blocked_not_executed": 4,
+        "blocked_not_held": 1
+      }
+    },
+    {
+      "wp_id": "LT-L9-W01",
+      "goal_id": "lt-l9-w01",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w01",
+      "command_evidence_path": "docs/goal-closeout/lt-l9-w01/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L9-W01-T01",
+        "LT-L9-W01-T02",
+        "LT-L9-W01-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L9-W01-T01",
+        "LT-L9-W01-T02",
+        "LT-L9-W01-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L9-W01-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 3
+      }
+    },
+    {
+      "wp_id": "LT-L9-W02",
+      "goal_id": "lt-l9-w02",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w02",
+      "command_evidence_path": "docs/goal-closeout/lt-l9-w02/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L9-W02-T01",
+        "LT-L9-W02-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L9-W02-T01",
+        "LT-L9-W02-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L9-W02-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L9-W03",
+      "goal_id": "lt-l9-w03",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w03",
+      "command_evidence_path": "docs/goal-closeout/lt-l9-w03/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L9-W03-T01",
+        "LT-L9-W03-T02",
+        "LT-L9-W03-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L9-W03-T01",
+        "LT-L9-W03-T02",
+        "LT-L9-W03-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L9-W03-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "coverage_recorded_blocked_pending_required_evidence": 3
+      }
+    },
+    {
+      "wp_id": "LT-L9-W04",
+      "goal_id": "lt-l9-w04",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w04",
+      "command_evidence_path": "docs/goal-closeout/lt-l9-w04/command-evidence.json",
+      "ledger_tuw_count": 3,
+      "ledger_tuw_ids": [
+        "LT-L9-W04-T01",
+        "LT-L9-W04-T02",
+        "LT-L9-W04-T03"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 3,
+      "covered_tuw_ids": [
+        "LT-L9-W04-T01",
+        "LT-L9-W04-T02",
+        "LT-L9-W04-T03"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L9-W04-T03",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_l6_w04_roster_external_ai_prerequisites_regression_and_owner_signoff": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 2
+      }
+    },
+    {
+      "wp_id": "LT-L9-W05",
+      "goal_id": "lt-l9-w05",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w05",
+      "command_evidence_path": "docs/goal-closeout/lt-l9-w05/command-evidence.json",
+      "ledger_tuw_count": 2,
+      "ledger_tuw_ids": [
+        "LT-L9-W05-T01",
+        "LT-L9-W05-T02"
+      ],
+      "command_evidence_present": true,
+      "evidence_shape": "array",
+      "covered_tuw_count": 2,
+      "covered_tuw_ids": [
+        "LT-L9-W05-T01",
+        "LT-L9-W05-T02"
+      ],
+      "missing_tuw_count": 0,
+      "missing_tuw_ids": [],
+      "extra_tuw_evidence_count": 0,
+      "extra_tuw_evidence_ids": [],
+      "terminal_tuw": "LT-L9-W05-T02",
+      "terminal_tuw_covered": true,
+      "covered_status_counts": {
+        "draft_blocked_pending_wave2_gate_owner_decisions_external_identity_hr_sensitivity_and_feature_signoff": 1,
+        "coverage_recorded_blocked_pending_required_evidence": 1
+      }
+    }
+  ],
+  "findings": []
+}

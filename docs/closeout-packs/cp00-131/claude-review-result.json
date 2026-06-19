@@ -1,0 +1,113 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-131",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "5efca4b7-8122-4ba6-98cc-ca68f7adabd6",
+    "uuid": "34f6a347-d6a8-4012-b57a-d0df563640fe",
+    "total_cost_usd": 0.7700937500000001,
+    "duration_ms": 206940,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Direct no-write unit-test loop omits three flags that are only enforced by the coverage validator",
+        "file": "packages/authz/test/authz.test.js",
+        "evidence": "The per-profile loop in test \"CP00-131 verdict, approval, validation, and harness rows stay no-write and reference-only\" asserts ~19 no-write flags but does not directly assert executes_analytics_query, executes_export_download, or unauthorized_count_exposed. All three are still enforced via validatePermissionKernelCp131Coverage() (asserted through coverage.valid in the catalog test) and the per-profile loop in scripts/validate-rp02-permission-kernel-contract.mjs.",
+        "recommendation": "Optional symmetry only: add the three missing assertions to the direct test. Non-blocking, since the values are hard-set to false in freezeNoWriteResult and enforced by both the coverage validator and the contract validation script."
+      }
+    ],
+    "blocks_pack_closeout": false,
+    "recommendation": "Approve CP00-131 for closeout. No P0/P1/P2 findings; the single P3 is informational and already compensated by existing coverage.",
+    "rationale": "Scope and units: CP131_UNITS defines exactly 10 frozen rows mapped to RP02.P08.M06.S08-S17 (indices 8-17), covering all 10 required deliverables — audit summary receipt, no-real-data receipt, Claude dependency marker, human approval marker, PASS, PASS_WITH_FINDINGS, BLOCK, evidence template, validation command check, and harness boundary note. Domain counts (evidence_receipt 3 / review_dependency 1 / verdict 6) and deliverable counts (hermes_evidence 3 / claude_review 1 / implementation 6) match the manifest, coverage validator, tests, and contract script. Inheritance: the module imports CP130's contract/boundary/case functions and asserts inherited_result_count===10, permission_summary_reference_only, command_result_no_raw_output, and CP130's handoff to CP00-131 — self-guarding the inheritance claim. Synthetic/no-write: every row carries synthetic_only/no_real_data true and product_state_effect 'none'; freezeNoWriteResult hard-sets all 19 no-write flags false; CP131_NO_WRITE_ATTESTATION mirrors the contract JSON's no_write_attestation, and the validator/script verify both source and contract sides are false. Reference-only behaviors verified: audit/no-real-data receipts emit no ledger entry, persist nothing, and render no hidden template fields; Claude dependency marker sets executes_claude_review false with exactly_one_valid_pack_review_required true; human approval marker sets grants_human_approval/marks_production_ready false; verdict semantics are metadata-only with block_prevents_production_ready and pass_with_findings_requires_adjudication; evidence template, validation command check (command_executed_by_runtime/raw_output_disclosed false), and harness boundary note (harness_runtime_invoked/writes_hermes_runtime false) are all inert. The 10 declared hidden_source_fields are never populated in any result; hidden_field_names_exposed is false. No runtime UI/API routes, policy mutation, audit/product/database writes, idempotency persistence, locks, retries, rollback, compensation, export/share, AI/analytics, LDIP, or HRX split are introduced — replay_command and Hermes command_anchors are inert reference strings. Functions are pure (no fs/network/db/process side effects); unknown case IDs fail closed. Contract schema bumped v0.24→v0.25, current_pack advanced to CP00-131 with the updated production_ready flag, CP130's section preserved, and handoff fixed to CP00-132 / RP02.P08.M06.S18 consistently across contract, code, README, and tests.",
+    "source_overall_verdict": "pass"
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 206940,
+    "duration_api_ms": 208811,
+    "ttft_ms": 190621,
+    "num_turns": 1,
+    "result": "## CP00-131 Pack-Level Claude Review\n\nI reviewed the staged diff for the RP02 Permission Kernel Risk A Hermes evidence synthetic fixture verdict boundary pack. The pack is metadata-only, reference-only, and no-write across all 10 planned units, inherits CP130 correctly, and is fully self-validated. No blocking issues.\n\n```json\n{\n  \"overall_verdict\": \"PASS\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"Direct no-write unit-test loop omits three flags that are only enforced by the coverage validator\",\n      \"file\": \"packages/authz/test/authz.test.js\",\n      \"evidence\": \"The per-profile loop in test \\\"CP00-131 verdict, approval, validation, and harness rows stay no-write and reference-only\\\" asserts ~19 no-write flags but does not directly assert executes_analytics_query, executes_export_download, or unauthorized_count_exposed. All three are still enforced via validatePermissionKernelCp131Coverage() (asserted through coverage.valid in the catalog test) and the per-profile loop in scripts/validate-rp02-permission-kernel-contract.mjs.\",\n      \"recommendation\": \"Optional symmetry only: add the three missing assertions to the direct test. Non-blocking, since the values are hard-set to false in freezeNoWriteResult and enforced by both the coverage validator and the contract validation script.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve CP00-131 for closeout. No P0/P1/P2 findings; the single P3 is informational and already compensated by existing coverage.\",\n  \"rationale\": \"Scope and units: CP131_UNITS defines exactly 10 frozen rows mapped to RP02.P08.M06.S08-S17 (indices 8-17), covering all 10 required deliverables — audit summary receipt, no-real-data receipt, Claude dependency marker, human approval marker, PASS, PASS_WITH_FINDINGS, BLOCK, evidence template, validation command check, and harness boundary note. Domain counts (evidence_receipt 3 / review_dependency 1 / verdict 6) and deliverable counts (hermes_evidence 3 / claude_review 1 / implementation 6) match the manifest, coverage validator, tests, and contract script. Inheritance: the module imports CP130's contract/boundary/case functions and asserts inherited_result_count===10, permission_summary_reference_only, command_result_no_raw_output, and CP130's handoff to CP00-131 — self-guarding the inheritance claim. Synthetic/no-write: every row carries synthetic_only/no_real_data true and product_state_effect 'none'; freezeNoWriteResult hard-sets all 19 no-write flags false; CP131_NO_WRITE_ATTESTATION mirrors the contract JSON's no_write_attestation, and the validator/script verify both source and contract sides are false. Reference-only behaviors verified: audit/no-real-data receipts emit no ledger entry, persist nothing, and render no hidden template fields; Claude dependency marker sets executes_claude_review false with exactly_one_valid_pack_review_required true; human approval marker sets grants_human_approval/marks_production_ready false; verdict semantics are metadata-only with block_prevents_production_ready and pass_with_findings_requires_adjudication; evidence template, validation command check (command_executed_by_runtime/raw_output_disclosed false), and harness boundary note (harness_runtime_invoked/writes_hermes_runtime false) are all inert. The 10 declared hidden_source_fields are never populated in any result; hidden_field_names_exposed is false. No runtime UI/API routes, policy mutation, audit/product/database writes, idempotency persistence, locks, retries, rollback, compensation, export/share, AI/analytics, LDIP, or HRX split are introduced — replay_command and Hermes command_anchors are inert reference strings. Functions are pure (no fs/network/db/process side effects); unknown case IDs fail closed. Contract schema bumped v0.24→v0.25, current_pack advanced to CP00-131 with the updated production_ready flag, CP130's section preserved, and handoff fixed to CP00-132 / RP02.P08.M06.S18 consistently across contract, code, README, and tests.\"\n}\n```\n\nI did not run any commands or modify any files; this was a read-only review of the staged diff.",
+    "stop_reason": "end_turn",
+    "session_id": "5efca4b7-8122-4ba6-98cc-ca68f7adabd6",
+    "total_cost_usd": 0.7700937500000001,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 38639,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 20105,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 38639,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 20105,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 38639,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 38639
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 24326,
+        "outputTokens": 23,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.024441,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 20105,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 38639,
+        "webSearchRequests": 0,
+        "costUSD": 0.7456527500000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "34f6a347-d6a8-4012-b57a-d0df563640fe"
+  }
+}

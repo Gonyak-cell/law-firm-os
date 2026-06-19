@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-L1-W09",
+  "title": "roadmap conflict matrix",
+  "created_at": "2026-06-18T14:47:32Z",
+  "status": "t01_passed_wp_open_pending_human_authority_decision",
+  "phase": "L1",
+  "gate_binding": [
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W09-T02",
+  "artifacts": [
+    "docs/launch/roadmap-conflict-matrix.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w09/packet.json",
+    "docs/goal-closeout/lt-l1-w09/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w09/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w09/adjudication.md",
+    "docs/goal-closeout/lt-l1-w09/construction-inspection.json"
+  ],
+  "current_status": {
+    "matrix_file_exists": true,
+    "r0_r14_rows": 15,
+    "conflict_rows_with_resolution_options_missing": 0,
+    "l1_9_decision_row_created": false,
+    "authoritative_roadmap_decision_present": false,
+    "t01_passed": true,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

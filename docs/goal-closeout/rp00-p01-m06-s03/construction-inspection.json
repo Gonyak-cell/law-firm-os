@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M06.S03",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Tenant scope field",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "inspected_at": "2026-06-04T04:50:14Z",
+  "verdict": "PASS",
+  "status": "PASS",
+  "production_ready": true,
+  "control_plane_synthetic_fixture_set_tenant_scope_verified": true,
+  "tenant_scope_policy_verified": "CONTROL_PLANE_SYNTHETIC_FIXTURE_SET_TENANT_SCOPE_POLICY",
+  "tenant_field_verified": "tenant_id",
+  "stable_prefix_verified": "lfos_",
+  "canonical_pattern_verified": "^lfos_[a-z0-9]+(?:_[a-z0-9]+)*$",
+  "normalization_helper_verified": "normalizeControlPlaneSyntheticFixtureSetTenantId",
+  "validation_helper_verified": "validateControlPlaneSyntheticFixtureSetTenantId",
+  "same_tenant_assertion_verified": "assertControlPlaneSyntheticFixtureSetTenantScope",
+  "cross_tenant_rejection_verified": true,
+  "stored_whitespace_rejection_verified": true,
+  "synthetic_fixture_tenant_scope_record_verified": true,
+  "identifier_record_matches": true,
+  "tenant_record_matches": true,
+  "completes_synthetic_fixture_set": true,
+  "next_subphase_verified": "RP00.P01.M07.S01",
+  "registry_exposes_fixture_set_tenant_scope_policy": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "does_not_create_real_fixture_data": true,
+  "does_not_complete_test_and_golden_case_set": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "Next boundary recorded as RP00.P01.M07.S01; no sensitive production action, real fixture import, Test And Golden Case Set completion, RP00.P01 closeout, or RP00 closeout is approved by this tenant-scope-only subphase.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "adjudicated",
+    "findings": [
+      {
+        "id": "FS-S03-001",
+        "severity": "P3_NOTE",
+        "title": "Disposition status consistency could not be verified from diff",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "final_validation_rerun_required_and_recorded"
+      },
+      {
+        "id": "FS-S03-002",
+        "severity": "P3_NOTE",
+        "title": "Redundant prefix guard",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_intentional_error_message_clarity"
+      },
+      {
+        "id": "FS-S03-003",
+        "severity": "P3_NOTE",
+        "title": "Dead gated S02 registry-nextSubphase branch",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_nonblocking_historical_invariant_check"
+      },
+      {
+        "id": "FS-S03-004",
+        "severity": "P3_NOTE",
+        "title": "Uppercase test nuance",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_adequate_negative_coverage"
+      }
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M08.S01",
+  "source_micro_phase_id": "RP00.P01.M08",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only",
+    "session_id": "6f88e174-3e29-4f29-8c1a-c6903e3210c1",
+    "uuid": "20d7e186-162e-4818-9965-e62ac546c940",
+    "initial_uuid": "c51b94de-c616-4885-aeae-4511798dff00",
+    "total_cost_usd": 0.8746685,
+    "duration_ms": 228003,
+    "duration_api_ms": 229866,
+    "num_turns": 2,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "session_continuation_used_to_complete_review": true,
+    "initial_raw_result_path": "/tmp/lfos-rp00-p01-m08-s01-claude-review.json",
+    "raw_result_path": "/tmp/lfos-rp00-p01-m08-s01-claude-review-final.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "layout_only": true,
+    "does_not_complete_packet_identifier": true,
+    "does_not_complete_tenant_scope": true,
+    "does_not_mutate_entity_registry": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "handoff_to_next_subphase": "RP00.P01.M08.S02",
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "Contract did not mirror packageRoot/packageManifest fields",
+        "status": "fixed",
+        "disposition": "The contract layout_policy now mirrors package_root and package_manifest, and the RP00 validator checks those fields against the model layout constant."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "Unit test did not deep-check evidenceSummaryFields",
+        "status": "fixed",
+        "disposition": "The dedicated S01 layout test now asserts evidenceSummaryFields exactly."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "title": "Registry exposure test duplicates some dedicated layout coverage",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The redundancy is intentional closeout coverage for registry exposure and follows the existing control-plane registry test pattern."
+      },
+      {
+        "id": "CB-1",
+        "severity": "CB",
+        "title": "S01 evidence artifacts must exist before production_ready",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "Evidence artifacts are materialized in the S01 evidence root and verified by npm run rp00:control-plane:validate."
+      },
+      {
+        "id": "CB-2",
+        "severity": "CB",
+        "title": "Weighted ledger must contain RP00.P01.M08.S01",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "The weighted ledger validation and RP00 validator confirm RP00.P01.M08.S01 exists with H00/C00 refs."
+      },
+      {
+        "id": "CB-3",
+        "severity": "CB",
+        "title": "S11 closeout evidence must remain intact",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "S11 remains in requiredClosedSubphases and is enforced by RP00 validation."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude approved the S01 layout-only slice with no P0/P1/P2, no states.js or entity registry mutation, no real data, no product-state writes, and handoff to RP00.P01.M08.S02. P3-1 and P3-2 were fixed; P3-3 is accepted as harmless redundancy; closeout blockers are closed by evidence."
+}

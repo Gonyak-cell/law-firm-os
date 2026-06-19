@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-895",
+  "normalized_at": "2026-06-17T14:17:08.359Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-895/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-895/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-895/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-895/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "13bd02db-529b-4589-b716-2934a02dd2c1",
+    "uuid": "70317a8e-cf9f-46fe-ae39-21d4fa47ecb5",
+    "total_cost_usd": 2.1585465,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 10727,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-895 is a descriptor-only RP29 Commercial Readiness review-packet tail (RP29.P09.M09.S04-RP29.P09.M09.S13, risk A, 10 units). Direct read-only inspection supports the pack's descriptor-verified claim and confirms the production_ready claim is NOT overstated: manifest, command-evidence, construction-inspection, adjudication, and claude-review-result all consistently report production_ready=false / runtime_ready=false / pending_review (the production_ready_flag string is a descriptor-verification label, not a boolean production_ready=true). VERIFIED BY SOURCE INSPECTION: (1) COMMERCIAL_CP895_PACK_BINDING (registry.js:439) matches the baseline exactly - risk A, 10 units, range S04-S13, upstream CP00-894, next CP00-896, next_subphase RP29.P09.M09.S14, flag commercial_readiness_review_packet_tail_descriptor_verified; (2) COMMERCIAL_CP895_REQUIREMENTS deliverable_counts {security_audit:1,test:1,ui:1,implementation:6,claude_review:1}=10, phase_counts {RP29.P09:10}, micro {RP29.P09.M09:10}, micro_title {Claude Review Packet:10} match the prompt distributions exactly; required section rows = COMMERCIAL_REVIEW_PACKET_ROWS.slice(3,13), i.e. the 10 titles Audit completeness/Missing test/UI leak/Downstream readiness/Risk register/Severity taxonomy/Go-no-go/Finding routing/Human approval/Claude review packet, picking up cleanly after CP894's slice(0,3); (3) the descriptor (registry.js:4476) sets authority_boundary.claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-896, and createReviewPacketSectionRows (registry.js:2327) hard-sets every row descriptor_only=true with runtime_execution/permission_decision_written/audit_event_written/runtime_receipt_emitted/real_client_data_included/credential_or_secret_included all false, plus command_rerun_executes=false, claude_is_final_approval=false, human_final_approval_required=true; (4) validators.js (2867-2993) enforces coverage drift, per-row no-write/no-runtime/no-secret, descriptor type, capabilities, safety gates, Hermes/Claude packet shape, and contract projection, and scripts/validate-rp29-commercial-readiness-contract.mjs is fail-closed (process.exit(1) on any drift, full CP873->CP895 upstream/next chain checked); (5) model.test.js:959-1012 covers binding/coverage/descriptor/contract-projection/compatibility with errors asserted empty; (6) contracts/commercial-readiness-contract.json current_pack & latest_pack=CP00-895, latest_projection.descriptor=CommercialCp895ReviewPacketTailDescriptor with the same authority_boundary, and the alias contract points to the canonical contract with latest_pack_id=CP00-895; (7) Hermes patterns are review packet/receipt descriptors only (emits_runtime_receipt=false) - no product-runtime execution; (8) Claude is correctly read-only and non-final-approver. CP178+ HARDENING CONFIRMED: the first pack-level review CLI attempt failed with 'API Error: Stream idle timeout - partial response received' (is_error=true, status=1) and was correctly normalized to invalid_review (review-receipt.json:5, invalid_reason auth_or_cli_error; structured_output_missing; parsed_review missing), not counted (readiness review_attempt_counted=false; manifest valid_review_receipts=[], exactly_one_valid_pack_level_claude_review_run=false), and archived to invalid-attempt-01-*.json; a subsequent auth-preflight passed. Changed-file scope is clean: the dirty modified files map to active_pack_implementation_refs, and unrelated dirty/untracked files (progress-control-room, workbook/*, LDIP review result, docx, new-session-handoff) are correctly excluded and did not influence this verdict. PROVENANCE: I inspected source/artifacts directly via Read/Grep/Glob but, being read-only, did not re-run any command; the passing exit codes in command-evidence.json are agent-reported. No P0/P1/P2 defects found. Two P3 advisories: (ADV-01) the full 10-command deterministic validation ladder and human final approval are downstream gates not yet recorded (command-evidence shows only initial targeted validations passed, gate_outcome=pending_pack_review_and_full_validation), so this read-only PASS is evidence-scoped and pack closeout/commit remains correctly blocked_until_review_and_full_validation; (ADV-02) documents the quarantined failed CLI attempt for traceability. blocks_goal_closeout=false: this CP keeps runtime/enterprise-trust explicitly closed and does not claim them, so the expected human-approval boundary is outside this receipt.",
+    "findings": [
+      {
+        "id": "CP895-ADV-01",
+        "severity": "P3",
+        "title": "Full deterministic validation ladder and human approval are downstream gates not yet recorded; PASS is evidence-scoped",
+        "file": "docs/closeout-packs/cp00-895/command-evidence.json",
+        "line": 9,
+        "details": "command-evidence.json records only initial targeted validations as passed (commercial_syntax_check_initial, commercial_model_service_tests_initial, rp29_commercial_validate_initial - all exit_code 0), with status=initial_validation_passed_pending_review, gate_outcome=pending_pack_review_and_full_validation, and hermes_gate.status=pending_full_ladder. The full 10-command ladder expected before closeout (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded as passing. This is by design (manifest commit_policy=blocked_until_review_and_full_validation and pack_level_claude_review precedes full validation), and the pack honestly reports production_ready=false, so there is NO overclaim. As a read-only reviewer I could not re-run these commands; the recorded exit codes are agent-reported and not independently re-executed.",
+        "recommendation": "Before promoting production_ready or committing closeout, ensure the full deterministic validation ladder passes and is recorded, and that human final approval is obtained. Treat this read-only PASS as scoped to the descriptor/implementation/validator/test/contract evidence inspected, not as clearance of the downstream validation and approval gates.",
+        "post_review_disposition": "Expected by design and non-blocking for this read-only review verdict; tracked by the pack's own commit_policy (blocked_until_review_and_full_validation) and authority boundary. Does not affect blocks_pack_closeout or blocks_goal_closeout."
+      },
+      {
+        "id": "CP895-ADV-02",
+        "severity": "P3",
+        "title": "First pack-level review CLI attempt failed (API stream idle timeout) and was correctly quarantined as invalid_review (CP178+ hardening confirmed)",
+        "file": "artifacts/closeout-pack-claude-review/cp00-895/review-receipt.json",
+        "line": 5,
+        "details": "raw-output.json captures an earlier claude CLI run that returned a result wrapper with is_error=true and result='API Error: Stream idle timeout - partial response received' (status=1, no schema-conformant review JSON). The harness correctly normalized this to status=invalid_review / valid_review=false / closeout_eligible=false with invalid_reason 'auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing', archived it to invalid-attempt-01-raw-output.json and invalid-attempt-01-review-receipt.json, did not count it (readiness-report.json review_attempt_counted=false; manifest valid_review_receipts=[], exactly_one_valid_pack_level_claude_review_run=false), and a follow-up auth-preflight passed (exit_code 0, valid JSON). This is informational/positive: it confirms the CP178+ requirement to reject auth/CLI errors, 0-effective-output, and missing required fields as valid review evidence is functioning. Provenance: this verdict is produced by independent read-only inspection; I did not re-run any command.",
+        "recommendation": "No action required. Retain the invalid-attempt artifacts for audit traceability and ensure exactly one valid review receipt (this review) plus the full validation ladder gate pack closeout.",
+        "post_review_disposition": "Correctly-handled non-defect recorded for traceability; the failed attempt is quarantined and uncounted. Does not affect blocks_pack_closeout or blocks_goal_closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

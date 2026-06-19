@@ -1,0 +1,81 @@
+{
+  "subphase_id": "RP00.P02.M04.S02",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Request normalization",
+  "status": "production_ready",
+  "created_at": "2026-06-05T16:27:27Z",
+  "deliverable_type": "contract",
+  "implementation_summary": [
+    "Added the control-plane Claude review Request normalization slice for RP00.P02.M04.S02.",
+    "The S02 policy, normalized-field registry, normalizer module, service function, validator, synthetic fixture, contract definition, README, and RP00 validator bind a frozen metadata-only claude_review request after RP00.P02.M04.S01.",
+    "The normalizer requires the RP00.P02.M04.S01 service entrypoint contract to be production_ready and carries RP00.P02.M03.S20 Hermes Validation denied-path evidence refs forward into the normalized request.",
+    "The normalized request captures tenant, actor, resource, Matter, permission decision, audit event, review context, required evidence, acceptance gate, model, effort, and read-only metadata without executing service logic.",
+    "The normalizer enforces claude-opus-4-8, effort max, read-only review, 10 review contexts, 5 required evidence refs, and 24 acceptance gates inherited from the S01 contract.",
+    "Unsafe claims fail closed, including runtime Claude invocation, review queue writes, review assignment writes, review notification writes, service execution, runtime route creation, audit writes, product-state writes, human approval bypass, Hermes/Claude bypass, tenant-boundary bypass, and source microphase completion.",
+    "The dedicated service tests prove policy binding, frozen normalized metadata, unsafe-input fail-closed behavior, normalizer no-write boundaries, and synthetic fixture parity.",
+    "The boundary is metadata-only: it does not execute service logic, create runtime routes, invoke Claude at runtime, write review queues, write review assignments, send review notifications, append audit ledgers, write audit events, mutate registries, replace human approval, write storage, write databases, or persist product state.",
+    "RP00.P02.M04 remains open after S02 and hands off to RP00.P02.M04.S03 Tenant boundary precheck; RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m04-s02/packet.json",
+    "docs/goal-closeout/rp00-p02-m04-s02/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m04-s02/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m04-s02/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m04-s02/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 234,
+    "full_test_count": 318,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s02_evidence_files"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "858eefaf-1d7a-4462-8542-2011fed27a9d",
+    "uuid": "40e98f7b-f523-46e6-ab19-2a84213d4543",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_adjudication": "GO",
+    "production_ready_verdict_after_adjudication": "GO",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 4
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "none",
+    "p3_status": "informational_deferred_with_explicit_boundary",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": false,
+    "completed_micro_phase_id": null,
+    "next_micro_phase_id": "RP00.P02.M04",
+    "next_subphase": "RP00.P02.M04.S03",
+    "does_not_complete_RP00_P02_M04": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M04.S03"
+}

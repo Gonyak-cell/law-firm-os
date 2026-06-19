@@ -1,0 +1,96 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L8-W03",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_cutover_templates_and_boundaries_recorded",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "waiver_counts_as_valid_review": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L8-W03-T01",
+      "title": "Cutover runbook and tabletop",
+      "status": "partial_runbook_created_tabletop_blocked",
+      "artifact": "docs/launch/cutover-runbook.md"
+    },
+    {
+      "tuw_id": "LT-L8-W03-T02",
+      "title": "Rollback criteria decision",
+      "status": "blocked_pending_owner_approval",
+      "artifact": "docs/launch/cutover-rollback-criteria.md"
+    },
+    {
+      "tuw_id": "LT-L8-W03-T03",
+      "title": "Freeze and final delta",
+      "status": "blocked_not_executed",
+      "artifact": "docs/launch/cutover-execution-log.md"
+    },
+    {
+      "tuw_id": "LT-L8-W03-T04",
+      "title": "Integrity verification and health check",
+      "status": "blocked_not_executed",
+      "artifact": "docs/launch/cutover-execution-log.md"
+    },
+    {
+      "tuw_id": "LT-L8-W03-T05",
+      "title": "Go/no-go meeting",
+      "status": "blocked_not_held",
+      "artifact": "docs/launch/go-no-go-decision.md"
+    },
+    {
+      "tuw_id": "LT-L8-W03-T06",
+      "title": "Company-wide opening",
+      "status": "blocked_not_executed",
+      "artifact": "docs/launch/company-wide-rollout-record.md"
+    },
+    {
+      "tuw_id": "LT-L8-W03-T07",
+      "title": "Forty-eight hour watch and closeout",
+      "status": "blocked_not_executed",
+      "artifact": "docs/launch/cutover-execution-log.md"
+    }
+  ],
+  "commands": [
+    {
+      "id": "runbook_step_count",
+      "command": "rg -n \"^## Step [1-7] -\" docs/launch/cutover-runbook.md",
+      "exit_code": 0,
+      "match_count": 7,
+      "writes_product_state": false
+    },
+    {
+      "id": "cutover_docs_exist",
+      "command": "ls docs/launch/cutover-runbook.md docs/launch/cutover-rollback-criteria.md docs/launch/cutover-execution-log.md docs/launch/go-no-go-decision.md docs/launch/company-wide-rollout-record.md",
+      "exit_code": 0,
+      "file_count": 5,
+      "writes_product_state": false
+    },
+    {
+      "id": "blocked_boundary_scan",
+      "command": "rg -n \"Status: blocked|blocked_not|blocked_pending|No production|No go/no-go|No Entra\" docs/launch/cutover-runbook.md docs/launch/cutover-rollback-criteria.md docs/launch/cutover-execution-log.md docs/launch/go-no-go-decision.md docs/launch/company-wide-rollout-record.md",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L8-W03.",
+    "This record does not execute cutover.",
+    "This record does not create owner approval.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ],
+  "phase": "L8"
+}

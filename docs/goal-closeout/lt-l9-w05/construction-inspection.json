@@ -1,0 +1,22 @@
+{
+  "work_package_id": "LT-L9-W05",
+  "inspected_at": "2026-06-18T12:21:08Z",
+  "verdict": "BLOCKED_GATE_DEFINITION_ACCEPTED",
+  "production_ready": false,
+  "quality_gates": {
+    "wave3_opening_gate_exists": true,
+    "wave3_gate_verdict_exists": true,
+    "feature_group_count": 5,
+    "portal_precondition_count": 5,
+    "hr_precondition_count": 5,
+    "wave3_feature_enabled": false,
+    "owner_signoff_present": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "portal_external_access_enabled": false,
+    "hr_real_data_enabled": false,
+    "human_approval_replaced": false
+  }
+}

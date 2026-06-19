@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.launch-manual-evidence-completion-path-audit.v0.1",
+  "generated_at": "2026-06-19T01:29:13.027Z",
+  "source_refs": [
+    "docs/launch/launch-manual-evidence-intake-register.json",
+    "docs/launch/launch-manual-evidence-intake-validation.json",
+    "docs/launch/launch-evidence-acceptance-matrix.json",
+    "docs/launch/launch-evidence-acceptance-matrix-validation.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "audits_completion_path_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "pending_rows_count_as_completion_evidence": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "manual_intake_validation_pass": true,
+    "acceptance_matrix_validation_pass": true,
+    "total_manual_intake_row_count": 36,
+    "total_acceptance_row_count": 36,
+    "gate_manual_intake_row_count": 31,
+    "gate_acceptance_row_count": 31,
+    "l9_manual_intake_row_count": 5,
+    "l9_acceptance_row_count": 5,
+    "pending_manual_intake_row_count": 36,
+    "pending_acceptance_row_count": 36,
+    "evidence_satisfied_manual_intake_row_count": 0,
+    "evidence_satisfied_acceptance_row_count": 0,
+    "owner_deferred_manual_intake_row_count": 0,
+    "owner_deferred_acceptance_row_count": 0,
+    "missing_intake_acceptance_row_count": 0,
+    "gate_evidence_satisfied_manual_intake_row_count": 0,
+    "gate_evidence_satisfied_acceptance_row_count": 0,
+    "l9_evidence_satisfied_manual_intake_row_count": 0,
+    "l9_evidence_satisfied_acceptance_row_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "path_projection": {
+    "go_live_evidence_completion_path_ready": false,
+    "l9_evidence_completion_path_ready": false,
+    "all_evidence_completion_paths_ready": false,
+    "owner_deferred_rows_require_coverage": false
+  },
+  "findings": []
+}

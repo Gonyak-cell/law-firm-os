@@ -1,0 +1,37 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.request.v0.1",
+  "pack_id": "CP00-218",
+  "created_at": "2026-06-10T08:11:18.577Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "tools_string": "Read,Grep,Glob",
+  "output_format": "json",
+  "json_schema_ref": "artifacts/closeout-pack-claude-review/cp00-218/review-schema.json",
+  "prompt_ref": "artifacts/closeout-pack-claude-review/cp00-218/prompt.txt",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-218/raw-output.json",
+  "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-218/review-receipt.json",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "command_args": [
+    "-p",
+    "<prompt.txt content as one spawn arg>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content as one spawn arg>",
+    "--output-format",
+    "json"
+  ]
+}

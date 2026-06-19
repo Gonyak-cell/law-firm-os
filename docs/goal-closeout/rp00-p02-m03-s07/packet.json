@@ -1,0 +1,47 @@
+{
+  "subphase_id": "RP00.P02.M03.S07",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Primary happy path",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T07:53:26Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S07 Hermes Validation Primary happy path surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S06 allow_metadata_only Audit hint precheck results, requires a carried audit hint and audit_event_ref, emits a frozen metadata-only happy path receipt for Matter-scoped or firm-level control-plane metadata, carries S02, S03, S04, S05, S06, M00 refs, TEN-001 through TEN-008 trace refs, validation context IDs, and acceptance gate IDs, rejects unsafe happy-path, runtime, AuthZ, Hermes execution/evidence, audit write, tenant lifecycle mutation, real-data, and review-bypass claims fail-closed, and hands off to RP00.P02.M03.S08 without appending audit ledgers, writing audit events, creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, evaluating runtime permissions, calling AuthZ, running a permission engine, replacing human approval, using real data, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_review_run": true,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "07e70fa6-7e45-4207-86ab-334cd09d315f",
+    "uuid": "ae5e2fec-03bb-4c21-a03d-cc0d8bc4d090",
+    "verdict": "PASS",
+    "go_no_go": "GO",
+    "p0_p1_count": 0,
+    "p2_count_initial": 0,
+    "p3_count_initial": 0,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {},
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M03.S08"
+}

@@ -1,0 +1,22 @@
+{
+  "work_package_id": "LT-PRE-W04",
+  "inspected_at": "2026-06-18T14:35:02Z",
+  "verdict": "BLOCKED_OWNER_GAP_DISPOSITION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "coverage_matrix_exists": true,
+    "coverage_matrix_rows": 5,
+    "sample_ids_all_exist": true,
+    "disposition_register_exists": false,
+    "owner_approved_disposition_count": 0,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_approval_synthesized": false,
+    "gap_admission_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

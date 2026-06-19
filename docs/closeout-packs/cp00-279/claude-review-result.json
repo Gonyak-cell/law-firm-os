@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-279",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-279/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-279/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "a8e75651-eaca-487b-b0fa-a1d0306e2438",
+    "uuid": "ab2436e0-a5b9-4d0e-bb00-8e92600fbb92",
+    "total_cost_usd": 3.5584729999999998,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-279 is a descriptor-only Risk-Class-A pack covering the 10 RP08.P02.M07 (\"Test And Golden Case Set\") middle rows RP08.P02.M07.S03-S12 (tenant/matter/permission/audit prechecks, primary/secondary paths, state-transition enforcement, idempotency-key handling, lock-acquisition rule, persistence boundary). Independent read-only inspection (Read/Grep/Glob only) confirms the production_ready_candidate claim is supported and consistent across plan -> baseline -> manifest -> registry binding -> service descriptor -> contract projection -> validator script -> unit tests. Coverage matches exactly: 10 units, deliverable split 6 implementation / 2 security_audit / 2 ui, single M07 section of 10 rows. No-write / no-real-data is enforced both structurally (service.js freezeCp279Result freezes every dispatch/write/persist/storage/leak flag to false and synthetic_only/no_real_data to true) and by validation (validators.js enforces per-row descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false, plus the security-relevant rows cross_tenant_access_allowed=false, matter_trace_required=true, deny_over_allow_enforced=true, audit_hint_detail_included=false, writes_state_transition=false, persists_idempotency_key=false, acquires_runtime_lock=false, creates_database_rows=false). The authority boundary holds at every layer: Claude is read_only and not final approver (descriptor.authority_boundary.claude_is_final_approval=false, attestation.promotes_claude_to_final_approval=false), enterprise trust is not claimed from local validation (claims_enterprise_trust_from_local_validation=false), and human_final_approval_required_for_runtime_opening=true; tests and the contract validator script assert these. Hermes is used only as a deterministic H08 evidence/receipt descriptor (emits_hermes_runtime_receipt=false; no product runtime embedded), and the pack emits production_ready_candidate (coverage.valid && mid.valid), not a hard production_ready claim (manifest.production_ready=false, command-evidence.production_ready=false). CP178+ review-hardening evidence is valid: auth_preflight passed with non-zero stdout (1248 bytes) and well-formed JSON, prompt 2135 bytes < 25600, source_inspection_mode=read_tools_used (summary-only correctly prohibited due to security/audit deliverables), tools limited to Read/Grep/Glob with forbidden_tools_present=false. No P0/P1/P2 issues found. Two P3 findings are transparency notes inherent to a read-only review of an implemented_pending_review pack and do not block pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP279-P3-01",
+        "severity": "P3",
+        "title": "Validation-command exit codes are attested in command-evidence, not independently executed under read-only review",
+        "file": "docs/closeout-packs/cp00-279/command-evidence.json",
+        "line": 9,
+        "details": "command-evidence.json records 20 commands (node --check/--test, npm run rp08:email-dms-core:validate, closeout-pack-plan:validate, weighted/spec/rp00-control-plane/goal-closeout/fullplan:validate, npm test/validate/build, git diff --check) all with exit_code 0, plus Hermes gate H08 passed. As a read-only reviewer restricted to Read/Grep/Glob (no Bash), I cannot re-execute these to confirm the exit codes first-hand; the green status is taken from the evidence file. This is a transparency limitation of the read-only review model, not an observed defect.",
+        "recommendation": "Continue to rely on the deterministic harness (readiness auth-preflight, raw-output capture, receipt-validate, construction-inspection) to bind asserted command results to the committed receipt; no pack change required. Mitigated here by independent source-level verification that the invariants those commands check (coverage counts, descriptor-only flags, authority boundary, contract deepEqual) actually hold in the source.",
+        "post_review_disposition": "transparency_only_no_action_required"
+      },
+      {
+        "id": "CP279-P3-02",
+        "severity": "P3",
+        "title": "Manifest evidence_refs reference post-review artifacts not yet present at review time",
+        "file": "docs/closeout-packs/cp00-279/manifest.json",
+        "line": 478,
+        "details": "manifest.json evidence_refs and required_pack_artifacts list docs/closeout-packs/cp00-279/claude-review-result.json, adjudication.md, and construction-inspection.json, which are produced only after this review is accepted and normalized. At review time the pack is status implemented_pending_review and pack_level_claude_review.status is pending, so these artifacts are expected to be absent. This is the normal pending-review state, not a missing-evidence defect.",
+        "recommendation": "No action required; the hardening sequence (normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit) generates these artifacts before commit. Confirm they exist and are non-empty at final_closeout_validation prior to committing CP00-279.",
+        "post_review_disposition": "expected_pending_review_state_no_action_required"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

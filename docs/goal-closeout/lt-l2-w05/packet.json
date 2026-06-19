@@ -1,0 +1,37 @@
+{
+  "work_package_id": "LT-L2-W05",
+  "title": "Risk control realization for sync checker, QC, filing, Ethical Wall, and HR guardrail",
+  "created_at": "2026-06-18T13:09:27Z",
+  "status": "blocked_pending_runtime_risk_controls_and_predecessors",
+  "phase": "L2",
+  "gate_binding": [
+    "G3",
+    "L2-EXIT"
+  ],
+  "terminal_tuw": "LT-L2-W05-T07",
+  "artifacts": [
+    "docs/launch/l2/risk-control-realization-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l2-w05/packet.json",
+    "docs/goal-closeout/lt-l2-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l2-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l2-w05/adjudication.md",
+    "docs/goal-closeout/lt-l2-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "risk_control_source_file_count": 0,
+    "risk_control_test_count": 0,
+    "risk_control_realization_matrix_exists": false,
+    "pre_w05_complete": false,
+    "l2_w02_complete": false,
+    "l2_w03_complete": false,
+    "l2_w04_complete": false,
+    "g3_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

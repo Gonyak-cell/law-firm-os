@@ -1,0 +1,126 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-328",
+  "subphase_id": "RP10.P05.M05.S13",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/intake/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/intake/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/intake/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/intake/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp10-intake-core-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp10:intake-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/intake/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-328",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-328",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-328 --timeout_ms 1200000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-328",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-328",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was loaded, written, or exposed.",
+    "Descriptor-only CP00-328 evidence binds planned RP10.P04 closeout and RP10.P05 permission foundation rows without opening runtime UI, API, AI, permission, audit, storage, command, Citation Ledger, Loop, or Hermes execution.",
+    "Claude review completed through the hardened baseline/readiness/raw/normalize/receipt-validation sequence with exactly one valid read-only receipt.",
+    "The non-blocking P3 README anchor finding was fixed after review by adding CP00-327 and CP00-328 sections to packages/intake/README.md."
+  ],
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-328/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-328/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-328/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-328/review-receipt.json",
+    "invalid_attempts_preserved": [],
+    "exactly_one_valid_review_receipt": true,
+    "review_waived_by_user": false
+  }
+}

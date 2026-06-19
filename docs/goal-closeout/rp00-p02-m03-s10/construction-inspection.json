@@ -1,0 +1,34 @@
+{
+  "subphase_id": "RP00.P02.M03.S10",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Idempotency key handling",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T09:25:50Z",
+  "control_plane_hermes_validation_idempotency_key_handling_verified": true,
+  "verified_behaviors": [
+    "Consumes RP00.P02.M03.S09 Hermes Validation State transition enforcement results only after validating the S09 result shape, hermes_validation entrypoint, S09 marker, allow_metadata_only decision, state_transition_enforcement_applied flag, state_transition_receipt, and audit_event_ref.",
+    "Emits a frozen metadata-only idempotency receipt with tenant, actor, object, permission decision, audit event, state transition, idempotency key, duplicate replay policy, working behavior, effect, and next-subphase fields.",
+    "Accepts only safe lowercase idem.synthetic.* idempotency keys and records default versus explicit synthetic key source.",
+    "Carries S02, S03, S04, S05, S06, S07, S08, S09, M00, permission, audit, TEN-001 through TEN-008, validation context, and acceptance gate references.",
+    "Rejects unsafe idempotency, unknown, runtime, AuthZ, Hermes execution, Hermes evidence, audit write, idempotency-store write, lock acquisition, tenant lifecycle mutation, requirement trace bypass, real-data, state-transition bypass, review-bypass, and product-write claims fail-closed.",
+    "Does not execute service logic, create runtime routes, append audit ledgers, write audit events, mutate tenant lifecycle state, run Hermes validation, create Hermes evidence, evaluate runtime permissions, call AuthZ, use real data, persist idempotency records, acquire locks, or write product state.",
+    "Hands off to RP00.P02.M03.S11."
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s10/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s10/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s10/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s10/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s10/construction-inspection.json"
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 2,
+    "p3_status": "informational_no_action_required"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S10 is production_ready and explicitly hands off to RP00.P02.M03.S11 Lock acquisition rule."
+}

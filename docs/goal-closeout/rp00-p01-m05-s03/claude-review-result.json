@@ -1,0 +1,141 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M05.S03",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Tenant scope field",
+  "entity": "HumanApproval",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T00:13:22Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only"
+  },
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "stdin_git_diff_and_closeout_prompt",
+    "session_id": "15e57084-3a4c-49ec-b50a-409211a732fb",
+    "uuid": "f0b271ab-7be0-4b57-a521-7caea892ee7a",
+    "duration_ms": 360759,
+    "duration_api_ms": 362582,
+    "ttft_ms": 328073,
+    "stop_reason": "end_turn",
+    "terminal_reason": "completed",
+    "total_cost_usd": 1.31519775,
+    "service_tier": "standard"
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "15e57084-3a4c-49ec-b50a-409211a732fb",
+    "uuid": "f0b271ab-7be0-4b57-a521-7caea892ee7a",
+    "duration_ms": 360759,
+    "duration_api_ms": 362582,
+    "total_cost_usd": 1.31519775,
+    "permission_denials": []
+  },
+  "verdict": "approve_pending_closeout_evidence_and_validator_confirmation",
+  "go_no_go": "NO-GO until closeout evidence and validator confirmation are recorded; implementation quality GO with no P0/P1 code defects.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "C00-S03-P2-001",
+        "severity": "P2_SHOULD_FIX_OR_DEFER",
+        "title": "Confirm weighted_title_disposition validator consistency before production_ready",
+        "status": "resolved_by_local_validation"
+      },
+      {
+        "id": "C00-S03-P3-001",
+        "severity": "P3_NON_BLOCKING",
+        "title": "assertHumanApprovalTenantScope should reject stored whitespace in approval_id and tenant_id",
+        "status": "fixed"
+      },
+      {
+        "id": "C00-S03-P3-002",
+        "severity": "P3_NON_BLOCKING",
+        "title": "production_ready_requires indentation is cosmetic",
+        "status": "accepted_non_blocking"
+      },
+      {
+        "id": "C00-S03-P3-003",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Closeout evidence files were recorded after review",
+        "status": "accepted_process_order"
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "C00-S03-P2-001",
+        "title": "Confirm weighted_title_disposition validator consistency before production_ready",
+        "status": "resolved_by_local_validation",
+        "disposition": "fixed_or_confirmed",
+        "evidence": "npm run rp00:control-plane:validate passed after review; S03 is in the aligned_with_weighted_ledger set and contract disposition matches."
+      }
+    ],
+    "P3": [
+      {
+        "id": "C00-S03-P3-001",
+        "title": "assertHumanApprovalTenantScope should reject stored whitespace in approval_id and tenant_id",
+        "status": "fixed",
+        "disposition": "implemented_without_claude_rerun_per_single_review_policy",
+        "evidence": "assertHumanApprovalTenantScope now calls validateHumanApprovalId and validateHumanApprovalTenantId for stored approval fields; focused tests and validator reject stored whitespace."
+      },
+      {
+        "id": "C00-S03-P3-002",
+        "title": "production_ready_requires indentation is cosmetic",
+        "status": "accepted_non_blocking",
+        "disposition": "no_code_change_required",
+        "evidence": "JSON parse checks pass and formatting does not affect execution."
+      },
+      {
+        "id": "C00-S03-P3-003",
+        "title": "Closeout evidence files were not available in the review input",
+        "status": "resolved_by_post_review_evidence_recording",
+        "disposition": "accepted_process_order",
+        "evidence": "Claude review result, adjudication, and construction inspection are recorded after the single review by definition; no Claude rerun is performed."
+      }
+    ]
+  },
+  "criteria_checks": {
+    "required_tenant_id": "PASS",
+    "lfos_canonicalization": "PASS",
+    "stored_whitespace_rejection": "PASS after P3 hardening",
+    "missing_cross_tenant_fail_closed": "PASS",
+    "registry_future_null_boundary": "PASS",
+    "s04_s05_deferrals": "PASS",
+    "no_approval_synthesis": "PASS",
+    "no_writes_no_real_data": "PASS",
+    "evidence_sufficiency": "PASS after post-review evidence recording and local validation"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/README.md",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "required_fixes_before_production_ready": [
+    "Run npm run rp00:control-plane:validate and confirm zero errors.",
+    "Record actual claude-opus-4-8 effort=max read-only review.",
+    "Record adjudication with no unresolved P0/P1 and P2 fixed or deferred.",
+    "Record construction inspection with human_approval_tenant_scope_verified true.",
+    "Promote S03 contract, model policy, registry, packet, and evidence to production_ready."
+  ],
+  "raw_result_excerpt": "Tenant-scope implementation itself is sound and fail-closed; no P0/P1 code defects. Promotion was blocked only by closeout-evidence recording and validator confirmation."
+}

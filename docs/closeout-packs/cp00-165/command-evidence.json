@@ -1,0 +1,167 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-165",
+  "subphase_id": "RP04.P06.M04.S17",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/master-data/src/registry.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-165 registry syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/src/service.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-165 service syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/src/validators.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-165 validator syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/test/model.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-165 test syntax validation"
+    },
+    {
+      "command": "node --check scripts/validate-rp04-master-data-contract.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 master data validator syntax validation"
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/master-data-contract.json','utf8')); console.log('contract json ok')\"",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "master data contract JSON parse validation"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "whitespace validation after CP00-165 changes"
+    },
+    {
+      "command": "node --test packages/master-data/test/*.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "focused CP00-165 master data package tests"
+    },
+    {
+      "command": "npm run rp04:master-data:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 master data contract and CP00-165 coverage validator"
+    },
+    {
+      "command": "npm run rp04:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 detailed plan validator"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan validation before CP00-165 closeout"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "spec requirement ledger validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "weighted implementation ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full workspace test suite after CP00-165 changes"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "web production build after CP00-165 changes"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP00 control-plane validation"
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack validator syntax validation"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full closeout pack validation through CP00-165 after artifacts"
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-165-claude-prompt-valid.txt > /tmp/cp00-165-claude-review-output-valid.json",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "one valid CP00-165 Claude Opus 4.8 max read-only review"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H04",
+    "status": "passed",
+    "command_ids": [
+      "spec_requirement_validate",
+      "rp00_control_plane_contract_validate"
+    ],
+    "evidence_packet": "H04.CP00-165.master_data_permission_matrix_workflow"
+  },
+  "claude_gate": {
+    "id": "C04",
+    "status": "passed_with_adjudicated_findings",
+    "review_packet": "C04.CP00-165.master_data_permission_matrix_workflow",
+    "review_output_path": "/tmp/cp00-165-claude-review-output-valid.json",
+    "cli_duration_ms": 204275,
+    "permission_denials": []
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used in CP00-165 validation.",
+    "Hermes evidence is recorded as closeout command evidence and descriptor packet references; CP00-165 package code does not execute Hermes commands or emit runtime receipts.",
+    "CP00-165 creates descriptor-only Master Data permission matrix workflow decisions, fixture-tail references, security interaction descriptors, and hands off to CP00-166 / RP04.P06.M04.S18.",
+    "Claude CLI was executed in ordinary shell mode with dontAsk permissions; no permission denials were reported and no Not logged in output occurred. One earlier malformed non-verdict attempt is recorded as invalid and is not counted as the valid pack review."
+  ]
+}

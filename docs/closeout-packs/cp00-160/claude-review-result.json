@@ -1,0 +1,86 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-160",
+  "review_id": "C04.CP00-160.master_data_api_ui_reference_catalog",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "read_only": true,
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "2c48dfec-7ee9-4e79-a666-eea52672da03",
+    "uuid": "548758ba-f8dd-4cd4-bc33-87305d3693ac",
+    "duration_ms": 608891,
+    "duration_api_ms": 611391,
+    "total_cost_usd": 1.639239,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-160-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-160.master_data_api_ui_reference_catalog",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-160-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-160 adds descriptor-only Master Data API/UI reference catalogs, fixtures, validators, tests, contract v0.5 bindings, H04/C04 packets, and CP00-161 handoff. No P0/P1 blockers were found. The reported P2 was confirmed as a false-positive by contract attestation and validator pass; two P3 robustness items are explicitly deferred.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "notes": "CP00-160 builds API and UI reference descriptors only; package code does not execute API handlers, network calls, UI rendering, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "P2-01",
+        "severity": "P2",
+        "title": "Contract no_write_attestation may omit the three new CP160 safety keys required by the validator parity loop",
+        "evidence": "MASTER_DATA_CP160_NO_WRITE_ATTESTATION (registry.js) introduces three net-new keys central to this pack's boundary claims: executes_api_handler:false, renders_ui:false, mutates_dom:false (in addition to builds_api_reference_catalog/builds_ui_surface_state_catalog/builds_api_fixture_descriptors). The contract validator loop was switched to iterate MASTER_DATA_CP160_NO_WRITE_ATTESTATION and requires every key be present and equal in contract.no_write_attestation. The visible contract diff only adds builds_api_reference_catalog/builds_ui_surface_state_catalog/builds_api_fixture_descriptors and closes the no_write_attestation object (no trailing comma after builds_api_fixture_descriptors, immediately followed by hidden_source_fields), with no executes_api_handler/renders_ui/mutates_dom additions shown. These keys are CP160-specific (API/UI/DOM) and cannot plausibly pre-exist from CP156-CP159. If absent from the full file, npm run rp04:master-data:validate would fail with three 'no_write_attestation.<key> is required' errors. The reported gate pass implies they exist in the real file, so this is most likely a diff-display artifact, but it is the pack's core no-write safety claim and warrants explicit confirmation.",
+        "recommended_action": "Confirm contract.no_write_attestation contains executes_api_handler:false, renders_ui:false, mutates_dom:false (matching registry). If missing, add them to restore parity; otherwise no change needed.",
+        "post_review_disposition": "deferred/confirmed: full contract contains executes_api_handler:false, renders_ui:false, and mutates_dom:false; rp04:master-data:validate passed, so no code change required."
+      },
+      {
+        "id": "P3-02",
+        "severity": "P3",
+        "title": "Fixture omitted_fields is hardcoded rather than derived from actual sanitization",
+        "evidence": "In createMasterDataApiReferenceFixture, omitted_fields is a static literal (['items','internal_blocked_claim_refs'] for denied, ['secret','internal_blocked_claim_refs'] otherwise). sanitizeApiItem strips by MASTER_DATA_SERVICE_TAIL_BOUNDARY.hidden_output_fields plus internal_blocked_claim_refs, so the advertised omitted_fields descriptor can drift from what is actually stripped if hidden_output_fields changes. Descriptor-only impact only; no boundary or data-leak risk.",
+        "recommended_action": "Optionally derive omitted_fields from the keys actually removed by sanitizeApiItem so the descriptor stays in sync with the serialization guard.",
+        "post_review_disposition": "deferred: descriptor robustness hardening is tracked for a later pack and does not block this no-write reference closeout."
+      },
+      {
+        "id": "P3-03",
+        "severity": "P3",
+        "title": "Hidden-value self-check uses a single magic sentinel string",
+        "evidence": "createMasterDataApiReferenceCatalog asserts all_serialized_without_hidden_values via !JSON.stringify(fixture).includes('cp160_hidden_value_secret'). This only detects the one sentinel value injected by the fixture, not the full hidden_output_fields key set. Actual stripping (sanitizeApiItem) is robust; only the catalog's self-attestation is narrow.",
+        "recommended_action": "Optionally strengthen the self-check to assert absence of each hidden_output_fields key structurally rather than matching one literal value.",
+        "post_review_disposition": "deferred: descriptor robustness hardening is tracked for a later pack and does not block this no-write reference closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 1,
+      "reported_p3": 2
+    }
+  }
+}

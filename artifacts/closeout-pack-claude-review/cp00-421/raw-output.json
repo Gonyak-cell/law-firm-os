@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-421",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T02:19:24.382Z",
+  "finished_at": "2026-06-12T02:23:47.934Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":262568,\"duration_api_ms\":263690,\"ttft_ms\":2583,\"num_turns\":37,\"result\":\"PASS. CP00-421 is a clean descriptor-only continuation that matches its baseline across manifest, plan, registry binding, contract, README, tests, and validator. The `production_ready: false` claim is correctly not over-claiming; Claude's read-only/non-final-approver and Hermes-no-runtime boundaries are enforced and tested; no-write/no-real-data is attested and the contract descriptor is deep-equal asserted. No P0/P1/P2 issues — one P3 transparency note that the post-review artifacts (claude-review-result/adjudication/construction-inspection) are pending by design and must validate before commit. Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d73cf8cd-0686-4e79-993e-499a964894e8\",\"total_cost_usd\":1.4523319999999997,\"usage\":{\"input_tokens\":40,\"cache_creation_input_tokens\":75304,\"cache_read_input_tokens\":1003324,\"output_tokens\":19146,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":75304,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":257,\"cache_read_input_tokens\":79819,\"cache_creation_input_tokens\":3880,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3880},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1070,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00117,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":40,\"outputTokens\":19146,\"cacheReadInputTokens\":1003324,\"cacheCreationInputTokens\":75304,\"webSearchRequests\":0,\"costUSD\":1.451162,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-421 is a clean, internally-consistent descriptor-only continuation of the RP13 payments-core slice, following the established and well-tested pattern of the 29 prior packs. Pack baseline matches across manifest, review-baseline, live closeout-pack-plan, registry PACK_BINDING, contract, and README: risk A, 10 units, range RP13.P09.M07.S12-RP13.P09.M08.S01, deliverable distribution {implementation:8, claude_review:2}, micro-title distribution {\\\"Test And Golden Case Set\\\":9, \\\"Hermes Evidence Packet\\\":1}. M07 (S12-S20, 9 rows) plus M08 head (S01, 1 row) completes the planned 10 units; the M07 micro-phase is fully covered across CP419/CP420/CP421 (1+10+9=20). The pack-level production_ready claim is FALSE (status implemented_pending_review, implementation_layer descriptor, runtime_ready false) and is well-supported: it does not over-claim. The validator's production_ready_candidate:true is scoped to descriptor validity (coverage.valid && slice.valid), not enterprise production readiness. Claude's read-only/non-final-approver boundary is enforced in descriptor authority_boundary (claude_is_final_approval:false), no-write attestation (promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false), tests, and the contract validator. Hermes is used only as a deterministic descriptor evidence packet (receipt_shape descriptor_only_payments_p09_test_hermes_slice_no_write; emits_hermes_runtime_receipt:false) with no product runtime. No-write/no-real-data boundaries are extensively attested in freezeCp421Result and asserted by tests and the validator, which also deep-equals the contract p09_test_hermes_slice_descriptor against the generated descriptor. Review-hardening evidence is valid: auth preflight passed (exit 0, 1432B stdout, well-formed JSON), this is the first review attempt with no prior auth-failure/0-byte/malformed/tool-shaped evidence to reject. Changed-file scope is correct (7 modified sources plus untracked docs/closeout-packs/cp00-421/); unrelated dirty files are properly excluded and no merge-conflict markers exist in the changed files. No P0/P1/P2 issues found. One P3 transparency note: the post-review evidence artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are not yet present, which is expected at review time since this review produces them and the later hardening steps generate the rest. As read-only reviewer (not final approver), I record PASS; final enterprise-trust closure remains a human responsibility and the pack must still complete its post-review hardening and final closeout validation before commit.\",\"findings\":[{\"id\":\"CP00-421-P3-01\",\"severity\":\"P3\",\"title\":\"Post-review evidence artifacts pending generation (expected, not a defect)\",\"file\":\"docs/closeout-packs/cp00-421/manifest.json\",\"line\":504,\"details\":\"The manifest declares docs/closeout-packs/cp00-421/claude-review-result.json, adjudication.md, and construction-inspection.json as required_pack_artifacts/evidence_refs, but they are not present at review time. This is correct by design: this read-only review produces claude-review-result.json, and adjudication.md + construction-inspection.json are generated by the later finding_adjudication and construction_inspection steps of manifest.pack_level_claude_review.hardening_sequence (also enumerated as post-review gated commands in command-evidence.json notes). Because they are pending, the 'adjudication' and 'inspection' inputs to the production_ready support chain could not be independently verified during this review.\",\"recommendation\":\"Ensure all three post-review artifacts are generated and pass npm run closeout-pack:validate, with final closeout validation and git diff --check --cached green, before committing/closing CP00-421. Do not mark the pack closed until they exist and validate.\",\"post_review_disposition\":\"Expected/by-design pending state; no implementation change required. Verify artifact presence and validation at the final closeout gate.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"594fd38d-9eb1-44d0-8e06-331310e7923f\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6327,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d73cf8cd-0686-4e79-993e-499a964894e8",
+    "uuid": "594fd38d-9eb1-44d0-8e06-331310e7923f",
+    "total_cost_usd": 1.4523319999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

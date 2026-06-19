@@ -1,0 +1,179 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.changed-file-scope.v0.1",
+  "pack_id": "CP00-874",
+  "active_pack_scope_available": true,
+  "active_pack_implementation_refs": [
+    "contracts/commercial-contract.json",
+    "contracts/commercial-readiness-contract.json",
+    "package.json",
+    "packages/commercial/README.md",
+    "packages/commercial/package.json",
+    "packages/commercial/src/index.js",
+    "packages/commercial/src/model.js",
+    "packages/commercial/src/registry.js",
+    "packages/commercial/src/states.js",
+    "packages/commercial/src/validators.js",
+    "packages/commercial/test/model.test.js",
+    "scripts/validate-rp29-commercial-readiness-contract.mjs"
+  ],
+  "active_pack_required_untracked_files": [],
+  "active_pack_closeout_artifact_root": "docs/closeout-packs/cp00-874/",
+  "git_status_rows": [
+    {
+      "status": " M",
+      "file": "contracts/commercial-contract.json",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "contracts/commercial-readiness-contract.json",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/commercial/README.md",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/commercial/src/registry.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/commercial/src/validators.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/commercial/test/model.test.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "scripts/progress-control-room-data.mjs",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "scripts/validate-rp29-commercial-readiness-contract.mjs",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "tools/progress-control-room/index.html",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "Law_Firm_OS_Enterprise_SaaS_사양명세서_v2.0.docx",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-pack-plan/new-session-handoff.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-packs/cp00-874/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/launch-tuw/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter-post-cp-launch-plan.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_dev_docs/matter_개발문서_통합본.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_development_documentation_pack.zip",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_document_index.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_master_specification_combined.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/plan-vs-plan-verdict.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    }
+  ],
+  "untracked_implementation_files": [],
+  "active_untracked_implementation_files_omitted": [],
+  "unrelated_dirty_files_preserved": [
+    "Law_Firm_OS_Enterprise_SaaS_사양명세서_v2.0.docx",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+    "scripts/progress-control-room-data.mjs",
+    "tools/progress-control-room/index.html",
+    "workbook/launch-tuw/",
+    "workbook/matter-post-cp-launch-plan.md",
+    "workbook/matter_dev_docs/matter_개발문서_통합본.md",
+    "workbook/matter_development_documentation_pack.zip",
+    "workbook/matter_document_index.md",
+    "workbook/matter_master_specification_combined.md",
+    "workbook/plan-vs-plan-verdict.md"
+  ]
+}

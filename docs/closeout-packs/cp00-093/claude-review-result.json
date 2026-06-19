@@ -1,0 +1,100 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-093",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "565c9360-a4ac-4cf8-8249-9a67ecdbc65c",
+    "uuid": "4647ebcd-f00c-49b9-bda2-0d7eeb1d2295",
+    "total_cost_usd": 0.3193659999999999,
+    "permission_denials": [],
+    "duration_ms": 102359,
+    "invalid_attempt_counted_as_valid": false
+  },
+  "invalid_attempts": [],
+  "parsed_review": {
+    "pack_id": "CP00-093",
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": []
+    },
+    "verification_performed": {
+      "review_mode": "read-only static review of prompt-provided implementation summary and validation signals; no tools used, no file writes performed",
+      "inputs_reviewed": [
+        "packages/control-plane/src/policies.js — CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_SUBPHASE_IDS=[RP00.P09.M05.S11], result fields, P0/P1/P2/P3 route entries, severity routing contract, P2 disposition contract, and policy constant",
+        "packages/control-plane/src/service.js — CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_MODULE, getControlPlaneReviewCloseoutFindingRoutingMapPolicy, assembleControlPlaneReviewCloseoutFindingRoutingMap(upstream, boundaryClaims={})",
+        "packages/control-plane/src/validators.js — assertControlPlaneReviewCloseoutFindingRoutingMapPolicy, assertControlPlaneReviewCloseoutFindingRoutingMapResult",
+        "packages/control-plane/test/service.test.js — six CP00-093 tests (policy binding, assembler result, fail-closed upstream/claim drift, module no-write, fixture mirror, contract mirror)",
+        "contracts/control-plane-contract.json — current_subphase RP00.P09.M05.S11, closeout_pack_ref CP00-093, production_ready_flag control_plane_review_closeout_finding_routing_map_verified, control_plane_review_closeout_finding_routing_map_definition",
+        "packages/control-plane/fixtures/synthetic-control-plane.json — control_plane_review_closeout_finding_routing_map generated from the assembler",
+        "scripts/validate-rp00-control-plane-contract.mjs — RP00.P09.M05.S11 required closed subphase, currentContractSubphaseId S11, construction inspection subphase S11, required flag control_plane_review_closeout_finding_routing_map_verified",
+        "packages/control-plane/README.md — CP00-093 boundary documentation",
+        "Policy pack binding metadata — packId/plannedPackId CP00-093, requestedPackId CP00-092, correctionReason (sequential cursor shift), riskClass A, unitCount 1, range RP00.P09.M05.S11, sourceMicroPhaseId RP00.P09.M05, phase RP00.P09, completedPhaseIds [RP00.P08], requiredInputFields/evidence refs from CP00-092, completesSourceMicroPhase true, phaseCompleted false, nextSubphase RP00.P09.M06.S01"
+      ],
+      "validation_signals": {
+        "node_check_policies_js": "exit 0",
+        "node_check_service_js": "exit 0",
+        "node_check_validators_js": "exit 0",
+        "node_check_service_test_js": "exit 0",
+        "node_check_validate_script_mjs": "exit 0",
+        "node_module_import_assembleControlPlaneReviewCloseoutFindingRoutingMap": "exit 0",
+        "node_test_name_pattern_Review_Closeout_Finding_Routing_Map": "6 tests passed",
+        "npm_run_rp00_control_plane_validate": "exit 1 expected pre-evidence only — docs/closeout-packs/cp00-093/{manifest.json,command-evidence.json,claude-review-result.json,adjudication.md,construction-inspection.json} not yet created"
+      },
+      "cross_checks": "Confirmed single-unit binding (riskClass A, unitCount 1, range RP00.P09.M05.S11) is consistent across policy subphase IDs, service assembler, validators, contract current_subphase, fixture, and validate-script currentContractSubphaseId/required-closed-subphase. Confirmed upstream CP00-092 enforcement (requiredInputFields, five evidence refs, assembler assertion of CP00-092 permission/audit binding decision and risk/severity/go-no-go binding, upstream pack-drift fail-close). Confirmed completion semantics: source_micro_phase_completed true for RP00.P09.M05, phase_completed false for RP00.P09, next_subphase RP00.P09.M06.S01 with next_subphase drift fail-close — no premature phase or RP completion. Confirmed metadata-only no-write/no-runtime posture via forbidden/unknown truthy claim rejection, empty blocked_claim_refs, writesProductState false, module no-write test, and explicit LDIP-implementation fail-close. The only non-zero signal (validate exit 1) is the expected pre-evidence state and not a defect."
+    },
+    "explicit_checks": {
+      "risk_bound_single_unit_s11": {
+        "status": "pass",
+        "evidence": "Policy binds riskClass A, unitCount 1, range RP00.P09.M05.S11; CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_SUBPHASE_IDS=[RP00.P09.M05.S11]; sourceMicroPhaseId RP00.P09.M05, phase RP00.P09. Validator asserts exact pack/risk/range/source/phase bindings; validate script sets currentContractSubphaseId to S11 and requires S11 as a closed subphase. Single-unit scope is consistent across policy, service, validator, contract, fixture, and validate script."
+      },
+      "upstream_cp00_092_handoff_enforced": {
+        "status": "pass",
+        "evidence": "requestedPackId CP00-092 with requiredInputFields = CP00-092 permission/audit binding result fields and required evidence refs to all five CP00-092 evidence files. Assembler fail-closes on upstream pack drift, missing CP00-092 permission/audit binding decision, and missing risk/severity/go-no-go binding, and asserts the CP00-092 result before emitting CP00-093. correctionReason documents the live sequential-cursor shift from requested CP00-092 to assigned CP00-093, leaving plannedPackId/packId CP00-093 unambiguous."
+      },
+      "routing_contracts": {
+        "status": "pass",
+        "evidence": "policies.js defines P0/P1/P2/P3 route entries, a severity routing contract, and a P2 disposition contract, plus CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_RESULT_FIELDS. Validator assertControlPlaneReviewCloseoutFindingRoutingMapResult validates the result key set and routing contracts; fixture mirror and contract mirror tests confirm the assembler-emitted routing map matches the persisted fixture and contract definition. These are declarative routing-map metadata, not runtime routing/assignment behavior."
+      },
+      "no_write_no_runtime_no_human_approval_synthesis": {
+        "status": "pass",
+        "evidence": "no-real-data and no-write flags true; writesProductState false. Assembler fail-closes on every truthy forbidden claim and every unknown truthy claim, explicitly including human approval synthesis/write/bypass, runtime review/queue/assignment/notification, runtime permission/AuthZ/security trimming, audit write, Hermes/command-evidence writes, and database/storage/product-state/idempotency/lock writes. Validator asserts empty blocked_claim_refs and the no-write/no-runtime flags; module no-write test passes. No runtime Claude invocation is introduced — review remains pack-level static."
+      },
+      "micro_phase_completion_and_next_cursor": {
+        "status": "pass",
+        "evidence": "completesSourceMicroPhase true → source_micro_phase_completed true closes RP00.P09.M05 at its terminal subphase S11; phaseCompleted false → phase_completed false keeps RP00.P09 open (completedPhaseIds [RP00.P08] only); nextSubphase RP00.P09.M06.S01 advances to the next micro-phase. Assembler fail-closes on next_subphase drift and validator asserts source_micro_phase_completed true, phase_completed false, next_subphase RP00.P09.M06.S01. No RP/goal completion is claimed — no premature phase or RP closure."
+      },
+      "fixture_contract_test_validator_consistency": {
+        "status": "pass",
+        "evidence": "Fixture control_plane_review_closeout_finding_routing_map is generated from the assembler and checked by the fixture mirror test; contract current_subphase RP00.P09.M05.S11, closeout_pack_ref CP00-093, production_ready_flag control_plane_review_closeout_finding_routing_map_verified, and the definition are checked by the contract mirror test; validate script requires the S11 closed subphase and the verified flag. node --check on all five source/test files exits 0, the ESM import exits 0, and all six named tests pass — fixture, contract, validator, and service are mutually consistent."
+      },
+      "ldip_planning_only_not_implemented": {
+        "status": "pass",
+        "evidence": "Pack is a metadata-only finding routing map (route entries plus severity and P2 disposition contracts) consuming CP00-092 binding output; it introduces no executable LDIP behavior. Assembler explicitly fail-closes on any LDIP-implementation claim, and no-write/no-runtime flags are preserved, confirming planning-only scope with LDIP left unimplemented."
+      }
+    }
+  },
+  "raw_result_excerpt": "{\n  \"review\": {\n    \"pack_id\": \"CP00-093\",\n    \"overall_verdict\": \"PASS\",\n    \"blocks_pack_closeout\": false,\n    \"blocks_subphase_closeout\": false,\n    \"blocks_goal_closeout\": false,\n    \"no_unresolved_p0\": true,\n    \"no_unresolved_p1\": true,\n    \"finding_counts\": {\"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 0},\n    \"findings\": {\"p0\": [], \"p1\": [], \"p2\": [], \"p3\": []},\n    \"verification_performed\": {\n      \"review_mode\": \"read-only static review of prompt-provided implementation summary and validation signals; no tools used, no file writes performed\",\n      \"inputs_reviewed\": [\n        \"packages/control-plane/src/policies.js — CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_SUBPHASE_IDS=[RP00.P09.M05.S11], result fields, P0/P1/P2/P3 route entries, severity routing contract, P2 disposition contract, and policy constant\",\n        \"packages/control-plane/src/service.js — CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_MODULE, getControlPlaneReviewCloseoutFindingRoutingMapPolicy, assembleControlPlaneReviewCloseoutFindingRoutingMap(upstream, boundaryClaims={})\",\n        \"packages/control-plane/src/validators.js — assertControlPlaneReviewCloseoutFindingRoutingMapPolicy, assertControlPlaneReviewCloseoutFindingRoutingMapResult\",\n        \"packages/control-plane/test/service.test.js — six CP00-093 tests (policy binding, assembler result, fail-closed upstream/claim drift, module no-write, fixture mirror, contract mirror)\",\n        \"contracts/control-plane-contract.json — current_subphase RP00.P09.M05.S11, closeout_pack_ref CP00-093, production_ready_flag control_plane_review_closeout_finding_routing_map_verified, control_plane_review_closeout_finding_routing_map_definition\",\n        \"packages/control-plane/fixtures/synthetic-control-plane.json — control_plane_review_closeout_finding_routing_map generated from the assembler\",\n        \"scripts/validate-rp00-control-plane-contract.mjs — RP00.P09.M05.S11 required closed subphase, currentContractSubphaseId S11, construction inspection subphase S11, required flag control_plane_review_closeout_finding_routing_map_verified\",\n        \"packages/control-plane/README.md — CP00-093 boundary documentation\",\n        \"Policy pack binding metadata — packId/plannedPackId CP00-093, requestedPackId CP00-092, correctionReason (sequential cursor shift), riskClass A, unitCount 1, range RP00.P09.M05.S11, sourceMicroPhaseId RP00.P09.M05, phase RP00.P09, completedPhaseIds [RP00.P08], requiredInputFields/evidence refs from CP00-092, completesSourceMicroPhase true, phaseCompleted false, nextSubphase RP00.P09.M06.S01\"\n      ],\n      \"validation_signals\": {\n        \"node_check_policies_js\": \"exit 0\",\n        \"node_check_service_js\": \"exit 0\",\n        \"node_check_validators_js\": \"exit 0\",\n        \"node_check_service_test_js\": \"exit 0\",\n        \"node_check_validate_script_mjs\": \"exit 0\",\n        \"node_module_import_assembleControlPlaneReviewCloseoutFindingRoutingMap\": \"exit 0\",\n        \"node_test_name_pattern_Review_Closeout_Finding_Routing_Map\": \"6 tests passed\",\n        \"npm_run_rp00_control_plane_validate\": \"exit 1 expected pre-evidence only — docs/closeout-packs/cp00-093/{manifest.json,command-evidence.json,claude-review-result.json,adjudication.md,construction-inspection.json} not yet created\"\n      },\n      \"cross_checks\": \"Confirmed single-unit binding (riskClass A, unitCount 1, range RP00.P09.M05.S11) is consistent across policy subphase IDs, service assembler, validators, contract current_subphase, fixture, and validate-script currentContractSubphaseId/required-closed-subphase. Confirmed upstream CP00-092 enforcement (requiredInputFields, five evidence refs, assembler assertion of CP00-092 permission/audit binding decision and risk/severity/go-no-go binding, upstream pack-drift fail-close). Confirmed completion semantics: source_micro_phase_completed true for RP00.P09.M05, phase_completed false for RP00.P09, next_subphase RP00.P09.M06.S01 with next_subphase drift fail-close — no premature phase or RP completion. Confirmed metadata-only no-write/no-runtime posture via forbidden/unknown truthy claim rejection, empty blocked_claim_refs, writesProductState false, module no-write test, and explicit LDIP-implementation fail-close. The only non-zero signal (validate exit 1) is the expected pre-evidence state and not a defect.\"\n    },\n    \"explicit_checks\": {\n      \"risk_bound_single_unit_s11\": {\n        \"status\": \"pass\",\n        \"evidence\": \"Policy binds riskClass A, unitCount 1, range RP00.P09.M05.S11; CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_SUBPHASE_IDS=[RP00.P09.M05.S11]; sourceMicroPhaseId RP00.P09.M05, phase RP00.P09. Validator asserts exact pack/risk/range/source/phase bindings; validate script sets currentContractSubphaseId to S11 and requires S11 as a closed subphase. Single-unit scope is consistent across policy, service, validator, contract, fixture, and validate script.\"\n      },\n      \"upstream_cp00_092_handoff_enforced\": {\n        \"status\": \"pass\",\n        \"evidence\": \"requestedPackId CP00-092 with requiredInputFields = CP00-092 permission/audit binding result fields and required evidence refs to all five CP00-092 evidence files. Assembler fail-closes on upstream pack drift, missing CP00-092 permission/audit binding decision, and missing risk/severity/go-no-go binding, and asserts the CP00-092 result before emitting CP00-093. correctionReason documents the live sequential-cursor shift from requested CP00-092 to assigned CP00-093, leaving plannedPackId/packId CP00-093 unambiguous.\"\n      },\n      \"routing_contracts\": {\n        \"status\": \"pass\",\n        \"evidence\": \"policies.js defines P0/P1/P2/P3 route entries, a severity routing contract, and a P2 disposition contract, plus CONTROL_PLANE_REVIEW_CLOSEOUT_FINDING_ROUTING_MAP_RESULT_FIELDS. Validator assertControlPlaneReviewCloseoutFindingRoutingMapResult validates the result key set and routing contracts; fixture mirror and contract mirror tests confirm the assembler-emitted routing map matches the persisted fixture and contract definition. These are declarative routing-map metadata, not runtime routing/assignment behavior.\"\n      },\n      \"no_write_no_runtime_no_human_approval_synthesis\": {\n        \"status\": \"pass\",\n        \"evidence\": \"no-real-data and no-write flags true; writesProductState false. Assembler fail-closes on every truthy forbidden claim and every unknown truthy claim, explicitly including human approval synthesis/write/bypass, runtime review/queue/assignment/notification, runtime permission/AuthZ/security trimming, audit write, Hermes/command-evidence writes, and database/storage/product-state/idempotency/lock writes. Validator asserts empty blocked_claim_refs and the no-write/no-runtime flags; module no-write test passes. No runtime Claude invocation is introduced — review remains pack-level static.\"\n      },\n      \"micro_phase_completion_and_next_cursor\": {\n        \"status\": \"pass\",\n        \"evidence\": \"completesSourceMicroPhase true → source_micro_phase_completed true closes RP00.P09.M05 at its terminal subphase S11; phaseCompleted false → phase_completed false keeps RP00.P09 open (completedPhaseIds [RP00.P08] only); nextSubphase RP00.P09.M06.S01 advances to the next micro-phase. Assembler fail-closes on next_subphase drift and validator asserts source_micro_phase_completed true, phase_completed false, next_subphase RP00.P09.M06.S01. No RP/goal completion is claimed — no premature phase or RP closure.\"\n      },\n      \"fixture_contract_test_validator_consistency\": {\n        \"status\": \"pass\",\n        \"evidence\": \"Fixture control_plane_review_closeout_finding_routing_map is generated from the assembler and checked by the fixture mirror test; contract current_subphase RP00.P09.M05.S11, closeout_pack_ref CP00-093, production_ready_flag control_plane_review_closeout_finding_routing_map_verified, and the definition are checked by the contract mirror test; validate script requires the S11 closed subphase and the verified flag. node --check on all five source/test files exits 0, the ESM import exits 0, and all six named tests pass — fixture, contract, validator, and service are mutually consistent.\"\n      },\n      \"ldip_planning_only_not_implemented\": {\n        \"status\": \"pass\",\n        \"evidence\": \"Pack is a metadata-only finding routing map (route entries plus severity and P2 disposition contracts) consuming CP00-092 binding output; it introduces no executable LDIP behavior. Assembler explicitly fail-closes on any LDIP-implementation claim, and no-write/no-runtime flags are preserved, confirming planning-only scope with LDIP left unimplemented.\"\n      }\n    }\n  }\n}"
+}

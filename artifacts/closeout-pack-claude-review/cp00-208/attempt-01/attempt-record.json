@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-attempt-record.v0.1",
+  "pack_id": "CP00-208",
+  "attempt": 1,
+  "disposition": "superseded_not_closeout_eligible",
+  "reason": "Valid read-only Claude review run (PASS_WITH_FINDINGS) but receipt not closeout-eligible: 1 P2 finding (command-evidence.json empty/pending at review time). P2 remediated by recording executed validation command evidence; review re-run afterward. This attempt is preserved and not counted as the pack closeout review.",
+  "verdict": "PASS_WITH_FINDINGS",
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 2,
+    "reported_p0": 0,
+    "reported_p1": 0,
+    "reported_p2": 1,
+    "reported_p3": 2
+  },
+  "session_id": "a33f2329-a4b9-4eda-ada5-4184bdc81b48",
+  "total_cost_usd": 2.9624620000000004,
+  "preserved_refs": [
+    "artifacts/closeout-pack-claude-review/cp00-208/attempt-01/raw-output.json",
+    "artifacts/closeout-pack-claude-review/cp00-208/attempt-01/review-receipt-not-closeout-eligible.json.preserved"
+  ]
+}

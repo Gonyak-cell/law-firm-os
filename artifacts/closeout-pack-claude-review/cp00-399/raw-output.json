@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-399",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T23:46:08.579Z",
+  "finished_at": "2026-06-11T23:49:52.050Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":222356,\"duration_api_ms\":222353,\"ttft_ms\":4910,\"num_turns\":31,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0–P3 all zero), does not block pack or goal closeout.\\n\\nCP00-399 holds up under the hardened read-only review: the descriptor-only payments-core fixture slice (RP13.P03.M06.S05–S14) is fully consistent across registry, service, validators, contract, tests, validator script, plan, and manifest, with the `production_ready:false` gate intact, Claude confined to read-only/non-approver status, and Hermes used only as deterministic control-plane evidence. The downstream review artifacts are correctly absent at this stage of the hardening sequence.\",\"stop_reason\":\"end_turn\",\"session_id\":\"8e6e4522-3780-46f5-8f18-b2382f0e4cf8\",\"total_cost_usd\":2.0431584999999997,\"usage\":{\"input_tokens\":3376,\"cache_creation_input_tokens\":167422,\"cache_read_input_tokens\":1065330,\"output_tokens\":17842,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":167422,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":209,\"cache_read_input_tokens\":153653,\"cache_creation_input_tokens\":8137,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":8137},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1076,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001176,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3376,\"outputTokens\":17842,\"cacheReadInputTokens\":1065330,\"cacheCreationInputTokens\":167422,\"webSearchRequests\":0,\"costUSD\":2.0419824999999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-399 is a clean descriptor-only continuation of the RP13 payments-core slice (CP392–CP398 pattern), covering exactly the 10 planned units RP13.P03.M06.S05–S14 under micro-phase RP13.P03.M06 \\\"Synthetic Fixture Set\\\" with deliverable distribution security_audit:2, contract:2, implementation:2, test:3, hermes_evidence:1. Source was inspected directly via Read/Grep/Glob (summary-only prohibited due to security/audit deliverables). Registry binding, service descriptor builders, coverage/slice validators, the payments-core contract case set, the test suite, and the validator script are mutually consistent with the plan and manifest — no drift. The pack-level claim is production_ready:false with implementation_layer:descriptor and runtime_ready:false; the production_ready gate is NOT weakened and no payments/payment-matching/AR-aging/journal-entry or other closed runtime is opened. No-write/no-real-data/no-leak attestations are present and enforced (writes_product_state:false, omits_unauthorized_data:true, raw_payload_included:false, exposes_* all false). Authority boundary holds: Claude is a read-only independent reviewer and not final approver, no enterprise-trust claim is made from local validation, and Hermes is used only as a deterministic control-plane evidence descriptor (H13 packet), not product runtime (emits_hermes_runtime_receipt:false). CP178+ hardening preconditions are satisfied: readiness auth preflight passed with valid JSON, correct model (claude-opus-4-8)/effort(max)/read-only tools, and forbidden-evidence patterns are codified. The post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are intentionally produced downstream of this review in the hardening sequence and their current absence is not a defect. No findings; pack may proceed to the remaining post-review closeout steps under human final approval.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"6b1539e8-beea-4545-9499-80682e3298f4\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4207,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "8e6e4522-3780-46f5-8f18-b2382f0e4cf8",
+    "uuid": "6b1539e8-beea-4545-9499-80682e3298f4",
+    "total_cost_usd": 2.0431584999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "subphase_id": "RP00.P02.M03.S19",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Unit test: happy path",
+  "created_at": "2026-06-05T13:51:38Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "test_count": 221,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "test_count": 305,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "requirement_count": 227,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "implementation_subphase_count": 54355,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "release_program_count": 30,
+      "micro_phase_count": 3300,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "Final S19 closeout gate rerun after evidence creation",
+      "writes_product_state": false
+    }
+  ],
+  "production_ready": true,
+  "status": "passed",
+  "recorded_at": "2026-06-05T13:51:38Z",
+  "executed_at": "2026-06-05T13:51:38Z",
+  "micro_title": "Hermes Validation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "All commands are local validation, parser, test, Claude read-only review, or git whitespace checks; none execute service logic, create runtime routes, run Hermes validation as product runtime behavior, create Hermes evidence as product runtime behavior, enqueue retry work, execute retry work, write retry queues, write retry attempt records, persist retry schedules, start retry timers, dispatch retry workers, execute rollback behavior, run compensation behavior, notify customers, write incident traces, append observability events, append audit ledgers, write audit events, write databases, write storage, persist product state, invoke Claude runtime review, write review queues, write human approval records, create UI, replace human approval, or mutate product state.",
+    "Pre-closeout npm run rp00:control-plane:validate failed only because S19 evidence files were intentionally not created yet; this command is rerun after evidence creation as the final gate.",
+    "Claude C00 valid review completed once. Claude rated the S19 implementation GO-quality and reported a closeout NO-GO because evidence files were absent before this closeout ceremony. The P0 is resolved by this evidence packet and the recorded final gate. The P2 fixture-parity execution risk is resolved by local validator execution. The P3 wording note is informational and deferred unless the wording becomes misleading in a later S20 or M03 closeout edit."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "status": "passed"
+  },
+  "pre_closeout_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "docs/goal-closeout/rp00-p02-m03-s19/packet.json",
+      "docs/goal-closeout/rp00-p02-m03-s19/command-evidence.json",
+      "docs/goal-closeout/rp00-p02-m03-s19/claude-review-result.json",
+      "docs/goal-closeout/rp00-p02-m03-s19/adjudication.md",
+      "docs/goal-closeout/rp00-p02-m03-s19/construction-inspection.json"
+    ]
+  },
+  "evidence_summary": {
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready closeout",
+    "human_approval_boundary": "Human approval is not required for this deterministic synthetic golden-unit-test boundary because no sensitive production mutation, client-facing output, external sharing, finance action, real data operation, runtime execution, Hermes execution, audit write, storage write, or product-state write occurs.",
+    "happy_path_test": "S19 proves the S01-S18 Hermes validation golden chain reaches retry_behavior_metadata_only, carries permission/audit/TEN trace refs and acceptance gates, preserves synthetic deterministic tenant-scoped fixture integrity, leaves RP00.P02.M03 open, and hands off to RP00.P02.M03.S20."
+  },
+  "gate_outcome": "passed_after_evidence_creation"
+}

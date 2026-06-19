@@ -1,0 +1,57 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-005",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": [],
+    "session_id": "e56c46b5-20f6-493f-8c26-9e9b7ab7dcd9",
+    "uuid": "ffa39224-fecf-42ee-98fd-9c495e37e2af",
+    "total_cost_usd": 1.25244025,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "pass_with_findings",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-005-P2-01",
+        "severity": "p2",
+        "file": "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "line": 19219,
+        "title": "Fixture allowed_state_transitions uses camelCase ruleRef and is unvalidated",
+        "details": "The fixture allowed_state_transitions entry used ruleRef while the contract definition used rule_ref, and the fixture sub-block was not directly validated. This was non-blocking because runtime reads the policy module and the value was correct.",
+        "required_action": "Rename fixture key to rule_ref or add validator assertion over fixturePermissionAuditBindingStateTransition.allowed_state_transitions."
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-005.",
+    "Raw P2 CP00-005-P2-01 is fixed by renaming the fixture allowed_state_transitions key to rule_ref and adding an RP00 validator assertion for that fixture sub-block.",
+    "No unresolved P0, P1, or P2 findings remain after adjudication."
+  ]
+}

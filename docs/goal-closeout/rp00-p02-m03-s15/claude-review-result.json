@@ -1,0 +1,183 @@
+{
+  "subphase_id": "RP00.P02.M03.S15",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Approval-required routing",
+  "created_at": "2026-06-05T11:47:39Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m03-s15-claude-review.json",
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 392652,
+  "duration_api_ms": 392558,
+  "session_id": "9a481601-9f2d-430a-8cee-c2c2a0a2279d",
+  "uuid": "95cdf3bf-c240-4456-a30f-dcd684cdbc78",
+  "total_cost_usd": 2.447188,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_evidence": "NO-GO",
+  "production_ready_verdict_after_adjudication": "GO_AFTER_EVIDENCE_AND_FINAL_GATE",
+  "go_no_go_summary": "S15 implementation is production-quality and safe. Acceptance was blocked only because the five closeout evidence files did not yet exist when Claude reviewed. The findings are accepted and fixed by writing this evidence packet and rerunning final RP00 validation.",
+  "findings": [
+    {
+      "id": "CLAUDE-S15-P1-001",
+      "severity": "P1",
+      "title": "Contract declares production_ready ahead of evidence; validator currently fails",
+      "status": "accepted_and_fixed_by_closeout_evidence_plus_final_gate",
+      "summary": "Claude observed that docs/goal-closeout/rp00-p02-m03-s15 did not exist during review while the contract already declared S15 production_ready, causing npm run rp00:control-plane:validate to fail for missing evidence.",
+      "resolution": "The five required S15 evidence artifacts are now written and final RP00 validation is rerun after evidence creation."
+    },
+    {
+      "id": "CLAUDE-S15-P2-001",
+      "severity": "P2",
+      "title": "Closeout sequencing",
+      "status": "accepted_and_fixed_by_closeout_evidence_plus_final_gate",
+      "summary": "Claude recommended not committing a self-failing state where production_ready is claimed before evidence exists.",
+      "resolution": "The work is not committed until evidence exists and the final RP00 gate passes."
+    },
+    {
+      "id": "CLAUDE-S15-P3-001",
+      "severity": "P3",
+      "title": "Approval receipt carries extra validated metadata fields",
+      "status": "informational_no_code_change",
+      "summary": "approval_required_receipt_fields lists 15 required fields while the receipt also carries matter_id, approval_required_policy_ref, and decision_reason, matching the S14 pattern and separately validated.",
+      "resolution": "No change required."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T11:47:39Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "9a481601-9f2d-430a-8cee-c2c2a0a2279d",
+    "uuid": "95cdf3bf-c240-4456-a30f-dcd684cdbc78",
+    "duration_ms": 392652,
+    "duration_api_ms": 392558,
+    "total_cost_usd": 2.447188,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s15-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline prompt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s15-claude-review.json",
+    "duration_ms": 392652,
+    "duration_api_ms": 392558,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "95cdf3bf-c240-4456-a30f-dcd684cdbc78",
+    "session_id": "9a481601-9f2d-430a-8cee-c2c2a0a2279d"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go_reported_by_claude": "GO_AFTER_EVIDENCE",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P1",
+        "title": "Contract declares production_ready ahead of evidence",
+        "location": "docs/goal-closeout/rp00-p02-m03-s15",
+        "status": "fixed_by_closeout_evidence",
+        "summary": "The five required S15 evidence files were missing during review and are now written before commit."
+      },
+      {
+        "severity": "P2",
+        "title": "Closeout sequencing",
+        "location": "contracts/control-plane-contract.json",
+        "status": "fixed_by_closeout_evidence",
+        "summary": "The self-failing intermediate state is not committed; final RP00 validation is rerun after evidence."
+      },
+      {
+        "severity": "P3",
+        "title": "Approval receipt carries additional validated metadata",
+        "location": "packages/control-plane/src/service.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Additional receipt metadata follows the S14 pattern and is separately validated."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S16 Blocked-claim output as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S15 metadata-only approval-required routing logic, validators, fixture parity, fail-closed claim handling, and S16 successor behavior.",
+      "There were no P0 implementation findings.",
+      "The P1/P2 closeout findings are fixed by evidence creation and final gate validation."
+    ],
+    "summary": "Claude reported implementation PASS with production_ready conditional on evidence. After adjudication and evidence creation S15 is PASS_WITH_FINDINGS / GO with no unresolved P0/P1/P2."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 1,
+    "p2": 1,
+    "p3": 1
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s15-claude-review.json",
+    "summary": "Claude returned implementation PASS and GO once evidence exists; P1/P2 closeout findings are resolved by this packet."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

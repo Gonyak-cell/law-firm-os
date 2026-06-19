@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-776",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-776/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-776/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "bea90b80-1e3f-4296-809f-4d61770a4e65",
+    "uuid": "3f22e926-e2df-4224-a53d-0a5158812a48",
+    "total_cost_usd": 2.5496962499999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7393,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-776 (Migration Platform permission matrix audit binding, RP25.P06.M04.S19-RP25.P06.M05.S28, risk B, 40 units) is a descriptor-only closeout pack consistent with the validated CP756-CP775 series. Independent read-only inspection confirms: (1) the CP776 binding (registry.js:349) and requirements descriptor (registry.js:1658) match the prompt baseline and sum to 40 units with the exact deliverable distribution {test:8,hermes_evidence:2,claude_review:3,implementation:16,security_audit:7,ui:4}; (2) CP776 is fully wired into the service factories (service.js:1406-1461), coverage+descriptor validators (validators.js:1789-1873), index export, contract projection (latest_pack/latest_projection/projections.cp776), the contract validate script (entries + generation, lines 225-267), README, and tests (model.test.js:769-826); (3) command-evidence.json shows all 10 required validation commands exit 0, npm test 3012/3012 pass, migration model suite 64/64 pass, and git diff --check clean; (4) no-write / no-real-data boundaries are asserted via MIGRATION_PLATFORM_NO_WRITE_ATTESTATION and per-row base fields and exercised by tests (all *_runtime_opened=false, writes_product_state=false, real/source/credential payloads excluded); (5) authority boundary holds - descriptor sets claude_is_final_approval=false and human_final_approval_required_for_runtime_opening=true, Claude packet read_only=true/promotes_final_approval=false, Hermes packet emits_runtime_receipt=false with descriptor_only_migration_no_write receipt shape and is not embedded in product runtime; (6) review-evidence hygiene is clean - auth preflight passed (exit 0), and no malformed/0-byte/invalid prior review attempts are presented as valid. The pack manifest reports production_ready=false / runtime_ready=false, the expected pre-review state pending this receipt plus human adjudication; the pack makes no runtime or enterprise-trust claim, so the human/enterprise-trust authority boundary does not block this CP closeout. No P0/P1/P2 issues found; one non-blocking P3 observation recorded for adjudicator awareness.",
+    "findings": [
+      {
+        "id": "CP776-P3-01",
+        "severity": "P3",
+        "title": "Some permission-matrix rows rely on field-absence rather than positive safe-value attestation",
+        "file": "packages/migration/src/service.js",
+        "line": 209,
+        "details": "createCaseSet spreads optional per-row attributes via '...(ROW_EXTRAS[rowKey] ?? {})'. Several M05 permission/audit row titles (e.g. 'Permission matrix row', 'View/Search/Mutation/Export/Share/AI retrieval decision binding', 'Audit hint fields', 'Matched rule capture', 'Audit event expectation', 'Security trimming proof', 'Permission fixture', and the test/closeout rows) have no ROW_EXTRAS entry, so they carry only the base descriptor fields and leave fields such as permission_decision_detail_included / audit_event_body_included / cross_tenant_access_allowed / unauthorized_records_omitted unset. The descriptor validator (validators.js:1863-1866) guards by rejecting only explicit unsafe values (=== true / === false), so absent fields pass. The security-critical invariants are still positively asserted on every row by the base fields (descriptor_only=true, runtime_execution=false, raw_payload/source_system_payload/external_credential/real_client_data=false, all *_runtime_opened=false), and the representative baseline/annotation/precheck rows do set the explicit safe permission/audit values. No row sets an unsafe value, so the pack-level no-leak invariant holds.",
+        "recommendation": "Optional hardening only: if positive per-row attestation is desired for the permission/audit decision rows, add explicit ROW_EXTRAS entries (permission_decision_detail_included:false, audit_event_body_included:false, cross_tenant_access_allowed:false, unauthorized_records_omitted:true) so guards assert presence rather than relying on absence. Apply uniformly across the CP756+ series rather than CP776 alone to avoid drift.",
+        "post_review_disposition": "Acceptable - no action required for this closeout. Behavior is identical to validated precedent CP756-CP775, the security-critical invariants are positively asserted by base row fields, and no row exposes an unsafe value. Recorded for adjudicator awareness only; does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

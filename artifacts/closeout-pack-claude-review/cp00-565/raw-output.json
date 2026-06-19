@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-565",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T21:02:27.583Z",
+  "finished_at": "2026-06-12T21:08:54.698Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":386520,\"duration_api_ms\":386505,\"ttft_ms\":3852,\"num_turns\":45,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** (does not block pack or goal closeout).\\n\\nCP00-565 is a clean descriptor-only pack that honestly claims `production_ready: false` / `runtime_ready: false`. I verified internal consistency across all eight implementation refs (registry, service, validators, contract, test, validator script, README, index), confirmed deliverable/micro-phase counts match the baseline/manifest/plan, and confirmed the no-write/no-real-data boundaries plus Claude read-only/not-final-approver and Hermes-as-deterministic-packet boundaries are all preserved. No P0/P1/P2 defects; one P3 informational note that post-review artifacts are correctly pending (gated before commit).\",\"stop_reason\":\"end_turn\",\"session_id\":\"25f0ce70-edb5-42b0-93f1-0bf549a4897e\",\"total_cost_usd\":2.329717,\"usage\":{\"input_tokens\":328,\"cache_creation_input_tokens\":112502,\"cache_read_input_tokens\":1761227,\"output_tokens\":29725,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":112502,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":287,\"cache_read_input_tokens\":109924,\"cache_creation_input_tokens\":3388,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3388},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1096,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001201,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":328,\"outputTokens\":29725,\"cacheReadInputTokens\":1761227,\"cacheCreationInputTokens\":112502,\"webSearchRequests\":0,\"costUSD\":2.328516,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Independent read-only review of CP00-565 (Risk B, 40 units, RP18.P05.M02.S15-RP18.P05.M04.S12, descriptor layer). The pack-level claim is honest: production_ready=false, runtime_ready=false, status=implemented_pending_review, with production_ready_flag scoped to descriptor verification only. Implementation is internally consistent across all eight refs: registry.js CP565 binding/no-write-attestation/requirements match the baseline, manifest, and plan (deliverable counts test:6/hermes_evidence:2/implementation:13/fixture:13/claude_review:2/security_audit:4=40; micro-phase M02:6/M03:22/M04:12; range and handoff boundaries align with CP564->CP565->CP566). service.js descriptor/case-set produce descriptor-only rows (descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false) and freezeCp565Result stamps a comprehensive no-write/no-real-data/no-runtime/no-leak attestation. validators.js coverage+slice validators enforce per-row guards, the no-write attestation, and the authority boundary; all 7 required public exports exist and are re-exported via index.js. The contract projection (p05_implementation_workflow_slice_descriptor, cp565_requirements, cp565_no_write_attestation, current_pack) mirrors the live descriptor, and the validator script asserts deepEqual between contract and descriptor; command-evidence.json records the full validation suite (including rp18:ai-legal-workflows-core:validate, npm test, npm run validate, git diff --check) at exit_code 0. Boundaries hold: Claude is read_only and explicitly not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false), enterprise trust is not claimed from local validation, and Hermes patterns are used only as deterministic review/evidence descriptor packets (emits_hermes_runtime_receipt=false), not product runtime. No AI legal workflows/precedent/clause-markup/DD-extraction runtime is opened. No auth-failure/0-byte/malformed/fenced/tool-call-shaped evidence is relied upon (readiness auth preflight passed). No P0/P1/P2 defects found. One P3 informational note: the manifest lists post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) not yet present, which is the correct pre-review state and is gated to be produced before commit. This is an independent reviewer recommendation, not final approval; human final approval remains required.\",\"findings\":[{\"id\":\"CP565-OBS-01\",\"severity\":\"P3\",\"title\":\"Manifest references post-review closeout artifacts not yet present (expected pre-review state)\",\"file\":\"docs/closeout-packs/cp00-565/manifest.json\",\"line\":1675,\"details\":\"evidence_refs and required_pack_artifacts reference docs/closeout-packs/cp00-565/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in the pack directory (confirmed via Glob). This is consistent with pack_level_claude_review.status='pending', empty valid_review_receipts, and command-evidence.json's note that these post-review gated artifacts/commands are produced from the accepted review before commit. It is not a defect and confirms the post-review closeout gating is wired correctly.\",\"recommendation\":\"Proceed. After this accepted review, generate claude-review-result.json, adjudication.md, and construction-inspection.json, then run the post-review gated validation commands (closeout-pack:review:run/normalize/receipt:validate, closeout-pack-plan:generate, closeout-pack:validate, git diff --check --cached) before committing CP00-565.\",\"post_review_disposition\":\"expected_non_defect_informational\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ce82cf91-7220-4f0c-a011-a0f2eee40791\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6055,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "25f0ce70-edb5-42b0-93f1-0bf549a4897e",
+    "uuid": "ce82cf91-7220-4f0c-a011-a0f2eee40791",
+    "total_cost_usd": 2.329717,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

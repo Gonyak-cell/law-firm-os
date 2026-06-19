@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Law Firm OS - Ledger</title>
+  <link rel="icon" href="./brand-showcase-assets/amic-main.svg">
+  <link rel="stylesheet" href="./brand-showcase-assets/module-suite.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar plane-dark">
+      <div class="topbar-left">
+        <img class="logo-dark" src="./brand-showcase-assets/amic-petra.svg" alt="AMIC PETRA">
+        <span class="product">Law Firm OS</span>
+      </div>
+      <nav class="tabs" aria-label="Modules">
+        <button class="active">ERP</button>
+        <button>CRM</button>
+        <button>HR</button>
+        <button>DMS</button>
+      </nav>
+      <div class="topbar-actions">
+        <button>Export</button>
+        <button class="primary">Sync</button>
+      </div>
+    </header>
+
+    <section class="screen screen-ledger">
+      <aside class="rail plane-dark">
+        <div class="rail-title">Modules</div>
+        <div class="nav-row active"><span>ERP</span><span class="count">18</span></div>
+        <div class="nav-row"><span>CRM</span><span class="count">42</span></div>
+        <div class="nav-row"><span>HR</span><span class="count">09</span></div>
+        <div class="nav-row"><span>DMS</span><span class="count">156</span></div>
+        <div class="rail-title">Queue</div>
+        <div class="list">
+          <div class="record-row"><div class="line-top"><strong>Invoice</strong><small>12</small></div></div>
+          <div class="record-row"><div class="line-top"><strong>Contact</strong><small>21</small></div></div>
+          <div class="record-row"><div class="line-top"><strong>Capacity</strong><small>09</small></div></div>
+          <div class="record-row"><div class="line-top"><strong>Folder</strong><small>16</small></div></div>
+        </div>
+      </aside>
+
+      <section class="main">
+        <section class="pane plane">
+          <div class="pane-head">
+            <h1>ERP Ledger</h1>
+            <div class="tabs">
+              <button class="active">Open</button>
+              <button>Closed</button>
+              <button>Hold</button>
+            </div>
+          </div>
+          <div class="module-grid">
+            <div class="module-row active"><span>ERP</span><strong>72%</strong></div>
+            <div class="module-row"><span>CRM</span><strong>42</strong></div>
+            <div class="module-row"><span>HR</span><strong>09</strong></div>
+            <div class="module-row"><span>DMS</span><strong>156</strong></div>
+          </div>
+        </section>
+
+        <section class="pane plane">
+          <div class="pane-head">
+            <h2>Entries</h2>
+            <button>New Entry</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Module</th>
+                  <th>Record</th>
+                  <th>Owner</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="code">ERP-018</td>
+                  <td>ERP</td>
+                  <td>Invoice batch</td>
+                  <td>조우상</td>
+                  <td><span class="status">Open</span></td>
+                  <td><div class="bar"><i style="width:72%"></i></div></td>
+                </tr>
+                <tr>
+                  <td class="code">CRM-042</td>
+                  <td>CRM</td>
+                  <td>Client renewal</td>
+                  <td>서지원</td>
+                  <td><span class="status">Open</span></td>
+                  <td><div class="bar"><i style="width:64%"></i></div></td>
+                </tr>
+                <tr>
+                  <td class="code">HR-009</td>
+                  <td>HR</td>
+                  <td>Staffing plan</td>
+                  <td>윤태리</td>
+                  <td><span class="status">Hold</span></td>
+                  <td><div class="bar"><i style="width:58%"></i></div></td>
+                </tr>
+                <tr>
+                  <td class="code">DMS-156</td>
+                  <td>DMS</td>
+                  <td>Folder lock</td>
+                  <td>임영훈</td>
+                  <td><span class="status">Done</span></td>
+                  <td><div class="bar"><i style="width:92%"></i></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <aside class="side">
+        <section class="pane plane">
+          <div class="pane-head"><h3>Today</h3></div>
+          <div class="list">
+            <div class="list-row"><div class="line-top"><strong>DMS lock</strong><small>09:30</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>CRM note</strong><small>13:00</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>HR plan</strong><small>15:00</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>ERP close</strong><small>17:00</small></div></div>
+          </div>
+        </section>
+        <section class="pane plane-dark pane-dark">
+          <div class="pane-head"><h3>Audit</h3></div>
+          <div class="list">
+            <div class="list-row"><div class="line-top"><strong>DMS</strong><small>locked</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>CRM</strong><small>updated</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>ERP</strong><small>synced</small></div></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

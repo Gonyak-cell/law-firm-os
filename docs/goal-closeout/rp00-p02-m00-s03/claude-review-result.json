@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P02.M00.S03",
+  "source_micro_phase_id": "RP00.P02.M00",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only_no_tools",
+    "session_id": "cec9fe5d-1799-4e58-ad6b-d6aa03bcded4",
+    "uuid": "6d58005f-a041-4dea-83fe-f4c69876e540",
+    "total_cost_usd": 0.900412,
+    "duration_ms": 262224,
+    "duration_api_ms": 264097,
+    "num_turns": 1,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "session_continuation_used_to_complete_review": false,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m00-s03-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true,
+    "records_tenant_boundary_precheck_only": true,
+    "declares_three_entrypoints": true,
+    "exports_required_symbols": true,
+    "depends_on_RP00_P02_M00_S02": true,
+    "completes_RP00_P02_M00_only": true,
+    "hands_off_to_RP00_P02_M01_S01": true,
+    "rejects_cross_tenant_and_bypass_claims": true,
+    "does_not_execute_service_logic": true,
+    "does_not_create_runtime_routes": true,
+    "does_not_mutate_states_js": true,
+    "does_not_mutate_entity_registry": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_claim_RP00_or_RP00_P02_completion": true,
+    "handoff_to_next_subphase": "RP00.P02.M01.S01",
+    "findings": [
+      {
+        "id": "P2-1",
+        "severity": "P2",
+        "title": "Matter tenant was unverified when matter_id was present and matter_tenant_id was omitted",
+        "status": "fixed",
+        "disposition": "precheckControlPlaneTenantBoundary now rejects missing matter_tenant_id when the S02-normalized request has matter_id; policy, contract fail_closed_on, validator, and tests cover missing_matter_tenant_id_when_matter_id_present."
+      },
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "Allow decision can carry pre-existing blocked_claim_refs from S02",
+        "status": "fixed",
+        "disposition": "Added an explicit regression test showing prior blocked_claim_refs are carried forward while tenant_boundary_decision remains scoped to tenant-boundary mismatches; no fail-open behavior exists."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "Optional tests for matter_id present without matter_tenant_id",
+        "status": "fixed",
+        "disposition": "Added fail-closed tests for missing matter_tenant_id when matter_id is present."
+      },
+      {
+        "id": "CB-1",
+        "severity": "CB",
+        "title": "Record S03 closeout evidence",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "packet.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json are recorded for S03."
+      },
+      {
+        "id": "CB-2",
+        "severity": "CB",
+        "title": "Run local validation after evidence materialization",
+        "status": "fixed_by_final_validation",
+        "disposition": "Final validation reruns npm run rp00:control-plane:validate, focused service tests, and the full local test suite after evidence materialization."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude approved the S03 tenant-boundary precheck slice with no P0/P1 findings. The review confirmed deterministic no-write scope, S02-normalized request dependency, fail-closed tenant mismatch and bypass handling, no runtime routing, no service execution, no real data, no product-state writes, no registry/state mutation, RP00.P02.M00-only completion, and no RP00/RP00.P02 completion claim. P2/P3 findings were fixed before closeout without a second Claude review."
+}

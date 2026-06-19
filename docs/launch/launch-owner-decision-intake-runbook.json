@@ -1,0 +1,183 @@
+{
+  "schema_version": "law-firm-os.launch-owner-decision-intake-runbook.v0.1",
+  "generated_at": "2026-06-18T17:19:14.851Z",
+  "source_refs": [
+    "docs/launch/launch-minimum-deferral-decision-packet.json",
+    "docs/launch/launch-deferral-intake-batches.json",
+    "docs/launch/launch-decision-register-owner-evidence-audit.json",
+    "docs/launch/launch-minimum-deferral-application-audit.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "boundary": {
+    "runbook_only": true,
+    "go_live_approved_by_this_runbook": false,
+    "owner_deferrals_approved_by_this_runbook": false,
+    "launch_decision_register_modified_by_this_runbook": false,
+    "placeholders_count_as_owner_evidence": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "decision_register_total_rows": 0,
+    "owner_evidence_quality_pass_count": 0,
+    "minimum_owner_row_count": 4,
+    "target_count_if_minimum_owner_rows_are_completed": 117,
+    "valid_applied_minimum_decision_row_count": 0,
+    "remaining_target_count_after_valid_applied_rows": 117,
+    "intake_batch_count": 8,
+    "owner_input_required_count": 117
+  },
+  "required_register_fields": [
+    "decision_id",
+    "title",
+    "owner",
+    "decision",
+    "basis",
+    "date_or_revisit_gate",
+    "approval_signature",
+    "status"
+  ],
+  "allowed_deferral_status": "deferred(시한 명기)",
+  "signature_ref_formats": [
+    {
+      "format": "docs/<local-evidence-path>",
+      "rule": "Local signature or approval reference must resolve in the repository."
+    },
+    {
+      "format": "external:<system-and-record-id>",
+      "rule": "External approval reference must identify the source system and record."
+    },
+    {
+      "format": "signature:<signature-record-id>",
+      "rule": "Signature reference must identify the signed record."
+    },
+    {
+      "format": "approval:<approval-record-id>",
+      "rule": "Approval reference must identify the approval record."
+    },
+    {
+      "format": "email:<message-id-or-thread-ref>",
+      "rule": "Email reference must identify the approving message or thread."
+    },
+    {
+      "format": "ticket:<ticket-id>",
+      "rule": "Ticket reference must identify the approval ticket."
+    },
+    {
+      "format": "meeting:<meeting-id-or-minutes-ref>",
+      "rule": "Meeting reference must identify the minutes or decision record."
+    }
+  ],
+  "minimum_owner_rows": [
+    {
+      "decision_id": "COVERAGE-ALL-GO-LIVE",
+      "title": "Owner deferral for all failed G1-G10 gate evidence",
+      "coverage_domain": "go_live_gate_evidence",
+      "covered_target_count": 31,
+      "required_owner_basis": "Owner accepts deferring all currently failed go-live gate evidence slots.",
+      "status_to_record_after_real_owner_evidence": "deferred(시한 명기)",
+      "source_packet_row_is_placeholder_only": true,
+      "owner_input_required": true,
+      "real_owner_row_required": true
+    },
+    {
+      "decision_id": "COVERAGE-L9-STABILIZATION",
+      "title": "Owner deferral for all L9 stabilization criteria",
+      "coverage_domain": "l9_stabilization_closure",
+      "covered_target_count": 5,
+      "required_owner_basis": "Owner accepts deferring all currently blocked L9 stabilization closure criteria.",
+      "status_to_record_after_real_owner_evidence": "deferred(시한 명기)",
+      "source_packet_row_is_placeholder_only": true,
+      "owner_input_required": true,
+      "real_owner_row_required": true
+    },
+    {
+      "decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "title": "Owner deferral for all blocked launch work packages",
+      "coverage_domain": "blocked_work_package",
+      "covered_target_count": 70,
+      "required_owner_basis": "Owner accepts deferring all currently blocked PRE-L9 launch work packages.",
+      "status_to_record_after_real_owner_evidence": "deferred(시한 명기)",
+      "source_packet_row_is_placeholder_only": true,
+      "owner_input_required": true,
+      "real_owner_row_required": true
+    },
+    {
+      "decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "title": "Owner deferral for all PRE-L9 phase exits",
+      "coverage_domain": "phase_exit",
+      "covered_target_count": 11,
+      "required_owner_basis": "Owner accepts deferring all currently blocked PRE-L9 phase exits.",
+      "status_to_record_after_real_owner_evidence": "deferred(시한 명기)",
+      "source_packet_row_is_placeholder_only": true,
+      "owner_input_required": true,
+      "real_owner_row_required": true
+    }
+  ],
+  "intake_batches": [
+    {
+      "batch_id": "B01",
+      "title": "External dependency intake",
+      "primary_resolution_lane": "external_dependency",
+      "target_count": 10,
+      "required_action": "Collect external legal, M365, identity, pilot, or third-party evidence, or obtain a real owner-approved deferral."
+    },
+    {
+      "batch_id": "B02",
+      "title": "Owner decision and signature intake",
+      "primary_resolution_lane": "owner_decision_signature",
+      "target_count": 27,
+      "required_action": "Record real owner decisions, signatures, acceptance, ratification, or explicit owner-approved deferrals."
+    },
+    {
+      "batch_id": "B03",
+      "title": "Policy and scope decision intake",
+      "primary_resolution_lane": "policy_scope_decision",
+      "target_count": 3,
+      "required_action": "Resolve policy/scope choices, or obtain owner-approved deferrals with basis and revisit gates."
+    },
+    {
+      "batch_id": "B04",
+      "title": "Runtime and operational evidence intake",
+      "primary_resolution_lane": "runtime_operational_evidence",
+      "target_count": 24,
+      "required_action": "Provide real runtime, staging, monitoring, rollback, DR, pilot, or operational evidence, or defer with owner approval."
+    },
+    {
+      "batch_id": "B05",
+      "title": "Evidence completion intake",
+      "primary_resolution_lane": "evidence_completion",
+      "target_count": 6,
+      "required_action": "Fill missing evidence cells, links, records, and acceptance artifacts, or defer with owner approval."
+    },
+    {
+      "batch_id": "B06",
+      "title": "G1-G10 gate evidence intake",
+      "primary_resolution_lane": "go_live_gate_evidence",
+      "target_count": 31,
+      "required_action": "Supply failed go-live gate evidence slots, or record coverage-eligible owner-approved deferrals."
+    },
+    {
+      "batch_id": "B07",
+      "title": "PRE-L9 phase-exit intake",
+      "primary_resolution_lane": "phase_exit_closure_or_deferral",
+      "target_count": 11,
+      "required_action": "Close phase exits through real WP evidence, or record phase-exit owner-approved deferrals."
+    },
+    {
+      "batch_id": "B08",
+      "title": "L9 stabilization measurement intake",
+      "primary_resolution_lane": "l9_stabilization_measurement",
+      "target_count": 5,
+      "required_action": "Provide measured L9 stabilization/hypercare evidence, or record owner-approved deferrals."
+    }
+  ],
+  "validation_commands": [
+    "node scripts/validate-launch-decision-register.mjs",
+    "node scripts/audit-launch-decision-register-owner-evidence.mjs",
+    "node scripts/audit-launch-minimum-deferral-application.mjs",
+    "node scripts/audit-launch-deferral-coverage.mjs",
+    "node scripts/audit-launch-goal-completion.mjs",
+    "node scripts/audit-launch-no-go-claim-policy.mjs"
+  ]
+}

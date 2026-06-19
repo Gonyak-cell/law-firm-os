@@ -1,0 +1,180 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L4-W05",
+  "title": "i18n policy, glossary, and product naming",
+  "phase": "L4",
+  "gate": "L4-EXIT",
+  "status": "t01_i18n_policy_t02_glossary_t03_app_copy_audit_blocked_pending_owner_policy_and_source_cleanup",
+  "recorded_at": "2026-06-18T11:25:09Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L4-W05-T01",
+      "title": "i18n policy decision brief",
+      "status": "blocked_pending_owner_language_policy_decision",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/i18n-policy.md",
+        "apps/web/src/i18n.js",
+        "docs/goal-closeout/lt-l4-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "decision_options": 3,
+        "wave1_screen_rows": 6,
+        "ko_locale_present": true,
+        "en_locale_present": true,
+        "owner_decision_present": false,
+        "launch_decision_register_updated": false,
+        "i18n_js_modified": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... import apps/web/src/i18n.js, count locales, decision options, Wave 1 screen rows, and no register/code change ... NODE",
+          "exit_code": 0,
+          "output": "{\"locales\":[\"ko\",\"en\"],\"ko_keys\":58,\"en_keys\":58,\"option_rows\":3,\"screen_rows\":6,\"owner_decision_present\":false,\"register_rows\":0,\"i18n_js_modified\":false}",
+          "purpose": "Verify current i18n source state and decision-brief boundaries"
+        },
+        {
+          "command": "grep -c \"^| I18N-OPT-\" docs/product-ui/i18n-policy.md && grep -c \"^| I18N-SCREEN-\" docs/product-ui/i18n-policy.md",
+          "exit_code": 0,
+          "output": "3\n6",
+          "purpose": "Verify decision option and Wave 1 screen scope row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}; 위반 0건 — PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a decision brief only and does not choose Korean-only or bilingual policy.",
+        "No launch-decision-register row was created because owner evidence does not exist and the current register key families do not include L4 decisions.",
+        "No apps/web code was modified."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W05-T02",
+      "title": "Product UI glossary draft",
+      "status": "draft_blocked_pending_i18n_policy_decision_and_final_ui_copy_validation",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-ui/glossary.md",
+        "docs/product-ui/i18n-policy.md",
+        "workbook/launch-runtime/terminology-glossary.md",
+        "docs/goal-closeout/lt-l4-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "term_rows": 36,
+        "product_name_layer_rows": 4,
+        "forbidden_pattern_rows": 6,
+        "l2_crosswalk_rows": 6,
+        "l2_crosswalk_unexplained_mismatches": 0,
+        "live_app_old_ui_brand_phrase_count": 0,
+        "final_i18n_policy_decision_present": false,
+        "apps_web_modified": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count TERM, NAME-LAYER, FORBID, L2-XWALK rows and verify old UI brand phrase absent from apps/web/src ... NODE",
+          "exit_code": 0,
+          "output": "{\"term_rows\":36,\"name_layers\":4,\"forbidden_rows\":6,\"crosswalk_rows\":6,\"unexplained_mismatches\":0,\"old_ui_brand_live_matches\":0,\"apps_web_modified\":false}",
+          "purpose": "Verify glossary draft contains required terminology, naming layers, forbidden patterns, and L2-W06 crosswalk without app code changes"
+        },
+        {
+          "command": "grep -c \"^| TERM-\" docs/product-ui/glossary.md && grep -c \"^| NAME-LAYER-\" docs/product-ui/glossary.md && grep -c \"^| L2-XWALK-\" docs/product-ui/glossary.md",
+          "exit_code": 0,
+          "output": "36\n4\n6",
+          "purpose": "Verify glossary term, product naming layer, and L2 crosswalk row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}; 위반 0건 — PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a glossary draft only; final UI copy validation and any app changes belong to LT-L4-W05-T03.",
+        "The glossary imports L2-W06 product naming and homonym rules and provides 36 Wave 1 UI/training term rows.",
+        "The owner i18n policy decision remains pending."
+      ]
+    },
+    {
+      "tuw_id": "LT-L4-W05-T03",
+      "title": "App copy audit before approved cleanup",
+      "status": "audit_blocked_pending_owner_i18n_policy_wave1_scope_and_source_copy_cleanup",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/product-ui/app-copy-audit.md",
+        "docs/product-ui/glossary.md",
+        "apps/web/src/i18n.js",
+        "apps/web/src/components/MatterLogo.jsx",
+        "docs/goal-closeout/lt-l4-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "source_files_scanned": 24,
+        "string_candidate_count": 79,
+        "candidate_files": 16,
+        "old_ui_brand_phrase_count": 0,
+        "matter_logo_aria_ok": true,
+        "i18n_ko_keys": 58,
+        "i18n_en_keys": 58,
+        "law_firm_os_raw_matches": 2,
+        "storage_forbidden_term_count": 0,
+        "candidate_review_rows": 7,
+        "app_source_files_modified": 0,
+        "owner_i18n_policy_decision_present": false,
+        "source_copy_cleanup_applied": false,
+        "rendered_ui_validation_complete": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... scan apps/web/src strings for Matter/AMIC Law/Project Atlas/Raw Event/Billing/AI/storage-risk terms and verify no app source diff ... NODE",
+          "exit_code": 0,
+          "output": "{\"source_files\":24,\"string_candidate_count\":79,\"old_ui_brand_phrase_count\":0,\"law_firm_os_raw_matches\":2,\"storage_forbidden_term_count\":0,\"matter_logo_aria_ok\":true,\"i18n_locale_keys\":{\"ko\":58,\"en\":58},\"candidate_files\":16,\"app_source_files_modified\":0}",
+          "purpose": "Verify current app-copy state and cleanup blockers without modifying apps/web source"
+        },
+        {
+          "command": "rg -n \"matter by AMIC Law\" apps/web/src | wc -l && rg -n \"Law Firm OS\" apps/web/src | wc -l",
+          "exit_code": 0,
+          "output": "0\n2",
+          "purpose": "Verify old UI brand phrase is absent while Law Firm OS user-facing candidates remain for cleanup"
+        },
+        {
+          "command": "grep -c \"^| COPY-CAND-\" docs/product-ui/app-copy-audit.md && grep -c \"^| COPY-SCAN-\" docs/product-ui/app-copy-audit.md",
+          "exit_code": 0,
+          "output": "7\n7",
+          "purpose": "Verify app copy audit review queue and scan summary row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}; 위반 0건 — PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an app-copy audit only; no apps/web source file was modified.",
+        "MatterLogo aria-label already matches matter by AMIC and the old UI brand phrase matter by AMIC Law is absent.",
+        "LT-L4-W05-T03 remains open because owner i18n policy, Wave 1 source scope, source copy cleanup, and rendered UI validation are not complete."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L4-W05, LT-L4-W05-T01, LT-L4-W05-T02, or LT-L4-W05-T03 is complete.",
+    "This record does not choose a language policy.",
+    "This record does not update the launch decision register or modify apps/web source.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

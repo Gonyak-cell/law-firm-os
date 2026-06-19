@@ -1,0 +1,105 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L0-W05",
+  "title": "Hardening coverage aggregation",
+  "phase": "L0",
+  "gate": "G1, L0-EXIT",
+  "created_at": "2026-06-18T12:56:50Z",
+  "status": "blocked_pending_owner_ratification_and_cell_evidence",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "contract_shape": {
+    "critical_rp_count": 16,
+    "control_count": 17,
+    "required_cell_count": 272,
+    "first_rp": "RP00",
+    "first_control": "tenant_isolation"
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L0-W05-T01",
+      "title": "Build 16 RP x 17 control matrix",
+      "status": "blocked_contract_shape_recorded_cell_evidence_missing",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/hardening-coverage-matrix.md",
+        "contracts/critical-rp-saas-hardening-contract.json",
+        "docs/goal-closeout/lt-l0-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "critical_rp_count": 16,
+        "control_count": 17,
+        "required_cell_count": 272,
+        "allowed_cell_statuses": [
+          "satisfied",
+          "unmet",
+          "n/a"
+        ],
+        "cell_level_evidence_complete": false,
+        "sample_links_at_least_20": false
+      }
+    },
+    {
+      "tuw_id": "LT-L0-W05-T02",
+      "title": "Finalize disposition column, completion summary, and approval record",
+      "status": "blocked_pending_owner_approval_and_unmet_dispositions",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/hardening-coverage-matrix.md",
+        "docs/goal-closeout/lt-l0-w05/packet.json",
+        "docs/goal-closeout/lt-l0-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "both_tuw_ids_present_in_command_evidence": true,
+        "unmet_cell_count_known": false,
+        "unmet_disposition_count_matches_unmet_count": false,
+        "owner_approval_record_present": false,
+        "g1_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "hardening_contract_shape",
+      "command": "jq '{critical_count:(.critical_rp_ids|length), control_count:(.universal_saas_controls|length), total_cells:((.critical_rp_ids|length) * (.universal_saas_controls|length)), first_rp:.critical_rp_ids[0], first_control:.universal_saas_controls[0]}' contracts/critical-rp-saas-hardening-contract.json",
+      "exit_code": 0,
+      "output": {
+        "critical_count": 16,
+        "control_count": 17,
+        "total_cells": 272,
+        "first_rp": "RP00",
+        "first_control": "tenant_isolation"
+      },
+      "purpose": "Verify the hardening matrix contract shape."
+    },
+    {
+      "id": "critical_rp_and_control_lists",
+      "command": "jq -r '.critical_rp_ids, .universal_saas_controls' contracts/critical-rp-saas-hardening-contract.json",
+      "exit_code": 0,
+      "summary": "Critical RP IDs and universal SaaS control IDs were read from the contract and copied into docs/launch/hardening-coverage-matrix.md.",
+      "writes_product_state": false
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L0-W05.",
+    "This record does not populate or validate all 272 matrix cells.",
+    "This record does not assert PRE-W01 owner ratification.",
+    "This record does not create owner approval or unmet-cell dispositions.",
+    "This record does not satisfy G1 or L0-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

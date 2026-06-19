@@ -1,0 +1,352 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-183",
+  "subphase_id": "RP05.P04.M06.S15",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/matter/src/registry.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 registry syntax validation"
+    },
+    {
+      "command": "node --check packages/matter/src/service.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 service syntax validation"
+    },
+    {
+      "command": "node --check packages/matter/src/validators.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 validator syntax validation"
+    },
+    {
+      "command": "node --check packages/matter/test/model.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 focused test syntax validation"
+    },
+    {
+      "command": "node --check scripts/validate-rp05-matter-core-contract.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP05 Matter Core validator syntax validation"
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack validator syntax validation"
+    },
+    {
+      "command": "node --test packages/matter/test/*.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "focused CP00-183 Matter Core tests"
+    },
+    {
+      "command": "npm run rp05:matter-core:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP05 Matter Core contract and CP00-183 coverage validator"
+    },
+    {
+      "command": "npm run rp05:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP05 detailed plan validator"
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-183",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 hardened Claude review baseline generation"
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-183",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 hardened Claude review readiness gate"
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-183 --timeout_ms 1200000",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 read-only Claude review raw capture"
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-183",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 Claude review receipt normalization"
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-183",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 Claude review receipt validation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan regeneration after CP00-183 scaffold"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan validation"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full closeout pack validation through CP00-183 after artifacts"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full workspace test suite after CP00-183 changes"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "web production build after CP00-183 changes"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "spec requirement ledger validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "weighted implementation ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP00 control-plane validation"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "whitespace validation after CP00-183 changes"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-183",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-183 targeted closeout pack validation after artifacts"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H05",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "evidence_packet": "H05.CP00-183.matter_core_ui_evidence_permission_fixture",
+    "descriptor_packet": {
+      "evidence_packet": "H05.CP00-183.matter_core_ui_evidence_permission_fixture",
+      "gate": "H05",
+      "coverage_valid": true,
+      "ui_evidence_valid": true,
+      "source_ui_workflow_pack_id": "CP00-182",
+      "required_evidence_sections": [
+        "hermes_ui_evidence",
+        "claude_ui_leak_prompt",
+        "closeout_handoff",
+        "permission_audit_binding",
+        "synthetic_fixture_set"
+      ],
+      "required_permission_audit_binding": [
+        "permission_badge_ref_only",
+        "audit_hint_ref_only",
+        "safe_error_copy",
+        "review_required_state",
+        "denied_state",
+        "no_permission_decision_detail_leak",
+        "no_audit_event_body_leak",
+        "no_unauthorized_count_leak"
+      ],
+      "required_fixture_surfaces": [
+        "matter_opening_panel",
+        "matter_member_assignment_panel",
+        "matter_task_planning_panel",
+        "matter_wiki_section_review_panel",
+        "matter_graph_relationship_review_panel"
+      ],
+      "required_fixture_states": [
+        "loading",
+        "empty",
+        "denied",
+        "review_required",
+        "approval_required",
+        "ready"
+      ],
+      "leak_prompt_checks": [
+        "no_raw_payload",
+        "no_permission_decision_detail",
+        "no_audit_event_body",
+        "no_unauthorized_count",
+        "no_client_visible_wiki_output",
+        "claude_not_final_approval"
+      ],
+      "hermes_evidence_checks": [
+        "synthetic_fixture_binding",
+        "build_smoke_descriptor",
+        "permission_badge_ref_only",
+        "audit_hint_ref_only",
+        "state_snapshot_without_unauthorized_count"
+      ],
+      "no_real_data": true,
+      "no_write_attestation": {
+        "pack_id": "CP00-183",
+        "writes_product_state": false,
+        "creates_database_rows": false,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": false,
+        "writes_audit_event": false,
+        "appends_audit_event": false,
+        "acquires_runtime_lock": false,
+        "dispatches_review_route": false,
+        "dispatches_approval_route": false,
+        "executes_rollback": false,
+        "executes_retry": false,
+        "executes_api_handler": false,
+        "renders_live_dom": false,
+        "issues_network_request": false,
+        "implements_graph_provider_runtime": false,
+        "implements_citation_ledger_runtime": false,
+        "implements_loop_engine": false,
+        "exposes_client_visible_wiki_output": false,
+        "exposes_raw_payload": false,
+        "leaks_unauthorized_counts": false,
+        "leaks_permission_decision_detail": false,
+        "leaks_audit_event_body": false,
+        "promotes_claude_to_final_approval": false,
+        "claims_enterprise_trust_from_local_validation": false,
+        "synthetic_only": true,
+        "no_real_client_data": true
+      },
+      "next_pack_id": "CP00-184",
+      "production_ready_candidate": true,
+      "pack_id": "CP00-183",
+      "synthetic_only": true,
+      "no_real_client_data": true,
+      "writes_product_state": false,
+      "evaluates_runtime_permission": false,
+      "writes_audit_event": false,
+      "creates_database_rows": false,
+      "implements_loop_engine": false
+    }
+  },
+  "claude_gate": {
+    "id": "C05",
+    "status": "passed",
+    "review_packet": {
+      "review_packet": "C05.CP00-183.matter_core_ui_evidence_permission_fixture",
+      "gate": "C05",
+      "required_model": "claude-opus-4-8",
+      "required_effort": "max",
+      "read_only": true,
+      "source_inspection_basis": "read_tools_used",
+      "allowed_tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "pack_id": "CP00-183",
+      "coverage_valid": true,
+      "ui_evidence_valid": true,
+      "source_ui_workflow_pack_id": "CP00-182",
+      "questions": [
+        "Does CP00-183 prove Hermes UI evidence, Claude leak prompts, closeout handoff, permission/audit binding, and synthetic fixture set coverage for all included units?",
+        "Are permission badges and audit hints reference-only without decision detail or audit event body exposure?",
+        "Do synthetic fixtures cover all required surfaces and states without raw payloads, unauthorized counts, live DOM rendering, or API handler execution?",
+        "Does CP00-183 preserve Claude as a read-only reviewer and avoid enterprise trust claims from local validation?",
+        "Does CP00-183 hand off to CP00-184 / RP05.P04.M06.S16 without moving CitationLedger or Loop implementation early?"
+      ],
+      "invalid_review_blockers": [
+        "auth_failure",
+        "stdout_0_bytes",
+        "malformed_json",
+        "fenced_json_plus_prose",
+        "tool_call_shaped_output",
+        "disabled_source_tools",
+        "missing_raw_output_ref",
+        "missing_source_inspection_basis",
+        "claude_final_approval_claim",
+        "source_mutation_claim",
+        "production_or_enterprise_trust_claim"
+      ],
+      "next_pack_id": "CP00-184",
+      "synthetic_only": true,
+      "no_real_client_data": true,
+      "writes_product_state": false,
+      "evaluates_runtime_permission": false,
+      "writes_audit_event": false,
+      "creates_database_rows": false,
+      "implements_loop_engine": false
+    },
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-183/review-receipt.json"
+  },
+  "closeout_handoff": {
+    "handoff_id": "CP00-183-to-CP00-184",
+    "from_pack_id": "CP00-183",
+    "to_pack_id": "CP00-184",
+    "next_subphase_id": "RP05.P04.M06.S16",
+    "closed_scope": "RP05.P04.M04.S18-RP05.P04.M06.S15",
+    "open_scope": "Continue RP05.P04.M06.S16 onward synthetic fixture binding and Matter Core UI evidence tail in CP00-184 without runtime persistence, live DOM rendering, or Loop execution.",
+    "production_ready_flag": "matter_core_ui_evidence_permission_fixture_descriptor_verified",
+    "source_ui_workflow_pack_id": "CP00-182",
+    "source_api_interface_pack_id": "CP00-181",
+    "pack_id": "CP00-183",
+    "synthetic_only": true,
+    "no_real_client_data": true,
+    "writes_product_state": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "creates_database_rows": false,
+    "implements_loop_engine": false
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-183 remains descriptor-only and does not render live DOM, execute API handlers, write audit events, evaluate runtime permissions, or implement Loop behavior.",
+    "Claude Opus 4.8 max ran once through the hardened read-only runner; raw output was normalized and receipt validated before being accepted as evidence."
+  ]
+}

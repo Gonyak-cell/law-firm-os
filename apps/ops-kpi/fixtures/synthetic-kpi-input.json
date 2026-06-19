@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-firm-os.ops-kpi.synthetic-aggregate-input.v0.1",
+  "fixture_id": "lt-l6-w06-synthetic-aggregate-sample",
+  "synthetic_only": true,
+  "no_real_data": true,
+  "aggregate_only": true,
+  "staging_source": false,
+  "collection_window": {
+    "label": "synthetic_sample_window",
+    "starts_at": "2026-06-18T00:00:00Z",
+    "ends_at": "2026-06-18T23:59:59Z"
+  },
+  "counts": {
+    "matter_status_visible_required_signals": 45,
+    "matter_status_required_signals": 50,
+    "filed_outlook_emails": 72,
+    "eligible_outlook_emails": 120,
+    "qc_errors_fixed": 18,
+    "qc_errors_detected": 20,
+    "source_linked_ai_outputs": 0,
+    "total_ai_outputs": 0,
+    "hallucination_incidents": 0,
+    "blocked_unauthorized_attempts": 12,
+    "unauthorized_attempts": 12,
+    "audit_events_present": 240,
+    "expected_audit_events": 240,
+    "blocked_hr_sensitive_attempts": 8,
+    "hr_sensitive_attempts": 8,
+    "rule_engine_separation_passes": 10,
+    "rule_engine_separation_checks": 10,
+    "knowledge_packs_created": 6,
+    "closed_matters": 10
+  },
+  "raw_field_policy": {
+    "client_names_included": false,
+    "matter_names_included": false,
+    "personal_data_included": false,
+    "document_contents_included": false,
+    "email_bodies_included": false,
+    "privileged_text_included": false
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L7-W03",
+  "title": "Full backfill and delta strategy",
+  "phase": "L7",
+  "gate": "G8, L7-EXIT",
+  "created_at": "2026-06-18T14:29:38Z",
+  "status": "blocked_pending_gl_mig_02_delta_freeze_design_production_backfill_preflight_execution_verification_and_g8_package",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "real_data_boundary": {
+    "production_backfill_executed": false,
+    "production_data_written": false,
+    "m365_admin_operation_performed": false,
+    "source_originals_commit_allowed": false
+  },
+  "dependency_state": {
+    "LT-L7-W01": {
+      "status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L7-W02": {
+      "status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W04": {
+      "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W07": {
+      "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W08": {
+      "status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L6-W01": {
+      "status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+      "classification": "command_evidence_only_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "delta_sync_runbook_exists": false,
+    "cutover_freeze_final_delta_design_exists": false,
+    "backfill_preflight_checklist_exists": false,
+    "backfill_execution_summary_exists": false,
+    "backfill_verification_report_exists": false,
+    "delta_sync_operation_record_exists": false,
+    "gl_mig_03_package_exists": false,
+    "g8_satisfied": false,
+    "l7_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L7-W03-T01",
+      "title": "Design and tabletop delta synchronization procedure",
+      "status": "blocked_waiting_on_lt_l7_w02_gl_mig_02_and_source_inventory_mapping_inputs",
+      "acceptance": {
+        "delta_sync_runbook_exists": false,
+        "four_source_delta_detection_methods_defined": false,
+        "schedule_owner_steps_failure_retry_rules_numbered": false,
+        "tabletop_exercise_record_exists": false,
+        "regular_delta_vs_final_delta_relationship_defined": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W03-T02",
+      "title": "Design cutover freeze and final-delta application",
+      "status": "blocked_waiting_on_t01_delta_runbook_and_l8_cutover_mapping",
+      "acceptance": {
+        "cutover_freeze_final_delta_design_exists": false,
+        "freeze_announcement_write_control_and_emergency_exception_steps_defined": false,
+        "freeze_final_delta_integrity_open_sequence_maps_to_l8": false,
+        "final_delta_size_formula_and_freeze_window_defined": false,
+        "tabletop_exercise_record_exists": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W03-T03",
+      "title": "Perform production backfill preflight safety checks",
+      "status": "blocked_waiting_on_lt_l7_w02_rollback_rehearsal_l3_w04_audit_store_and_production_authorization",
+      "acceptance": {
+        "backfill_preflight_checklist_exists": false,
+        "backup_snapshot_identifier_recorded": false,
+        "production_rollback_path_and_approver_defined": false,
+        "previous_24h_audit_daily_verify_green": false,
+        "storage_free_capacity_at_least_1_5x_expected_load": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W03-T04",
+      "title": "Execute full production backfill",
+      "status": "blocked_waiting_on_t03_preflight_ext_m365_admin_gl_mig_01_scope_and_production_backfill_approval",
+      "acceptance": {
+        "backfill_execution_summary_exists": false,
+        "all_mapping_package_targets_attempted": false,
+        "loaded_items_match_audit_events": false,
+        "checkpoint_restart_duplicate_load_zero": false,
+        "all_failures_resolved_or_excluded": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W03-T05",
+      "title": "Create backfill verification report",
+      "status": "blocked_waiting_on_t04_backfill_outputs_count_hash_sensitive_acl_and_duplicate_version_checks",
+      "acceptance": {
+        "backfill_verification_report_exists": false,
+        "source_minus_exclusions_equals_loaded_plus_closed_failures": false,
+        "hash_reconciliation_100_percent": false,
+        "sensitive_matter_acl_full_audit_overpermission_zero": false,
+        "duplicate_version_sample_30_errors_zero": false,
+        "g8_evidence_format_present": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W03-T06",
+      "title": "Operate and verify delta synchronization",
+      "status": "blocked_waiting_on_t01_delta_runbook_t04_backfill_baseline_and_legacy_channel_sample",
+      "acceptance": {
+        "delta_sync_operation_record_exists": false,
+        "at_least_one_delta_cycle_executed": false,
+        "sample_20_legacy_new_items_reflected_100_percent": false,
+        "delta_loaded_items_match_audit_events": false,
+        "cycle_steps_map_to_runbook_numbers": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W03-T07",
+      "title": "Assemble GL-MIG-03 package and confirm G8 three elements",
+      "status": "blocked_waiting_on_t02_t05_t06_and_rollback_ready_snapshot_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "all_seven_tuw_ids_present_in_command_evidence": true,
+        "gl_mig_03_package_exists": false,
+        "g8_three_evidence_links_present": false,
+        "rollback_ready_snapshot_valid_and_retention_plan_recorded": false,
+        "freeze_design_listed_as_l8_handoff": false,
+        "g8_evidence_index_updated": false,
+        "g8_satisfied": false,
+        "l7_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L7-W01\" or .wp_id==\"LT-L7-W02\" or .wp_id==\"LT-L3-W04\" or .wp_id==\"LT-L3-W08\" or .wp_id==\"LT-L3-W07\" or .wp_id==\"LT-L6-W01\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L3-W04\tblocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement\tstandard_five_blocked",
+        "LT-L3-W07\tblocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent\tstandard_five_blocked",
+        "LT-L3-W08\tblocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning\tstandard_five_blocked",
+        "LT-L6-W01\tt01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal\tcommand_evidence_only_blocked",
+        "LT-L7-W01\tblocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources\tstandard_five_blocked",
+        "LT-L7-W02\tblocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W03 GL-MIG-01, GL-MIG-02, WORM, M365, storage, and operating-model blockers before claiming blocked evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in docs/goal-closeout/lt-l7-w03/delta-sync-runbook.md docs/goal-closeout/lt-l7-w03/cutover-freeze-final-delta-design.md docs/goal-closeout/lt-l7-w03/backfill-preflight-checklist.md docs/goal-closeout/lt-l7-w03/backfill-execution-summary.md docs/goal-closeout/lt-l7-w03/backfill-verification-report.md docs/goal-closeout/lt-l7-w03/delta-sync-operation-record.md docs/goal-closeout/lt-l7-w03/gl-mig-03-package.md; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent docs/goal-closeout/lt-l7-w03/delta-sync-runbook.md",
+        "absent docs/goal-closeout/lt-l7-w03/cutover-freeze-final-delta-design.md",
+        "absent docs/goal-closeout/lt-l7-w03/backfill-preflight-checklist.md",
+        "absent docs/goal-closeout/lt-l7-w03/backfill-execution-summary.md",
+        "absent docs/goal-closeout/lt-l7-w03/backfill-verification-report.md",
+        "absent docs/goal-closeout/lt-l7-w03/delta-sync-operation-record.md",
+        "absent docs/goal-closeout/lt-l7-w03/gl-mig-03-package.md"
+      ],
+      "purpose": "Verify required LT-L7-W03 delta, freeze, backfill, verification, and package artifacts are absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L7-W03.",
+    "This record does not design or tabletop delta sync or cutover freeze procedures.",
+    "This record does not perform production backfill preflight.",
+    "This record does not execute production backfill or write production data.",
+    "This record does not perform backfill reconciliation, hash verification, sensitive ACL audit, or delta operation verification.",
+    "This record does not prove rollback-ready snapshot status.",
+    "This record does not access staging, production, real matters, file servers, SharePoint, Outlook mailboxes, or legacy matter registers.",
+    "This record does not assemble GL-MIG-03 or satisfy G8/L7-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

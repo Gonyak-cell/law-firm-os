@@ -1,0 +1,26 @@
+{
+  "work_package_id": "LT-L3-W06",
+  "inspected_at": "2026-06-18T14:49:34Z",
+  "verdict": "BLOCKED_MONITORING_STACK_RUNTIME_AND_ALERT_PROOF_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "candidate_stack_rows": 3,
+    "required_signal_rows": 6,
+    "operations_panel_rows": 6,
+    "log_query_slots": 5,
+    "slo_definition_rows": 6,
+    "alert_rule_rows": 6,
+    "selected_stack": false,
+    "alert_received": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "monitoring_stack_selected_without_owner": false,
+    "dashboard_or_alert_runtime_claimed": false,
+    "tools_progress_control_room_modified_by_this_packet": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

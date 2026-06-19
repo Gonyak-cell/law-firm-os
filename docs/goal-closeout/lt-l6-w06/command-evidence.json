@@ -1,0 +1,176 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L6-W06",
+  "title": "KPI measurement infrastructure",
+  "phase": "L6",
+  "gate": "L6-EXIT",
+  "status": "t01_definitions_t02_target_brief_t03_synthetic_collector_blocked_pending_staging_dashboard_targets_and_24h_refresh",
+  "recorded_at": "2026-06-18T12:10:00Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L6-W06-T01",
+      "title": "KPI definition draft",
+      "status": "draft_blocked_pending_l2_w03_events_and_l6_w06_t02_targets",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/kpi/kpi-definitions.md",
+        "docs/goal-closeout/lt-l6-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "kpi_definition_rows": 7,
+        "synthetic_sample_rows": 7,
+        "prd_traceability_rows": 7,
+        "targets_set": false,
+        "collection_implemented": false,
+        "dashboard_published": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count KPI-DEF rows, KPI-SAMPLE rows, PRD trace rows, target pending markers, and sample calculability ... NODE",
+          "exit_code": 0,
+          "output": "{\"kpi_rows\":7,\"sample_rows\":7,\"prd_trace_rows\":7,\"target_pending_markers\":8,\"sample_calculable\":7,\"targets_set\":false,\"collection_implemented\":false}",
+          "purpose": "Verify KPI definitions cover all seven PRD success criteria with formulas, sources, cadence, and synthetic calculations without setting targets or implementing collection"
+        },
+        {
+          "command": "grep -c \"^| KPI-DEF-\" docs/launch/kpi/kpi-definitions.md && grep -c \"^| KPI-SAMPLE-\" docs/launch/kpi/kpi-definitions.md",
+          "exit_code": 0,
+          "output": "7\n7",
+          "purpose": "Verify KPI definition and synthetic sample row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a KPI definition draft only; no collection job, dashboard, target decision, real data ingestion, or product state was created.",
+        "LT-L6-W06 remains open because target decisions, runtime event collection, and dashboard publication are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L6-W06-T02",
+      "title": "KPI target decision brief",
+      "status": "decision_brief_blocked_pending_owner_approval_and_l9_2_baseline_policy",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/kpi/kpi-target-decision.md",
+        "docs/launch/kpi/kpi-definitions.md",
+        "docs/goal-closeout/lt-l6-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "required_inputs": 5,
+        "kpi_target_rows": 7,
+        "unit_alignment_rows": 7,
+        "l9_2_baseline_rows": 7,
+        "decision_register_updated": false,
+        "numeric_targets_set": false,
+        "baseline_deferrals_owner_approved": false,
+        "collection_implemented": false,
+        "dashboard_published": false
+      },
+      "commands": [
+        {
+          "command": "grep -c \"^| KPI-TARGET-[0-9]\" docs/launch/kpi/kpi-target-decision.md && grep -c \"^| KPI-UNIT-\" docs/launch/kpi/kpi-target-decision.md && grep -c \"^| KPI-BASE-\" docs/launch/kpi/kpi-target-decision.md",
+          "exit_code": 0,
+          "output": "7\n7\n7",
+          "purpose": "Verify all seven KPIs have target decision, unit-alignment, and L9-2 baseline rows"
+        },
+        {
+          "command": "node - <<'NODE' ... verify decision brief row counts and that launch decision register has no KPI target row ... NODE",
+          "exit_code": 0,
+          "output": "{\"required_inputs\":5,\"target_rows\":7,\"unit_rows\":7,\"baseline_rows\":7,\"register_has_kpi_target_row\":false}",
+          "purpose": "Verify KPI target decision brief completeness without synthesizing owner approval or register rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a decision-input brief only; no KPI target values or baseline deferrals are owner-approved.",
+        "The launch decision register is intentionally unchanged because owner evidence does not exist.",
+        "LT-L6-W06 remains open because target decisions, runtime collection, and dashboard publication are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L6-W06-T03",
+      "title": "Synthetic KPI collector and dashboard panel definitions",
+      "status": "synthetic_collector_ready_blocked_pending_staging_collection_dashboard_publication_target_approval_and_24h_refresh",
+      "terminal_tuw": true,
+      "artifacts": [
+        "apps/ops-kpi/collect.mjs",
+        "apps/ops-kpi/fixtures/synthetic-kpi-input.json",
+        "apps/ops-kpi/panels/dashboard-panels.json",
+        "docs/launch/kpi/kpi-collection-commands.md",
+        "docs/goal-closeout/lt-l6-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "kpi_count": 7,
+        "null_value_count": 0,
+        "panel_count": 7,
+        "synthetic_only": true,
+        "no_real_data": true,
+        "aggregate_only": true,
+        "raw_sensitive_fields_exposed": false,
+        "sample_recalculation_matches_definitions": true,
+        "collection_command_documented": true,
+        "staging_source": false,
+        "dashboard_published": false,
+        "auto_refresh_24h_verified": false,
+        "target_comparison_available": false
+      },
+      "commands": [
+        {
+          "command": "node apps/ops-kpi/collect.mjs --all",
+          "exit_code": 0,
+          "output": "{\"kpi_count\":7,\"null_value_count\":0,\"synthetic_only\":true,\"no_real_data\":true,\"aggregate_only\":true,\"raw_sensitive_fields_exposed\":false,\"dashboard_published\":false,\"auto_refresh_24h_verified\":false,\"sample_recalculation_matches_definitions\":true}",
+          "purpose": "Verify all seven KPI formulas calculate from synthetic aggregate counts without exposing raw sensitive fields"
+        },
+        {
+          "command": "node - <<'NODE' ... load dashboard-panels.json and count panel definitions / publication flags ... NODE",
+          "exit_code": 0,
+          "output": "{\"panel_count\":7,\"dashboard_published\":false,\"auto_refresh_24h_verified\":false,\"aggregate_values_only\":true}",
+          "purpose": "Verify dashboard panel definitions exist while no dashboard publication is claimed"
+        },
+        {
+          "command": "grep -c 'node apps/ops-kpi/collect.mjs --all' docs/launch/kpi/kpi-collection-commands.md && grep -c 'kpi_count' docs/launch/kpi/kpi-collection-commands.md",
+          "exit_code": 0,
+          "output": "2\n1",
+          "purpose": "Verify KPI collection command is documented for UAT reuse"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This implementation collects from a local synthetic aggregate fixture only.",
+        "No staging telemetry query, dashboard publication, 24-hour refresh check, target comparison, or product-state write was executed.",
+        "LT-L6-W06-T03 remains open until staging collection, dashboard publication, auto-refresh proof, and target approval exist."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L6-W06, LT-L6-W06-T01, LT-L6-W06-T02, or LT-L6-W06-T03 is complete.",
+    "This record does not set KPI targets or create launch-decision-register target rows.",
+    "This record does not publish an operations dashboard, verify 24-hour refresh, or query staging telemetry.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

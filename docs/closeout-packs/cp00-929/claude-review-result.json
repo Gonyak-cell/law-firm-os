@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-929",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-929/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-929/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "08b4ca1d-d970-4730-b2df-adbe1bac8d24",
+    "uuid": "aa0e85bb-8103-4514-8f84-48ca9f6546e8",
+    "total_cost_usd": 2.7977960000000004,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-929 descriptor-only HRX AdminPolicy/DeniedState bridge pack passes read-only review: consistent across plan, queue, registry, validators, tests, and contract; all runtime/write/real-data/secret boundaries closed and machine-enforced; Claude read-only non-final-approver and Hermes deterministic-only boundaries intact; no runtime/enterprise-trust claim. One non-blocking P3 noting the final validation ladder is pending and was verified by inspection. No P0/P1/P2.",
+    "findings": [
+      {
+        "id": "CP929-P3-01",
+        "severity": "P3",
+        "title": "Full closeout validation ladder and Hermes gate recorded as pending_final_validation; reviewer verified boundaries by read-only source inspection",
+        "file": "docs/closeout-packs/cp00-929/command-evidence.json",
+        "line": 43,
+        "details": "command-evidence.json records exit_code 0 for five HRX-scoped commands (node --check on registry.js, validators.js, and validate-rp30-hrx-people-contract.mjs; node --test packages/hrx/test/*.test.js; npm run rp30:hrx:validate), but hermes_gate.status is 'pending' (command_ids rp00_control_plane_contract_validate, spec_requirement_validate), gate_outcome is 'pending_final_validation', and validation_summary has review_receipt_ref=null and p0_p1_p2_clear=null. The broader ladder named in the prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded as executed. As a read-only reviewer I confirmed cross-layer consistency and closed boundaries by inspecting registry.js, validators.js, model.test.js, hrx-people-contract.json, the plan, and the queue; reported command exit codes are treated as reported evidence, not independently re-run.",
+        "recommendation": "Before flipping manifest status to closed and setting production_ready_flag=hrx_admin_policy_denied_state_bridge_descriptor_verified, run and record the full validation ladder plus the Hermes control-plane/spec-requirement gate, and attach this read-only review as the single valid pack-level review receipt.",
+        "post_review_disposition": "Expected pre-closeout snapshot state; non-blocking. The Codex side runs the final ladder and finalizes adjudication.md and construction-inspection.json after this read-only review."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-953",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-18T05:37:28.373Z",
+  "finished_at": "2026-06-18T05:44:07.423Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":398328,\"duration_api_ms\":399245,\"ttft_ms\":3614,\"num_turns\":54,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — no P0/P1/P2 issues; one P3 informational note.\\n\\nCP00-953's descriptor-only closeout claim (`hrx_sensitive_guard_m07_tail_descriptor_verified`, with `production_ready=false`/`runtime_ready=false`) is fully supported by the plan↔binding↔requirements↔contract↔descriptor↔test chain, with all SensitiveGuard runtime/write/real-data/bypass/policy/decision boundaries closed and authority boundaries (Claude read-only/non-approver; Hermes deterministic-review-only) intact. The single P3 flags that the full validation suite and gate finalization remain the operator's pre-closeout step — this review is one input, not final closeout authority, and does not block.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ba003f25-6e9d-4e45-bd1f-011c3321c063\",\"total_cost_usd\":2.4907605000000004,\"usage\":{\"input_tokens\":60,\"cache_creation_input_tokens\":119106,\"cache_read_input_tokens\":2103730,\"output_tokens\":27719,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":119106,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":309,\"cache_read_input_tokens\":112865,\"cache_creation_input_tokens\":6782,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6782},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1108,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001208,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":60,\"outputTokens\":27719,\"cacheReadInputTokens\":2103730,\"cacheCreationInputTokens\":119106,\"webSearchRequests\":0,\"costUSD\":2.4895525000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-953 (RP30.P06.M07.S02-S11, risk A, 10 units, \\\"SensitiveGuard HRX slice\\\") is a descriptor-only pack. Its closeout claim is hrx_sensitive_guard_m07_tail_descriptor_verified with production_ready=false, runtime_ready=false, descriptor_only=true — it makes NO runtime or enterprise-trust claim. The claim is supported across the full chain: closeout-pack-plan.json, HRX_CP953_PACK_BINDING, HRX_CP953_REQUIREMENTS, the generated case-set/descriptor, validators.js (coverage + descriptor + contract validators), contracts/hrx-people-contract.json (current_pack/latest_pack=CP00-953, latest_projection=HrxCp953SensitiveGuardTailDescriptor, validation.valid=true, no_write_attestation all closed), and packages/hrx/test/model.test.js (genuine on-disk assertions, errors==[]). Boundary closure is enforced in createHrxDomainRows (all sensitive_guard runtime/write/real-data/bypass/policy/decision fields false; review guards h30_review_only/c30_read_only true) and the descriptor baseline_decisions/blocked_claims. Continuity is intact (CP952 M07.S01 -> CP953 S02-S11 -> CP954 S12; weighted ledger defines M07 to subphase 13). Authority boundaries hold: Claude is read-only and not final approver (promotes_claude_to_final_approval=false, claude_is_final_approval=false); Hermes is deterministic review-packet/receipt only (emits_runtime_receipt=false, deterministic_only=true), not embedded product runtime. Review-hardening evidence is valid: auth preflight passed (exit 0, 1455-byte valid-JSON stdout), prompt 2369B<25600B, tools limited to Read/Grep/Glob, no forbidden tools. No P0/P1/P2 issues. Provenance note: this is a read-only review; recorded command evidence (node --check/--test, npm run rp30:hrx:validate, git diff --check, all exit 0) was reported by the build agent and not independently re-executed here. Pending adjudication/construction-inspection/manifest states are the expected pre-review posture and are downstream of this review, not defects. One P3 informational finding flags that the full expected validation suite is not represented in command-evidence and must be run by the operator before finalizing closeout. This review is one input and does not constitute final closeout authority.\",\"findings\":[{\"id\":\"CP953-P3-01\",\"severity\":\"P3\",\"title\":\"Command-evidence records only HRX-scoped subset; full validation suite + gate finalization still pending operator action\",\"file\":\"docs/closeout-packs/cp00-953/command-evidence.json\",\"line\":41,\"details\":\"command-evidence.json records node --check (registry/validators/validate script), node --test packages/hrx/test/*.test.js, npm run rp30:hrx:validate, and git diff --check, all with exit_code 0 as recorded by the build agent (not re-run by this read-only review). However hermes_gate.status=pending with empty command_ids, gate_outcome=pending_pack_evidence_completion, and validation_summary.p0_p1_p2_clear=false. The broader expected pre-closeout suite (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not represented in this artifact. Correspondingly manifest.status=in_progress, construction-inspection verdict=PENDING (hrx_sensitive_guard_m07_tail_descriptor_verified=false), and adjudication.md=PENDING. These are the expected pre-review/pre-finalization states and do not indicate any defect in the descriptor-only implementation, which is correct and complete.\",\"recommendation\":\"Before flipping production_ready_flag and finalizing adjudication/construction-inspection/manifest, the operator should execute the full expected validation suite and the Hermes deterministic gate, recording outcomes. Treat this read-only review as one input; final closeout/enterprise-trust approval remains a human authority outside this receipt.\",\"post_review_disposition\":\"informational_no_block — expected pre-closeout workflow; does not affect descriptor-only correctness or boundary closure\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"cd5f3c27-2545-4fb5-8377-14ada168a356\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6452,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ba003f25-6e9d-4e45-bd1f-011c3321c063",
+    "uuid": "cd5f3c27-2545-4fb5-8377-14ada168a356",
+    "total_cost_usd": 2.4907605000000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

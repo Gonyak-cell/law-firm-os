@@ -1,0 +1,95 @@
+{
+  "schema_version": "law-firm-os.production-data-policy-contract.v0.1",
+  "status": "draft_pending_human_ratification",
+  "source_of_truth_position": "additive_governance_contract",
+  "decision_ref": "L1-4",
+  "effective_state": "not_effective_until_l7_entry_and_owner_ratification",
+  "unratified_contract_effect": {
+    "permits_real_data_contact": false,
+    "permits_production_credentials": false,
+    "permits_product_state_writes": false,
+    "reason": "This draft creates a future approval contract only; it does not weaken RTG-004 or Hermes real-data prohibitions."
+  },
+  "scope": {
+    "allowed_stage": "live",
+    "allowed_goal_type": "live_stage_goal_only",
+    "allowed_data_boundary": "explicitly_approved_data_slice_only",
+    "excluded_before_effective_condition": [
+      "real_client_data",
+      "real_matter_data",
+      "real_employee_data",
+      "production_credentials",
+      "product_state_writes"
+    ],
+    "closed_cp_evidence_rewrite": "forbidden"
+  },
+  "effective_condition": {
+    "requires_l1_ratification": "launch-decision-register:L1-4 status decided with approval signature",
+    "requires_l5_security_acceptance": true,
+    "requires_l6_operational_readiness": true,
+    "requires_l7_entry_approval": true,
+    "requires_runtime_audit_path_verified_before_data_ingest": true,
+    "requires_goal_closeout_scope": "live goal explicitly references this contract and approved data slice"
+  },
+  "approver": {
+    "role": "Launch owner / production data approver",
+    "type": "human_decision_only",
+    "agent_may_approve": false,
+    "required_signature_reference": true
+  },
+  "approval_unit": {
+    "granularity": "per_goal_per_data_slice_per_tenant",
+    "must_record": [
+      "goal_id",
+      "tenant_id_or_environment",
+      "data_categories",
+      "data_source",
+      "purpose",
+      "time_window",
+      "approver_role",
+      "approval_signature_ref",
+      "audit_event_schema_ref"
+    ],
+    "bulk_or_blanket_approval": "forbidden"
+  },
+  "audit_obligation": {
+    "durable_audit_required_before_ingest": true,
+    "audit_event_schema_must_preexist": true,
+    "record_required_fields": [
+      "approval_signature_ref",
+      "data_slice_id",
+      "actor_id",
+      "goal_id",
+      "purpose",
+      "access_time",
+      "source_system",
+      "retention_policy_ref"
+    ],
+    "retroactive_audit_creation": "forbidden",
+    "missing_audit_path_effect": "block_l7_data_ingest"
+  },
+  "preserved_prohibitions": {
+    "rtg_004": {
+      "source": "contracts/runtime-readiness-contract.json",
+      "quote": "Runtime evidence runs in synthetic sandbox with no real data, credentials, or product writes.",
+      "immutable_for_pre_l7_and_non_live_goals": true
+    },
+    "hermes": {
+      "source": "docs/hermes-connection.md:34",
+      "quote": "Third-party autonomous agents remain blocked from production repo writes, production secrets, and real client/matter data.",
+      "immutable_for_agents": true
+    }
+  },
+  "non_weakening_constraints": [
+    "Closed CP evidence and manifests are not edited by this contract.",
+    "No runtime_ready, production_ready, ops_ready, go_live_approved, or human approval claim is created retroactively.",
+    "RTG-004 remains mandatory for runtime evidence before L7 and for every non-live-stage goal.",
+    "Hermes and other agents remain barred from production secrets and real client/matter data.",
+    "Any missing audit path blocks data ingest rather than being repaired retroactively."
+  ],
+  "verification_refs": {
+    "launch_tuw": "LT-L1-W04-T01",
+    "non_weakening_argument": "docs/launch/production-data-policy-non-weakening-argument.md",
+    "command_evidence": "docs/goal-closeout/lt-l1-w04/command-evidence.json"
+  }
+}

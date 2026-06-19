@@ -1,0 +1,163 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P01.M03.S09",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "status": "passed",
+  "executed_at": "2026-06-04T02:36:30.383+09:00",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate",
+      "product_contract_validate"
+    ],
+    "gate_outcome": "passed",
+    "claude_gate": "C00"
+  },
+  "commands": [
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "duration_ms": 651,
+      "summary": "RP00 control-plane contract validation passed for RP00.P01.M03.S09 with status implemented.",
+      "stdout_tail": "> law-firm-os@0.1.0 rp00:control-plane:validate\n> node scripts/validate-rp00-control-plane-contract.mjs\n\nRP00 control-plane contract validation passed.\nsubphase: RP00.P01.M03.S09\nstatus: implemented",
+      "stderr_tail": ""
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "duration_ms": 759,
+      "summary": "Spec requirement ledger validation passed with requirement_count 227, feature_requirement_count 209, narrative_requirement_count 18.",
+      "stdout_tail": "> law-firm-os@0.1.0 spec:requirements:validate\n> node scripts/validate-spec-requirement-ledger.mjs\n\nSpec requirement ledger validation passed.\nrequirement_count: 227\nfeature_requirement_count: 209\nnarrative_requirement_count: 18",
+      "stderr_tail": ""
+    },
+    {
+      "id": "product_contract_validate",
+      "command": "npm run validate",
+      "exit_code": 0,
+      "duration_ms": 174,
+      "summary": "Law Firm OS product contract validation passed with modules 9/9, principles 9/9, invariants 7/7.",
+      "stdout_tail": "> law-firm-os@0.1.0 validate\n> node scripts/validate-product-contract.mjs\n\nLaw Firm OS product contract validation passed.\nmodules: 9/9\nprinciples: 9/9\ninvariants: 7/7\nhermes_project_type: product_codebase",
+      "stderr_tail": ""
+    },
+    {
+      "id": "weighted_ledger_validate",
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "duration_ms": 692,
+      "summary": "Weighted implementation ledger validation passed with 3,300 source micro phases and 54,355 implementation subphases.",
+      "stdout_tail": "> law-firm-os@0.1.0 weighted:validate\n> node scripts/validate-weighted-implementation-ledger.mjs\n\nWeighted implementation ledger validation passed.\nsource_micro_phase_count: 3300\nimplementation_subphase_count: 54355\nweight_counts: {\"L\":63,\"M\":284,\"H\":805,\"XH\":2148}\nestimated_hours_total: 66698.25",
+      "stderr_tail": ""
+    },
+    {
+      "id": "full_microphase_plan_validate",
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "duration_ms": 190,
+      "summary": "Full microphase plan validation passed with 30 release programs, 10 standard phases, and 3,300 micro phases.",
+      "stdout_tail": "> law-firm-os@0.1.0 fullplan:validate\n> node scripts/validate-full-microphase-plan.mjs\n\nFull microphase plan validation passed.\nmicro_phase_count: 3300\nrelease_program_count: 30\nstandard_phase_count: 10\nmicro_phase_per_standard_phase: 11",
+      "stderr_tail": ""
+    },
+    {
+      "id": "goal_closeout_protocol_validate",
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "duration_ms": 164,
+      "summary": "Goal closeout protocol validation passed and records claude-opus-4-8 effort=max read-only.",
+      "stdout_tail": "> law-firm-os@0.1.0 goal:closeout:validate\n> node scripts/validate-goal-closeout-protocol.mjs\n\nGoal closeout protocol validation passed.\napplies_to: all_goals\nclaude: claude-opus-4-8 effort=max read-only",
+      "stderr_tail": ""
+    },
+    {
+      "id": "node_test_suite",
+      "command": "npm test",
+      "exit_code": 0,
+      "duration_ms": 214,
+      "summary": "Node test suite passed 46/46 tests, including HermesGate optional field registry fail-closed tests.",
+      "stdout_tail": "# tests 46\n# suites 0\n# pass 46\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 53.875667",
+      "stderr_tail": ""
+    }
+  ],
+  "blocked_claims": [],
+  "gate_outcome": "passed",
+  "evidence_summary": {
+    "implemented": "HermesGate optional field registry binds matter_id, blocked_claim_refs, and human_approval_refs as optional fields while preserving nullable firm-level Matter trace and reference-only HumanApproval boundaries.",
+    "tests": "Model tests and the RP00 control-plane validator execute optional field registry policy, absent optional field acceptance, invalid optional value rejection, and synthetic fixture optional record validation.",
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review required before production_ready",
+    "human_approval_boundary": "Human approval remains non-delegable; optional human_approval_refs are reference-only and cannot approve, replace, or modify human approval decisions."
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "This command evidence is read-only validation evidence for RP00.P01.M03.S09 and does not write product state.",
+    "State transition map remains deferred to RP00.P01.M03.S10; validation helper remains deferred to RP00.P01.M03.S11."
+  ],
+  "final_validation_rerun_at": "2026-06-04T02:42:17.404+09:00",
+  "final_validation_summary": {
+    "status": "passed",
+    "commands_rerun": [
+      "npm run rp00:control-plane:validate",
+      "npm run spec:requirements:validate",
+      "npm run validate",
+      "npm run weighted:validate",
+      "npm run fullplan:validate",
+      "npm run goal:closeout:validate",
+      "npm test"
+    ],
+    "command_receipts": [
+      {
+        "command": "npm run rp00:control-plane:validate",
+        "exit_code": 0,
+        "duration_ms": 633,
+        "stdout_tail": "> law-firm-os@0.1.0 rp00:control-plane:validate\n> node scripts/validate-rp00-control-plane-contract.mjs\n\nRP00 control-plane contract validation passed.\nsubphase: RP00.P01.M03.S09\nstatus: production_ready",
+        "stderr_tail": ""
+      },
+      {
+        "command": "npm run spec:requirements:validate",
+        "exit_code": 0,
+        "duration_ms": 748,
+        "stdout_tail": "> law-firm-os@0.1.0 spec:requirements:validate\n> node scripts/validate-spec-requirement-ledger.mjs\n\nSpec requirement ledger validation passed.\nrequirement_count: 227\nfeature_requirement_count: 209\nnarrative_requirement_count: 18",
+        "stderr_tail": ""
+      },
+      {
+        "command": "npm run validate",
+        "exit_code": 0,
+        "duration_ms": 180,
+        "stdout_tail": "> law-firm-os@0.1.0 validate\n> node scripts/validate-product-contract.mjs\n\nLaw Firm OS product contract validation passed.\nmodules: 9/9\nprinciples: 9/9\ninvariants: 7/7\nhermes_project_type: product_codebase",
+        "stderr_tail": ""
+      },
+      {
+        "command": "npm run weighted:validate",
+        "exit_code": 0,
+        "duration_ms": 711,
+        "stdout_tail": "> law-firm-os@0.1.0 weighted:validate\n> node scripts/validate-weighted-implementation-ledger.mjs\n\nWeighted implementation ledger validation passed.\nsource_micro_phase_count: 3300\nimplementation_subphase_count: 54355\nweight_counts: {\"L\":63,\"M\":284,\"H\":805,\"XH\":2148}\nestimated_hours_total: 66698.25",
+        "stderr_tail": ""
+      },
+      {
+        "command": "npm run fullplan:validate",
+        "exit_code": 0,
+        "duration_ms": 186,
+        "stdout_tail": "> law-firm-os@0.1.0 fullplan:validate\n> node scripts/validate-full-microphase-plan.mjs\n\nFull microphase plan validation passed.\nmicro_phase_count: 3300\nrelease_program_count: 30\nstandard_phase_count: 10\nmicro_phase_per_standard_phase: 11",
+        "stderr_tail": ""
+      },
+      {
+        "command": "npm run goal:closeout:validate",
+        "exit_code": 0,
+        "duration_ms": 170,
+        "stdout_tail": "> law-firm-os@0.1.0 goal:closeout:validate\n> node scripts/validate-goal-closeout-protocol.mjs\n\nGoal closeout protocol validation passed.\napplies_to: all_goals\nclaude: claude-opus-4-8 effort=max read-only",
+        "stderr_tail": ""
+      },
+      {
+        "command": "npm test",
+        "exit_code": 0,
+        "duration_ms": 210,
+        "stdout_tail": "# tests 46\n# suites 0\n# pass 46\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 54.41825",
+        "stderr_tail": ""
+      }
+    ],
+    "production_ready_status_verified": true,
+    "node_tests_passed": "46/46"
+  }
+}

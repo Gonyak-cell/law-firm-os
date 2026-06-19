@@ -1,0 +1,28 @@
+{
+  "work_package_id": "LT-L4-W02",
+  "inspected_at": "2026-06-18T14:06:46Z",
+  "verdict": "BLOCKED_WIRING_ROADMAP_AND_LIVE_CLIENT_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "contract_screen_map_exists": true,
+    "source_recommended_step_count": 6,
+    "source_gap_row_count": 12,
+    "official_wiring_roadmap_exists": false,
+    "launch_decision_register_entry_verified": false,
+    "live_client_exists": false,
+    "api_client_uses_live_client": false,
+    "client_permission_context_header_removed": false,
+    "live_mode_default_verified": false,
+    "live_data_verification_passed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_decision_synthesized": false,
+    "runtime_dependency_overridden": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

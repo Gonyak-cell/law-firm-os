@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v1",
+  "subphase_id": "RP00.P01.M07.S02",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools": "",
+    "write_tools_granted": false,
+    "permission_denials": [],
+    "session_id": "bcd71496-84f7-4ed4-a36e-99ad1ead9a68",
+    "uuid": "db856a80-ca85-4e76-a04a-b726f068171f",
+    "duration_ms": 163057,
+    "duration_api_ms": 164729,
+    "total_cost_usd": 0.6232624999999999,
+    "executed_at": "2026-06-04T05:27:56Z",
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s02-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "summary": "Claude Code Opus 4.8 max read-only review completed once. It did not emit a formal severity table, and raised one unverified concern about possible title-disposition mismatch before ending. Local adjudication verified the concern against the validator and contract and rejected it as non-blocking.",
+    "findings": [
+      {
+        "id": "STATE-M07-S02-001",
+        "severity": "P2",
+        "title": "Possible title-disposition mismatch between validator and contract",
+        "files": [
+          "contracts/control-plane-contract.json",
+          "scripts/validate-rp00-control-plane-contract.mjs"
+        ],
+        "status": "not_applicable_after_adjudication",
+        "disposition": "Rejected. RP00.P01.M07.S02 is included in alignedWithWeightedLedgerSubphases, not contractTitleAuthoritativeSubphases, and the contract records aligned_with_weighted_ledger. Final RP00 validation confirms no title-disposition mismatch."
+      }
+    ]
+  }
+}

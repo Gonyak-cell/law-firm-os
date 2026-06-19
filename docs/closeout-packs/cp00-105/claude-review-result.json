@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-105",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-105-claude-review-output-valid.json",
+    "session_id": "5230395e-743b-46e7-9f48-f69216be8c1a",
+    "uuid": "57333eb3-480d-4c1b-969c-670c6b07c1f2",
+    "duration_ms": 246694,
+    "total_cost_usd": 0.7797495,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Six failure-category templates are unreachable and P07.M10 re-emits P07.M09 category labels",
+        "file": "packages/domain/src/evidence-review-catalog.js",
+        "evidence": "CP105_FAILURE_CATEGORY_TEMPLATES defines 20 categories, but createCoreDomainCp105FailureCloseoutEntries only reaches templates[17..19] (RP01.P07.M08, start_index 18), templates[0..10] (RP01.P07.M09, start_index 1), and templates[0..2] (RP01.P07.M10, start_index 1). Templates[11..16] (retry_exhaustion, rollback_expectation, compensation_expectation, blocked_claim_receipt, failure_fixture, failure_unit_test) are never emitted, and RP01.P07.M10.S01-S03 reproduce failure_taxonomy/missing_tenant/missing_actor identical to RP01.P07.M09.S01-S03. Coverage validation still passes because CP105_FAILURE_CLOSEOUT_CATEGORY_IDS lists only the 14 categories that are actually produced. This is reference-only synthetic data, so no no-write/permission/audit/LDIP boundary is affected; the risk is dead template data plus possible mislabeling of the M10 closeout units against docs/closeout-pack-plan/closeout-pack-plan.json.",
+        "recommendation": "Confirm that the three RP01.P07.M10 closeout units are intended to mirror M09's first three categories; if not, repoint the M10 start_index/template mapping to the intended categories and delete the six unreachable template entries. Non-blocking; does not gate production_ready."
+      },
+      {
+        "severity": "P3",
+        "title": "New test depends on Object.groupBy (Node 21+)",
+        "file": "packages/domain/test/core-domain-foundation.test.js",
+        "evidence": "The test 'CP00-105 review question catalog stays read-only and cannot approve pack state' calls Object.groupBy(reviewQuestions, (item) => item.review_area). Object.groupBy is only available on Node 21+; on older runtimes this throws ReferenceError before the read-only/no-approval assertions execute, weakening the gate it is meant to enforce.",
+        "recommendation": "Verify the project's minimum supported Node version is >= 21; otherwise replace Object.groupBy with a manual reduce/filter grouping so the review-question read-only assertions still run. Non-blocking pending toolchain confirmation."
+      }
+    ],
+    "recommendation": "approve_with_findings",
+    "rationale": "CP00-105 is verified against the required scope. The new evidence-review-catalog covers exactly 150 unique synthetic units (17 P07 failure-closeout + 115 P08 Hermes receipt + 18 P09 review-question references), with the declared range RP01.P07.M08.S18-RP01.P09.M03.S09 anchored at both ends and a handoff to CP00-106 at RP01.P09.M03.S10. Every emitted item is forced synthetic_only=true / uses_real_client_data=false and asserts false for evaluates_runtime_permission, writes_audit_event, writes_product_state, creates_database_rows, executes_ai_retrieval, executes_export_download, executes_external_share, mutates_locks, retries_operations, performs_rollback, performs_compensation, executes_claude_review, grants_human_approval, and ldip_implemented; cp105FreezeItem applies these after the spread so they cannot be overridden. The contract block, JS constants, validator script (validate-rp01-core-domain-contract.mjs), and four new tests are mutually consistent on all counts (command_matrix 11, no_real_data 4, pass_semantics 3, permission/audit questions 3/3), forbidden-claim list (15 entries), policies, and the production_ready flag core_domain_evidence_review_catalog_verified; the Claude review packet is a reference declaration (read_only=true, exactly_one_valid_pack_review_required=true) and does not execute review, and BLOCK semantics carry block_must_not_be_reported_as_pass. Boundaries and gating are adequate; only two non-blocking P3 code-quality observations were found (unreachable failure-category templates with M10 label reuse, and an Object.groupBy/Node-version dependency in a test).",
+    "notes": [
+      "No P0/P1/P2 findings were reported by the valid CP00-105 pack-level Claude review.",
+      "P3 Object.groupBy test dependency was fixed after review without running a second valid review.",
+      "P3 P07.M10 category mirroring was documented as plan-aligned because docs/closeout-pack-plan/closeout-pack-plan.json labels RP01.P07.M10.S01-S03 as failure taxonomy, missing tenant failure, and missing actor failure."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [],
+    "p3_fixed_or_documented": [
+      {
+        "title": "New test depends on Object.groupBy (Node 21+)",
+        "disposition": "fixed",
+        "evidence": "Replaced Object.groupBy with a manual reduce grouping in packages/domain/test/core-domain-foundation.test.js and reran domain tests plus rp01:core-domain:validate."
+      },
+      {
+        "title": "Six failure-category templates are unreachable and P07.M10 re-emits P07.M09 category labels",
+        "disposition": "documented_plan_aligned",
+        "evidence": "Generated CP00-105 plan labels RP01.P07.M10.S01-S03 as Failure taxonomy, Missing tenant failure, and Missing actor failure; full taxonomy templates remain available for index-offset consistency but only plan-reachable category ids are required by the contract."
+      }
+    ],
+    "no_second_valid_review_run": true
+  }
+}

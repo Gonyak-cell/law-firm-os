@@ -1,0 +1,1750 @@
+{
+  "schema_version": "law-firm-os.launch-review-waiver-policy-audit.v0.2",
+  "generated_at": "2026-06-18T15:18:45.474Z",
+  "source_refs": [
+    "workbook/launch-tuw/launch-tuw-ledger.json",
+    "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md",
+    "workbook/launch-tuw/11_L0.md",
+    "workbook/launch-tuw/19_L8.md",
+    "docs/goal-closeout/<launch_goal_id>/claude-review-result.json",
+    "docs/goal-closeout/<launch_goal_id>/packet.json",
+    "docs/goal-closeout/<launch_goal_id>/command-evidence.json",
+    "docs/goal-closeout/<launch_goal_id>/adjudication.md"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "work_package_count": 72,
+    "review_waived_count": 72,
+    "valid_review_evidence_false_count": 72,
+    "packet_waiver_policy_count": 72,
+    "packet_valid_review_false_count": 72,
+    "command_policy_object_count": 72,
+    "command_policy_status_waived_count": 72,
+    "command_policy_valid_review_false_count": 72,
+    "adjudication_boundary_count": 72,
+    "source_plan_review_requirement_ref_count": 6,
+    "source_plan_review_requirement_overlay_count": 6,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "full_claude_review_skipped_by_user_instruction": true,
+    "source_plan_claude_review_requirements_waived_for_execution": true,
+    "source_plan_modified_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "covers_launch_tuw_goal_closeout_only": true,
+    "closed_cp_evidence_is_read_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false
+  },
+  "source_plan_review_requirement_refs": [
+    {
+      "path": "workbook/launch-tuw/00_마스터_출시피라미드_스키마_레지스트리.md",
+      "line_number": 22,
+      "excerpt": "| LP3 | Work Package(WP) | **goal-closeout goal과 1:1** — 출시 계획 \"작업 묶음\" 1건 = WP 1건 기본. 각 WP는 `docs/goal-closeout/{goal_id}/` 증거 5종 + 유효 Claude 리뷰 1회 + 준공검사를 가짐 | L5/L8 상당 | 72 (§G) |",
+      "execution_policy": "review_waived_by_user",
+      "valid_review_evidence": false,
+      "source_plan_modified_by_this_audit": false
+    },
+    {
+      "path": "workbook/launch-tuw/11_L0.md",
+      "line_number": 43,
+      "excerpt": "- 목표: Section 8의 핵심 불변식(matter-first/permission-first/audit-first 등 8종)과 닫힌 팩 전건의 9단계 게이트 체인 증거(구현→테스트→Hermes→유효 Claude 리뷰 1회→adjudication→준공검사→ready→최종 검증→커밋) 존재가 기계 검사되는 상태.",
+      "execution_policy": "review_waived_by_user",
+      "valid_review_evidence": false,
+      "source_plan_modified_by_this_audit": false
+    },
+    {
+      "path": "workbook/launch-tuw/19_L8.md",
+      "line_number": 183,
+      "excerpt": "- 목표: G9(거버넌스) 차원 — go-live 게이트 goal 자체의 goal-closeout 9단계 체인(implementation→tests→Hermes→유효 Claude 리뷰 정확히 1회→adjudication→준공검사) 통과 — 가 증거 링크 전수 해석 가능 상태로 g9.md에 조립된다.",
+      "execution_policy": "review_waived_by_user",
+      "valid_review_evidence": false,
+      "source_plan_modified_by_this_audit": false
+    },
+    {
+      "path": "workbook/launch-tuw/19_L8.md",
+      "line_number": 189,
+      "excerpt": "2. `docs/goal-closeout/lt-l8-w02/`에 증거 5종 파일이 전부 존재하고 유효 Claude 리뷰 영수증이 정확히 1건이다.",
+      "execution_policy": "review_waived_by_user",
+      "valid_review_evidence": false,
+      "source_plan_modified_by_this_audit": false
+    },
+    {
+      "path": "workbook/launch-tuw/launch-tuw-ledger.json",
+      "line_number": 15143,
+      "excerpt": "\"objective\": \"G9(거버넌스) 차원 — go-live 게이트 goal 자체의 goal-closeout 9단계 체인(implementation→tests→Hermes→유효 Claude 리뷰 정확히 1회→adjudication→준공검사) 통과 — 가 증거 링크 전수 해석 가능 상태로 g9.md에 조립된다.\",",
+      "execution_policy": "review_waived_by_user",
+      "valid_review_evidence": false,
+      "source_plan_modified_by_this_audit": false
+    },
+    {
+      "path": "workbook/launch-tuw/launch-tuw-ledger.json",
+      "line_number": 15170,
+      "excerpt": "\"docs/goal-closeout/lt-l8-w02/에 증거 5종 파일이 전부 존재하고 유효 Claude 리뷰 영수증이 정확히 1건이다.\",",
+      "execution_policy": "review_waived_by_user",
+      "valid_review_evidence": false,
+      "source_plan_modified_by_this_audit": false
+    }
+  ],
+  "work_packages": [
+    {
+      "wp_id": "LT-PRE-W01",
+      "goal_id": "lt-pre-w01",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-PRE-W02",
+      "goal_id": "lt-pre-w02",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-PRE-W03",
+      "goal_id": "lt-pre-w03",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-PRE-W04",
+      "goal_id": "lt-pre-w04",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-PRE-W05",
+      "goal_id": "lt-pre-w05",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-PRE-W06",
+      "goal_id": "lt-pre-w06",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-PRE-W07",
+      "goal_id": "lt-pre-w07",
+      "phase": "PRE",
+      "evidence_base": "docs/goal-closeout/lt-pre-w07",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L0-W01",
+      "goal_id": "lt-l0-w01",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L0-W02",
+      "goal_id": "lt-l0-w02",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L0-W03",
+      "goal_id": "lt-l0-w03",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L0-W04",
+      "goal_id": "lt-l0-w04",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L0-W05",
+      "goal_id": "lt-l0-w05",
+      "phase": "L0",
+      "evidence_base": "docs/goal-closeout/lt-l0-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W01",
+      "goal_id": "lt-l1-w01",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W02",
+      "goal_id": "lt-l1-w02",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W03",
+      "goal_id": "lt-l1-w03",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W04",
+      "goal_id": "lt-l1-w04",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W05",
+      "goal_id": "lt-l1-w05",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W06",
+      "goal_id": "lt-l1-w06",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W07",
+      "goal_id": "lt-l1-w07",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w07",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W08",
+      "goal_id": "lt-l1-w08",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w08",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W09",
+      "goal_id": "lt-l1-w09",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w09",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L1-W10",
+      "goal_id": "lt-l1-w10",
+      "phase": "L1",
+      "evidence_base": "docs/goal-closeout/lt-l1-w10",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W01",
+      "goal_id": "lt-l2-w01",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W02",
+      "goal_id": "lt-l2-w02",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W03",
+      "goal_id": "lt-l2-w03",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W04",
+      "goal_id": "lt-l2-w04",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W05",
+      "goal_id": "lt-l2-w05",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W06",
+      "goal_id": "lt-l2-w06",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L2-W07",
+      "goal_id": "lt-l2-w07",
+      "phase": "L2",
+      "evidence_base": "docs/goal-closeout/lt-l2-w07",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W01",
+      "goal_id": "lt-l3-w01",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W02",
+      "goal_id": "lt-l3-w02",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W03",
+      "goal_id": "lt-l3-w03",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W04",
+      "goal_id": "lt-l3-w04",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W05",
+      "goal_id": "lt-l3-w05",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W06",
+      "goal_id": "lt-l3-w06",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W07",
+      "goal_id": "lt-l3-w07",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w07",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W08",
+      "goal_id": "lt-l3-w08",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w08",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W09",
+      "goal_id": "lt-l3-w09",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w09",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L3-W10",
+      "goal_id": "lt-l3-w10",
+      "phase": "L3",
+      "evidence_base": "docs/goal-closeout/lt-l3-w10",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L4-W01",
+      "goal_id": "lt-l4-w01",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L4-W02",
+      "goal_id": "lt-l4-w02",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L4-W03",
+      "goal_id": "lt-l4-w03",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L4-W04",
+      "goal_id": "lt-l4-w04",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L4-W05",
+      "goal_id": "lt-l4-w05",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L4-W06",
+      "goal_id": "lt-l4-w06",
+      "phase": "L4",
+      "evidence_base": "docs/goal-closeout/lt-l4-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W01",
+      "goal_id": "lt-l5-w01",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W02",
+      "goal_id": "lt-l5-w02",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W03",
+      "goal_id": "lt-l5-w03",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W04",
+      "goal_id": "lt-l5-w04",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W05",
+      "goal_id": "lt-l5-w05",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W06",
+      "goal_id": "lt-l5-w06",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L5-W07",
+      "goal_id": "lt-l5-w07",
+      "phase": "L5",
+      "evidence_base": "docs/goal-closeout/lt-l5-w07",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L6-W01",
+      "goal_id": "lt-l6-w01",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L6-W02",
+      "goal_id": "lt-l6-w02",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L6-W03",
+      "goal_id": "lt-l6-w03",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L6-W04",
+      "goal_id": "lt-l6-w04",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L6-W05",
+      "goal_id": "lt-l6-w05",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L6-W06",
+      "goal_id": "lt-l6-w06",
+      "phase": "L6",
+      "evidence_base": "docs/goal-closeout/lt-l6-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L7-W01",
+      "goal_id": "lt-l7-w01",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L7-W02",
+      "goal_id": "lt-l7-w02",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L7-W03",
+      "goal_id": "lt-l7-w03",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L7-W04",
+      "goal_id": "lt-l7-w04",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": false
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L7-W05",
+      "goal_id": "lt-l7-w05",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": false
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L7-W06",
+      "goal_id": "lt-l7-w06",
+      "phase": "L7",
+      "evidence_base": "docs/goal-closeout/lt-l7-w06",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": false
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L8-W01",
+      "goal_id": "lt-l8-w01",
+      "phase": "L8",
+      "evidence_base": "docs/goal-closeout/lt-l8-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L8-W02",
+      "goal_id": "lt-l8-w02",
+      "phase": "L8",
+      "evidence_base": "docs/goal-closeout/lt-l8-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L8-W03",
+      "goal_id": "lt-l8-w03",
+      "phase": "L8",
+      "evidence_base": "docs/goal-closeout/lt-l8-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": false
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L9-W01",
+      "goal_id": "lt-l9-w01",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w01",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": null
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L9-W02",
+      "goal_id": "lt-l9-w02",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w02",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": null
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L9-W03",
+      "goal_id": "lt-l9-w03",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w03",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": null
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L9-W04",
+      "goal_id": "lt-l9-w04",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w04",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": null
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    },
+    {
+      "wp_id": "LT-L9-W05",
+      "goal_id": "lt-l9-w05",
+      "phase": "L9",
+      "evidence_base": "docs/goal-closeout/lt-l9-w05",
+      "claude_review_result": {
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false
+      },
+      "packet_review_policy": {
+        "full_claude_review": "waived_by_user",
+        "valid_review_evidence": false,
+        "waiver_counts_as_governance_review": null
+      },
+      "command_review_policy": {
+        "shape": "object",
+        "full_claude_review": "waived_by_user",
+        "status": "review_waived_by_user",
+        "valid_review_evidence": false,
+        "review_valid_evidence": null
+      },
+      "adjudication_contains_waiver_boundary": true
+    }
+  ],
+  "findings": []
+}

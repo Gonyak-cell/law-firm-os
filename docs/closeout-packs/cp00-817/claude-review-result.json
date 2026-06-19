@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-817",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-817/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-817/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "c18f3d30-a7cd-4c81-a843-9576589201f1",
+    "uuid": "d7090835-bee0-4787-bcfa-0647bbbe8c91",
+    "total_cost_usd": 2.4924189999999995,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9187,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-817 is an Enterprise SaaS hardening descriptor-level evidence-contract type/shape bridge pack (risk C, 150 units, RP26.P08.M02.S05-RP26.P08.M09.S02). Reviewed read-only via Read/Grep/Glob.\n\nProduction-ready claim is supportable and correctly scoped. The manifest claims production_ready:false, runtime_ready:false, status:in_progress, with production_ready_flag=\"enterprise_saas_evidence_contract_type_shape_bridge_descriptor_verified\" and implementation_summary asserting descriptor_only:true, runtime_execution:false, no_real_data:true, writes_product_state:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true. This is the expected pre-closeout state: the immediately prior pack CP00-816 (closed) shows the same shape flips to production_ready:true / production_ready_descriptor_verified:true / status:production_ready only at closeout, so false-at-review-time is correct, not a defect.\n\nImplementation is consistent and well-bounded. registry.js defines ENTERPRISE_SAAS_CP817_PACK_BINDING and _REQUIREMENTS with deliverable_counts {claude_review:7, hermes_evidence:68, implementation:68, test:7}=150 and micro distribution matching the pack baseline. service.js builds the CP817 descriptor, Hermes packet (writes_product_state:false, emits_runtime_receipt:false, receipt_shape \"descriptor_only_enterprise_saas_no_write\"), Claude packet (read_only:true, promotes_claude_to_final_approval:false), and closeout handoff to CP00-818/RP26.P08.M09.S03. validators.js enforces strong no-leak guards (no tenant/SSO/SCIM/secret payloads, no runtime opens, no cross-tenant routes, no key/secret material, no runtime permission eval/writes, no audit writes, no UI/API runtime, no real tenant data, no enterprise-trust claim) plus authority_boundary checks. The contract (validation.valid:true) promotes latest_pack=CP00-817 and latest_projection.descriptor=EnterpriseSaasCp817EvidenceContractTypeShapeBridgeDescriptor while keeping cp788-cp816 historical. model.test.js asserts coverage.errors==[], 150 runtime-closed rows, no real tenant data, no permission/audit detail, no API/UI runtime, Hermes no-receipt, Claude read-only/non-final, and contract promotion. The validate script gates on coverage/descriptor/contract/capabilities/safety-gates.\n\nAuthority and review-hardening boundaries hold. Claude stays a read-only independent reviewer (allowed_claude_tools=[Read,Grep,Glob]; not final approver), enterprise-trust closure is external to this receipt, and Hermes is not embedded in product runtime. CP178+ hardening blockers are defined (forbidden_review_evidence: not_logged_in, malformed_json, usage_limit_error, permission_denial, write_tool_used, runtime_receipt_claim); the readiness auth-preflight passed (exit 0, 1226-byte stdout, valid JSON result {\"ok\":true}, no stderr) and the review-request mandates read_only + JSON-schema output. changed-file-scope correctly isolates the 7 active enterprise implementation refs + docs/closeout-packs/cp00-817 from unrelated dirty files (UI workstream, workbook docs).\n\nTwo P3 informational notes only; no P0/P1/P2. blocks_pack_on_p0_p1_p2 semantics mean these do not block closeout.",
+    "findings": [
+      {
+        "id": "CP817-R01",
+        "severity": "P3",
+        "title": "Closeout artifacts not yet present at review time; validation commands not independently executed (read-only)",
+        "file": "docs/closeout-packs/cp00-817/manifest.json",
+        "line": 1627,
+        "details": "manifest.required_pack_artifacts lists manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but docs/closeout-packs/cp00-817/ currently contains only manifest.json. pack_level_claude_review.status is 'pending_review' with empty valid_review_receipts/invalid_review_attempts. This is the expected pre-closeout state (this review is the gate that precedes generating command-evidence, claude-review-result, construction-inspection, and adjudication, and flips production_ready true), as evidenced by the closed prior pack CP00-816 which has all five artifacts and command-evidence.json showing the full validation command set passing (exit_code 0). As a read-only reviewer I could not execute npm test / npm run validate / etc., so command/test PASS is verified by source consistency and prior-pack precedent rather than fresh execution.",
+        "recommendation": "Proceed; ensure the closeout step generates command-evidence.json (commands actually exit 0 on the CP00-817 tree), construction-inspection.json, adjudication.md, and the claude-review-result.json from this receipt before flipping status to production_ready.",
+        "post_review_disposition": "informational_expected_pre_closeout_state_not_blocking"
+      },
+      {
+        "id": "CP817-R02",
+        "severity": "P3",
+        "title": "changed-file-scope dual-lists new-session-handoff.md as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-817/changed-file-scope.json",
+        "line": 160,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 160) and unrelated_dirty_files_preserved (line 167). The authoritative pack scope is unaffected: active_pack_implementation_refs lists only the 7 enterprise files (contracts/enterprise-saas-hardening-contract.json, packages/enterprise/{README.md,src/registry.js,src/service.js,src/validators.js,test/model.test.js}, scripts/validate-rp26-enterprise-saas-hardening-contract.mjs) and active_pack_required_untracked_files is docs/closeout-packs/cp00-817; the manifest worktree_transition_policy also treats new-session-handoff.md as unrelated. validation-report confirms active_untracked_implementation_files_omitted=[] and forbidden_tools_present=false.",
+        "recommendation": "Optionally tighten changed-file-scope classification so a file is not listed in both untracked_implementation_files and unrelated_dirty_files_preserved; no scope or boundary impact.",
+        "post_review_disposition": "cosmetic_labeling_inconsistency_not_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

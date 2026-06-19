@@ -1,0 +1,188 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L5-W03",
+  "title": "Five prohibitions and eight non-goals bypass-impossibility verification",
+  "phase": "L5",
+  "gate": "G3, L5-EXIT",
+  "created_at": "2026-06-18T14:18:02Z",
+  "status": "blocked_pending_bypass_test_suites_addin_scope_check_bypass_matrix_and_runtime_predecessors",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L2-W03": {
+      "status": "blocked_pending_l2_w01_w02_and_write_runtime",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L2-W05": {
+      "status": "blocked_pending_runtime_risk_controls_and_predecessors",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W07": {
+      "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W08": {
+      "status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W09": {
+      "status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L5-W01": {
+      "status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L5-W02": {
+      "status": "blocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "bypass_ai_automation_test_directory_exists": false,
+    "bypass_hr_test_directory_exists": false,
+    "bypass_share_export_test_directory_exists": false,
+    "addin_scope_check_directory_exists": false,
+    "bypass_matrix_exists": false,
+    "addin_scope_check_report_exists": false,
+    "uat_prohibition_scenarios_exist": true,
+    "uat_prohibition_scenarios_executed": false,
+    "g3_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L5-W03-T01",
+      "title": "AI automation bypass-attempt tests for prohibition 1 and non-goals 1-3",
+      "status": "blocked_waiting_on_l5_w01_harness_l2_w03_write_runtime_and_bypass_ai_automation_suite",
+      "acceptance": {
+        "required_test_directory_exists": false,
+        "unapproved_customer_send_blocked": false,
+        "unapproved_db_writeback_blocked": false,
+        "legal_conclusion_auto_finalization_blocked": false,
+        "court_filing_auto_submit_blocked": false,
+        "audited_denial_events_verified": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W03-T02",
+      "title": "HR sensitive-data and HR automation bypass-attempt tests for prohibition 2 and non-goals 4-6",
+      "status": "blocked_waiting_on_l5_w01_harness_l2_w05_runtime_controls_and_bypass_hr_suite",
+      "acceptance": {
+        "required_test_directory_exists": false,
+        "ordinary_matter_permission_hr_access_blocked": false,
+        "llm_payroll_leave_final_calculation_blocked": false,
+        "hiring_auto_decision_route_count_zero": false,
+        "performance_grade_auto_assignment_route_count_zero": false,
+        "hr_sensitive_audit_events_verified": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W03-T03",
+      "title": "SharePoint sharing and Obsidian export bypass-attempt tests for prohibitions 3-4 and non-goal 7",
+      "status": "blocked_waiting_on_l5_w01_harness_l3_w08_storage_decision_and_bypass_share_export_suite",
+      "acceptance": {
+        "required_test_directory_exists": false,
+        "sharepoint_link_without_audit_blocked": false,
+        "unauthorized_obsidian_export_blocked": false,
+        "reverse_import_endpoint_count_zero": false,
+        "export_provenance_points_to_matter_db_and_sharepoint_or_onedrive_source": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W03-T04",
+      "title": "Outlook Add-in Graph minimum-scope and Office.js platform verification for prohibition 5 and non-goal 8",
+      "status": "blocked_waiting_on_l3_w07_l3_w09_addin_manifest_scope_decision_and_scope_check_suite",
+      "acceptance": {
+        "required_scope_check_directory_exists": false,
+        "manifest_requested_scope_delta_zero": false,
+        "broad_graph_permission_pattern_count_zero": false,
+        "office_js_web_addin_verified": false,
+        "com_reference_count_zero": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W03-T05",
+      "title": "Assemble 13-row bypass-impossibility matrix",
+      "status": "blocked_waiting_on_t01_t02_t03_t04_and_matrix_link_validation",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "all_five_tuw_ids_present_in_command_evidence": true,
+        "bypass_matrix_exists": false,
+        "matrix_rows_required": 13,
+        "matrix_rows_green": 0,
+        "unmapped_rows": 13,
+        "broken_evidence_links_verified_zero": false,
+        "g3_satisfied": false,
+        "l5_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L2-W03\" or .wp_id==\"LT-L2-W05\" or .wp_id==\"LT-L3-W07\" or .wp_id==\"LT-L3-W08\" or .wp_id==\"LT-L3-W09\" or .wp_id==\"LT-L5-W01\" or .wp_id==\"LT-L5-W02\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L2-W03\tblocked_pending_l2_w01_w02_and_write_runtime\tstandard_five_blocked",
+        "LT-L2-W05\tblocked_pending_runtime_risk_controls_and_predecessors\tstandard_five_blocked",
+        "LT-L3-W07\tblocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent\tstandard_five_blocked",
+        "LT-L3-W08\tblocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning\tstandard_five_blocked",
+        "LT-L3-W09\tblocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence\tstandard_five_blocked",
+        "LT-L5-W01\tblocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff\tstandard_five_blocked",
+        "LT-L5-W02\tblocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W03 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in tests/launch/security-acceptance/bypass-ai-automation tests/launch/security-acceptance/bypass-hr tests/launch/security-acceptance/bypass-share-export tests/launch/security-acceptance/addin-scope-check docs/launch/security-acceptance/bypass-matrix.md docs/launch/security-acceptance/addin-scope-check-report.md; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent tests/launch/security-acceptance/bypass-ai-automation",
+        "absent tests/launch/security-acceptance/bypass-hr",
+        "absent tests/launch/security-acceptance/bypass-share-export",
+        "absent tests/launch/security-acceptance/addin-scope-check",
+        "absent docs/launch/security-acceptance/bypass-matrix.md",
+        "absent docs/launch/security-acceptance/addin-scope-check-report.md"
+      ],
+      "purpose": "Verify required executable W03 evidence and matrix artifacts are absent."
+    },
+    {
+      "id": "source_policy_and_uat_rows",
+      "command": "rg -n \"금지사항|비목표|AI가 고객|HR|SharePoint|Obsidian|Graph|COM Outlook|자동\" workbook/matter_dev_docs/24_개발팀_착수_지시서.md workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md docs/goal-closeout/lt-l7-w06 -S",
+      "exit_code": 0,
+      "output_summary": [
+        "24_개발팀_착수_지시서.md section 6 defines five prohibitions, including AI write-back, HR exposure, SharePoint audit, Obsidian permission validation, and broad Graph permission review.",
+        "01_제품_사양명세서_PRD_SRS.md section 6 defines eight non-goals, including legal conclusion auto-finalization, customer send auto-transfer, court filing auto-submit, HR LLM final calculation, hiring auto-decision, performance auto-grade, Obsidian as source DB, and COM Outlook Add-in.",
+        "lt-l7-w06 UAT scenario and bypass-attempt result rows exist but are marked not_executed."
+      ],
+      "purpose": "Verify policy source exists while executable proof remains absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L5-W03.",
+    "This record does not execute any bypass-impossibility test suite.",
+    "This record does not prove any of the 13 required rows green.",
+    "This record does not create docs/launch/security-acceptance/bypass-matrix.md.",
+    "This record does not validate Outlook Add-in manifest scopes or Office.js platform status.",
+    "This record does not access staging, production, real matters, or real HR-sensitive files.",
+    "This record does not satisfy G3 or L5-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

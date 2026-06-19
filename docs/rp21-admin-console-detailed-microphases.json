@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP21",
+  "program_title": "Admin Console",
+  "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+  "ai_owner": "Cursor/Codex",
+  "hermes_gate": "H21",
+  "claude_gate": "C21",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP21.P00.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Taxonomy, templates, workflow, policy, usage, billing plan requirements and identify unsafe policy change, template drift, and admin mutation unaudited as explicit acceptance risks.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Admin Console contract shape for Taxonomy, Template, WorkflowDefinition, PolicySetting, UsageLimit, BillingPlan.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns Taxonomy, Template, and WorkflowDefinition, and which modules may only reference them.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for taxonomy editing, template management, and workflow configuration.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Admin Console records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Admin Console behavior can run.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Admin Console examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Admin Console planning and later implementation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H21 preflight",
+      "objective": "Define the fields Hermes records before Admin Console implementation starts.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C21 design brief",
+      "objective": "Prepare Claude Code questions around unsafe policy change, template drift, admin mutation unaudited, and missing tests.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P00.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP21.P00 handoff",
+      "objective": "Hand off a contract-first Admin Console implementation scope to AI.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "contracts/admin-contract.json",
+        "packages/admin/README.md",
+        "contracts/admin-console-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/admin.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement Taxonomy model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for Taxonomy.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement Template model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for Template.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement WorkflowDefinition model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for WorkflowDefinition.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement PolicySetting model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for PolicySetting.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement UsageLimit model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for UsageLimit.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among Taxonomy, Template, WorkflowDefinition, PolicySetting, UsageLimit, BillingPlan and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Admin Console model definitions through a stable package interface.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P01.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Admin Console model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/model.js",
+        "packages/admin/src/states.js",
+        "packages/admin/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for taxonomy editing, template management, and workflow configuration.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement taxonomy editing",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for taxonomy editing.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement template management",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for template management.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement workflow configuration",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for workflow configuration.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement policy update",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for policy update.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement usage review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for usage review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for unsafe policy change, template drift, and admin mutation unaudited.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Admin Console operations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H21.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Admin Console outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P02.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Admin Console services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/service.js",
+        "packages/admin/src/policies.js",
+        "packages/admin/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Admin Console models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define taxonomy editing API",
+      "objective": "Lock request, response, permission, audit, and error shape for taxonomy editing.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define template management API",
+      "objective": "Lock request, response, permission, audit, and error shape for template management.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define workflow configuration API",
+      "objective": "Lock request, response, permission, audit, and error shape for workflow configuration.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define policy update API",
+      "objective": "Lock request, response, permission, audit, and error shape for policy update.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define usage review API",
+      "objective": "Lock request, response, permission, audit, and error shape for usage review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Admin Console API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for unsafe policy change, template drift, admin mutation unaudited, workflow misconfiguration, and review_required.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H21 evidence without making Hermes product authority.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C21 cross-validation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P03.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Admin Console public interface until a later RP explicitly extends it.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/index.js",
+        "packages/admin/src/api-contract.js",
+        "packages/admin/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/admin/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify admin settings, taxonomy editor, template library, and workflow builder in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan admin settings",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for admin settings.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan taxonomy editor",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for taxonomy editor.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan template library",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for template library.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan workflow builder",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for workflow builder.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Admin Console outcomes as review queue items, not silent successes.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Admin Console rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Admin Console context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Admin Console service decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P04.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp21-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define taxonomy updated golden case",
+      "objective": "Create a synthetic golden case proving taxonomy updated.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define template versioned golden case",
+      "objective": "Create a synthetic golden case proving template versioned.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define policy change audited golden case",
+      "objective": "Create a synthetic golden case proving policy change audited.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define usage limit enforced golden case",
+      "objective": "Create a synthetic golden case proving usage limit enforced.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define unsafe policy change failure fixture",
+      "objective": "Create a synthetic failing case that proves unsafe policy change is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define template drift failure fixture",
+      "objective": "Create a synthetic failing case that proves template drift is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define admin mutation unaudited failure fixture",
+      "objective": "Create a synthetic failing case that proves admin mutation unaudited is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Admin Console fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Admin Console appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P05.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Admin Console fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/fixtures.js",
+        "packages/admin/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/admin/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for taxonomy editing, template management, workflow configuration, and policy update.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Admin Console view and search surfaces.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Admin Console mutations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Admin Console export, download, or external-share actions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Admin Console where applicable.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Admin Console obey security trimming.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H21 audit evidence",
+      "objective": "Record which Admin Console decisions require downstream audit event persistence.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P06.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Admin Console cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/src/security-contract.js",
+        "packages/admin/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define unsafe policy change failure",
+      "objective": "Fail closed or require review when unsafe policy change appears in Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define template drift failure",
+      "objective": "Fail closed or require review when template drift appears in Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define admin mutation unaudited failure",
+      "objective": "Fail closed or require review when admin mutation unaudited appears in Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define workflow misconfiguration failure",
+      "objective": "Fail closed or require review when workflow misconfiguration appears in Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Admin Console operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Admin Console operations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Admin Console micro phase is corrected before advancing.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P07.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Admin Console ambiguity fails closed or requires review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "packages/admin/test/failure-cases.test.js",
+        "docs/rp21-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/admin/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H21 command matrix",
+      "objective": "Record exact product commands Hermes should run for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H21 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H21 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H21 no-real-data evidence",
+      "objective": "Record that Admin Console fixtures and examples contain only synthetic data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H21 blocked-claim evidence",
+      "objective": "Record unsafe Admin Console claims rejected by validators or tests.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H21 Claude dependency",
+      "objective": "Mark C21 review mandatory before Admin Console closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H21 human approval note",
+      "objective": "Record what the human must approve for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H21 command availability",
+      "objective": "Ensure npm scripts required by H21 exist before handoff.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H21 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Admin Console implementation closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H21 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H21.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P08.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Admin Console behavior without owning product code.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp21-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M00",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP21 architecture review questions",
+      "objective": "Ask whether Admin Console module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M01",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP21 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M02",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP21 bypass review questions",
+      "objective": "Ask Claude to find unsafe policy change, template drift, admin mutation unaudited, workflow misconfiguration, and undefined bypasses.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M03",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP21 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Admin Console.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M04",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP21 downstream readiness questions",
+      "objective": "Ask whether Admin Console is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M05",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP21 risk register",
+      "objective": "List unresolved Admin Console risks and route them to future RP corrections.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M06",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Admin Console findings.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M07",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Admin Console closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M08",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP21.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M09",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Admin Console can be considered ready.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP21.P09.M10",
+      "program_id": "RP21",
+      "program_title": "Admin Console",
+      "program_scope": "Taxonomy, templates, workflow, policy, usage, billing plan",
+      "phase_id": "RP21.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP21 detailed plan",
+      "objective": "Confirm Admin Console is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H21",
+      "claude_gate": "C21",
+      "target_files": [
+        "docs/rp21-claude-cross-validation-brief.md",
+        "docs/rp21-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H21 evidence or blocked reason can be recorded.",
+        "Claude C21 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

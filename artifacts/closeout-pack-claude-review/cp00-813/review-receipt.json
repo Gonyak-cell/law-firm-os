@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-813",
+  "normalized_at": "2026-06-16T05:39:37.810Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-813/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-813/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-813/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-813/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "17504dfa-700b-497b-a43a-852c526aa858",
+    "uuid": "43a9231b-9d97-47ad-8a3e-a4c8cc3e8a73",
+    "total_cost_usd": 2.7818472499999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 11125,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-813 descriptor-only enterprise-SaaS failure-recovery \"Permission And Audit Binding\" pack (risk A, 10 units, RP26.P07.M05.S01-RP26.P07.M05.S10) verified by read-only source inspection only (Read/Grep/Glob; no Bash, no command execution). Binding (registry.js:477) is correct and chains cleanly from CP00-812 (registry.js:470 next_pack_id=CP00-813/RP26.P07.M05.S01) to CP00-814/RP26.P07.M05.S11. Requirements (registry.js:2217) reconcile exactly with the prompt baseline: deliverable_counts failure_recovery 9 / security_audit 1 = 10, phase RP26.P07=10, micro RP26.P07.M05=10, title \"Permission And Audit Binding\"=10; required_section_rows=FAILURE_RECOVERY_ROWS.slice(0,10) (registry.js:2235/773) whose titles match the live plan units one-for-one, with S08 \"Permission denied failure\" correctly the single security_audit unit. Descriptor (service.js:1797), case set (service.js:1788) and per-row stamping (createCaseSet service.js:302; freezeResult no-write attestation service.js:67/registry.js:494) chain from EnterpriseSaasCp812...Descriptor and hold descriptor_only/no-real-data/runtime-closed. Validators (validators.js:801/805/819 over validateCoverage:146 and validateDescriptor:182) enforce real boundaries: pack/risk/unit/first-last/RP26-only/distribution/section-row checks, authority boundary (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required=true), and row-level closure of SSO/MFA/SCIM runtime, cross-tenant routes, key/secret material, runtime permission decisions, audit events, API/UI runtime, real tenant data, and enterprise-trust claims. Tests (model.test.js:1091-1158, planPack reading the live plan) assert coverage errors=[], by_deliverable===requirements, descriptor validation errors=[], Hermes emits_runtime_receipt=false, Claude read_only=true/promotes_final=false, handoff, and full contract promotion with prior packs historical. Contract reconciles: current_pack/latest_pack=CP00-813 (lines 54/70), latest_projection=EnterpriseSaasCp813FailureRecoveryPermissionAuditBindingDescriptor (36152), projections.cp813 (35626), validation.valid=true/errors=[] (44224), CP00-812 historical (472); top-level mandatory_artifacts/required_capabilities/safety_gates/research_alignment/no_leak_guards populated (488-526). Live plan (closeout-pack-plan.json:398) matches the manifest plan_binding_snapshot with identical source_ledger_sha 13c7ed65; README#cp00-813 present (README.md:69); index.js export * surfaces required public exports; validate script (scripts/validate-rp26-enterprise-saas-hardening-contract.mjs) is bound to CP813. No over-claim: manifest reports production_ready=false, runtime_ready=false, in_progress, review_pending with empty receipts, production_ready_descriptor_verified=false. Hermes is descriptor-only evidence (receipt_shape descriptor_only_enterprise_saas_no_write, emits_runtime_receipt=false), not embedded product runtime; Claude is read-only/non-final. Review inputs are valid hardened evidence: auth preflight passed exit 0 / 1455B / valid JSON; model claude-opus-4-8, effort max, read_only, tools Read,Grep,Glob, no forbidden tools; schema present; summary-only correctly prohibited (security_audit deliverable present); prompt 2393B < 25600B and contains no full diff/source. No P0/P1/P2 found. Two non-blocking P3s: (1) expected pre-closeout absence of downstream artifacts (command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json) plus the listed validation commands not being executable by this read-only reviewer (mirrors CP00-809/810/811/812); (2) a benign changed-file-scope dual-listing of new-session-handoff.md. PASS_WITH_FINDINGS; does not block pack closeout or this CP closeout goal. Enterprise-trust/runtime opening remains deferred to human final approval, outside this receipt.",
+    "findings": [
+      {
+        "id": "CP813-P3-01",
+        "severity": "P3",
+        "title": "Downstream closeout artifacts and validation-command evidence not yet present (expected at the Claude-review stage)",
+        "file": "docs/closeout-packs/cp00-813/manifest.json",
+        "line": 227,
+        "details": "manifest.required_pack_artifacts (lines 227-233) lists command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but Glob of docs/closeout-packs/cp00-813/ confirms only manifest.json currently exists, and artifacts/closeout-pack-claude-review/cp00-813/ has no raw-output.json/review-receipt.json yet. pack_level_claude_review.status=review_pending with valid_review_receipts=[] and invalid_review_attempts=[] (manifest:217-226). This is the expected state during the Claude review step: claude-review-result.json wraps this review's verdict and adjudication.md is generated from the review receipt, so neither can exist before this review; command-evidence.json and construction-inspection.json plus execution of the listed validation commands (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) are produced/run by the closeout pipeline after this review. Being read-only (Read/Grep/Glob, no Bash), I verified by static inspection only: binding (registry.js:477), requirements/rows (registry.js:2217/2235/773), descriptor + createCaseSet no-write stamping and authority boundary (service.js:1797/1788/302/67; registry.js:494), validators (validators.js:146/182/801/805/819), CP813 tests (model.test.js:1091-1158), contract promotion/projection/validation.valid and guards (contract:54/70/35626/36152/44224), live plan entry with matching source_ledger_sha 13c7ed65 (closeout-pack-plan.json:398), README (#cp00-813 README.md:69), and index.js export* re-exports; I did not and cannot execute the validation commands or confirm downstream adjudication/inspection/command-evidence output. The manifest correctly reports production_ready=false / runtime_ready=false / in_progress and does not overclaim runtime or enterprise trust. This mirrors the equivalent non-blocking P3 recorded for CP00-809/810/811/812.",
+        "recommendation": "Proceed with the normal closeout pipeline: run the listed validation commands, capture command-evidence.json, and generate claude-review-result.json, adjudication.md, and construction-inspection.json; then obtain human final approval before any runtime or enterprise-trust opening (deferred to CP00-814 / RP26.P07.M05.S11 onward). No code change required for this pack.",
+        "post_review_disposition": "expected_pre_closeout_state_non_blocking"
+      },
+      {
+        "id": "CP813-P3-02",
+        "severity": "P3",
+        "title": "changed-file-scope dual-lists new-session-handoff.md as both untracked implementation and unrelated-preserved (benign, not part of pack)",
+        "file": "artifacts/closeout-pack-claude-review/cp00-813/changed-file-scope.json",
+        "line": 160,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 160) and unrelated_dirty_files_preserved (line 167) of changed-file-scope.json. The authoritative active set is unambiguous and excludes it: active_pack_required_untracked_files lists only docs/closeout-packs/cp00-813 (lines 14-16), active_untracked_implementation_files_omitted is empty (line 163), and the manifest worktree_transition_policy.active_pack_required_untracked_files (manifest:198-201) lists only docs/closeout-packs/cp00-813 and artifacts/closeout-pack-claude-review/cp00-813. Per the prompt's instruction not to infer unrelated dirty files belong to this pack, new-session-handoff.md is correctly treated as NOT part of CP00-813; the dual classification is a conservative heuristic overlap in the scope-report generator (it flags untracked docs/*.md as a candidate implementation file while still preserving it as unrelated). The other dirty files (scripts/progress-control-room-data.mjs, tools/progress-control-room/index.html, workbook/* and the .docx) are correctly preserved as unrelated and excluded from the pack. No impact on pack scope, boundaries, or closeout correctness.",
+        "recommendation": "Optionally tighten the changed-file-scope generator so a file preserved as unrelated is not simultaneously emitted under untracked_implementation_files, to avoid ambiguity in future review packets. No action required for CP00-813 closeout.",
+        "post_review_disposition": "informational_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

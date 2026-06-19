@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v1",
+  "subphase_id": "RP00.P01.M07.S01",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "passed",
+  "executed_at": "2026-06-04T05:10:49Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/model.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff -- packages/control-plane/src/states.js",
+      "exit_code": 0,
+      "evidence": "empty diff; this layout slice binds preexisting enum exports without changing enum values"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "evidence": "must pass after these closeout evidence files are present"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "product_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "writes_product_state": false
+  },
+  "blocked_claims": [],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "The subphase defines layout metadata and validation only; it does not define new enum values or mutate product state.",
+    "Claude review was executed once with claude-opus-4-8 effort=max in read-only/no-tools mode."
+  ]
+}

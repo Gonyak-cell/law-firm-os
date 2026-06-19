@@ -1,0 +1,25 @@
+{
+  "work_package_id": "LT-PRE-W06",
+  "inspected_at": "2026-06-18T14:42:07Z",
+  "verdict": "BLOCKED_EXTERNAL_ACTIONS_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "m365_admin_confirmation_record_present": true,
+    "m365_admin_secured_decision_present": false,
+    "ai_legal_scope_topics_present": true,
+    "ai_legal_review_request_evidence_present": false,
+    "pentest_scope_topics_present": true,
+    "pentest_vendor_outreach_evidence_present": false,
+    "external_leadtime_register_rows": 3,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "external_confirmation_synthesized": false,
+    "legal_review_sent_claim_synthesized": false,
+    "pentest_outreach_claim_synthesized": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

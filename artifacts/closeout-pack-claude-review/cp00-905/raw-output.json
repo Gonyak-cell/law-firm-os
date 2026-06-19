@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-905",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T16:02:53.399Z",
+  "finished_at": "2026-06-17T16:07:35.194Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":281078,\"duration_api_ms\":282134,\"ttft_ms\":3129,\"num_turns\":38,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — does not block pack or goal closeout; no unresolved P0/P1/P2.\\n\\nCP00-905's descriptor-only Compensation→RuleEngine bridge is internally consistent across binding, implementation, validators, tests, and the on-disk contract, with all no-write/no-real-data/no-runtime boundaries enforced and tested, Claude's read-only authority preserved, and no over-claiming (production_ready/runtime_ready honestly false). The single P3 is informational: the full validation ladder and adjudication normalization are documented post-review steps I can't execute read-only, so production_ready promotion must follow that ladder passing during closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"5f8189f2-0e55-44e9-9696-b4bbdf1b50ae\",\"total_cost_usd\":1.5869647500000001,\"usage\":{\"input_tokens\":42,\"cache_creation_input_tokens\":90149,\"cache_read_input_tokens\":1016805,\"output_tokens\":20548,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":90149,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":278,\"cache_read_input_tokens\":83110,\"cache_creation_input_tokens\":7592,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7592},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1116,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001221,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":42,\"outputTokens\":20548,\"cacheReadInputTokens\":1016805,\"cacheCreationInputTokens\":90149,\"webSearchRequests\":0,\"costUSD\":1.5857437500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-905 is a descriptor-only HRX bridge continuing the RP30 P01 CompensationRecord tail (2 rows) into the RP30 P02 RuleEngine foundation (8 rows) across RP30.P01.M10.S04-RP30.P02.M00.S08. Read-only inspection confirms the pack is internally consistent and does not over-claim. HRX_CP905_PACK_BINDING (registry.js:219) matches the manifest plan_binding_snapshot, the review baseline, and the live closeout-pack-plan.json packs[] entry exactly (pack CP00-905, risk A, 10 units, range and unit IDs, upstream CP00-904, next CP00-906 / RP30.P02.M00.S09); all included-unit titles match 1:1. Implementation (registry.js:1881-2053) builds deepFrozen descriptor rows with every runtime/write/real-data/secret flag forced false and compensation amounts, currency, payroll runtime, rule definitions, rule execution, decision writes, and HR AI final judgment all closed. Validators (validators.js:1320-1512) exhaustively check all 10 rows, deliverable/phase/micro/title distributions, authority boundary, Hermes/Claude packets, no-leak guards, and contract projection drift; 3 CP905 tests (model.test.js:457-521) assert zero errors and are wired into npm test. contracts/hrx-people-contract.json is in sync (current/latest CP00-905, projection HrxCp905CompensationRuleEngineBridgeDescriptor) and the rp30:hrx:validate script enforces the CP897->CP905 binding chain. Authority boundaries hold: Claude is read-only and not final approver, human approval is required for runtime opening (deferred to CP00-906), enterprise trust is not claimed from local validation, and the Hermes packet emits no runtime receipt (evidence-only). Manifest honestly reports production_ready false, runtime_ready false, status in_progress. Review-hardening checks pass: auth preflight succeeded with valid JSON/non-zero stdout/exit 0, prompt is within size with no embedded full diff/source, only Read/Grep/Glob are used, and no invalid review attempts exist for this pack (the LDIP invalid-attempt file is correctly segregated as unrelated dirty). No P0/P1/P2 issues found. One P3 informational note: the pack's command-evidence.json records only the 6 HRX commands at exit 0 and is marked pending, so the full 10-command closeout ladder and adjudication normalization remain post-review steps that I cannot execute as a read-only reviewer; this matches the pack's own documented lifecycle and is not a defect, but production_ready promotion must follow that ladder passing.\",\"findings\":[{\"id\":\"CP905-P3-01\",\"severity\":\"P3\",\"title\":\"Full validation ladder and adjudication normalization remain post-review steps (pack-documented, expected lifecycle)\",\"file\":\"docs/closeout-packs/cp00-905/command-evidence.json\",\"line\":9,\"details\":\"command-evidence.json records only the 6 HRX-specific commands (node --check, node --test, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate) at exit_code 0, with status 'pending' and gate_outcome 'pending_pack_evidence_creation'. The 10-command closeout ladder listed in the review prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet evidenced as passing in this pack, and adjudication.md / construction-inspection.json are both PENDING with production_ready false. As a read-only reviewer I confirmed descriptor, validator, test, and contract correctness by inspection but cannot execute the ladder. The pack itself documents this sequence (note: 'Full validation ladder must be re-run after review normalization, adjudication update, and queue regeneration'), so this is informational, not a defect, and the pack is not over-claiming (production_ready is false).\",\"recommendation\":\"During closeout, run and record the full 10-command validation ladder at exit 0, normalize adjudication.md and construction-inspection.json to this review outcome, ensure git diff --check is clean, and only then promote production_ready. No change to descriptor/code is required.\",\"post_review_disposition\":\"open_expected_lifecycle\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"7c0d5083-4fdd-4f78-96ed-8c03741ec118\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6513,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "5f8189f2-0e55-44e9-9696-b4bbdf1b50ae",
+    "uuid": "7c0d5083-4fdd-4f78-96ed-8c03741ec118",
+    "total_cost_usd": 1.5869647500000001,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

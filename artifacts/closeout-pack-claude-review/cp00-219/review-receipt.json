@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-219",
+  "normalized_at": "2026-06-10T08:33:06.281Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-219/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-219/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-219/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-219/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "40c4aeee-c394-4231-89a3-9be4cd90e828",
+    "uuid": "070a18a3-1f68-4e12-9d4c-61280ec72b3e",
+    "total_cost_usd": 4.10649125,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7704,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-219 (RP06 DMS Core — closes RP06.P05 fixture-case tail M06–M10, opens RP06.P06 permission-matrix foundation M00–M02) is a descriptor-only, risk-class-C pack of 150 units that does NOT over-claim production readiness, and its closeout-readiness evidence holds up under CP178+ hardening. The pack-level claim is correctly bounded: manifest.json and command-evidence.json both report production_ready=false with status \"implemented_pending_review\" / \"implementation_and_plan_gates_passed_pending_final_closeout\"; the only positive signal is hermes production_ready_candidate (coverage.valid && matrix.valid), which is explicitly a CANDIDATE, not a final/enterprise-trust claim. Authority boundary is respected throughout: service.js descriptors and validators.js assert claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, and human_final_approval_required_for_runtime_opening=true; Claude stays a read-only reviewer (read_only=true, allowed_tools strictly [Read,Grep,Glob]) and is never promoted to final approver. No-write / no-real-data boundaries verified: freezeCp219Result forces synthetic_only=true, no_real_data=true, writes_product_state=false and ~30 runtime booleans false on every result; grep of packages/dms/src found no filesystem writes, network/child_process calls, secrets, or PII. Hermes is used only as a deterministic descriptor-only review packet/receipt (emits_hermes_runtime_receipt=false, receipt_shape \"descriptor_only_p05_closeout_p06_permission_matrix_no_write\"), not product runtime. Coverage is validated against the LIVE plan (closeout-pack-plan.json:413, deviation_from_plan=false) rather than a self-referential snapshot, and validate-rp06-dms-core-contract.mjs (read-only; no write APIs) asserts the live-plan entry exists and reconciles unit_count, phase_counts {RP06.P05:90, RP06.P06:60}, deliverable_counts summing to 150, deny-over-allow/cross-wall boundaries, and the CP00-220 / RP06.P06.M02.S21 handoff. CP178+ hardening checks pass: readiness-report auth_preflight passed (exit 0, stdout 1432 bytes non-zero, valid JSON {\"ok\":true}); no auth failure, 0-byte stdout, malformed JSON, fenced-JSON-with-prose, tool-call-shaped output, or missing required fields are accepted as evidence (forbidden_review_evidence list inherited from CP198). Identity/coverage/distribution values reconcile across baseline, live plan, contract, registry binding, manifest, and command-evidence with no drift. One non-blocking P3 informational finding: the CP219 validator unit tests exercise only happy-path inputs, so the error-detection branches are not directly covered. No P0/P1/P2 issues. Verdict: PASS_WITH_FINDINGS — does not block pack closeout or goal closeout; final enterprise-trust closure remains gated on the required human approval, consistent with the stated authority boundary.",
+    "findings": [
+      {
+        "id": "CP219-P3-01",
+        "severity": "P3",
+        "title": "CP219 validators are exercised only on happy-path inputs; error-detection branches are not unit-tested",
+        "file": "packages/dms/test/model.test.js",
+        "line": 2020,
+        "details": "The three CP00-219 tests in model.test.js assert coverage validity, descriptor-only deny-over-allow/wall boundaries, and evidence-packet shape using only well-formed descriptors produced by the service layer. validateDmsCoreCp219Coverage and validateDmsCoreCp219P05CloseoutP06PermissionMatrixDescriptor contain substantial rejection logic (unit_count/first/last mismatch, duplicate units, non-RP06 phases, runtime_execution!=false, cross_wall_access_allowed!=false, missing human-approval route, contract drift, etc.), but no test feeds a tampered/mutated descriptor to confirm valid===false. The validators therefore have no direct negative-path coverage; a regression that weakened a guard could pass the suite undetected. This is informational only: the validators are read-only descriptor checks, the live validation script independently re-asserts the same invariants, and the pack does not claim production_ready, so this does not affect the correctness of the current closeout evidence.",
+        "recommendation": "Add at least one negative-path unit test per CP219 validator that clones a valid descriptor, mutates a single guarded field (e.g. set a row's runtime_execution=true or cross_wall_access_allowed=true, or change unit_count), and asserts the validator returns valid===false with the expected error. This locks in the rejection branches against future regressions. Non-blocking for CP00-219 closeout.",
+        "post_review_disposition": "noted_non_blocking_informational"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

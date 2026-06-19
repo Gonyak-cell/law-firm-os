@@ -1,0 +1,63 @@
+{
+  "work_package_id": "LT-L8-W02",
+  "title": "G1-G10 gate evidence assembly",
+  "inspected_at": "2026-06-18T12:21:08Z",
+  "verdict": "BLOCKED_SURVEY_ACCEPTED",
+  "production_ready": false,
+  "go_live_approved": false,
+  "scope": {
+    "gate_evidence_documents_created": 10,
+    "readiness_input_created": true,
+    "goal_closeout_evidence_files_created": true,
+    "existing_cp_evidence_modified": false,
+    "validator_contract_modified": false
+  },
+  "quality_gates": {
+    "gate_documents_present": true,
+    "gate_document_count": 10,
+    "current_readiness_input_json_parses": true,
+    "validator_exit_code": 1,
+    "validator_failure_expected": true,
+    "validator_all_pass": false,
+    "failed_gate_count": 10,
+    "failed_gate_ids": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9",
+      "G10"
+    ],
+    "contract_errors": []
+  },
+  "review_gates": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_review": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "closed_cp_evidence_rewritten": false,
+    "human_approval_replaced": false,
+    "live_gate_evidence_synthesized": false
+  },
+  "blocked_claims": [
+    "go_live_approved",
+    "production_ready",
+    "g1_g10_live_evidence_satisfied",
+    "g10_human_signoff_satisfied",
+    "valid_claude_review_completed"
+  ],
+  "external_or_owner_blockers": [
+    "G1 final human acceptance",
+    "G3 production security rerun and pentest adjudication",
+    "G5 M365 admin consent and Add-in production evidence",
+    "G10 owner signoff and decision register entry"
+  ],
+  "next_work_package": "LT-L8-W02 remains open until real evidence exists"
+}

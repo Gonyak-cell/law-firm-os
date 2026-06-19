@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v1",
+  "subphase_id": "RP00.P01.M07.S04",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools": "",
+    "write_tools_granted": false,
+    "permission_denials": [],
+    "session_id": "1a272e63-a29f-444c-93dd-d1bb99f5e0f6",
+    "uuid": "0963b6f6-3f1c-4be8-8fb5-72f76cf7967f",
+    "duration_ms": 222336,
+    "duration_api_ms": 224157,
+    "total_cost_usd": 0.94830275,
+    "executed_at": "2026-06-04T06:01:06Z",
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s04-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "summary": "Claude Code Opus 4.8 max read-only review reported no P0, P1, or blocking P2 findings. It found the Matter trace slice correct, fail-closed, comprehensively tested, scope-controlled, and Hermes-evidence ready. P3 observations are forward-looking and non-blocking.",
+    "findings": [
+      {
+        "id": "STATE-M07-S04-001",
+        "severity": "P3",
+        "title": "requiredWhen metadata is declarative until later behavior slices",
+        "files": [
+          "packages/control-plane/src/model.js",
+          "contracts/control-plane-contract.json"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Accepted as an explicit future-boundary note. S04 records requiredWhen metadata but does not claim required_when_enforced; enforcement belongs to later enum-policy, AI-output, finance/share/portal, or lifecycle slices when those executable triggers exist."
+      },
+      {
+        "id": "STATE-M07-S04-002",
+        "severity": "P3",
+        "title": "Matter tenant authenticity depends on future data-access resolution",
+        "files": [
+          "packages/control-plane/src/model.js"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Accepted as in-scope for this pure helper. S04 validates caller-provided Matter context consistency and cross-tenant mismatch. Authentic Matter-record lookup and tenant resolution are deferred to later data-access and Matter integration slices."
+      },
+      {
+        "id": "STATE-M07-S04-003",
+        "severity": "P3",
+        "title": "Minor helper wording and redundant normalization are non-blocking",
+        "files": [
+          "packages/control-plane/src/model.js"
+        ],
+        "status": "not_applicable_after_adjudication",
+        "disposition": "No code change required for this subphase. Redundant validation plus normalization is retained as a defensive sibling pattern, and the thrown context error remains fail-closed."
+      }
+    ]
+  }
+}

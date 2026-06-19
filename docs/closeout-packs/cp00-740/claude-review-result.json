@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-740",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-740/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-740/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "00dc37a7-296d-4edc-a5b0-1496bfdf95dc",
+    "uuid": "e8947677-54ab-4c79-a692-b1671f9ef177",
+    "total_cost_usd": 2.3436585,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 12067,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-740 (RP24.P05.M06.S11-S20, risk A, 10 units, micro \"Synthetic Fixture Set\") is a clean, descriptor-only continuation of the CP722-CP739 Korean Legal Depth pattern, and its production_ready claim — the descriptor-verified flag korean_legal_p05_synthetic_fixture_audit_closure_descriptor_verified, NOT a runtime/enterprise-trust claim — is supported. Verified by direct read-only source inspection. (1) Implementation wiring is consistent: registry.js KOREAN_LEGAL_CP740_PACK_BINDING (L315-330, next_pack_id CP00-741, next_subphase RP24.P05.M06.S21) and KOREAN_LEGAL_CP740_REQUIREMENTS (L2821-2888); service.js case set/descriptor/hermes/claude/handoff (L90-91,151-153); validators.js coverage+descriptor (L64-66); index.js export * wildcard re-export covers CP740; README CP00-740 (L77-79); and the regenerated contract where current_pack/latest_pack=CP00-740 (L49-80), latest_projection.descriptor=KoreanLegalCp740P05SyntheticFixtureAuditClosureDescriptor (L24505-24506), projections.cp740 (L24108), validation root \"valid\": true (L28119). (2) Deliverable distribution matches the prompt exactly: security_audit 2 (S11 Audit hint, S12 Security trimming), implementation 3 (S13,S19,S20), fixture 1 (S14), test 3 (S15,S16,S18), hermes_evidence 1 (S17) = 10, micro_title {\"Synthetic Fixture Set\":10}; KOREAN_LEGAL_CP740_REQUIREMENTS.deliverable_counts mirrors this (registry L2822-2828). (3) Tests model.test.js L45-47 cover binding/coverage, runtime-closed authority boundary (runtime_opening_pack_id=CP00-741, hwpx/court/litigation/corporate closed, hermes emits_runtime_receipt=false, claude read_only=true, handoff to CP00-741), and the contract projection (latest_pack CP00-740, cp722-cp739 historical, validation.valid=true). (4) Boundaries hold everywhere: NO_WRITE_ATTESTATION (descriptor_only, no_real_data, synthetic_only, writes_product_state=false) applied via freezeResult; createCaseSet rows enforce descriptor_only=true/runtime_execution=false and set raw_payload_included/legal_source_payload_included/external_credential_included/real_client_data_included=false; the two security_audit rows (S11-S12) are held to the same no-leak rigor — validateDescriptor scans all rows and rejects any audit_event_body_included or permission_decision_detail_included/cross_tenant_access_allowed, and none are set; HWPX/court-filing/litigation/corporate/clause runtime all closed. A targeted scan of the regenerated contract for \"valid\": false / production_ready:true / runtime_ready:true / *_opened:true / claims_enterprise_trust:true / emits_runtime_receipt:true / writes_product_state:true returned zero matches. (5) Hermes pattern is used only for deterministic descriptor evidence packets (emits_runtime_receipt=false, receipt_shape descriptor_only_korean_legal_no_write) and the deterministic contract-projection generator (scripts/validate-rp24-korean-legal-depth-contract.mjs), not product runtime; hermes_runtime_embedded_in_product=false. (6) Claude stays read-only and non-final (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true). Manifest honestly reports production_ready=false, runtime_ready=false, status in_progress; the descriptor flag is descriptor-verified only, so no production_ready/enterprise-trust gate is weakened. (7) construction-inspection.json (PENDING), adjudication.md (pending), and claude-review-result.json (pending) are by-design pre-review placeholders awaiting this receipt — the same state CP00-739 passed through; no prior/duplicate review attempt exists (valid_review_receipts [], invalid_review_attempts []), so exactly-one-review is preserved. (8) Review-evidence hardening checks pass: readiness auth-preflight passed (exit 0, stdout 1434 bytes, stderr 0, no errors), validation-report confirms prompt_size_ok, read_tools mode, no forbidden tools, schema present; this review emits well-formed schema-valid JSON only. (9) changed-file-scope.json correctly isolates pack implementation refs from unrelated dirty UI/workbook/ldip/docx files, and next-pack-queue.json advanced the live cursor to live_latest_pack_id CP00-740 / live_next_unit_id RP24.P05.M06.S21 / preview CP00-741. No P0/P1/P2 issues; three non-blocking P3 transparency notes follow. Provenance note: this is a read-only, no-Bash review, so the validation-ladder PASS/FAIL outcomes (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) are taken from command-evidence.json (all exit_code 0) and corroborated through source and artifact cross-checks, not re-executed by me.",
+    "findings": [
+      {
+        "id": "CP00-740-P3-001",
+        "severity": "P3",
+        "title": "Validation outcomes are evidence-reported, not re-executed in this read-only review",
+        "file": "docs/closeout-packs/cp00-740/command-evidence.json",
+        "line": 22,
+        "details": "command-evidence.json records all required gates (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) plus build, node --check, and node --test as exit_code 0. As a read-only reviewer without Bash, I did not re-execute these; I corroborated them by direct source inspection (registry/service/validators/index/test/README wiring) and artifact cross-checks (contract has no \"valid\": false and no no-leak guard set true; projections.cp740 present; latest_pack=CP00-740; validation.valid=true). This is consistent with the defined read-tools/no-Bash review mode and is not a defect.",
+        "recommendation": "Final human/orchestrator approval retains authority to confirm CI re-execution before any future enterprise-trust or runtime claim; no action needed for this descriptor-only CP closeout.",
+        "post_review_disposition": "informational; consistent with defined read-only review mode; non-blocking"
+      },
+      {
+        "id": "CP00-740-P3-002",
+        "severity": "P3",
+        "title": "Live plan/queue control-plane files are dirty and classified unrelated though they reflect CP00-740 generation",
+        "file": "artifacts/closeout-pack-claude-review/cp00-740/changed-file-scope.json",
+        "line": 181,
+        "details": "docs/closeout-pack-plan/closeout-pack-plan.json and next-pack-queue.json appear under unrelated_dirty_files_preserved, yet they reflect CP00-740's own regeneration (closeout-pack-plan.json live_state pack_id CP00-740 / pack_number 740 / manifest_path docs/closeout-packs/cp00-740/manifest.json; next-pack-queue.json live_latest_pack_id CP00-740, live_next_unit_id RP24.P05.M06.S21, preview CP00-741). The pack remains self-contained because the coverage test resolves the plan pack via manifest.plan_binding_snapshot (the live plan exposes CP00-740 only through live_state, not a packs[] entry), so coverage validation does not depend on the dirty plan file. This is the established control-plane separation, not a scope error.",
+        "recommendation": "Confirm the closeout (or paired control-plane) commit captures the intended plan/queue state so the live cursor advancing to CP00-741 / RP24.P05.M06.S21 is persisted as expected.",
+        "post_review_disposition": "informational/by-design; non-blocking"
+      },
+      {
+        "id": "CP00-740-P3-003",
+        "severity": "P3",
+        "title": "Two dirty progress-control-room UI files are not enumerated in changed-file-scope classified lists",
+        "file": "artifacts/closeout-pack-claude-review/cp00-740/changed-file-scope.json",
+        "line": 179,
+        "details": "git_status_rows records scripts/progress-control-room-data.mjs (L76-81) and tools/progress-control-room/index.html (L90-95) as modified, but neither appears in active_pack_implementation_refs nor in unrelated_dirty_files_preserved (L179-195). I confirmed both files contain no CP00-740/CP00-741 references, so they belong to the separate non-CP UI/progress track and are correctly excluded from the pack scope; staging is driven by active_pack_implementation_refs plus required untracked pack dirs, so these UI files will not be staged. The only gap is documentation completeness in the scope artifact's preserved list. Per the prompt instruction, I do not treat these unrelated dirty files as part of the pack.",
+        "recommendation": "Optionally extend unrelated_dirty_files_preserved to enumerate the dirty progress-control-room files so the preserved-worktree record is exhaustive; verify the stage-only-pack-scope closeout commit leaves them untouched.",
+        "post_review_disposition": "informational; cosmetic scope-manifest completeness; non-blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  }
+}

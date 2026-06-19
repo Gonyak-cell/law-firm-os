@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-929",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T20:43:34.810Z",
+  "finished_at": "2026-06-17T20:50:25.034Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":409706,\"duration_api_ms\":410902,\"ttft_ms\":3197,\"num_turns\":55,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** — CP00-929 does not block pack or goal closeout.\\n\\nWhat I verified by read-only inspection (no Bash, no edits):\\n- **Scope/consistency**: Plan (`closeout-pack-plan.json`), live queue (`next-pack-queue.json`: live_latest CP00-928, live_next RP30.P04.M04.S07), manifest, registry binding, and contract all agree — risk A, 10 units, RP30.P04.M04.S07–RP30.P04.M05.S07, distribution 3 implementation AdminPolicy + 7 security_audit DeniedState.\\n- **Implementation**: `registry.js` CP929 binding/requirements/section-rows/domain-rows/descriptor/projection align; `validators.js` enforces coverage + descriptor + contract boundaries; `model.test.js` asserts them against the real `hrx-people-contract.json`; the contract carries CP00-929 as current/latest with `validation.valid=true`; `validate-rp30-hrx-people-contract.mjs` checks the full CP897→CP929 chain; all mandatory artifacts exist.\\n- **Boundaries (all closed, machine-enforced)**: no admin-policy/denied-state runtime, rule execution, policy finalization, access grants, policy bypass, record/permission/audit writes, runtime receipts, real HR data, or credentials/secrets; no separate-HRX-product claim.\\n- **Authority**: Claude read-only and explicitly not final approver; Hermes used only for the deterministic review packet (`emits_runtime_receipt=false`), not product runtime. Pack makes no runtime/enterprise-trust claim, so that approval boundary correctly sits outside this receipt.\\n- **CP178+ hardening**: readiness auth preflight passed with valid non-empty JSON; no prior invalid attempts; no malformed/0-byte/tool-shaped evidence.\\n\\nOne non-blocking **P3**: the broader closeout validation ladder and Hermes/spec-requirement gate are recorded as `pending_final_validation`; I confirmed boundaries by source inspection, not by executing the commands. No P0/P1/P2 findings.\",\"stop_reason\":\"end_turn\",\"session_id\":\"08b4ca1d-d970-4730-b2df-adbe1bac8d24\",\"total_cost_usd\":2.7977960000000004,\"usage\":{\"input_tokens\":6300,\"cache_creation_input_tokens\":123276,\"cache_read_input_tokens\":2537200,\"output_tokens\":29040,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":123276,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":772,\"cache_read_input_tokens\":120018,\"cache_creation_input_tokens\":3787,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3787},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1121,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001221,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":6300,\"outputTokens\":29040,\"cacheReadInputTokens\":2537200,\"cacheCreationInputTokens\":123276,\"webSearchRequests\":0,\"costUSD\":2.7965750000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-929 descriptor-only HRX AdminPolicy/DeniedState bridge pack passes read-only review: consistent across plan, queue, registry, validators, tests, and contract; all runtime/write/real-data/secret boundaries closed and machine-enforced; Claude read-only non-final-approver and Hermes deterministic-only boundaries intact; no runtime/enterprise-trust claim. One non-blocking P3 noting the final validation ladder is pending and was verified by inspection. No P0/P1/P2.\",\"findings\":[{\"id\":\"CP929-P3-01\",\"severity\":\"P3\",\"title\":\"Full closeout validation ladder and Hermes gate recorded as pending_final_validation; reviewer verified boundaries by read-only source inspection\",\"file\":\"docs/closeout-packs/cp00-929/command-evidence.json\",\"line\":43,\"details\":\"command-evidence.json records exit_code 0 for five HRX-scoped commands (node --check on registry.js, validators.js, and validate-rp30-hrx-people-contract.mjs; node --test packages/hrx/test/*.test.js; npm run rp30:hrx:validate), but hermes_gate.status is 'pending' (command_ids rp00_control_plane_contract_validate, spec_requirement_validate), gate_outcome is 'pending_final_validation', and validation_summary has review_receipt_ref=null and p0_p1_p2_clear=null. The broader ladder named in the prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded as executed. As a read-only reviewer I confirmed cross-layer consistency and closed boundaries by inspecting registry.js, validators.js, model.test.js, hrx-people-contract.json, the plan, and the queue; reported command exit codes are treated as reported evidence, not independently re-run.\",\"recommendation\":\"Before flipping manifest status to closed and setting production_ready_flag=hrx_admin_policy_denied_state_bridge_descriptor_verified, run and record the full validation ladder plus the Hermes control-plane/spec-requirement gate, and attach this read-only review as the single valid pack-level review receipt.\",\"post_review_disposition\":\"Expected pre-closeout snapshot state; non-blocking. The Codex side runs the final ladder and finalizes adjudication.md and construction-inspection.json after this read-only review.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"aa0e85bb-8103-4514-8f84-48ca9f6546e8\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5916,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "08b4ca1d-d970-4730-b2df-adbe1bac8d24",
+    "uuid": "aa0e85bb-8103-4514-8f84-48ca9f6546e8",
+    "total_cost_usd": 2.7977960000000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

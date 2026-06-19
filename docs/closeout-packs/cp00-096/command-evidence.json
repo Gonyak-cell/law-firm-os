@@ -1,0 +1,145 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-096",
+  "subphase_id": "RP01.P02.M06.S06",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H01",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "node --check packages/domain/src/workflow.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/domain/src/fixtures.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/domain/test/core-domain-foundation.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp01-core-domain-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/domain/test/*.test.js",
+      "exit_code": 0,
+      "summary": "18 tests passed"
+    },
+    {
+      "command": "npm run rp01:core-domain:validate",
+      "exit_code": 0,
+      "summary": "CP00-096, 24 entities, core_domain_service_intake, core_domain_synthetic_workflow"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "regenerated plan cursor after CP00-096 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-096"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-096",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "all packs CP00-001 through CP00-096 passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "936 tests passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    }
+  ],
+  "claude_review_command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --disallowedTools \"Read,Bash,Edit,Write,MultiEdit,Glob,Grep,LS\" --output-format json < staged diff prompt > /tmp/cp00-096-claude-review-output-valid-3.json",
+  "invalid_claude_attempts": [
+    {
+      "attempt": 1,
+      "session_id": "8cf8422c-d5a1-4a9c-ad1d-d362394a3275",
+      "reason": "CLI returned tool-call style text without closeout verdict JSON; not counted as a valid pack-level review."
+    },
+    {
+      "attempt": 2,
+      "session_id": "380c74d5-2ea6-447a-bc9a-27ffca17235a",
+      "reason": "Review input omitted untracked implementation files and returned blocking coverage text instead of required JSON; not counted as a valid pack-level review."
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-096 uses synthetic identifiers only.",
+    "CP00-096 implements synthetic-only workflow binding and does not evaluate runtime permission, write audit ledger entries, create database rows, or write product state."
+  ],
+  "final_validation_summary": {
+    "closeout_pack_plan_generate": "passed; regenerated plan cursor to CP00-097 after CP00-096 evidence creation",
+    "closeout_pack_plan_validate": "passed: 794 packs, 53357 units, queue starts after CP00-096",
+    "closeout_pack_validate_cp00_096": "passed",
+    "closeout_pack_validate_all": "passed through CP00-096",
+    "rp00_control_plane_validate": "passed: RP00.P09.M10.S01 production_ready",
+    "rp01_core_domain_validate": "passed: CP00-096, 24 entities, core_domain_service_intake, core_domain_synthetic_workflow",
+    "domain_tests": "18 passed",
+    "npm_test": "936 tests passed",
+    "validate": "passed; product contract modules 9/9, principles 9/9, invariants 7/7",
+    "spec_requirements_validate": "passed; 227 requirements",
+    "weighted_validate": "passed; 54355 Law Firm OS implementation subphases",
+    "fullplan_validate": "passed; 3300 micro phases, 30 release programs",
+    "goal_closeout_validate": "passed",
+    "build": "passed; Vite production build completed",
+    "git_diff_check": "passed"
+  }
+}

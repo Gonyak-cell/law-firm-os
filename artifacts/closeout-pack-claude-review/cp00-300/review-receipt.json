@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-300",
+  "normalized_at": "2026-06-11T01:32:52.628Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-300/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-300/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-300/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-300/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f99878e4-03d8-4ae5-8cf2-3911ebef2869",
+    "uuid": "7113e325-f128-4e8a-9c85-94afe738a824",
+    "total_cost_usd": 2.1123777500000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7013,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-300 is a descriptor-only RP09 (CRM/business-development) closeout pack covering 150 units across RP09.P01.M08.S06–RP09.P02.M07.S10. Independent read-only inspection confirms the pack-level claim is honest and well-supported: production_ready is false with status \"implemented_pending_review\" and pack_level_claude_review pending (no overclaim; the Hermes production_ready_candidate is a coverage-derived candidate, not a readiness assertion). Coverage/distribution constants in registry.js match the prompt's deliverable and micro-title distributions, sum to 150, span the exact range, and chain contiguously CP299→CP300→CP301; validators.js enforces these against the plan and tests assert coverage.valid===true. No-write/no-real-data boundaries are enforced redundantly in service.js (freezeCp300Result pins all runtime/leak flags false, with base descriptor fields set before the row-extras spread so no extra can override them), in contracts/crm-core-contract.json, and in both test suites via deep-equality. Authority boundary is preserved everywhere (claude_is_final_approval=false, promotes_claude_to_final_approval=false, enterprise_trust_not_claimed_from_local_validation=true); Claude remains a read-only reviewer (Read/Grep/Glob) and Hermes is confined to deterministic H09 evidence-packet handling (no runtime receipts, not embedded in product). Review-hardening artifacts are valid: auth preflight passed (exit 0, 1445-byte well-formed JSON, is_error=false), no forbidden tools, prompt excludes full source/diff, summary-only correctly prohibited, invalid_attempts_preserved empty. All pre-review validation commands (including rp05–rp09 cross-program regressions and git diff --check) report exit 0. Unrelated dirty files (.docx, new-session-handoff.md, LDIP c-ldip-01 invalid-attempt) are correctly excluded from active pack scope and were not attributed to this pack. Two P3 informational observations only; neither blocks pack or goal closeout, and there are no unresolved P0/P1 issues. Final enterprise-trust approval remains a human responsibility outside this receipt.",
+    "findings": [
+      {
+        "id": "CP300-OBS-01",
+        "severity": "P3",
+        "title": "Pack artifacts forward-referenced before post-review steps produce them",
+        "file": "docs/closeout-packs/cp00-300/manifest.json",
+        "line": 5948,
+        "details": "required_pack_artifacts and every per-unit evidence_refs list cite docs/closeout-packs/cp00-300/claude-review-result.json, adjudication.md, and construction-inspection.json, which do not exist at review time (only manifest.json and command-evidence.json are present in the pack dir). This is consistent with the documented hardened_review_sequence (baseline -> readiness -> read_only_claude_run -> normalize -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit), in which those three artifacts are produced by the steps that follow this read-only review. Pack status is implemented_pending_review and pack_level_claude_review.status is pending with valid_review_receipts=[] and invalid_review_attempts=[], so nothing is overclaimed.",
+        "recommendation": "No change required to the pack. Ensure the post-review normalize/adjudication/inspection steps actually emit all three referenced artifacts before npm run closeout-pack:validate and commit, so the forward references resolve.",
+        "post_review_disposition": "Verified expected and non-blocking; forward-declared artifacts are produced by the post-review steps after this review, and pack state honestly reflects pending review."
+      },
+      {
+        "id": "CP300-OBS-02",
+        "severity": "P3",
+        "title": "Unused row-extras key in CRM_CORE_CP300_ROW_EXTRAS",
+        "file": "packages/crm/src/service.js",
+        "line": 239,
+        "details": "CRM_CORE_CP300_ROW_EXTRAS defines a documentation_entry key (and, via the CP299 spread, several model/scope keys) that do not correspond to any CP00-300 row title produced by crmCoreRowKey, so they are never merged into a constructed row. The lookup is a deliberate superset keyed by row key, and the reused CP299 model-row keys (e.g. ownership_metadata, reference_relationship_map, required_field_registry, package_directory_layout, primary_entity_identifier, tenant_scope_field, matter_trace_reference, lifecycle_status_enum) are genuinely consumed by the M08/M09/M10 sections. Base descriptor fields are applied before the spread and are not present in any extra, so there is no correctness, coverage, or boundary impact.",
+        "recommendation": "Optional cleanup: drop the unused documentation_entry extra (and any other dead keys) to reduce dead configuration. No functional change.",
+        "post_review_disposition": "Cosmetic/non-blocking; confirmed no base descriptor or no-leak flag is overridden by any extra and coverage validation is unaffected."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

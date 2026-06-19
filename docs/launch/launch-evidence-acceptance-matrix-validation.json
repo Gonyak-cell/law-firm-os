@@ -1,0 +1,40 @@
+{
+  "schema_version": "law-firm-os.launch-evidence-acceptance-matrix.validation.v0.1",
+  "generated_at": "2026-06-18T15:48:43.598Z",
+  "source_refs": [
+    "docs/launch/launch-evidence-acceptance-matrix.json",
+    "contracts/go-live-gate-contract.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-manual-evidence-intake-register.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "gate_acceptance_row_count": 31,
+    "l9_acceptance_row_count": 5,
+    "total_acceptance_row_count": 36,
+    "pending_acceptance_row_count": 36,
+    "evidence_satisfied_acceptance_row_count": 0,
+    "owner_deferred_acceptance_row_count": 0,
+    "missing_intake_acceptance_row_count": 0,
+    "gate_pending_acceptance_row_count": 31,
+    "gate_evidence_satisfied_acceptance_row_count": 0,
+    "gate_owner_deferred_acceptance_row_count": 0,
+    "l9_pending_acceptance_row_count": 5,
+    "l9_evidence_satisfied_acceptance_row_count": 0,
+    "l9_owner_deferred_acceptance_row_count": 0,
+    "valid_decision_register_deferred_rows": 0,
+    "coverage_eligible_valid_deferred_rows": 0,
+    "non_coverage_valid_deferred_rows": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "validates_acceptance_structure_only": true,
+    "go_live_approved_by_validation": false,
+    "owner_deferrals_approved_by_validation": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "findings": []
+}

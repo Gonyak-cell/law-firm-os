@@ -1,0 +1,198 @@
+{
+  "schema_version": "hermes.product-project.v0.1",
+  "project_id": "product.law_firm_os",
+  "project_name": "Law Firm OS",
+  "project_type": "product_codebase",
+  "repo_path": "/Users/jws/Documents/Codex/Law Firm OS",
+  "spec_source": {
+    "kind": "pre_development_specification",
+    "name": "Law Firm OS 사양명세서 v0.1",
+    "date": "2026-06-03"
+  },
+  "harness_role": "deterministic_validation_evidence_and_gate_layer",
+  "product_role": "actual_source_code_and_product_contracts",
+  "autonomous_agent_policy": {
+    "nous_hermes_agent_production_access": "forbidden",
+    "production_repo_write_by_autonomous_agent": "forbidden",
+    "real_client_matter_document_or_billing_data": "forbidden",
+    "allowed_scope": "isolated_synthetic_r_and_d_only"
+  },
+  "validation_commands": [
+    {
+      "id": "product_contract_validate",
+      "command": "npm run validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "goal1_foundation_validate",
+      "command": "npm run goal1:foundation:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "domain_authz_audit_tests",
+      "command": "npm test",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "goal1_claude_review_validate",
+      "command": "npm run goal1:claude-review:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "goal1_claude_review_result_validate",
+      "command": "npm run goal1:claude-review:result:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "goal1_agreement_validate",
+      "command": "npm run goal1:agreement:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "weighted_ledger_validate",
+      "command": "npm run weighted:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "rp03_audit_architecture_validate",
+      "command": "npm run rp03:audit-architecture:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "goal_closeout_protocol_validate",
+      "command": "npm run goal:closeout:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "hrx_requirements_validate",
+      "command": "npm run hrx:requirements:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "hrx_weighted_validate",
+      "command": "npm run hrx:weighted:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "rp30_validate",
+      "command": "npm run rp30:validate",
+      "must_pass": true,
+      "writes_product_state": false
+    }
+  ],
+  "goal_closeout_protocol": {
+    "applies_to": "all_goals",
+    "contract": "contracts/goal-closeout-protocol-contract.json",
+    "operator_doc": "docs/goal-closeout-protocol.md",
+    "evidence_root": "docs/goal-closeout",
+    "required_gates": [
+      "local_tests",
+      "hermes_validation",
+      "claude_code_review",
+      "finding_adjudication",
+      "construction_inspection",
+      "git_commit_after_pass"
+    ],
+    "claude_code": {
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "forbidden_tools": [
+        "Bash",
+        "Edit",
+        "Write"
+      ]
+    },
+    "commit_policy": "Commit only after local validation, Hermes gate, Claude review validation, finding adjudication, and construction inspection pass."
+  },
+  "foundation_slice_gates": [
+    {
+      "id": "H00",
+      "program_id": "RP00",
+      "purpose": "Product constitution, AI control boundary, product contract, and harness attachment evidence.",
+      "validation_command_ids": [
+        "product_contract_validate",
+        "rp00_control_plane_contract_validate",
+        "spec_requirement_validate",
+        "goal1_agreement_validate",
+        "goal1_claude_review_validate",
+        "goal1_claude_review_result_validate"
+      ],
+      "claude_gate": "C00",
+      "required_packet": "docs/claude-review-packets/goal1-c00-rp00.json"
+    },
+    {
+      "id": "H01",
+      "program_id": "RP01",
+      "purpose": "Core domain foundation package, Matter-first invariants, and domain contract evidence.",
+      "validation_command_ids": [
+        "domain_authz_audit_tests",
+        "goal1_foundation_validate",
+        "goal1_claude_review_result_validate"
+      ],
+      "claude_gate": "C01",
+      "required_packet": "docs/claude-review-packets/goal1-c01-rp01.json"
+    },
+    {
+      "id": "H02",
+      "program_id": "RP02",
+      "purpose": "Permission kernel package, deny-over-allow rules, trimming, and permission audit hints.",
+      "validation_command_ids": [
+        "domain_authz_audit_tests",
+        "goal1_foundation_validate",
+        "goal1_claude_review_result_validate"
+      ],
+      "claude_gate": "C02",
+      "required_packet": "docs/claude-review-packets/goal1-c02-rp02.json"
+    },
+    {
+      "id": "H03",
+      "program_id": "RP03",
+      "purpose": "Audit/compliance kernel package, append-only hash-chain checks, retention and legal hold evidence.",
+      "validation_command_ids": [
+        "domain_authz_audit_tests",
+        "rp03_audit_architecture_validate",
+        "goal1_foundation_validate",
+        "goal1_claude_review_result_validate"
+      ],
+      "claude_gate": "C03",
+      "required_packet": "docs/claude-review-packets/goal1-c03-rp03.json"
+    }
+  ],
+  "initial_gates": [
+    "matter_first_required",
+    "single_client_matter_identity",
+    "dms_independent_layer",
+    "deny_over_allow",
+    "audit_required",
+    "ai_grounded_in_versions",
+    "human_review_for_ai_final_outputs"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-246",
+  "normalized_at": "2026-06-10T14:35:18.231Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-246/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-246/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-246/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-246/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "84c0694e-e16f-404c-9382-215286b9a32d",
+    "uuid": "f56fe490-4941-4190-9461-9f3e76585199",
+    "total_cost_usd": 2.8624415,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4472,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-246 is a descriptor-only RP07 (\"Search OCR And Index\") golden/Hermes-slice closeout pack (Risk B, 40 units, range RP07.P02.M07.S04-RP07.P02.M08.S18; micro-title rows M07=22, M08=18). Independent read-only inspection (Read/Grep/Glob only; no Bash, edits, writes, or connector calls) confirms the pack-level production_ready claim is correctly held at FALSE pending human final closeout, so no production gate is weakened. Evidence is consistent and mutually corroborating across implementation, tests, contract, plan, manifest, and review artifacts: (1) registry.js SEARCH_CORE_CP246_PACK_BINDING/REQUIREMENTS/NO_WRITE_ATTESTATION match the baseline (pack_id, risk B, unit_count 40, first/last unit IDs, upstream CP00-245, next CP00-247, gates H07/C07) and the deliverable + micro-title distributions tally exactly to 40; (2) service.js CP238/CP239 row-extras supply every field the validators assert (deny_over_allow_enforced=true; real_client_data_loaded=false; emits_hermes_runtime_receipt=false; claude_final_approval_claimed=false; dispatches_search_runtime=false; cross_tenant_access_allowed=false; rollback/lock/retry runtime flags=false), and freezeCp246Result sets ~40 no-write/no-leak flags with synthetic_only/no_real_data=true; (3) validators.js coverage + golden-Hermes-slice-descriptor validation enforce descriptor-only rows, RP07-only scope, section-row counts, contract projection drift, and authority boundary (claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true); (4) model.test.js and validate-rp07-search-core-contract.mjs deep-equal the generated descriptor/requirements/attestation against contracts/search-core-contract.json and assert promotes_claude_to_final_approver/claims_enterprise_trust=false with historical_pack_bindings ending CP00-246. CP178+ review-evidence hardening passes: readiness auth_preflight succeeded (exit 0, 1444-byte valid JSON result), no 0-byte/malformed/fenced/tool-call-shaped output, prompt (2257B ≤ 25600) is injection-free, and forbidden tools are absent. Claude remains a read-only independent reviewer and not final approval authority; Hermes patterns are used only for deterministic review packet/receipt handling, not product runtime (hermes_runtime_embedded_in_product=false). Unrelated dirty files (the v2.0 .docx, new-session-handoff.md, c-ldip-01-invalid-attempt-01.json) are correctly isolated and not inferred into pack scope. No P0/P1/P2/P3 findings identified.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

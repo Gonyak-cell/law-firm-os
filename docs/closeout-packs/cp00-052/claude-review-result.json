@@ -1,0 +1,96 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-052",
+  "subphase_id": "RP00.P02.M09.S10",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "cp00-052-2282530b-f084-46c2-881f-afb6876ee760",
+    "uuid": "2282530b-f084-46c2-881f-afb6876ee760",
+    "duration_ms": 406308,
+    "duration_api_ms": 409712,
+    "total_cost_usd": 1.541753,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-052-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "approve",
+    "raw_review_result_form": "json_result_body_in_markdown_fence",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": {
+      "p0": [],
+      "p1": [
+        {
+          "id": "P1-1",
+          "severity": "P1",
+          "title": "CP00-052 evidence pack not yet created during Claude review",
+          "file": "docs/closeout-packs/cp00-052/manifest.json",
+          "line_or_area": "docs/closeout-packs/cp00-052/*",
+          "issue": "The contract flips 10 subphases (RP00.P02.M09.S01-S10) to status \"production_ready\" with closeout_pack_ref CP00-052 and evidence_root docs/closeout-packs/cp00-052, and current_subphase points there, but the evidence pack does not exist yet. The validator script reads docs/closeout-packs/cp00-052/manifest.json plus the per-closeout construction-inspection.json and enforces inspection.control_plane_claude_review_packet_boundary_suite_verified===true with inspection.subphase_id===RP00.P02.M09.S10 (terminal). Until those files exist, npm run rp00:control-plane:validate stays red. This is the known, expected post-review step (this review's output becomes claude-review-result.json), not a code defect, but it must be completed before the pack can close green.",
+          "recommendation": "Generate docs/closeout-packs/cp00-052/{manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json}. construction-inspection.json must set production_ready=true, control_plane_claude_review_packet_boundary_suite_verified=true, subphase_id=RP00.P02.M09.S10, fixture_ref=control_plane_claude_review_packet_boundary_suite, and a human_acceptance_or_explicit_next_goal_boundary recording handoff to RP00.P02.M09.S11. Then re-run rp00:control-plane:validate to confirm green.",
+          "status": "fixed_by_closeout_evidence",
+          "adjudication": "Resolved by creating CP00-052 manifest, command evidence, Claude review result, adjudication, and construction inspection with control_plane_claude_review_packet_boundary_suite_verified=true, followed by final validators."
+        }
+      ],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-1",
+          "severity": "P3",
+          "title": "Decision fields should be enum-constrained",
+          "file": "packages/control-plane/src/validators.js",
+          "status": "fixed",
+          "adjudication": "Fixed by adding enum checks for matter_trace_decision, permission_decision, primary_happy_path_decision, secondary_workflow_path_decision, state_transition_decision, and idempotency_decision."
+        },
+        {
+          "id": "P3-2",
+          "severity": "P3",
+          "title": "Denied-path test should explicitly assert result validator",
+          "file": "packages/control-plane/test/service.test.js",
+          "status": "fixed",
+          "adjudication": "Fixed by adding assertControlPlaneClaudeReviewPacketBoundarySuiteResult(denied) to the denied-path test."
+        },
+        {
+          "id": "P3-3",
+          "severity": "P3",
+          "title": "Confirm CP00-052 required_evidence_refs intentionally point to upstream CP00-051 artifacts",
+          "file": "contracts/control-plane-contract.json",
+          "status": "not_applicable_after_adjudication",
+          "adjudication": "Confirmed. CP00-052 is the Claude Review Packet that consumes upstream CP00-051 Hermes Evidence Packet artifacts; CP00-052 local evidence artifacts are recorded separately as closeout pack artifacts."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "no_claude_runtime": "PASS - claude_runtime_invocation_permitted:false and doesNotInvokeClaudeRuntimeReview:true",
+      "no_review_queue": "PASS - review_queue_write_permitted/review_assignment_write_permitted/review_notification_permitted:false",
+      "no_runtime_route": "PASS - runtime_route_created:false and doesNotCreateRuntimeRoute:true",
+      "no_service_logic_execution": "PASS - service_logic_execution_permitted:false; assembler returns frozen metadata only",
+      "no_database_storage_product_state_writes": "PASS - database/storage/product_state permitted all false",
+      "no_idempotency_lock_audit_writes": "PASS - idempotency/audit/lock behavior is metadata-only",
+      "no_real_data": "PASS - synthetic fixture and no credentials/secrets",
+      "fail_closed": "PASS - entrypoint/source/model/evidence/gate drift and unsafe claims throw; cross-tenant drift is denied metadata",
+      "plan_binding": "PASS - planned/actual pack CP00-052, requested provenance CP00-051, Risk A, 10 units S01-S10",
+      "handoff": "PASS - M09 remains open, source_micro_phase_completed=false, next_subphase RP00.P02.M09.S11"
+    },
+    "recommendation": "PASS_WITH_FINDINGS. No unresolved P0/P1/P2 findings remain after evidence creation and P3 hardening/adjudication."
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":406308,\"duration_api_ms\":409712,\"ttft_ms\":231520,\"num_turns\":1,\"result\":\"I've completed my analysis of the full diff and the stated validation results. Note: the sandbox returned no tool output in this session, so this review is based on the complete diff provided and the stated validation results (node --check, 602 passing tests, closeout-pack-plan:validate green, rp00 validate failing only on missing evidence). I could not independently re-run validators or inspect the contract's weighted ledger.\\n\\n```json\\n{\\n  \\\"verdict\\\": \\\"approve\\\",\\n  \\\"findings\\\": [\\n    {\\n      \\\"severity\\\": \\\"P1_MUST_FIX\\\",\\n      \\\"title\\\": \\\"CP00-052 evidence pack not yet created (expected closure step, currently blocks rp00 validate)\\\",\\n      \\\"file\\\": \\\"docs/closeout-packs/cp00-052/manifest.json\\\",\\n      \\\"line\\\": 0,\\n      \\\"description\\\": \\\"The contract flips 10 subphases (RP00.P02.M09.S01-S10) to status \\\\\\\"production_ready\\\\\\\" with closeout_pack_ref CP00-052 and evidence_root docs/closeout-packs/cp00-052, and current_subphase points there, but the evidence pack does not exist yet. The validator script reads docs/closeout-packs/cp00-052/manifest.json plus the per-closeout construction-inspection.json and enforces inspection.control_plane_claude_review_packet_boundary_suite_verified===true with inspection.subphase_id===RP00.P02.M09.S10 (terminal). Until those files exist, npm run rp00:control-plane:validate stays red. This is the known, expected post-review step (this review's output becomes claude-review-result.json), not a code defect, but it must be completed before the pack can close green.\\\",\\n      \\\"recommendation\\\": \\\"Generate docs/closeout-packs/cp00-052/{manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json}. construction-inspection.json must set production_ready=true, control_plane_claude_review_packet_boundary_suite_verified=true, subphase_id=RP00.P02.M09.S10, fixture_ref=control_plane_claude_review_packet_boundary_suite, and a human_acceptance_or_explicit_next_goal_boundary recording handoff to RP00.P02.M09.S11. Then re-run rp00:control-plane:validate to confirm green.\\\"\\n    },\\n    {\\n      \\\"severity\\\": \\\"P3_NICE_TO_HAVE\\\",\\n      \\\"title\\\": \\\"Result validator does not enum-constrain the six decision fields\\\",\\n      \\\"file\\\": \\\"packages/control-plane/src/validators.js\\\",\\n      \\\"line\\\": 19868,\\n      \\\"description\\\": \\\"assertControlPlaneClaudeReviewPacketBoundarySuiteResult enum-checks tenant_boundary_decision against [\\\\\\\"allow_metadata_only\\\\\\\",\\\\\\\"deny_cross_tenant_boundary\\\\\\\"], but matter_trace_decision, permission_decision, primary_happy_path_decision, secondary_workflow_path_decision, state_transition_decision, and idempotency_decision are only presence-checked (they are not in the nonblank-string loop nor the exact-match loop), so their values are unconstrained. The assembler is the sole producer and emits only safe allow/blocked values, so this is a defense-in-depth gap rather than an exploitable bug, and it matches the prior CP00-051 pattern.\\\",\\n      \\\"recommendation\\\": \\\"Optionally constrain each decision field to its allow/blocked value pair (mirroring the tenant_boundary_decision check) so a hand-built or future result cannot smuggle an unsafe decision string past validation.\\\"\\n    },\\n    {\\n      \\\"severity\\\": \\\"P3_NICE_TO_HAVE\\\",\\n      \\\"title\\\": \\\"Denied-path test does not explicitly assert the result validator\\\",\\n      \\\"file\\\": \\\"packages/control-plane/test/service.test.js\\\",\\n      \\\"line\\\": 22680,\\n      \\\"description\\\": \\\"The fail-closed test exercises the cross-tenant denied path and checks tenant_boundary_decision/primary_happy_path_decision/blocked_claim_refs, but does not call assertControlPlaneClaudeReviewPacketBoundarySuiteResult on the denied result. Coverage is effectively present because the assembler invokes assertResult internally before returning, so a malformed denied result would already throw.\\\",\\n      \\\"recommendation\\\": \\\"Optionally add assert.equal(assertControlPlaneClaudeReviewPacketBoundarySuiteResult(denied), true) to make the denied-path validation explicit.\\\"\\n    },\\n    {\\n      \\\"severity\\\": \\\"P3_NICE_TO_HAVE\\\",\\n      \\\"title\\\": \\\"required_evidence_refs and command_evidence_ref reference only CP00-051 artifacts (by design)\\\",\\n      \\\"file\\\": \\\"contracts/control-plane-contract.json\\\",\\n      \\\"line\\\": 46400,\\n      \\\"description\\\": \\\"All five required_evidence_refs and the default command_evidence_ref point at docs/closeout-packs/cp00-051/* (the upstream Hermes Evidence Packet closeout that this Claude Review Packet consumes). This is internally consistent with upstream_hermes_evidence_packet_closeout_ref=docs/closeout-packs/cp00-051 and is semantically correct for a review packet that points at the prior pack's evidence, but it is worth an explicit confirmation that no CP00-052-local evidence artifact was intended in this list.\\\",\\n      \\\"recommendation\\\": \\\"Confirm intent in adjudication.md: CP00-052's required_evidence_refs are the upstream CP00-051 artifacts under review, not CP00-052's own closeout files.\\\"\\n    }\\n  ],\\n  \\\"required_fixes\\\": [\\n    \\\"Create the CP00-052 evidence pack under docs/closeout-packs/cp00-052/ (manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json) with construction-inspection.json setting control_plane_claude_review_packet_boundary_suite_verified=true and subphase_id=RP00.P02.M09.S10, then re-run npm run rp00:control-plane:validate to confirm it passes. This is the expected post-review closure step and is the only thing currently keeping rp00 validate red.\\\"\\n  ],\\n  \\\"deferable_findings\\\": [\\n    \\\"Tighten assertControlPlaneClaudeReviewPacketBoundarySuiteResult to enum-constrain matter_trace_decision, permission_decision, primary_happy_path_decision, secondary_workflow_path_decision, state_transition_decision, and idempotency_decision (defense-in-depth; assembler is the sole producer).\\\",\\n    \\\"Add an explicit assertControlPlaneClaudeReviewPacketBoundarySuiteResult assertion on the denied (cross-tenant) result in the fail-closed test.\\\",\\n    \\\"Record in adjudication.md that required_evidence_refs intentionally enumerate the upstream CP00-051 artifacts.\\\"\\n  ],\\n  \\\"review_notes\\\": \\\"Scope compliance is fully satisfied by the reviewed code/contract/test changes. The boundary is metadata-only and fails closed: assembleControlPlaneClaudeReviewPacketBoundarySuite performs no I/O, never invokes Claude runtime, and hardcodes every write/runtime flag to false (claude_runtime_invocation_permitted, review_queue_write_permitted, review_assignment_write_permitted, review_notification_permitted, service_logic_execution_permitted, runtime_route_created, database_write_permitted, storage_write_permitted, product_state_persistence_permitted). It rejects any truthy boundaryClaims (forbidden -> specific error, otherwise unknown-claim error), enforces entrypoint=claude_review_packet, source_micro_phase_id=RP00.P02.M09, model_id=claude-opus-4-8 / effort=max, read_only_review_required=true, and exact-match on hermes_evidence_refs and acceptance_gate_ids. Tenant isolation is enforced (all four tenant ids must match or the result fails closed to deny_cross_tenant_boundary with blocked decisions and a blocked_claim_ref). M09 is correctly NOT completed: source_micro_phase_completed=false, completesSourceMicroPhase=false, and the stated rp00 result (failing only on evidence) implies the weighted ledger keeps S10 terminal=false chaining to S11; next_subphase=RP00.P02.M09.S11 is set everywhere (result, policy, module, definition closeout_state_policy, README). Cross-artifact consistency between policy, module, definition, fixture, validators, and the validator script is internally aligned: result field order in the fixture matches the assembler (the script's JSON.stringify(fixture.result)===assemble(fixture.input) live check passes per the stated results), the idempotency_key derivation (command_evidence_ref sanitized via /[^a-zA-Z0-9_.:-]+/g and prefixed with tenant id) reproduces the fixture value, and the result is deeply frozen (top object plus nested arrays). The requested/planned/actual pack provenance (requested CP00-051 -> planned/actual CP00-052, deviation_from_plan=false, correction_reason 'shifted to CP00-052') is consistent and validated; it does not collide with the already-closed CP00-051 Hermes pack because requested_pack_id is provenance metadata only. Security: no injection surface (strings are metadata only, never used in queries or shell), no secrets/real data (fixture_integrity asserts synthetic_only/no_credentials_or_secrets), and model_id/effort are recorded, never used to invoke anything. No P0/P1 logic defects found in the reviewed code. The single gating item is procedural: the CP00-052 evidence pack must be generated and rp00 validate re-run before closure. Limitation: tool execution returned no output in this session, so I could not independently re-run validators or inspect the contract weighted ledger / closeout-pack-plan.json beyond the provided diff and the stated validation results; my weighted-ledger and plan-consistency conclusions rely on the stated 'fails only because evidence files not created' result.\\\"\\n}\\n```\",\"stop_reason\":\"end_turn\",\"session_id\":\"0d0ab6aa-3f0a-41a8-ae74-ec480d84f6fc\",\"total_cost_usd\":1.541753,\"usage\":{\"input_tokens\":4,\"cache_creation_input_tokens\":92412,\"cache_read_input_tokens\":66542,\"output_tokens\":35627,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":92412,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":3627,\"cache_read_input_tokens\":63484,\"cache_creation_input_tokens\":31986,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":31986},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":40112,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.040212000000000005,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":4,\"outputTokens\":35627,\"cacheReadInputTokens\":66542,\"cacheCreationInputTokens\":92412,\"webSearchRequests\":0,\"costUSD\":1.501541,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"557efd96-7e9f-4902-869b-4a43982c964e\"}"
+}

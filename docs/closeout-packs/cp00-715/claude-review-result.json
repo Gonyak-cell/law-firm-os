@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-715",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "74e1aa01-d5d0-43d3-8b8d-436a284a5382",
+    "uuid": "c1f77dc1-fed3-42a2-ac5b-a8c748ee7fb4",
+    "total_cost_usd": 2.7086295000000007,
+    "permission_denials": []
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-715/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-715/review-receipt.json",
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-715 is a descriptor-only, runtime-closed RP23 finance-integrations closeout pack (risk C, 150 units, RP23.P07.M06.S03-RP23.P08.M02.S14). Read-only inspection confirms the pack-level readiness claim is supported and not prematurely asserted: manifest, construction-inspection, command-evidence, and adjudication all record production_ready=false/runtime_ready=false pending exactly one valid hardened Claude review. Baseline values (pack_id, risk_class, unit_count, range, deliverable_distribution, micro_title_distribution) match exactly across the prompt, registry binding/requirements (registry.js:358,3006), plan (closeout-pack-plan.json:36), next-pack-queue (live_latest_pack_id CP00-715), README, and the regenerated contract projection (external-integrations-ii-contract.json current_pack/latest_pack/latest_projection + validation.packs.cp715 coverage valid, errors []). Implementation is sound: the CP715 case-set/descriptor chains from CP714 (service.js:158-159), every row is descriptor_only with raw/financial/credential payloads and all bank/card/WEHAGO/Douzone/tax/DART runtime flags false, and validators.js enforces coverage, no-leak guards, authority boundary, Hermes/Claude gates, and handoff. Tests (model.test.js:58-60) and the contract validator (validate-rp23-external-integrations-ii-contract.mjs:32-43) assert coverage/descriptor errors empty, claude_is_final_approval=false, human runtime approval required, read_only=true, emits_runtime_receipt=false, and handoff to CP00-716/RP23.P08.M02.S15. Authority boundaries hold: Claude is a read-only independent reviewer (not final approver), Hermes patterns are used only for descriptor-only review packet/receipt handling (receipt_shape descriptor_only_finance_integrations_no_write), and no product runtime is embedded. No-real-data/no-write attestation is present throughout. Review-hardening preconditions pass: auth preflight succeeded (exit 0, 1444-byte valid JSON), no 0-byte/malformed/fenced/tool-call-shaped evidence, and no prior invalid review attempts. command-evidence.json reports all validation commands (node --check/--test, npm test, validate, spec:requirements, weighted, fullplan, goal:closeout, rp00:control-plane, git diff --check, build) at exit 0; this is agent-reported and not re-executed here because Bash is disallowed for this read-only review, but it is internally consistent with the directly-inspected source. The pack does not claim runtime opening or enterprise trust, so this receipt blocks neither pack closeout nor the CP closeout goal; human final approval for enterprise-trust/runtime opening remains required and is outside this receipt. Verdict: PASS with no findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

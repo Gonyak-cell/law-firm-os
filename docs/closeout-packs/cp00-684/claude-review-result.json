@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-684",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "session_id": "fcbe799c-df0f-41d5-974d-a745163ee5bd",
+    "uuid": "3763b0c9-d5eb-4efe-b886-e2302ad6007d",
+    "total_cost_usd": 2.0402532499999997,
+    "permission_denials": []
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-684/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-684/review-receipt.json",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-684 is a descriptor-only bridge pack (RP22 External Integrations I P06 Claude-review/closeout tail + P07 failure-recovery foundation; 150 units, risk C) and correctly claims production_ready=false and runtime_ready=false pending exactly one valid hardened read-only Claude review. The claim is well supported: (1) manifest, command-evidence, construction-inspection, and adjudication consistently report pending_review / not-production-ready with no contradictory enterprise-trust or runtime claim; (2) all 22 validation commands in command-evidence.json passed (exit 0), including all 10 required by the brief; (3) registry.js CP684 binding/requirements match the baseline exactly (deliverable, phase, micro-phase, and micro-title distributions all sum to 150 and match the prompt), and service.js builds a descriptor whose every row is descriptor_only with all runtime flags false, validated by validators.js and exercised by model.test.js plus the contract-projection chain; (4) the cp684 no-write attestation is comprehensive (no real data, no writes, no leaks, customer-safe errors only), Hermes is used only for deterministic packet/receipt handling (hermes_runtime_opened=false, runtime_receipt_emitted=false), and the authority boundary keeps Claude read-only and non-final while requiring human final approval for enterprise trust / runtime opening at CP00-685. Review-hardening preconditions are satisfied: auth preflight passed with non-zero valid-JSON stdout (1436 bytes), prompt within size limit, tools restricted to Read/Grep/Glob, schema present, and summary-only review correctly disallowed for this Risk-C pack. No P0/P1/P2 issues found. One trivial P3 documentation-scope observation is recorded (changed-file-scope.json lists docs/closeout-pack-plan/new-session-handoff.md in untracked_implementation_files while it is also, correctly, preserved as an unrelated dirty file), which does not affect the pack's authoritative scope lists. Verdict: PASS_WITH_FINDINGS; does not block pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP684-P3-001",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists new-session-handoff.md as both an untracked implementation file and an unrelated preserved file",
+        "file": "artifacts/closeout-pack-claude-review/cp00-684/changed-file-scope.json",
+        "line": 184,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in untracked_implementation_files (line 184) and also in unrelated_dirty_files_preserved (line 191). This dual classification is cosmetically confusing. However, it is non-load-bearing: the file is excluded from the authoritative active_pack_implementation_refs and active_pack_required_untracked_files lists, active_untracked_implementation_files_omitted is empty (corroborated by validation-report.json), and the manifest's worktree_transition_policy.unrelated_dirty_files_preserved also classifies it as unrelated. The pack's required untracked files remain exactly the five docs/closeout-packs/cp00-684/ artifacts, so there is no pack-scope leak or omission.",
+        "recommendation": "Optional only: exclude ops/handoff doc files under docs/closeout-pack-plan/ from the untracked_implementation_files heuristic so a file is not simultaneously listed as an implementation file and an unrelated preserved file. No action is required for CP00-684 closeout.",
+        "post_review_disposition": "Informational, non-blocking. Operative active-pack scope lists correctly exclude the file and active_untracked_implementation_files_omitted is empty, so pack scope is intact. Does not affect the production_ready=false claim or any boundary."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

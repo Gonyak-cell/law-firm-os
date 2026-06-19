@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M04.S01",
+  "source_micro_phase_id": "RP00.P00.M04",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Define Matter-first trace rules for RP00 control-plane records so tenant-scoped metadata remains Matter-traceable when client, document, finance, external-share, portal, or client-facing AI-output data is touched.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m04-s01/packet.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/core-domain-contract.json",
+    "contracts/permission-kernel-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-spec-requirement-ledger.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs",
+    "packages/domain/test/domain.test.js",
+    "packages/authz/test/authz.test.js",
+    "packages/audit/test/audit.test.js"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands.rp00_control_plane_contract_validate",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids"
+  ],
+  "requirement_refs": [],
+  "risk_focus": [
+    "missing_required_matter_trace",
+    "cross_tenant_trace_mismatch",
+    "document_without_matter_resolution",
+    "real_data_used_in_trace_fixture",
+    "client_id_used_without_matter_resolution",
+    "control_plane_metadata_claimed_as_real_matter_record"
+  ],
+  "claude_questions": [
+    "Do the M04 trace rules keep RP00 control-plane records tenant-scoped by default?",
+    "Do the rules require matter_id when client, matter, document, document-version, billing, finance, client-facing AI-output, external-share, or portal data is touched?",
+    "Do trace_fields include tenant_id, matter_id, client_id, document_id, and audit_event_ref with fail-closed or blocked-claim resolution policies?",
+    "Do all six control-plane entities have an explicit trace policy, including the conditional tenant trace for ClaudeReviewGate?",
+    "Do failure modes block missing Matter trace, cross-tenant mismatch, document-without-Matter resolution, and real-data fixtures before production_ready?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run spec:requirements:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate",
+    "npm test"
+  ]
+}

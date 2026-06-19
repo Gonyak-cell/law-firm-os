@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M00.S01",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T09:33:22Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI review confirmed RP00.P00.M00.S01 scope inventory, authority boundaries, non-goals, H00/C00 wiring, and evidence chain. No P0/P1 findings; three P3 evidence-hygiene or future-test notes."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Closeout evidence artifacts share an identical second-level timestamp",
+        "file": "docs/goal-closeout/rp00-p00-m00-s01/command-evidence.json",
+        "line": 5,
+        "details": "command-evidence, prior claude-review-result, and construction-inspection shared the same timestamp, weakening the sequential gate authenticity signal even though the content was consistent.",
+        "recommendation": "Record actual Claude CLI execution metadata and refresh inspection timestamps after the real review."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Validator does not guard the scope_inventory explicit_non_goals and controlled_workflows arrays",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 129,
+        "details": "Validator checks reviewed sources, controlled capabilities, owned entities, and acceptance risks, but not the dedicated explicit_non_goals and controlled_workflows inventory arrays.",
+        "recommendation": "Add presence/non-empty checks for explicit_non_goals and controlled_workflows or carry this as a future validator hardening note."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Same-file mirror assertions remain largely tautological",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": null,
+        "details": "Several checks mirror values in the same contract file; cross-file wiring and future behavior tests provide stronger assurance.",
+        "recommendation": "Add independent behavior tests when RP00.P01/RP00.P02 introduce model or service behavior."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "hermes/project.json",
+      "package.json",
+      "docs/goal-closeout/rp00-p00-m00-s01/packet.json",
+      "docs/goal-closeout/rp00-p00-m00-s01/command-evidence.json",
+      "docs/goal-closeout/rp00-p00-m00-s01/adjudication.md",
+      "docs/goal-closeout/rp00-p00-m00-s01/construction-inspection.json",
+      "docs/goal-closeout/rp00-p00-m00-s01/claude-review-result.json",
+      "docs/spec-requirement-ledger.json",
+      "contracts/goal-closeout-protocol-contract.json"
+    ],
+    "review_notes": "Actual claude-opus-4-8 max read-only CLI review completed. No P0/P1 findings; P2 findings, if any, are absent; P3 notes are recorded in adjudication and do not block this subphase."
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "8eaf5581-47a0-49da-9cc2-5c734b526896",
+    "uuid": "a43a4cb7-7d26-4162-8e2f-68b079e0d1c0",
+    "duration_ms": 204494,
+    "total_cost_usd": 1.1326255,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 16703,
+        "cost_usd": 1.1316715
+      }
+    }
+  }
+}

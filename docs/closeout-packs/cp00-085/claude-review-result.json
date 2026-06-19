@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-085",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "8937c349-12e2-45b4-83d7-7ec49e313f8d",
+    "uuid": "ec581e49-447d-439d-a8b6-ca9158fcc81e",
+    "total_cost_usd": 1.01869525,
+    "permission_denials": [],
+    "invalid_sandbox_attempt_counted_as_valid": false
+  },
+  "parsed_review": {
+    "review_id": "claude-c00-cp00-085",
+    "pack_id": "CP00-085",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-085-P3-01",
+        "severity": "P3",
+        "title": "Upstream boundary OR-guard largely redundant and under-covered by negative tests",
+        "evidence": "Claude noted the CP00-085 assembler OR-guard checks many CP00-084 upstream invariants before calling the upstream result validator, while only the decision drift branch was directly tested before adjudication.",
+        "recommended_action": "Add one or two targeted negative tests for upstream runtime flag and taxonomy-bound drift.",
+        "adjudication": "fixed"
+      },
+      {
+        "id": "CP00-085-P3-02",
+        "severity": "P3",
+        "title": "completed_source_micro_phase_ids is a rolling window, not the full P07 completion set",
+        "evidence": "Claude observed the CP00-085 result records completed_source_micro_phase_ids as RP00.P07.M03, RP00.P07.M04, and RP00.P07.M05, omitting earlier completed M01/M02 per the established CP00-08x convention.",
+        "recommended_action": "Confirm sliding-window semantics are intentional for downstream readers.",
+        "adjudication": "accepted_as_intentional_convention"
+      }
+    ],
+    "boundary_assessment": {
+      "metadata_only": "preserved",
+      "no_write": "preserved",
+      "no_runtime_retry_rollback_compensation_lock": "preserved",
+      "no_runtime_permission_evaluation": "preserved",
+      "no_runtime_error_response": "preserved",
+      "no_audit_write": "preserved",
+      "no_real_data": "preserved",
+      "no_ldip_implementation": "preserved",
+      "ldip_planning_overlay_only": "preserved"
+    },
+    "summary": "CP00-085 cleanly consumes CP00-084 and binds RP00.P07.M05.S11-S20 as metadata-only recovery evidence contracts. No P0/P1/P2 findings; one P3 test coverage item fixed and one P3 convention note accepted before closeout."
+  }
+}

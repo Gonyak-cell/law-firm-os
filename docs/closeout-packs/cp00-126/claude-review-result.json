@@ -1,0 +1,104 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-126",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "49b1ddb2-3d42-4854-8a92-e53bd85fe2a2",
+    "uuid": "716e2e51-6daa-4d2b-9bc6-02ab23f47264",
+    "total_cost_usd": 0.7938865000000002,
+    "duration_ms": 214323,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": [],
+    "blocks_pack_closeout": false,
+    "recommendation": "Approve CP00-126 closeout. The pack closes the planned Risk B failure taxonomy workflow and permission/audit binding range RP02.P07.M03.S21-RP02.P07.M05.S16 as synthetic, metadata-only, no-write references with no runtime surface added.",
+    "rationale": "Scope and counts are internally consistent and self-validated. buildRowsFromPhases produces 40 rows across three micro-phases (M03=2 primary review/escalation, M04=22 secondary workflow, M05=16 permission/audit binding opening slice); first/last unit ids resolve to RP02.P07.M03.S21 and RP02.P07.M05.S16, unit ids are unique, and deliverable/domain/phase counts match the assertions in validatePermissionKernelCp126Coverage and the script (failure_recovery 24, implementation 4, security_audit 3, hermes_evidence 3, fixture 2, test 2, claude_review 2). Claude edge-case prompt rows return claude_edge_case_prompt.read_only=true and executes_claude_review=false (top-level executes_claude_review=false), and routeForKind yields a read_only_review_prompt_reference label only. Human escalation rows return grants_human_approval=false with approval_reference_only=true and persisted=false. Every secondary-workflow and permission/audit-binding kind maps via STATUS_BY_KIND to a blocked_*/ *_not_executed / *_bound status with fail_closed=true and evaluator_invoked=false, covering missing tenant/actor/matter/resource, unknown action, cross-tenant, permission denied, ambiguous/stale, lock conflict, retry exhaustion, rollback, compensation, blocked-claim receipt, fixture, tests, audit hint, and Hermes evidence. Audit/Hermes/blocked-claim outputs are preview/reference-only (emitted_to_audit_ledger=false, writes_hermes_runtime=false, emitted_to_hermes_runtime=false, persisted=false); fixtures/tests are deterministic synthetic metadata (contains_real_data=false, runs_against_synthetic_metadata_only=true, replay_persists_state=false, replay_acquires_lock=false). freezeNoWriteResult forces the full no-write attestation false across all cases (no policy mutation, audit/product/database writes, idempotency persistence, lock acquisition, retry/rollback/compensation execution, export/share, AI/analytics, claude review, Hermes runtime, LDIP) and the per-case loop re-asserts these plus unauthorized_count_exposed=false and hidden_field_names_exposed=false. CP125 inheritance is wired through the imported boundary (result_count=10, lock_conflict='blocked_lock_conflict', Hermes reference_only=true). Hidden source fields are declared as names only and never rendered as values; the unknown-case path fails closed to blocked_before_permission_evaluation. The contract JSON's public_exports, hidden_source_fields, and no_write_attestation align with the module constants, and all 11 exports are defined and re-exported via index.js. The diff is pure metadata/catalog/test code with no fs/network/process/eval, no runtime UI/API route, and handoff fixed to CP00-127 / RP02.P07.M05.S17. No P0-P3 issues found."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 214323,
+    "duration_api_ms": 216557,
+    "ttft_ms": 198870,
+    "num_turns": 1,
+    "result": "I reviewed the staged CP00-126 diff against the required boundary. Here is the review result.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 0 },\n  \"findings\": [],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve CP00-126 closeout. The pack closes the planned Risk B failure taxonomy workflow and permission/audit binding range RP02.P07.M03.S21-RP02.P07.M05.S16 as synthetic, metadata-only, no-write references with no runtime surface added.\",\n  \"rationale\": \"Scope and counts are internally consistent and self-validated. buildRowsFromPhases produces 40 rows across three micro-phases (M03=2 primary review/escalation, M04=22 secondary workflow, M05=16 permission/audit binding opening slice); first/last unit ids resolve to RP02.P07.M03.S21 and RP02.P07.M05.S16, unit ids are unique, and deliverable/domain/phase counts match the assertions in validatePermissionKernelCp126Coverage and the script (failure_recovery 24, implementation 4, security_audit 3, hermes_evidence 3, fixture 2, test 2, claude_review 2). Claude edge-case prompt rows return claude_edge_case_prompt.read_only=true and executes_claude_review=false (top-level executes_claude_review=false), and routeForKind yields a read_only_review_prompt_reference label only. Human escalation rows return grants_human_approval=false with approval_reference_only=true and persisted=false. Every secondary-workflow and permission/audit-binding kind maps via STATUS_BY_KIND to a blocked_*/ *_not_executed / *_bound status with fail_closed=true and evaluator_invoked=false, covering missing tenant/actor/matter/resource, unknown action, cross-tenant, permission denied, ambiguous/stale, lock conflict, retry exhaustion, rollback, compensation, blocked-claim receipt, fixture, tests, audit hint, and Hermes evidence. Audit/Hermes/blocked-claim outputs are preview/reference-only (emitted_to_audit_ledger=false, writes_hermes_runtime=false, emitted_to_hermes_runtime=false, persisted=false); fixtures/tests are deterministic synthetic metadata (contains_real_data=false, runs_against_synthetic_metadata_only=true, replay_persists_state=false, replay_acquires_lock=false). freezeNoWriteResult forces the full no-write attestation false across all cases (no policy mutation, audit/product/database writes, idempotency persistence, lock acquisition, retry/rollback/compensation execution, export/share, AI/analytics, claude review, Hermes runtime, LDIP) and the per-case loop re-asserts these plus unauthorized_count_exposed=false and hidden_field_names_exposed=false. CP125 inheritance is wired through the imported boundary (result_count=10, lock_conflict='blocked_lock_conflict', Hermes reference_only=true). Hidden source fields are declared as names only and never rendered as values; the unknown-case path fails closed to blocked_before_permission_evaluation. The contract JSON's public_exports, hidden_source_fields, and no_write_attestation align with the module constants, and all 11 exports are defined and re-exported via index.js. The diff is pure metadata/catalog/test code with no fs/network/process/eval, no runtime UI/API route, and handoff fixed to CP00-127 / RP02.P07.M05.S17. No P0-P3 issues found.\"\n}\n```\n\nNo findings — the pack is synthetic, metadata-only, fails closed throughout, inherits CP125, and adds no runtime surface; it does not block closeout.",
+    "stop_reason": "end_turn",
+    "session_id": "49b1ddb2-3d42-4854-8a92-e53bd85fe2a2",
+    "total_cost_usd": 0.7938865000000002,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 37458,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 21375,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 37458,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 21375,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 37458,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 37458
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 23760,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.023865,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 21375,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 37458,
+        "webSearchRequests": 0,
+        "costUSD": 0.7700215000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "716e2e51-6daa-4d2b-9bc6-02ab23f47264"
+  }
+}

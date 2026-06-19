@@ -1,0 +1,36 @@
+{
+  "work_package_id": "LT-L2-W04",
+  "title": "Wave 1 bounded context runtime activation",
+  "created_at": "2026-06-18T13:07:20Z",
+  "status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+  "phase": "L2",
+  "gate_binding": [
+    "G2",
+    "L2-EXIT"
+  ],
+  "terminal_tuw": "LT-L2-W04-T23",
+  "artifacts": [
+    "docs/launch/l2/wave1-context-activation-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l2-w04/packet.json",
+    "docs/goal-closeout/lt-l2-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l2-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l2-w04/adjudication.md",
+    "docs/goal-closeout/lt-l2-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "context_source_file_count": 1,
+    "only_master_data_context_present": true,
+    "wave1_activation_matrix_exists": false,
+    "l2_w01_complete": false,
+    "l2_w02_complete": false,
+    "l2_w03_complete": false,
+    "g2_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

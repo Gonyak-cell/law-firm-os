@@ -1,0 +1,99 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-002",
+  "subphase_id": "RP00.P02.M05.S06",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T02:45:28.000Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data used.",
+    "S06 emits only synthetic metadata audit hints and does not append audit ledgers or write audit events."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/control-plane-contract.json','utf8')); console.log('contract json ok')\"",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('packages/control-plane/fixtures/synthetic-control-plane.json','utf8')); console.log('fixture json ok')\"",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "345 tests passed"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "429 tests passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

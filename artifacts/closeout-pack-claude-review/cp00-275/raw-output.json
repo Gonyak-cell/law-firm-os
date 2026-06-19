@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-275",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T20:35:48.196Z",
+  "finished_at": "2026-06-10T20:39:00.968Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":192224,\"duration_api_ms\":191656,\"ttft_ms\":2737,\"num_turns\":29,\"result\":\"Review complete. Verdict: **PASS** — CP00-275 does not block pack or goal closeout. No findings at any severity. The pack is a clean descriptor-only foundation with all gates passing, correct no-write/no-real-data boundaries, and intact Claude read-only / human-final-approval authority boundaries.\",\"stop_reason\":\"end_turn\",\"session_id\":\"4f8308b9-59b9-4802-8217-fb5c16ac8845\",\"total_cost_usd\":2.01279825,\"usage\":{\"input_tokens\":10690,\"cache_creation_input_tokens\":147954,\"cache_read_input_tokens\":1101497,\"output_tokens\":6746,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":147954,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":145,\"cache_read_input_tokens\":64401,\"cache_creation_input_tokens\":2791,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2791},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1150,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00125,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":13998,\"outputTokens\":15265,\"cacheReadInputTokens\":1268454,\"cacheCreationInputTokens\":148113,\"webSearchRequests\":0,\"costUSD\":2.01154825,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-275 (Risk C, 150 units, RP08.P01.M06.S05–RP08.P02.M02.S22) is a clean descriptor-only pack that closes the RP08.P01 email-dms-core model/storage tail (M06 fixtures, M07–M10 Test/Hermes/Claude/Closeout) and opens the RP08.P02 service foundation (Scope Inventory, Contract Draft, Type And Shape Definition). Source inspection via Read/Grep/Glob across all eight in-scope files (contract JSON, README, registry/service/validators/index, model test, validation script) confirms full alignment on the CP00-275 binding and preservation of every no-write/no-runtime/no-real-data boundary. (1) The pack-level production_ready claim is correctly supported and not over-stated: command-evidence reports production_ready=false with status implementation_and_plan_gates_passed_pending_final_closeout, no_real_data=true, writes_product_state=false, all ~20 local/Hermes commands exit 0, and Hermes gate H08 passed; the binding's production_ready_flag is a descriptor verification string, not an enterprise trust claim, and final closeout remains post-review human-gated. (2) CP178+ review hardening holds: readiness auth_preflight passed (exit 0, 1445-byte valid JSON, zero errors/warnings), no zero-byte/malformed/fenced/tool-call-shaped evidence, forbidden_review_evidence enforced in the registry, and validation-report confirms forbidden_tools_present=false with read-tool source inspection (summary-only prohibited for this Risk C / security-audit / review-evidence pack). (3) Claude authority boundary preserved: authority_boundary objects across service, validators, and tests assert claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, and human_final_approval_required_for_runtime_opening=true. (4) Hermes patterns are confined to deterministic control-plane review packet/receipt handling (descriptor_only=true, hermes_runtime_embedded_in_product=false), not product runtime execution. No P0/P1/P2/P3 findings; the pack does not block pack or goal closeout.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"9eb88642-b347-4fd8-9654-4549601f1810\"}\n",
+  "stderr": "",
+  "stdout_bytes": 3974,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "4f8308b9-59b9-4802-8217-fb5c16ac8845",
+    "uuid": "9eb88642-b347-4fd8-9654-4549601f1810",
+    "total_cost_usd": 2.01279825,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-427",
+  "normalized_at": "2026-06-12T03:10:52.387Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-427/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-427/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-427/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-427/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "da3f5b58-571e-46a8-b075-b12d20449671",
+    "uuid": "52da33e2-3fc3-48be-82be-fbd68ab4f438",
+    "total_cost_usd": 1.5510635000000002,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4358,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-427 descriptor-only RP14 settlement-core pack passes independent read-only review; all coverage/distribution and no-write/no-real-data/Claude-non-final-approver/Hermes-non-runtime boundaries verified, production_ready correctly false. One cosmetic P3 test-title typo; no blocking issues.",
+    "findings": [
+      {
+        "id": "CP00-427-P3-01",
+        "severity": "P3",
+        "title": "Test title says \"RP13\" but pack/program is RP14",
+        "file": "packages/settlement/test/model.test.js",
+        "line": 113,
+        "details": "The test description string reads \"CP00-427 plan binding covers the planned 150 RP13 p01 closeout p02 foundation units\". CP00-427 is an RP14 (Partner Settlement) pack; RP13 is only the upstream program. The analogous CP00-426 test at line 54 correctly says \"RP14\". Cosmetic copy/paste typo in a test name only — no effect on assertions, runtime, or data.",
+        "recommendation": "Change \"150 RP13\" to \"150 RP14\" in the test title at line 113. Non-blocking.",
+        "post_review_disposition": "non_blocking_defer"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

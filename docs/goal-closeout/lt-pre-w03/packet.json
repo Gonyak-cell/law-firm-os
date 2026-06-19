@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-PRE-W03",
+  "title": "MAT-DEC-03 document storage decision",
+  "created_at": "2026-06-18T14:39:45Z",
+  "status": "blocked_pending_storage_decision",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W03-T02",
+  "artifacts": [
+    "docs/launch/mat-dec-03-storage-decision-brief.md",
+    "contracts/email-dms-m365-runtime-contract.json",
+    "workbook/absorption-package/06_오픈_결정_레지스터.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w03/packet.json",
+    "docs/goal-closeout/lt-pre-w03/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w03/adjudication.md",
+    "docs/goal-closeout/lt-pre-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "sealed_storage_item_count": 5,
+    "raw_blocked_until_storage_decision_grep_count": 6,
+    "decision_register_mat_dec_03_decided": false,
+    "decision_value_present": false,
+    "remaining_rp22_23_pack_count": 0,
+    "closed_rp22_23_pack_count": 56,
+    "unseal_referral_present": false,
+    "scope_revision_judgment_present": false,
+    "pre_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

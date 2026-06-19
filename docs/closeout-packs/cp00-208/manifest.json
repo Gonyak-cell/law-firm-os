@@ -1,0 +1,659 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-208",
+  "planned_pack_id": "CP00-208",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "dms_core_synthetic_fixture_tail_entrypoint_descriptor_verified",
+  "program_id": "RP06",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP06.P02.M07.S03",
+  "next_subphase": "RP06.P02.M07.S04",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-208",
+    "planned_pack_id": "CP00-208",
+    "title": "CP00-208 RP06.P02.M06.S16-RP06.P02.M07.S03 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP06.P02.M06.S16",
+      "last_unit_id": "RP06.P02.M07.S03",
+      "description": "RP06.P02.M06.S16-RP06.P02.M07.S03"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP06.P02.M06.S16",
+        "title": "Blocked-claim output",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P02.M06.S17",
+        "title": "Rollback behavior",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P02.M06.S18",
+        "title": "Retry behavior",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP06.P02.M06.S19",
+        "title": "Unit test: happy path",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P02.M06.S20",
+        "title": "Unit test: denied path",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P02.M06.S21",
+        "title": "Unit test: review path",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P02.M06.S22",
+        "title": "Integration smoke case",
+        "source_micro_phase_id": "RP06.P02.M06",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP06.P02.M07.S01",
+        "title": "Service entrypoint contract",
+        "source_micro_phase_id": "RP06.P02.M07",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "contract"
+      },
+      {
+        "id": "RP06.P02.M07.S02",
+        "title": "Request normalization",
+        "source_micro_phase_id": "RP06.P02.M07",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP06.P02.M07.S03",
+        "title": "Tenant boundary precheck",
+        "source_micro_phase_id": "RP06.P02.M07",
+        "program_id": "RP06",
+        "phase_id": "RP06.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP06.P02.M06.S16",
+      "title": "Blocked-claim output",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M06.S17",
+      "title": "Rollback behavior",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M06.S18",
+      "title": "Retry behavior",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M06.S19",
+      "title": "Unit test: happy path",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M06.S20",
+      "title": "Unit test: denied path",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M06.S21",
+      "title": "Unit test: review path",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M06.S22",
+      "title": "Integration smoke case",
+      "source_micro_phase_id": "RP06.P02.M06",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M07.S01",
+      "title": "Service entrypoint contract",
+      "source_micro_phase_id": "RP06.P02.M07",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "contract",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M07.S02",
+      "title": "Request normalization",
+      "source_micro_phase_id": "RP06.P02.M07",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP06.P02.M07.S03",
+      "title": "Tenant boundary precheck",
+      "source_micro_phase_id": "RP06.P02.M07",
+      "program_id": "RP06",
+      "phase_id": "RP06.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/README.md",
+        "packages/dms/src/index.js",
+        "packages/dms/src/registry.js",
+        "packages/dms/src/service.js",
+        "packages/dms/src/validators.js",
+        "packages/dms/test/model.test.js",
+        "scripts/validate-rp06-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-208/manifest.json",
+        "docs/closeout-packs/cp00-208/command-evidence.json",
+        "docs/closeout-packs/cp00-208/claude-review-result.json",
+        "docs/closeout-packs/cp00-208/adjudication.md",
+        "docs/closeout-packs/cp00-208/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-208 implements descriptor-only DMS synthetic fixture tail and golden-case entrypoint evidence over CP00-207, covering blocked-claim output, rollback behavior, retry behavior, happy/denied/review unit test descriptors, integration smoke case, service entrypoint contract, request normalization, tenant boundary precheck, Hermes evidence, Claude review packet, and CP00-209 handoff without opening DMS runtime dispatch, blocked-claim runtime, rollback/retry runtime, unit-test runtime paths, review/approval route runtime, state writes, idempotency persistence, lock acquisition, workflow persistence, object storage, OCR, search, email, Citation Ledger, or Loop behavior.",
+    "source_refs": [
+      "contracts/dms-core-contract.json",
+      "packages/dms/README.md",
+      "packages/dms/src/index.js",
+      "packages/dms/src/registry.js",
+      "packages/dms/src/service.js",
+      "packages/dms/src/validators.js",
+      "packages/dms/test/model.test.js",
+      "scripts/validate-rp06-dms-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_object_storage_runtime": true,
+    "no_ocr_runtime": true,
+    "no_search_indexing_runtime": true,
+    "no_email_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_blocked_claim_runtime": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_unit_test_runtime_paths": true,
+    "no_integration_smoke_runtime": true,
+    "no_review_route_runtime": true,
+    "no_approval_route_runtime": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_runtime_lock_acquisition": true,
+    "no_workflow_attempt_persistence": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_rollback_internal_state_leak": true,
+    "no_retry_internal_state_leak": true,
+    "no_tenant_policy_detail_leak": true,
+    "no_review_payload_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_validation_error_detail_leak": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_event_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-208/manifest.json",
+    "docs/closeout-packs/cp00-208/command-evidence.json",
+    "docs/closeout-packs/cp00-208/claude-review-result.json",
+    "docs/closeout-packs/cp00-208/adjudication.md",
+    "docs/closeout-packs/cp00-208/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-208/manifest.json",
+    "docs/closeout-packs/cp00-208/command-evidence.json",
+    "docs/closeout-packs/cp00-208/claude-review-result.json",
+    "docs/closeout-packs/cp00-208/adjudication.md",
+    "docs/closeout-packs/cp00-208/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "\"matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270 2.html\"",
+      "\"matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270 3.html\"",
+      "\"matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270.html\"",
+      "assets/",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/enterprise-v2-loop-roadmap/",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "docs/loop-system-integration/",
+      "docs/spec-v2-integration/",
+      "matter-by-amic-byline-font-options.html",
+      "matter-by-amic-logo-animation-black-badge.html"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-208/review-receipt.json"
+    ],
+    "invalid_review_attempts": [
+      {
+        "attempt_id": "cp00-208-claude-review-attempt-01",
+        "attempt": 1,
+        "status": "invalid_not_accepted",
+        "disposition": "superseded_not_closeout_eligible",
+        "reason": "Valid read-only Opus 4.8 max review run (PASS_WITH_FINDINGS) but not closeout-eligible: 1 P2 finding (command-evidence.json empty/pending at review time) and the hardened receipt gate requires zero P2 findings. P2 remediated by executing and recording all pre-closeout validation commands; review re-run and attempt 2 accepted.",
+        "record_ref": "artifacts/closeout-pack-claude-review/cp00-208/attempt-01/attempt-record.json"
+      }
+    ],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-208/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "6698fb0b-fcaa-4202-bbef-5371752ccbf8",
+      "uuid": "7a825125-4892-4dd0-bfb5-46d257f98313",
+      "total_cost_usd": 2.9314532499999997,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-208 (RP06 DMS-core synthetic fixture tail + golden-case entrypoint descriptor pack; risk A; 10 units; RP06.P02.M06.S16-RP06.P02.M07.S03) is a coherent implemented_pending_review pack that does NOT overclaim production readiness: manifest and command-evidence both set production_ready:false, production_ready_flag is a string label, and Hermes emits only production_ready_candidate (gated on coverage+descriptor validity). Read-only inspection (Read/Grep/Glob) confirms the 10 planned units map 1:1 to 10 descriptor-only guards (blocked-claim output, rollback, retry, happy/denied/review unit-test descriptors, integration smoke, service entrypoint contract, request normalization, tenant boundary precheck); deliverable distribution (impl 3 / failure_recovery 2 / test 4 / contract 1) and micro-title counts (Synthetic Fixture Set 7 / Test And Golden Case Set 3) match exactly across baseline, manifest, registry REQUIREMENTS, contract, validators, and tests. No-write/no-real-data boundaries are substantiated: zero filesystem/network/process I/O anywhere in packages/dms/src; freezeCp208Result freezes ~50 false runtime flags; validateDmsCoreCp208SyntheticFixtureTailEntrypointDescriptor asserts every runtime flag false plus all 10 no-leak guards; model.test.js mirrors the assertions; the validate script and contract no_write_attestation agree; README CP00-208 documents the same boundaries. All 7 required_public_exports exist and are re-exported via index.js wildcard. CP178+ hardening holds: forbidden_review_evidence matches the required reject-list (auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, +final-approval/source-mutation/enterprise-trust claims); auth-preflight passed (exit 0, 1212-byte valid JSON, not 0-byte); the captured review output is valid (exit 0, 9210 bytes, parseable, structured_output present with all required fields). Claude is consistently bound as read-only independent reviewer and not final approver; enterprise trust is not claimed from local validation; Hermes patterns appear only as deterministic control-plane evidence/receipt descriptors (gate H06), not embedded product runtime. The prior attempt-1 P2 (empty command-evidence) is remediated — command-evidence now records 20 commands at exit 0, with closeout-pack:validate correctly deferred to the post-review gated step. No P0/P1 defects. Three P3 advisory items remain (post-review artifacts pending on disk; a changed-file-scope double-classification; a stale top-level receipt) — all are expected governance/tooling progression that must complete before commit/closeout but do not block this review. Verdict reflects review-step satisfaction only; human final approval for any enterprise-trust claim remains required and out of scope of this receipt.",
+      "findings": [
+        {
+          "id": "CP00-208-R01",
+          "severity": "P3",
+          "title": "Three required_pack_artifacts not yet present on disk (expected pending state)",
+          "file": "docs/closeout-packs/cp00-208/manifest.json",
+          "line": 487,
+          "details": "manifest.json required_pack_artifacts / evidence_refs list docs/closeout-packs/cp00-208/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in that directory. This is the expected pending state and not an overclaim: production_ready is false, pack_level_claude_review.status is 'pending', and these artifacts are produced by the adjudication, construction_inspection, and receipt steps that follow this read-only review (this review is the input to claude-review-result.json, so it cannot pre-exist).",
+          "recommendation": "During the subsequent hardening steps, generate claude-review-result.json (from this review), adjudication.md, and construction-inspection.json, and confirm all five required_pack_artifacts are present before commit/closeout.",
+          "post_review_disposition": "Informational; expected output of post-review hardening steps. Verify present before commit/closeout. Does not block this review (no P0/P1)."
+        },
+        {
+          "id": "CP00-208-R02",
+          "severity": "P3",
+          "title": "changed-file-scope double-classifies pack untracked files as both implementation and unrelated-dirty-preserved",
+          "file": "artifacts/closeout-pack-claude-review/cp00-208/changed-file-scope.json",
+          "line": 165,
+          "details": "Both entries of untracked_implementation_files (docs/closeout-pack-plan/new-session-handoff.md and docs/closeout-packs/cp00-208/) also appear in unrelated_dirty_files_preserved (lines 170-185). Tagging the pack's own evidence directory (docs/closeout-packs/cp00-208/) as 'unrelated' is semantically incorrect since it is the core evidence for THIS pack. Practical impact is nil — active_pack_implementation_refs and git_status_rows correctly capture the 7 modified files plus contract and validate script, and the preserve list only prevents reverts — but the dual/semantically-wrong classification could confuse future scope reconciliation.",
+          "recommendation": "Reconcile the scope tooling so the pack evidence dir is listed only as an implementation/active untracked file and not under unrelated_dirty_files_preserved; place plan/session bookkeeping (new-session-handoff.md) in a single appropriate bucket.",
+          "post_review_disposition": "Informational; no effect on pack code correctness. Optional cleanup in scope-generation tooling."
+        },
+        {
+          "id": "CP00-208-R03",
+          "severity": "P3",
+          "title": "Active top-level review-receipt.json is a stale copy of the superseded attempt-01 receipt",
+          "file": "artifacts/closeout-pack-claude-review/cp00-208/review-receipt.json",
+          "line": 7,
+          "details": "The top-level review-receipt.json referenced by manifest.review_hardening.receipt_ref and command-evidence.review_hardening.receipt_ref is a verbatim copy of the superseded attempt-01 receipt: same session_id (a33f2329), same normalized_at, closeout_eligible:false, and it still contains the now-remediated P2 (CP00-208-R01 empty command-evidence). Governance state is nonetheless coherent because manifest.pack_level_claude_review.valid_review_receipts is [] and status is 'pending', so closeout is correctly gated and the stale receipt is not counted as valid. A fresh closeout-eligible receipt (p2=0, now that command-evidence is populated) must be produced from this re-run before closeout.",
+          "recommendation": "Normalize this re-run into a new closeout-eligible review-receipt.json, add it to valid_review_receipts, and confirm closeout_eligible:true with finding_counts p0=p1=p2=0 before advancing to commit.",
+          "post_review_disposition": "Informational; reflects expected pending re-run state. Must be regenerated from this review prior to closeout. Does not block this review."
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 3,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 3
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-208 dms core synthetic fixture tail entrypoint descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 110,
+    "goal_closeout_dirs_with_required_artifacts": 110,
+    "remaining_by_closeout_dir_proxy": 55146
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-208/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-208/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-208/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-208/review-receipt.json",
+    "invalid_attempts_preserved": [
+      "artifacts/closeout-pack-claude-review/cp00-208/attempt-01/attempt-record.json"
+    ]
+  }
+}

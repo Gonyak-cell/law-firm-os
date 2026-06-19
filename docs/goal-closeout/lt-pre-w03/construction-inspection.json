@@ -1,0 +1,22 @@
+{
+  "work_package_id": "LT-PRE-W03",
+  "inspected_at": "2026-06-18T14:39:45Z",
+  "verdict": "BLOCKED_STORAGE_DECISION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "sealed_storage_item_count": 5,
+    "decision_register_mat_dec_03_decided": false,
+    "decision_value_present": false,
+    "unseal_referral_present": false,
+    "scope_revision_judgment_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "storage_decision_synthesized": false,
+    "m365_items_unsealed_without_decision": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": "law-firm-os.goal-closeout-protocol.v0.1",
+  "applies_to": "all_goals",
+  "purpose": "Make the Goal 1 Hermes, Claude Code, construction-inspection, adjudication, and commit process mandatory for every future Law Firm OS goal.",
+  "required_sequence": [
+    "scope_contract",
+    "implementation_evidence",
+    "local_tests",
+    "hermes_validation",
+    "claude_code_review",
+    "finding_adjudication",
+    "construction_inspection",
+    "final_validation_rerun",
+    "git_commit"
+  ],
+  "claude_code_requirements": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "allowed_tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "forbidden_tools": [
+      "Bash",
+      "Edit",
+      "Write"
+    ],
+    "minimum_result_fields": [
+      "overall_verdict",
+      "blocks_goal_closeout",
+      "per_gate",
+      "findings",
+      "evidence_reviewed",
+      "review_notes"
+    ]
+  },
+  "finding_rules": {
+    "P0_BLOCKER": "blocks_closeout_until_fixed_and_rereviewed",
+    "P1_MUST_FIX": "blocks_closeout_until_fixed_and_rereviewed",
+    "P2_SHOULD_FIX": "must_be_adjudicated_fix_or_defer_with_owner_phase_and_rationale",
+    "P3_NOTE": "must_be_recorded_or_deferred_with_owner_phase"
+  },
+  "construction_inspection_requirements": [
+    "goal_scope_satisfied",
+    "all_required_local_commands_pass",
+    "hermes_gate_passed",
+    "claude_code_review_result_validated",
+    "no_unresolved_P0_or_P1",
+    "all_P2_adjudicated",
+    "weighted_ledger_refs_present",
+    "human_acceptance_or_explicit_next_goal_boundary"
+  ],
+  "commit_rules": [
+    "Do not commit before Hermes validation passes.",
+    "Do not commit before Claude Code review result validation passes.",
+    "Do not commit before construction inspection passes.",
+    "Commit message must describe the goal or review fixes.",
+    "Working tree must be clean after commit."
+  ],
+  "standard_artifacts": {
+    "goal_packet": "docs/goal-closeout/{goal_id}/packet.json",
+    "claude_review_result": "docs/goal-closeout/{goal_id}/claude-review-result.json",
+    "adjudication": "docs/goal-closeout/{goal_id}/adjudication.md",
+    "construction_inspection": "docs/goal-closeout/{goal_id}/construction-inspection.json",
+    "command_evidence": "docs/goal-closeout/{goal_id}/command-evidence.json"
+  },
+  "standard_commands": [
+    "npm test",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate"
+  ]
+}

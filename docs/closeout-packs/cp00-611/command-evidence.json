@@ -1,0 +1,99 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-611",
+  "subphase_id": "RP20.P01.M04.S06",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-611/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-611/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-611/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-611/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp20:data-room-vdr-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/data-room/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp20:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp05:matter-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-611 uses descriptor-only synthetic Data Room And VDR model/fixture/test rows and contract projections.",
+    "The CP00-611 P3 review observation about empty pre-review command evidence is closed by this post-review command matrix before production_ready closeout validation.",
+    "The CP00-611 P3 validator parity observation is closed by adding explicit dispatches_rfi_runtime, dispatches_cp_runtime, dispatches_closing_binder_runtime, and dispatches_access_analytics_runtime assertions to validateDataRoomVdrCoreCp611P01ModelFoundationContinuationDescriptor."
+  ]
+}

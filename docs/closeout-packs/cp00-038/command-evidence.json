@@ -1,0 +1,144 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-038",
+  "subphase_id": "RP00.P02.M07.S10",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T19:34:06.373Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "blocked_claims": [
+    "execute_service_logic",
+    "create_runtime_route",
+    "writes_product_state",
+    "append_audit_ledger",
+    "write_audit_event",
+    "mutate_audit_ledger",
+    "evaluate_runtime_permission",
+    "call_authz_evaluator",
+    "run_permission_engine",
+    "apply_security_trimming",
+    "execute_tests",
+    "generate_golden_fixture",
+    "persist_golden_fixture",
+    "write_database",
+    "write_storage",
+    "persist_product_state",
+    "persist_idempotency_record",
+    "write_idempotency_store",
+    "acquire_lock",
+    "mutate_entity_registry",
+    "mutate_golden_case_catalog",
+    "mutate_unit_test_contract",
+    "replace_human_approval",
+    "bypass_permission_audit",
+    "bypass_permission",
+    "bypass_audit_hint",
+    "bypass_primary_happy_path",
+    "bypass_secondary_workflow_path",
+    "bypass_state_transition",
+    "bypass_idempotency_key",
+    "bypass_human_approval",
+    "use_real_client_data",
+    "use_real_matter_data",
+    "use_credentials_or_secrets",
+    "complete_source_micro_phase",
+    "unknown_truthy_idempotency_claim"
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-038 is a metadata-only Idempotency key handling pack: it accepts only RP00.P02.M07.S09 Test And Golden Case Set State transition enforcement results, requires allow_metadata_only with fixed metadata permission and audit refs, emits a synthetic idempotency receipt, and rejects idempotency bypass, idempotency store writes, lock acquisition, audit writes, runtime permission, AuthZ evaluator, permission engine, security trimming, test execution, golden fixture generation or persistence, runtime route, service execution, database/storage/product-state write, real-data/secret, catalog mutation, unit-test-contract mutation, source completion, invalid idempotency keys, and unknown truthy claims.",
+    "A preliminary RP00 validation run before evidence finalization failed only because CP00-038 evidence files did not exist yet.",
+    "The completed read-only Claude run recorded in claude-review-result.json is the single valid pack-level review for CP00-038; raw verdict was pass, raw findings were P0=0/P1=0/P2=0/P3=0. One earlier CLI output did not return a verdict and is not counted as a valid review."
+  ],
+  "evidence_summary": {
+    "implementation": "RP00.P02.M07.S10 Idempotency key handling result fields, policy, prechecker, service function, validators, fixture mirror, README entry, contract ledger row, and RP00 validator coverage were added.",
+    "tests": "Control-plane service tests include policy binding, metadata idempotency receipt, explicit synthetic key acceptance, no-write drift rejection, unsafe claim fail-closed coverage, prechecker no-write handoff, wrong source rejection, invalid idempotency key rejection, and fixture mirror checks.",
+    "hermes_evidence": "H00 command ids rp00_control_plane_contract_validate and spec_requirement_validate are represented and finalized after review adjudication.",
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once as a valid review before production_ready; no P0/P1/P2/P3 findings were reported.",
+    "human_approval_boundary": "Human approval remains outside this metadata-only S10 Idempotency key handling pack; the explicit next goal boundary is RP00.P02.M07.S11 Lock acquisition rule."
+  },
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "expected": true,
+      "summary": "Pre-evidence RP00 validation failed only because docs/closeout-packs/cp00-038 evidence files did not exist yet."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    }
+  ]
+}

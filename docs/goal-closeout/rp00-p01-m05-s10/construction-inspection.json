@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M05.S10",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "State transition map",
+  "entity": "HumanApproval",
+  "inspected_at": "2026-06-04T03:23:31Z",
+  "verdict": "PASS",
+  "status": "PASS",
+  "production_ready": true,
+  "human_approval_state_transition_map_verified": true,
+  "status_field_verified": true,
+  "lifecycle_states_verified": true,
+  "initial_status_verified": "draft",
+  "terminal_statuses_verified": [
+    "production_ready",
+    "blocked"
+  ],
+  "transition_edge_count_verified": 10,
+  "transition_evidence_keys_verified": true,
+  "skipped_gate_transitions_rejected": true,
+  "backward_transitions_rejected": true,
+  "terminal_statuses_reject_outgoing_transitions": true,
+  "unknown_status_transitions_rejected": true,
+  "synthetic_fixture_state_transition_map_verified": true,
+  "registry_exposes_human_approval_state_transition_map": true,
+  "registry_keeps_human_approval_model_future": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "cannot_synthesize_human_approval": true,
+  "validation_helper_deferred_to": "RP00.P01.M05.S11",
+  "human_acceptance_or_explicit_next_goal_boundary": "Next boundary recorded as RP00.P01.M05.S11 Validation helper; no sensitive production action approved by this subphase.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed_or_deferred",
+    "findings": [
+      {
+        "id": "HA-S10-001",
+        "severity": "P3_NOTE",
+        "title": "HUMAN_APPROVAL_TRANSITION_EVIDENCE_KEYS export was not enumerated in contract required_exports",
+        "details": "Claude noted the evidence-key export existed and was tested but was not included in the contract required_exports list for S10.",
+        "recommendation": "Add HUMAN_APPROVAL_TRANSITION_EVIDENCE_KEYS to required_exports and validator export checks, or accept the extra export as non-contractual.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "contracts/control-plane-contract.json now lists HUMAN_APPROVAL_TRANSITION_EVIDENCE_KEYS in human_approval_state_transition_map_definition.required_exports; scripts/validate-rp00-control-plane-contract.mjs requires the export; model tests already assert the deduped keys."
+      },
+      {
+        "id": "HA-S10-002",
+        "severity": "P3_NOTE",
+        "title": "Declarative guard_policy enforcement is deferred to S11 validation helper",
+        "details": "Claude noted S10 declares guard policy flags and transition helpers but does not yet enforce evidence objects for each transition.",
+        "recommendation": "Keep this as an explicit S11 validation-helper responsibility.",
+        "status": "deferred_to_next_subphase",
+        "disposition": "explicit_defer_to_RP00.P01.M05.S11",
+        "evidence": "HUMAN_APPROVAL_STATE_TRANSITION_MAP.validationHelperCompletionSubphase, contract transition_policy.validation_helper_completion_subphase, fixture validation_helper_completion_subphase, README, and construction inspection all record RP00.P01.M05.S11 as the enforcement boundary."
+      }
+    ]
+  }
+}

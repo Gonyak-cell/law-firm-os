@@ -1,0 +1,145 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W07",
+  "title": "matter product naming propagation",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "passed",
+  "recorded_at": "2026-06-18T10:06:17Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:06:17Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W07-T01",
+      "title": "Propagate product naming decision to strategy, decision register, and naming rules",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/product-strategy-declaration.md",
+        "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "docs/launch/matter-naming-rules.md",
+        "docs/goal-closeout/lt-pre-w07/command-evidence.json"
+      ],
+      "acceptance": {
+        "recommended_convention_count": 0,
+        "strategy_mat_dec_04_decided_count": 1,
+        "decision_register_mat_dec_04_pending_count": 0,
+        "decision_register_mat_dec_04_decided_count": 1,
+        "four_layer_table_present": true,
+        "machine_identifier_rename_ban_present": true,
+        "l2_6_intake_present": true
+      },
+      "commands": [
+        {
+          "command": "grep -c \"Recommended convention\" docs/product-strategy-declaration.md",
+          "exit_code": 0,
+          "output": "0",
+          "purpose": "Verify product strategy no longer labels the naming rule as a recommendation"
+        },
+        {
+          "command": "grep -c \"MAT-DEC-04 is decided\" docs/product-strategy-declaration.md",
+          "exit_code": 0,
+          "output": "1",
+          "purpose": "Verify product strategy records MAT-DEC-04 as decided"
+        },
+        {
+          "command": "grep -c '^| MAT-DEC-04.*pending' workbook/absorption-package/06_오픈_결정_레지스터.md || true",
+          "exit_code": 0,
+          "output": "0",
+          "purpose": "Verify the decision-status table no longer has MAT-DEC-04 pending"
+        },
+        {
+          "command": "grep -c '^| MAT-DEC-04 | ✅ \\*\\*결정\\*\\* |' workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "exit_code": 0,
+          "output": "1",
+          "purpose": "Verify the decision-status table has one decided MAT-DEC-04 row"
+        },
+        {
+          "command": "grep -n 'Four-Layer Naming Table\\|기계 식별자 리네이밍 금지\\|L2-6 Glossary Intake' docs/launch/matter-naming-rules.md",
+          "exit_code": 0,
+          "output": "8:## Four-Layer Naming Table\n19:기계 식별자 리네이밍 금지: package names, product-contract IDs, script names, closeout-pack references, ledger IDs, and historical evidence links must not be renamed from `law-firm-os` or Law Firm OS solely for product branding.\n27:## L2-6 Glossary Intake",
+          "purpose": "Verify naming rules include the required table, machine identifier rename ban, and L2-6 intake section"
+        }
+      ],
+      "notes": [
+        "The owner product naming decision is sourced from workbook/matter-post-cp-launch-plan.md section 1.",
+        "Machine identifiers are preserved to avoid closeout evidence drift."
+      ]
+    },
+    {
+      "tuw_id": "LT-PRE-W07-T02",
+      "title": "Align user-visible brand string and verify checklist completion",
+      "status": "passed",
+      "terminal_tuw": true,
+      "artifacts": [
+        "apps/web/src/components/MatterLogo.jsx",
+        "docs/launch/matter-naming-rules.md",
+        "docs/goal-closeout/lt-pre-w07/command-evidence.json"
+      ],
+      "acceptance": {
+        "matter_by_amic_law_count": 0,
+        "matter_logo_aria_label_exact_count": 1,
+        "checklist_rows": 5,
+        "npm_test_exit_code": 0,
+        "web_build_exit_code": 0,
+        "launch_tuw_ledger_validation": "passed"
+      },
+      "commands": [
+        {
+          "command": "grep -rn \"matter by AMIC Law\" apps/web/src || true",
+          "exit_code": 0,
+          "output": "",
+          "purpose": "Verify old UI brand phrase is absent from web source"
+        },
+        {
+          "command": "grep -rn 'aria-label=\"matter by AMIC\"' apps/web/src/components/MatterLogo.jsx",
+          "exit_code": 0,
+          "output": "apps/web/src/components/MatterLogo.jsx:6:    <div className={compact ? \"matter-logo compact\" : \"matter-logo\"} aria-label=\"matter by AMIC\">",
+          "purpose": "Verify MatterLogo aria-label exactly matches the UI brand"
+        },
+        {
+          "command": "grep -c '^| .* | 완료 |' docs/launch/matter-naming-rules.md",
+          "exit_code": 0,
+          "output": "5",
+          "purpose": "Verify the naming checklist crosswalk has five completed rows"
+        },
+        {
+          "command": "npm test",
+          "exit_code": 0,
+          "output": "tests 3581, pass 3581, fail 0, duration_ms 5625.816958",
+          "purpose": "Run the required full test suite after UI/text changes"
+        },
+        {
+          "command": "npm run build",
+          "exit_code": 0,
+          "output": "vite build completed; 1645 modules transformed; built in 663ms",
+          "purpose": "Verify the web application still builds after the UI accessibility label change"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The UI image alt text remains AMIC Law because it names the logo image asset; the UI brand aria-label is matter by AMIC.",
+        "Full Claude review is waived by user instruction and is not counted as valid review evidence."
+      ]
+    }
+  ],
+  "non_claims": [
+    "This record does not rename machine identifiers.",
+    "This record does not modify closed CP evidence.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

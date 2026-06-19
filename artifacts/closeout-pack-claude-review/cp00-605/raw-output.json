@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-605",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T01:50:08.734Z",
+  "finished_at": "2026-06-13T01:55:16.971Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":307634,\"duration_api_ms\":308713,\"ttft_ms\":4791,\"num_turns\":48,\"result\":\"Review complete. **PASS** with no findings.\\n\\nCP00-605 is a clean descriptor-only pack. Every baseline fact lines up across the prompt, baseline, manifest, command-evidence, contract, plan, and the actual descriptor code; all 7 required exports exist and surface through `index.js`; the source contains zero write/network/exec I/O; the no-write attestation and authority-boundary chains (Claude not final approver, no enterprise-trust claim from local validation, human approval required to open runtime) are intact; and the review evidence passes CP178+ integrity checks with the review genuinely still pending.\\n\\nThe conservative `production_ready:false` / `runtime_ready:false` claim is fully supported — no gates are weakened. The one limitation: I could not execute the validation commands (read-only, no Bash), so I verified the code structure independently supports the `exit_code:0` claims in `command-evidence.json` rather than re-running them. Human final approval is still required before any enterprise-trust or runtime-opening claim.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2244e856-836b-438b-84db-ee0a1ba0aee0\",\"total_cost_usd\":2.03124325,\"usage\":{\"input_tokens\":60,\"cache_creation_input_tokens\":95849,\"cache_read_input_tokens\":1729172,\"output_tokens\":22645,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":95849,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":335,\"cache_read_input_tokens\":90842,\"cache_creation_input_tokens\":5875,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5875},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1071,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001176,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":60,\"outputTokens\":22645,\"cacheReadInputTokens\":1729172,\"cacheCreationInputTokens\":95849,\"webSearchRequests\":0,\"costUSD\":2.03006725,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-605 is a descriptor-only closeout pack (RP19.P08.M05.S20-RP19.P08.M06.S07, risk A, 10 units, impl:3/hermes:7) and its conservative production_ready:false / runtime_ready:false claim is fully supported. Baseline facts match across prompt, review-baseline, manifest, command-evidence, contract, closeout-pack-plan, and descriptor code (incl. ledger SHA 13c7ed65...). All 7 required public exports exist (createClientPortalCoreCp605P08PermissionFixtureSliceDescriptor/CaseSet in service.js; validateClientPortalCoreCp605Coverage, validateClientPortalCoreCp605P08PermissionFixtureSliceDescriptor, createClientPortalCoreCp605HermesEvidencePacket/ClaudeReviewPacket/CloseoutHandoff in validators.js) and surface via index.js export *. No fs/network/exec/process I/O exists in packages/client-portal/src or the validator script; functions are pure Object.freeze data construction, supporting the no-write/no-real-data attestation. The NO_WRITE_ATTESTATION spread chain CP583->...->CP605 is intact with promotes_claude_to_final_approval:false and claims_enterprise_trust_from_local_validation:false. Authority boundary holds: descriptor authority_boundary.claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true. Hermes evidence packet is deterministic control-plane metadata (gate H19, coverage/slice validity, no_real_data, emits_hermes_runtime_receipt:false, receipt_shape descriptor_only_..._no_write), not product runtime. Tests cover coverage/distribution, descriptor-only rows, and authority boundaries; the validator deep-equals the contract's current_pack, cp605_requirements, cp605_no_write_attestation, and p08_permission_fixture_slice_descriptor, all present and consistent in the contract; README #cp00-605 matches the documentation_entry ref. Review-evidence integrity (CP178+) is sound: readiness auth-preflight passed (exit 0, valid JSON, 1434B stdout, 0 stderr), validation-report shows schema present, no forbidden tools, prompt within size; no auth failure, 0-byte, malformed/fenced/tool-shaped output, or missing fields. No pre-existing raw-output/receipt/claude-review-result, so the review is genuinely pending and Claude remains a read-only independent reviewer, not final approver. Changed-file scope is accurate: the 7 in-scope tracked edits match active_pack_implementation_refs; unrelated dirty files (matter workbook, progress-control-room, docx) are correctly preserved and not attributed to this pack. Validation commands could not be executed (read-only, no Bash); command-evidence.json claims all passed with exit_code 0, and the code structure independently supports those claims. No defects found; human final approval remains required for any enterprise-trust/runtime-opening claim.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"af923c96-4fc9-4670-ad45-822232dfad45\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5520,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "2244e856-836b-438b-84db-ee0a1ba0aee0",
+    "uuid": "af923c96-4fc9-4670-ad45-822232dfad45",
+    "total_cost_usd": 2.03124325,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

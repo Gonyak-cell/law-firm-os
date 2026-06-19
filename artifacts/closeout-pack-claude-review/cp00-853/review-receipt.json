@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-853",
+  "normalized_at": "2026-06-16T18:13:48.570Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-853/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "40262e75-bd14-4521-9ced-72f90bf0a7d2",
+    "uuid": "42cae086-5f2c-472d-9d76-7b8d61a9fa5f",
+    "total_cost_usd": 2.9930095000000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 10952,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-853 is a descriptor-only RP28 Marketplace closeout pack (40 units, risk B, RP28.P02.M07.S13-RP28.P02.M09.S08) covering the Test-And-Golden-Case tail (M07, 10 units), the Hermes Evidence Packet (M08, 22 units), and the Claude Review Packet head (M09, 8 units), reviewed read-only via Read/Grep/Glob with no command execution. The implementation is internally consistent and fail-closed: MARKETPLACE_CP853_PACK_BINDING (registry.js:190-205) and MARKETPLACE_CP853_REQUIREMENTS (registry.js:674-714) match the planned distribution exactly (implementation 16 / test 8 / ui 4 / security_audit 4 / failure_recovery 4 / contract 2 / claude_review 2; phase RP28.P02=40; micro-phase M07=10/M08=22/M09=8; micro-title Test-And-Golden-Case 10 / Hermes 22 / Claude-Review 8), and required_section_rows map WORKFLOW_ROWS.slice(12,22) to M07, all 22 to M08, and slice(0,8) to M09 — a 1:1 match with the manifest's 40 included_units (S13-S22, S01-S22, S01-S08). The case set (createSections registry.js:814-824, registry.js:906-914) yields row_count 40; the descriptor (registry.js:1454-1480) and contract projection (registry.js:1482-1532) keep CP00-853 current with validation.valid=true and upstream chain CP844->...->852->853. No-write/no-real-data boundaries are enforced per-row in createRow and re-checked by validateMarketplaceCp853EvidenceReviewPacketDescriptor (validators.js:1063-1131): descriptor_only true; runtime/app-submission/permission-review/ai-policy-check/tenant-install/app-update/install-receipt/connector-runtime/custom-ai-runtime all false; permission_decision_written/audit_event_written/writes_product_state false; connector_secret/oauth_token/prompt_or_completion/real_client_data/permission_detail/audit_body false — mirrored in MARKETPLACE_NO_WRITE_ATTESTATION (registry.js:35-52) and contract no_leak_guards. Grep confirmed secrets/credentials appear only as false attestations; the validate script (scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs) is read-only (readFile only, no writes/network/exec). Authority boundary holds: claude_packet read_only=true and promotes_claude_to_final_approval=false; human_final_approval_required_for_runtime_opening=true (runtime opening deferred to CP00-854); local_validation_claims_enterprise_trust=false; Hermes packet is review-only (emits_runtime_receipt=false, writes_product_state=false), not product runtime. The pack honestly reports production_ready=false / runtime_ready=false / status in_progress pending exactly one valid hardened read-only review; command-evidence records the two targeted commands passing (npm run rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0) at status pending_full_validation, and model.test.js includes CP00-853 binding/coverage/descriptor/contract tests. Review hardening is correctly applied: the canonical review-receipt.json is itself an invalid API-500 execution (valid_review=false, parsed_review null), correctly uncounted with valid_review_receipts empty; 5 CLI/auth-failure attempts and 2 prior valid-but-closeout-ineligible reviews are quarantined and not counted, preserving the exactly-one-valid-review requirement. I independently reached the same substantive conclusion as the quarantined valid reviews (descriptor evidence sound, no P0/P1); those reviews were set aside only because they labeled the deferred full-validation suite P2 — given the pack truthfully keeps production_ready=false and self-gates via gate_outcome/commit_after_production_ready, and matching the accepted CP00-850..852 sequence, that deferred validation is a non-blocking P3 pre-closeout condition, not P2. No P0/P1/P2 findings; two non-blocking P3 housekeeping items apply before the production_ready flip. blocks_goal_closeout=false because the pack explicitly closes runtime/enterprise-trust/final-approval rather than claiming them. Provenance: I inspected source/artifacts directly but executed no commands (read-only reviewer); command pass/fail reflects recorded command-evidence only, not my own re-run.",
+    "findings": [
+      {
+        "id": "CP00-853-P3-01",
+        "severity": "P3",
+        "title": "Full validation suite deferred to post-review gate (expected sequence)",
+        "file": "docs/closeout-packs/cp00-853/command-evidence.json",
+        "line": 5,
+        "details": "command-evidence.json records only two targeted commands passing (npm run rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0) at status pending_full_validation with gate_outcome pending_valid_review_and_full_validation. The ten authoritative suite commands (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate) and git diff --check are not yet recorded as passing. This is the documented sequence: full validation runs after exactly one valid hardened read-only review is accepted and the plan/queue is regenerated (closeout-pack-plan.json live_state still shows CP00-852 with next_subphase RP28.P02.M07.S13, so closeout-pack-plan:validate is not expected to pass yet). It matches the accepted CP00-850..CP00-852 sequence and is not a descriptor defect; the pack truthfully keeps production_ready=false / runtime_ready=false and self-gates via commit_after_production_ready, so this is a non-blocking P3 pre-closeout condition rather than P2. As a read-only reviewer I executed no commands.",
+        "recommendation": "Before flipping production_ready / closing the pack, run and record all ten validation commands plus git diff --check passing after this valid review receipt is recorded; keep gate_outcome gated until the full suite is green.",
+        "post_review_disposition": "non_blocking_expected_sequence_pre_closeout_condition"
+      },
+      {
+        "id": "CP00-853-P3-02",
+        "severity": "P3",
+        "title": "Pending-review placeholders and invalid primary receipt must be reconciled to this review before closeout",
+        "file": "docs/closeout-packs/cp00-853/claude-review-result.json",
+        "line": 32,
+        "details": "The canonical review-receipt.json is itself an invalid execution (status invalid_review, valid_review=false, api_error_status 500, parsed_review null), and manifest valid_review_receipts is [] with exactly_one_valid_pack_review_required=true. manifest.review_adjudication (verdict PENDING_REVIEW, finding_counts null, blocks_pack_closeout true), construction-inspection.json (verdict PENDING_REVIEW, pack_level_claude_review_completed false, marketplace_evidence_review_packet_descriptor_verified false), adjudication.md (PENDING_REVIEW), and claude-review-result.json (overall_verdict PENDING_REVIEW, blocks_goal_closeout true, finding_counts null) all still hold the pre-review placeholder state. The 5 invalid CLI/auth attempts and the 2 prior valid-but-closeout-ineligible reviews (quarantined for classifying deferred validation as P2) are correctly enumerated and uncounted across manifest, claude-review-result, and construction-inspection (the earlier under-reporting of invalid attempts in construction-inspection.json is now resolved — all three list the same 5). These placeholders must be updated from this review's actual verdict/receipt; production_ready and the marketplace_evidence_review_packet_descriptor_verified flag must not be set while they read PENDING_REVIEW.",
+        "recommendation": "After recording this review, persist exactly one valid hardened read-only review receipt, reconcile manifest/adjudication/construction-inspection/claude-review-result to the actual PASS_WITH_FINDINGS verdict and finding_counts, keep all prior failed/over-escalated attempts quarantined, and set production_ready only once the full validation suite also passes.",
+        "post_review_disposition": "non_blocking_bookkeeping_pre_closeout_condition"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

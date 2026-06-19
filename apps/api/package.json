@@ -1,0 +1,11 @@
+{
+  "name": "@law-firm-os/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Law Firm OS modular backend API. First bounded context: Master Data read surface (master-data-contract v0.21).",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  }
+}

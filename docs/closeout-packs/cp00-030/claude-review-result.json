@@ -1,0 +1,156 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-030",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "no_tools_used": true,
+    "output_format": "text",
+    "session_id": "deddf4d3-9cfd-4603-ba0d-0b250776e4b4",
+    "uuid": "deddf4d3-9cfd-4603-ba0d-0b250776e4b4",
+    "uuid_source": "claude_project_session_id_fallback_because_text_output_did_not_expose_message_uuid",
+    "total_cost_usd": 0,
+    "cost_metadata_unavailable": true,
+    "cost_metadata_unavailable_reason": "Claude CLI text output did not expose cost metadata for this non-persistent review run; no second review was executed solely to fetch metadata.",
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max"
+  },
+  "raw_review": {
+    "overall_verdict": "APPROVE_WITH_CONDITIONS_AT_REVIEW_TIME_RESOLVED_AFTER_EVIDENCE_CREATION_AND_TEST_STRENGTHENING",
+    "claude_reported_verdict": "approve_with_conditions",
+    "blocks_pack_closeout_at_review_time": true,
+    "blocks_pack_closeout_after_adjudication": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked_at_review_time": true,
+    "production_ready_blocked_after_adjudication": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P1",
+        "area": "production_ready consistency / closeout evidence gate",
+        "title": "production_ready asserted before CP00-030 evidence and RP00 green gate",
+        "detail": "Claude found S02 production_ready claims ahead of the evidence files and final RP00 validator run.",
+        "recommendation": "Create CP00-030 evidence files and re-run npm run rp00:control-plane:validate before final closeout."
+      },
+      {
+        "id": "F2",
+        "severity": "P2",
+        "area": "validator/test coverage of fail-closed enforcement",
+        "title": "Negative coverage needs granular proof",
+        "detail": "Claude requested per-condition confirmation for fail-closed triggers and acceptance gates.",
+        "recommendation": "Strengthen service tests around unsafe claims, drift, real data, golden catalog mutation, unit test contract mutation, and derived S01 contract pinning."
+      },
+      {
+        "id": "F3",
+        "severity": "P3",
+        "area": "ledger handoff / evidence traceability",
+        "title": "normalized_request.command_evidence_ref points to CP00-029",
+        "detail": "Claude noted this is plausibly the intended upstream S01 evidence reference but should be justified in-pack.",
+        "recommendation": "Record CP00-029 command evidence as upstream S01 evidence and CP00-030 command evidence as the current pack evidence."
+      },
+      {
+        "id": "F4",
+        "severity": "P3",
+        "area": "normalizer field derivation",
+        "title": "Derived service_entrypoint_contract_ref should be pinned",
+        "detail": "Claude noted service_entrypoint_contract_ref is derived output rather than required input.",
+        "recommendation": "Assert the normalizer emits RP00.P02.M07.S01 and ignores arbitrary input drift for this derived field."
+      },
+      {
+        "id": "F5",
+        "severity": "P3",
+        "area": "no golden fixture generation/persistence",
+        "title": "Fixture content was not inspected in the supplied review packet",
+        "detail": "Claude asked to confirm the fixture addition contains only S02 normalization metadata and no materialized golden output.",
+        "recommendation": "Use fixture mirror tests, validator coverage, and construction inspection to confirm metadata-only fixture content."
+      }
+    ],
+    "security_notes": [
+      "Claude found no P0 issues.",
+      "Claude found the metadata-only, no-write, no-test-execution, no-golden-generation, and no-premature-rollup boundaries internally consistent in the supplied packet."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 488/488 after post-review negative coverage strengthening.",
+      "CP00-030 records one valid pack-level Claude Opus 4.8 max read-only review."
+    ],
+    "summary": "CP00-030 implements RP00.P02.M07.S02 as a metadata-only request normalization layer. Claude approved with conditions: evidence needed to be created, negative coverage needed granular proof, CP00-029 upstream evidence needed explicit justification, the derived S01 service_entrypoint_contract_ref needed pinning, and fixture metadata-only content needed final confirmation. All P1/P2 items are resolved by this evidence pack, strengthened service tests, and final validators.",
+    "residual_risk": {
+      "level": "low_after_adjudication",
+      "items": [
+        "M07 remains open by design through downstream S03-S20.",
+        "CP00-030 does not execute tests as product behavior, generate golden fixtures, persist golden fixtures, or write product state."
+      ]
+    }
+  },
+  "raw_review_text": "Claude Opus 4.8 max read-only review returned approve_with_conditions for CP00-030. Findings were P0=0, P1=1, P2=1, P3=3. The P1 evidence-gate finding is resolved by creating this evidence pack and passing final RP00 validation. The P2 negative coverage finding is resolved by strengthened tests covering unsafe claims, drift, real data, golden catalog mutation, unit test contract mutation, and derived S01 contract pinning. P3 findings are accepted or resolved through explicit upstream CP00-029 evidence references, derived-field assertions, fixture mirror tests, and construction inspection.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "p3": 3
+    },
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P1",
+        "title": "production_ready asserted before CP00-030 evidence and RP00 green gate",
+        "status": "fixed_by_closeout_evidence"
+      },
+      {
+        "id": "F2",
+        "severity": "P2",
+        "title": "Negative coverage needs granular proof",
+        "status": "fixed"
+      },
+      {
+        "id": "F3",
+        "severity": "P3",
+        "title": "CP00-029 upstream command evidence reference requires explanation",
+        "status": "not_applicable_after_adjudication"
+      },
+      {
+        "id": "F4",
+        "severity": "P3",
+        "title": "Derived service_entrypoint_contract_ref should be pinned",
+        "status": "fixed"
+      },
+      {
+        "id": "F5",
+        "severity": "P3",
+        "title": "Fixture content should remain metadata-only",
+        "status": "fixed_by_closeout_evidence"
+      }
+    ]
+  },
+  "read_only_confirmation": {
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true,
+    "supplied_context_only": true
+  },
+  "adjudication_notes": "Raw Claude findings F1 P1, F2 P2, and F3-F5 P3 were adjudicated. F1 is resolved by CP00-030 evidence creation and final RP00 validation. F2 is resolved by post-review service test strengthening around unsafe claims and derived-field drift. F3 is accepted because CP00-029 command evidence is upstream S01 evidence while CP00-030 command-evidence.json is the current pack gate record. F4 is fixed by asserting arbitrary input service_entrypoint_contract_ref drift is ignored and output pins RP00.P02.M07.S01. F5 is fixed by fixture mirror tests, RP00 validator coverage, and inspection confirming no materialized golden fixture output."
+}

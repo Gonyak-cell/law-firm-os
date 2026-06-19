@@ -1,0 +1,25 @@
+{
+  "work_package_id": "LT-L6-W06",
+  "inspected_at": "2026-06-18T14:53:52Z",
+  "verdict": "BLOCKED_KPI_TARGETS_STAGING_DASHBOARD_AND_24H_REFRESH_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "kpi_definition_rows": 7,
+    "kpi_target_rows": 7,
+    "panel_count": 7,
+    "synthetic_only": true,
+    "numeric_targets_set": false,
+    "staging_source": false,
+    "dashboard_published": false,
+    "auto_refresh_24h_verified": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "raw_sensitive_fields_exposed": false,
+    "staging_telemetry_claimed": false,
+    "target_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

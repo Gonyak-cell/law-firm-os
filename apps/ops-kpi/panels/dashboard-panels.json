@@ -1,0 +1,67 @@
+{
+  "schema_version": "law-firm-os.ops-kpi.dashboard-panels.v0.1",
+  "status": "panel_definition_draft_not_published",
+  "synthetic_only": true,
+  "dashboard_published": false,
+  "auto_refresh_24h_verified": false,
+  "panels": [
+    {
+      "panel_id": "KPI-PANEL-01",
+      "kpi_id": "KPI-DEF-01",
+      "title": "Matter status visibility",
+      "primary_measure": "percent",
+      "source": "aggregate KPI collector output"
+    },
+    {
+      "panel_id": "KPI-PANEL-02",
+      "kpi_id": "KPI-DEF-02",
+      "title": "Filing usage rate",
+      "primary_measure": "percent",
+      "source": "aggregate KPI collector output"
+    },
+    {
+      "panel_id": "KPI-PANEL-03",
+      "kpi_id": "KPI-DEF-03",
+      "title": "Document integrity",
+      "primary_measure": "percent",
+      "source": "aggregate KPI collector output"
+    },
+    {
+      "panel_id": "KPI-PANEL-04",
+      "kpi_id": "KPI-DEF-04",
+      "title": "AI reliability",
+      "primary_measure": "percent_or_zero_output_state",
+      "source": "aggregate KPI collector output"
+    },
+    {
+      "panel_id": "KPI-PANEL-05",
+      "kpi_id": "KPI-DEF-05",
+      "title": "Security",
+      "primary_measure": "percent_pair",
+      "source": "aggregate KPI collector output"
+    },
+    {
+      "panel_id": "KPI-PANEL-06",
+      "kpi_id": "KPI-DEF-06",
+      "title": "HR stability",
+      "primary_measure": "percent_pair",
+      "source": "aggregate KPI collector output"
+    },
+    {
+      "panel_id": "KPI-PANEL-07",
+      "kpi_id": "KPI-DEF-07",
+      "title": "Knowledge conversion",
+      "primary_measure": "percent",
+      "source": "aggregate KPI collector output"
+    }
+  ],
+  "raw_data_policy": {
+    "aggregate_values_only": true,
+    "client_names_allowed": false,
+    "matter_names_allowed": false,
+    "personal_data_allowed": false,
+    "document_contents_allowed": false,
+    "email_bodies_allowed": false,
+    "privileged_text_allowed": false
+  }
+}

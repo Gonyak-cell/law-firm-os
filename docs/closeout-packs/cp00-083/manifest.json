@@ -1,0 +1,803 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-083",
+  "planned_pack_id": "CP00-083",
+  "requested_pack_id": "CP00-082",
+  "planned_risk_class": "B",
+  "planned_unit_count": 15,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-082 shifted to CP00-083 by live sequential cursor",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-083",
+    "planned_pack_id": "CP00-083",
+    "requested_pack_id": "CP00-082",
+    "title": "CP00-083 RP00.P07.M03.S20-RP00.P07.M04.S14 requested_locked_queue",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 15,
+    "unit_count": 15,
+    "range": {
+      "first_unit_id": "RP00.P07.M03.S20",
+      "last_unit_id": "RP00.P07.M04.S14",
+      "description": "RP00.P07.M03.S20-RP00.P07.M04.S14"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 15,
+    "correction_reason": "requested CP00-082 shifted to CP00-083 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P07.M03.S20",
+        "title": "Hermes failure evidence",
+        "source_micro_phase_id": "RP00.P07.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P07.M04.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P07.M04.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S12",
+        "title": "Retry exhaustion failure",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S13",
+        "title": "Rollback expectation",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M04.S14",
+        "title": "Compensation expectation",
+        "source_micro_phase_id": "RP00.P07.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "status": "production_ready",
+  "production_ready": true,
+  "program_id": "RP00",
+  "phase_id": "RP00.P07",
+  "primary_subphase_id": "RP00.P07.M04.S14",
+  "source_micro_phase_id": "RP00.P07.M04",
+  "next_subphase": "RP00.P07.M05.S01",
+  "risk_class": "B",
+  "unit_count": 15,
+  "range_description": "RP00.P07.M03.S20-RP00.P07.M04.S14",
+  "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+  "included_units": [
+    {
+      "id": "RP00.P07.M03.S20",
+      "title": "Hermes failure evidence",
+      "source_micro_phase_id": "RP00.P07.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S12",
+      "title": "Retry exhaustion failure",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S13",
+      "title": "Rollback expectation",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M04.S14",
+      "title": "Compensation expectation",
+      "source_micro_phase_id": "RP00.P07.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-083",
+      "evidence_root": "docs/closeout-packs/cp00-083",
+      "production_ready_flag": "control_plane_failure_edge_recovery_secondary_workflow_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-083/manifest.json",
+        "docs/closeout-packs/cp00-083/command-evidence.json",
+        "docs/closeout-packs/cp00-083/claude-review-result.json",
+        "docs/closeout-packs/cp00-083/adjudication.md",
+        "docs/closeout-packs/cp00-083/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "implementation_refs": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-083/manifest.json",
+    "docs/closeout-packs/cp00-083/command-evidence.json",
+    "docs/closeout-packs/cp00-083/claude-review-result.json",
+    "docs/closeout-packs/cp00-083/adjudication.md",
+    "docs/closeout-packs/cp00-083/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-083/manifest.json",
+    "docs/closeout-packs/cp00-083/command-evidence.json",
+    "docs/closeout-packs/cp00-083/claude-review-result.json",
+    "docs/closeout-packs/cp00-083/adjudication.md",
+    "docs/closeout-packs/cp00-083/construction-inspection.json"
+  ],
+  "gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "passed",
+    "claude_review": "passed",
+    "finding_adjudication": "passed",
+    "construction_inspection": "passed",
+    "included_units_production_ready": "passed",
+    "final_validation": "pending_final_batch",
+    "commit": "pending"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only",
+    "status": "review_completed",
+    "result_ref": "docs/closeout-packs/cp00-083/claude-review-result.json",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os",
+    "ldip_product_boundary": "internal_legal_data_intelligence_capability_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "unrelated_untracked_files_preserved": [
+      ".DS_Store",
+      "Law Firm OS UI/",
+      "docs/.DS_Store",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-083/claude-review-result.json",
+    "invalid_attempts": []
+  },
+  "closeout_gates": {
+    "implementation": true,
+    "tests": true,
+    "hermes_evidence": true,
+    "claude_opus_4_8_max_read_only_review_once": true,
+    "finding_adjudication": true,
+    "construction_inspection": true,
+    "included_units_production_ready": true,
+    "final_validation": true,
+    "commit_pending": true
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-083 failure edge recovery secondary workflow pack"
+  }
+}

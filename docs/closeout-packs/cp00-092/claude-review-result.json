@@ -1,0 +1,132 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-092",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "d944ebe8-5ec6-4e2e-953e-5f2b9a1c48eb",
+    "uuid": "e2f03d11-8945-40d4-8532-42464d3cd7c4",
+    "total_cost_usd": 0.7690625,
+    "permission_denials": [],
+    "duration_ms": 189231,
+    "invalid_attempt_counted_as_valid": false
+  },
+  "invalid_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-092-claude-review-prompt.md > /tmp/cp00-092-claude-review-output.json",
+      "exit_code": 0,
+      "counted_as_valid_review": false,
+      "reason": "Result body was not the required JSON review; it attempted to begin tool-based exploration in prose.",
+      "session_id": "276651ab-0069-4123-a6ba-a159124e91ef",
+      "uuid": "61939c85-484d-40af-9bcd-43631bbb21c3"
+    }
+  ],
+  "parsed_review": {
+    "pack_id": "CP00-092",
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-CP00-092-001",
+          "severity": "P3",
+          "title": "Contract validator fails closed pending cp00-092 evidence files",
+          "detail": "npm run rp00:control-plane:validate currently fails only because docs/closeout-packs/cp00-092/{manifest.json,command-evidence.json,claude-review-result.json,adjudication.md,construction-inspection.json} are not yet present. The validator was extended to push S01-S10 into requiredClosedSubphases, advance currentContractSubphaseId to RP00.P09.M05.S10 and currentSourceMicroPhaseId to RP00.P09.M05, and require a construction inspection asserting control_plane_review_closeout_permission_audit_binding_verified===true. This is the expected pre-evidence sequencing state, not a code defect; this very review is one of the evidence artifacts that must be materialized before the validator turns green.",
+          "location": "scripts/validate-rp00-control-plane-contract.mjs; docs/closeout-packs/cp00-092/*",
+          "recommendation": "Create the cp00-092 evidence pack (manifest, command-evidence, claude-review-result, adjudication, construction-inspection) and re-run rp00:control-plane:validate to confirm green before pack closeout.",
+          "blocking": false
+        },
+        {
+          "id": "P3-CP00-092-002",
+          "severity": "P3",
+          "title": "blocked_claim_refs intentionally empty for this binding pack",
+          "detail": "result.blocked_claim_refs is fixed to [] and assertControlPlaneReviewCloseoutPermissionAuditBindingResult requires it to be an empty array. Forbidden boundary claims are rejected via thrown errors in assembleControlPlaneReviewCloseoutPermissionAuditBinding (forbidden and unknown claims both throw) rather than recorded as blocked-claim receipts. This diverges from upstream packs that emitted blocked-claim receipts, but is internally consistent and validator-enforced for a metadata-only binding with no boundary-suite execution.",
+          "location": "packages/control-plane/src/service.js (assembleControlPlaneReviewCloseoutPermissionAuditBinding); packages/control-plane/src/validators.js (assertControlPlaneReviewCloseoutPermissionAuditBindingResult)",
+          "recommendation": "No action required; confirm empty blocked_claim_refs matches the intended evidence convention for metadata-only review-closeout binding packs.",
+          "blocking": false
+        }
+      ]
+    },
+    "verification_performed": {
+      "review_mode": "read-only static review of the provided diff, plan snapshot, and generated summaries; no tools used, no files inspected, no writes performed",
+      "inputs_reviewed": [
+        "plan snapshot (CP00-092)",
+        "contract/fixture generated summary (definition_summary, fixture_summary, closeout_tail)",
+        "packages/control-plane/src/policies.js diff",
+        "packages/control-plane/src/service.js diff",
+        "packages/control-plane/src/validators.js diff",
+        "packages/control-plane/test/service.test.js diff",
+        "scripts/validate-rp00-control-plane-contract.mjs diff",
+        "packages/control-plane/README.md diff"
+      ],
+      "validation_signals": {
+        "unit_tests": "reported PASS, 913 tests (packages/control-plane/test/service.test.js)",
+        "contract_validator": "reported expected FAIL before evidence files exist; only missing docs/closeout-packs/cp00-092/* evidence files (see P3-CP00-092-001)"
+      },
+      "cross_checks": "policy <-> validator asserts <-> assembler output <-> RESULT_FIELDS <-> fixture_summary <-> contract definition_summary <-> test assertions; unit/range/risk/pack-id consistency; upstream CP00-091 gate fields; full negative-capability flag set",
+      "diff_scale": "8 files, +3546/-7; bulk in contracts/control-plane-contract.json (+1756) and fixtures/synthetic-control-plane.json (+697), expected for contract-mirroring binding packs"
+    },
+    "explicit_checks": {
+      "1_risk_bound_10_units_not_stray_single": {
+        "status": "pass",
+        "evidence": "plan unit_count=planned_unit_count=requested_unit_count=10, deviation_from_plan=false, within_default_risk_range=true; risk_class=planned_risk_class=A. Policy unitCount=10 with UNIT_ROWS S01..S10; SUBPHASE_IDS derived from units. Validator asserts unitCount===10, includedSubphaseIds.length===10, [0]===RP00.P09.M05.S01, .at(-1)===RP00.P09.M05.S10, and includedSubphaseIds===SUBPHASE_IDS. Result/contract/fixture all carry 10 included_unit_ids S01-S10. No 1-unit drift."
+      },
+      "2_upstream_cp00_091_handoff_enforced": {
+        "status": "pass",
+        "evidence": "Assembler requires upstream object, rejects array/non-object; enforces pack_id===planned_pack_id===CP00-091, next_subphase===RP00.P09.M05.S01, decision===hermes_validation_evidence_review_transition_bound_metadata_only, source_micro_phase_completed===true, phase_completed===false, hermes_validation_phase_completed===true, review_and_closeout_phase_started===true, review_and_closeout_opening_bound===true, plus all upstream write/runtime/approval/ldip flags false; then calls assertControlPlaneHermesValidationEvidenceReviewTransitionResult(upstream). requiredInputFields===CP00-091 RESULT_FIELDS (validator-enforced). requiredEvidenceRefs reference cp00-091 manifest/command-evidence/claude-review-result/adjudication/construction-inspection. Tests cover pack mismatch, S01 handoff drift, opening-bound drift, and object-shape guards."
+      },
+      "3_boundaries_hold": {
+        "status": "pass",
+        "no_write": "database_write_permitted/storage_write_permitted/product_state_persistence_permitted/idempotency_record_write_permitted/runtime_lock_acquisition_permitted=false; writes_product_state=false; policy doesNotWrite* and result assert enforce all",
+        "no_real_data": "no_real_data=true in policy/module/result/fixture; validator asserts true",
+        "no_runtime_claude_review": "runtime_claude_review_invocation_permitted=false; review_queue/assignment/notification_write_permitted=false; forbidden claims invoke_runtime_claude_review/write_review_* throw",
+        "no_runtime_permission_or_authz": "runtime_permission_evaluation_permitted/permission_engine_execution_permitted/authz_evaluator_called/security_trimming_execution_permitted=false; forbidden claims execute_runtime_permission_evaluation/call_authz_evaluator/run_permission_engine/apply_security_trimming throw; permission_context_visible_only=true",
+        "no_audit_write": "audit_ledger_append_permitted/audit_event_write_permitted/observability_event_write_permitted=false; forbidden claims append_audit_ledger/write_audit_event throw; audit_context_visible_only=true",
+        "no_product_state_persistence": "product_state_persistence_permitted=false; forbidden claim persist_product_state throws; completesSourceMicroPhase/phaseCompleted false",
+        "no_human_approval_synthesis": "human_approval_record_write_permitted/human_approval_decision_synthesized/human_approval_bypass_permitted=false; human_approval_marker_required=true and human_approval_marker_is_not_approval=true preserved; forbidden claims write_human_approval_record/synthesize_human_approval_decision/bypass_human_approval/mark_go_no_go_final_without_human_marker throw",
+        "failclosed_unknown_claims": "any non-false claim that is neither forbidden nor known throws 'cannot accept unknown claim' (test-covered)"
+      },
+      "4_micro_phase_open_next_s11": {
+        "status": "pass",
+        "evidence": "policy.completesSourceMicroPhase=false, phaseCompleted=false, nextSubphase=RP00.P09.M05.S11; partiallyCompletedSourceMicroPhaseIds=[RP00.P09.M05] and openSourceMicroPhaseIds=[RP00.P09.M05]. Result source_micro_phase_completed=false, phase_completed=false, next_subphase=RP00.P09.M05.S11. definition_summary.closeout_contract: source_micro_phase_completed=false, phase_completed=false, next_subphase=RP00.P09.M05.S11. Validator/result-assert enforce S11. Matches scope leaving S11 as next human approval marker pack."
+      },
+      "5_fixture_contract_test_validator_consistent": {
+        "status": "pass",
+        "evidence": "fixture_summary.result_equals_contract=true, unit_count=10, included_subphase_ids S01-S10. Test 'fixture mirrors policy' validates suiteFixture.result via assert and checks pack/planned/requested ids and next_subphase. Test 'contract mirrors policy lists' deep-equals definition included_subphase_ids/unit_titles/source_micro_phase_ids/phase_ids/required_input_fields/result_fields/required_evidence_refs/acceptance_gate_ids/forbidden_boundary_suite_claims/fail_closed_on/review_question_contracts to policy, asserts definition.result, and deep-equals definition.result===fixture result; closeout_contract production_ready_flag and next_subphase verified. Validator length-locks resultFields and forbids extra result keys (Object.keys sort equality). Reported 913 tests PASS. result_field_count=112 consistent."
+      },
+      "6_ldip_planning_only_not_implemented": {
+        "status": "pass",
+        "evidence": "policy.ldipPlanningGateRef=docs/ldip-integration/ldip-overlay-closeout-pack-map.json; ldipImplementationAllowed=false; result.ldip_planning_gate_ref set and ldip_implementation_allowed=false; failClosedOn includes ldip_implementation_claim; acceptance gate ldip_planning_gate_referenced_without_implementation; result.result_flags ldip not present as implemented. No LDIP implementation surface introduced (the untracked docs/ldip-integration/claude-review-results/* file is outside this pack and not part of the diff)."
+      },
+      "supplemental": {
+        "deliverable_types_match_plan": "pass — UNIT_ROWS deliverableType S01/S02=claude_review, S03/S04=security_audit, S05=test, S06=ui, S07-S10=implementation match plan included_units",
+        "result_frozen_and_sealed": "pass — result and nested arrays Object.frozen; review_question_contracts (10) and per-family contracts (permission_bypass/audit_completeness/missing_test/ui_leak/downstream_readiness/risk_register/severity_taxonomy/go_no_go_verdict_format) present with metadata_only=true, no_real_data=true, p0_p1_unresolved_allowed=false, p2_requires_fix_or_defer=true",
+        "tenant_and_matter_trace": "pass — tenant_id/actor_id/actor_tenant_id/resource_tenant_id/matter_id/matter_tenant_id required as trimmed nonblank strings; tenant_boundary_required and matter_trace_required true",
+        "phase_accounting": "pass — completedPhaseIds=[RP00.P08], hermes_validation_phase_completed=true, review_and_closeout_phase_started=true; completedSourceMicroPhaseIds inherited from CP00-091 and validator confirms inclusion of RP00.P09.M04",
+        "readme_changelog_entry": "pass — README adds accurate CP00-092 entry with exports, plan binding, Risk A cursor correction CP00-091->CP00-092, metadata-only contract list, full no-* boundary list, and next boundary RP00.P09.M05.S11"
+      }
+    }
+  },
+  "raw_result_excerpt": "{\n  \"review\": {\n    \"pack_id\": \"CP00-092\",\n    \"overall_verdict\": \"PASS\",\n    \"blocks_pack_closeout\": false,\n    \"blocks_subphase_closeout\": false,\n    \"blocks_goal_closeout\": false,\n    \"no_unresolved_p0\": true,\n    \"no_unresolved_p1\": true,\n    \"finding_counts\": {\"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 2},\n    \"findings\": {\n      \"p0\": [],\n      \"p1\": [],\n      \"p2\": [],\n      \"p3\": [\n        {\n          \"id\": \"P3-CP00-092-001\",\n          \"severity\": \"P3\",\n          \"title\": \"Contract validator fails closed pending cp00-092 evidence files\",\n          \"detail\": \"npm run rp00:control-plane:validate currently fails only because docs/closeout-packs/cp00-092/{manifest.json,command-evidence.json,claude-review-result.json,adjudication.md,construction-inspection.json} are not yet present. The validator was extended to push S01-S10 into requiredClosedSubphases, advance currentContractSubphaseId to RP00.P09.M05.S10 and currentSourceMicroPhaseId to RP00.P09.M05, and require a construction inspection asserting control_plane_review_closeout_permission_audit_binding_verified===true. This is the expected pre-evidence sequencing state, not a code defect; this very review is one of the evidence artifacts that must be materialized before the validator turns green.\",\n          \"location\": \"scripts/validate-rp00-control-plane-contract.mjs; docs/closeout-packs/cp00-092/*\",\n          \"recommendation\": \"Create the cp00-092 evidence pack (manifest, command-evidence, claude-review-result, adjudication, construction-inspection) and re-run rp00:control-plane:validate to confirm green before pack closeout.\",\n          \"blocking\": false\n        },\n        {\n          \"id\": \"P3-CP00-092-002\",\n          \"severity\": \"P3\",\n          \"title\": \"blocked_claim_refs intentionally empty for this binding pack\",\n          \"detail\": \"result.blocked_claim_refs is fixed to [] and assertControlPlaneReviewCloseoutPermissionAuditBindingResult requires it to be an empty array. Forbidden boundary claims are rejected via thrown errors in assembleControlPlaneReviewCloseoutPermissionAuditBinding (forbidden and unknown claims both throw) rather than recorded as blocked-claim receipts. This diverges from upstream packs that emitted blocked-claim receipts, but is internally consistent and validator-enforced for a metadata-only binding with no boundary-suite execution.\",\n          \"location\": \"packages/control-plane/src/service.js (assembleControlPlaneReviewCloseoutPermissionAuditBinding); packages/control-plane/src/validators.js (assertControlPlaneReviewCloseoutPermissionAuditBindingResult)\",\n          \"recommendation\": \"No action required; confirm empty blocked_claim_refs matches the intended evidence convention for metadata-only review-closeout binding packs.\",\n          \"blocking\": false\n        }\n      ]\n    },\n    \"verification_performed\": {\n      \"review_mode\": \"read-only static review of the provided diff, plan snapshot, and generated summaries; no tools used, no files inspected, no writes performed\",\n      \"inputs_reviewed\": [\n        \"plan snapshot (CP00-092)\",\n        \"contract/fixture generated summary (definition_summary, fixture_summary, closeout_tail)\",\n        \"packages/control-plane/src/policies.js diff\",\n        \"packages/control-plane/src/service.js diff\",\n        \"packages/control-plane/src/validators.js diff\",\n        \"packages/control-plane/test/service.test.js diff\",\n        \"scripts/validate-rp00-control-plane-contract.mjs diff\",\n        \"packages/control-plane/README.md diff\"\n      ],\n      \"validation_signals\": {\n        \"unit_tests\": \"reported PASS, 913 tests (packages/control-plane/test/service.test.js)\",\n        \"contract_validator\": \"reported expected FAIL before evidence files exist; only missing docs/closeout-packs/cp00-092/* evidence files (see P3-CP00-092-001)\"\n      },\n      \"cross_checks\": \"policy <-> validator asserts <-> assembler output <-> RESULT_FIELDS <-> fixture_summary <-> contract definition_summary <-> test assertions; unit/range/risk/pack-id consistency; upstream CP00-091 gate fields; full negative-capability flag set\",\n      \"diff_scale\": \"8 files, +3546/-7; bulk in contracts/control-plane-contract.json (+1756) and fixtures/synthetic-control-plane.json (+697), expected for contract-mirroring binding packs\"\n    },\n    \"explicit_checks\": {\n      \"1_risk_bound_10_units_not_stray_single\": {\n        \"status\": \"pass\",\n        \"evidence\": \"plan unit_count=planned_unit_count=requested_unit_count=10, deviation_from_plan=false, within_default_risk_range=true; risk_class=planned_risk_class=A. Policy unitCount=10 with UNIT_ROWS S01..S10; SUBPHASE_IDS derived from units. Validator asserts unitCount===10, includedSubphaseIds.length===10, [0]===RP00.P09.M05.S01, .at(-1)===RP00.P09.M05.S10, and includedSubphaseIds===SUBPHASE_IDS. Result/contract/fixture all carry 10 included_unit_ids S01-S10. No 1-unit drift.\"\n      },\n      \"2_upstream_cp00_091_handoff_enforced\": {\n        \"status\": \"pass\",\n        \"evidence\": \"Assembler requires upstream object, rejects array/non-object; enforces pack_id===planned_pack_id===CP00-091, next_subphase===RP00.P09.M05.S01, decision===hermes_validation_evidence_review_transition_bound_metadata_only, source_micro_phase_completed===true, phase_completed===false, hermes_validation_phase_completed===true, review_and_closeout_phase_started===true, review_and_closeout_opening_bound===true, plus all upstream write/runtime/approval/ldip flags false; then calls assertControlPlaneHermesValidationEvidenceReviewTransitionResult(upstream). requiredInputFields===CP00-091 RESULT_FIELDS (validator-enforced). requiredEvidenceRefs reference cp00-091 manifest/command-evidence/claude-review-result/adjudication/construction-inspection. Tests cover pack mismatch, S01 handoff drift, opening-bound drift, and object-shape guards.\"\n      },\n      \"3_boundaries_hold\": {\n        \"status\": \"pass\",\n        \"no_write\": \"database_write_permitted/storage_write_permitted/product_state_persistence_permitted/idempotency_record_write_permitted/runtime_lock_acquisition_permitted=false; writes_product_state=false; policy doesNotWrite* and result assert enforce all\",\n        \"no_real_data\": \"no_real_data=true in policy/module/result/fixture; validator asserts true\",\n        \"no_runtime_claude_review\": \"runtime_claude_review_invocation_permitted=false; review_queue/assignment/notification_write_permitted=false; forbidden claims invoke_runtime_claude_review/write_review_* throw\",\n        \"no_runtime_permission_or_authz\": \"runtime_permission_evaluation_permitted/permission_engine_execution_permitted/authz_evaluator_called/security_trimming_execution_permitted=false; forbidden claims execute_runtime_permission_evaluation/call_authz_evaluator/run_permission_engine/apply_security_trimming throw; permission_context_visible_only=true\",\n        \"no_audit_write\": \"audit_ledger_append_permitted/audit_event_write_permitted/observability_event_write_permitted=false; forbidden claims append_audit_ledger/write_audit_event throw; audit_context_visible_only=true\",\n        \"no_product_state_persistence\": \"product_state_persistence_permitted=false; forbidden claim persist_product_state throws; completesSourceMicroPhase/phaseCompleted false\",\n        \"no_human_approval_synthesis\": \"human_approval_record_write_permitted/human_approval_decision_synthesized/human_approval_bypass_permitted=false; human_approval_marker_required=true and human_approval_marker_is_not_approval=true preserved; forbidden claims write_human_approval_record/synthesize_human_approval_decision/bypass_human_approval/mark_go_no_go_final_without_human_marker throw\",\n        \"failclosed_unknown_claims\": \"any non-false claim that is neither forbidden nor known throws 'cannot accept unknown claim' (test-covered)\"\n      },\n      \"4_micro_phase_open_next_s11\": {\n        \"status\": \"pass\",\n        \"evidence\": \"policy.completesSourceMicroPhase=false, phaseCompleted=false, nextSubphase=RP00.P09.M05.S11; partiallyCompletedSourceMicroPhaseIds=[RP00.P0"
+}

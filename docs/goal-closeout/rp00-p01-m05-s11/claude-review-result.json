@@ -1,0 +1,118 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M05.S11",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Validation helper",
+  "entity": "HumanApproval",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T03:46:01Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "failed_tooling_attempts_not_counted_as_completed_review": 0,
+    "completed_diff_based_reviews_counted": 1
+  },
+  "tooling_attempts": [],
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "pasted_git_diff_and_validation_summary",
+    "session_id": "353b3d86-1161-45cc-955c-345691f378ef",
+    "uuid": "86bc891d-3d90-442a-9709-c99024f9a382",
+    "duration_ms": 210377,
+    "duration_api_ms": 212151,
+    "terminal_reason": "completed",
+    "total_cost_usd": 0.9916745
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "353b3d86-1161-45cc-955c-345691f378ef",
+    "uuid": "86bc891d-3d90-442a-9709-c99024f9a382",
+    "duration_ms": 210377,
+    "duration_api_ms": 212151,
+    "total_cost_usd": 0.9916745,
+    "permission_denials": []
+  },
+  "raw_claude_review_text": "Verdict: PASS\n\nFindings:\n- [P2] packages/control-plane/src/model.js (`validateHumanApproval`) - Tenant-scope enforcement is indirect: the helper never calls `assertHumanApprovalTenantScope` directly; it relies on `validateHumanApprovalOptionalFields(optionalFieldRecord, tenantContext, ...)` to throw on mismatch. Impact: the contract advertises `enforcement_policy.tenant_scope: true`, but that guarantee is transitively coupled to the optional-field validator. Fix: add an explicit `assertHumanApprovalTenantScope(value, options.tenantContext)` call in `validateHumanApproval` for defense-in-depth and intent clarity.\n- [P2] scripts/validate-rp00-control-plane-contract.mjs / test/model.test.js - The `terminal_status_protection_enforced` acceptance gate is asserted as listed but is not directly exercised at the S11 helper layer. Impact: terminal protection is covered transitively, so the property holds, but the gate's coverage is implicit. Fix: add one negative case transitioning out of a terminal status to make the gate self-evidencing.\n\nResidual risk: Low. The two P2s are robustness/coverage hardening, not correctness defects. Main latent risk is the snapshot-style validator: gating historical HumanApproval registry checks on `currentContractSubphaseId` makes them dead for all but their own subphase, so future regressions in earlier slices' registry flags won't be re-caught; this is consistent with the established M03 pattern.",
+  "verdict": "PASS",
+  "go_no_go": "go_after_adjudication",
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "HA-S11-001",
+        "severity": "P2",
+        "title": "Tenant-scope enforcement should be explicit in validateHumanApproval",
+        "details": "Claude noted the helper relied on validateHumanApprovalOptionalFields to enforce tenant scope, leaving the S11 tenant_scope guarantee indirectly coupled to S09 behavior.",
+        "recommendation": "Call assertHumanApprovalTenantScope(value, options.tenantContext) directly inside validateHumanApproval.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "packages/control-plane/src/model.js now calls assertHumanApprovalTenantScope directly; packages/control-plane/test/model.test.js and scripts/validate-rp00-control-plane-contract.mjs validate the hardened helper."
+      },
+      {
+        "id": "HA-S11-002",
+        "severity": "P2",
+        "title": "Terminal-status protection should be directly exercised at the S11 helper layer",
+        "details": "Claude noted terminal protection was covered through the S10 map but lacked a direct S11 validation-helper negative case.",
+        "recommendation": "Add a negative assertHumanApprovalTransitionEvidence terminal-outgoing transition case.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "packages/control-plane/test/model.test.js and scripts/validate-rp00-control-plane-contract.mjs now reject production_ready -> implemented transition evidence."
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "HA-S11-001",
+        "title": "Tenant-scope enforcement should be explicit in validateHumanApproval",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S11-002",
+        "title": "Terminal-status protection should be directly exercised at the S11 helper layer",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      }
+    ],
+    "P3": []
+  },
+  "criteria_checks": {
+    "validation_helper_bound": "PASS",
+    "transition_evidence_helper_bound": "PASS",
+    "required_fields_enforced": "PASS",
+    "optional_fields_enforced": "PASS",
+    "tenant_scope_enforced": "PASS_AFTER_P2_FIX",
+    "matter_trace_enforced": "PASS",
+    "relationship_references_enforced": "PASS",
+    "transition_evidence_enforced": "PASS",
+    "terminal_status_protection_enforced": "PASS_AFTER_P2_FIX",
+    "unknown_fields_rejected": "PASS",
+    "registry_marks_human_approval_complete": "PASS",
+    "no_approval_synthesis": "PASS",
+    "no_product_state_writes": "PASS",
+    "evidence_sufficiency_after_closeout_files": "PASS"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ]
+}

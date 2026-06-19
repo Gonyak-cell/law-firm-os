@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.launch-owner-response-receipt-candidates.v0.1",
+  "generated_at": "2026-06-19T00:15:13.209Z",
+  "source_refs": [
+    "docs/launch/launch-owner-response-intake.json",
+    "docs/launch/launch-owner-response-intake-validation.json",
+    "docs/launch/launch-owner-approval-receipt-ledger.json"
+  ],
+  "boundary": {
+    "receipt_update_candidate_preview_only": true,
+    "go_live_approved_by_this_file": false,
+    "owner_deferrals_approved_by_this_file": false,
+    "receipt_ledger_modified_by_this_file": false,
+    "launch_decision_register_modified_by_this_file": false,
+    "pending_responses_excluded_from_candidates": true,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "response_intake_verdict": "PASS",
+    "response_entry_count": 4,
+    "pending_response_count": 4,
+    "real_owner_response_count": 0,
+    "copy_allowed_response_count": 0,
+    "receipt_update_candidate_count": 0,
+    "target_count_by_candidates": 0,
+    "receipt_ledger_current_real_receipt_count": 0,
+    "receipt_ledger_current_copy_allowed_count": 0
+  },
+  "receipt_update_candidates": []
+}

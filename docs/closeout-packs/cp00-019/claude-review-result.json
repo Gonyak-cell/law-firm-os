@@ -1,0 +1,98 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-019",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "3e42979e-f090-4759-9b66-cb7a90cb13d8",
+    "uuid": "066307e0-760c-43bf-8341-5f77868576a0",
+    "duration_ms": 257712,
+    "duration_api_ms": 259868,
+    "total_cost_usd": 1.04587275,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 41575,
+        "outputTokens": 24,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.041695,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 24324,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 63127,
+        "webSearchRequests": 0,
+        "costUSD": 1.00417775,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-019-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "scripts/validate-rp00-control-plane-contract.mjs synthetic fixture set tenant boundary live-check loop",
+        "title": "Live-check loop branches on human-readable label suffix",
+        "detail": "The added live-execution loop distinguishes deny-result cases from throw-expected cases via label.endsWith(\"mismatch\"). This couples control flow to display strings. Validation-only, no runtime impact, and does not affect correctness of the current five cases."
+      }
+    ],
+    "security_notes": [
+      "Actor tenant mismatch and fixture-set tenant mismatch emit independent blocked refs and force deny_blocked_claim_required with precheck_passed=false.",
+      "Any truthy forbidden or unknown boundary claim throws fail-closed, including tenant bypass, cross-tenant allow, fixture generation, fixture persistence, and product write claims.",
+      "The result validator re-derives mismatch invariants and rejects pass/decision/blocked-ref inconsistencies.",
+      "The precheck is pure in-memory metadata over the S02 normalized request and does not generate or persist fixtures, create routes, execute services, or write product state.",
+      "Matter trace tenant validation is deferred to RP00.P02.M06.S04 without asserting a runtime authorization claim in S03."
+    ],
+    "test_notes": [
+      "Five new unit tests cover policy binding, same-tenant allow path, actor and fixture-set mismatch denies, forbidden and unknown claim rejection, module no-write shape, S04 handoff, and fixture mirror.",
+      "RP00 validator live checks normalize and precheck the S02 fixture input, compare the result to fixture tenant_boundary_result, validate the result, and exercise deny and throw paths.",
+      "Pre-review evidence: syntax checks passed; node --test packages/control-plane/test/service.test.js passed 431/431; RP00 validator failed only for expected missing CP00-019 evidence files."
+    ],
+    "summary": "CP00-019 correctly adds a deterministic metadata-only Synthetic Fixture Set tenant boundary precheck for RP00.P02.M06.S03. It denies actor and fixture-set tenant mismatches, fails closed on forbidden or unknown boundary claims, preserves no-real-data/no-write/no-fixture-generation boundaries, keeps RP00.P02.M06 open, and hands off to RP00.P02.M06.S04. No P0/P1/P2 findings; one non-blocking P3 validator style finding."
+  },
+  "raw_review_text": "Review complete. PASS_WITH_FINDINGS. No blockers: 0 P0/P1/P2, 1 P3 note. CP00-019 is internally consistent across contract, policy/module, fixture, test, README, and RP validator; the only outstanding validator item is expected evidence assembly.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude returned PASS_WITH_FINDINGS with no P0, P1, or P2 findings. One P3 finding is deferred in adjudication.md."
+}

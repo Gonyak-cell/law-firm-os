@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-811",
+  "normalized_at": "2026-06-16T05:08:35.338Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-811/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-811/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-811/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-811/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e929b354-ced0-464b-896c-cefedf6a3f36",
+    "uuid": "9dc5254b-2405-4cd2-af6f-78f616908582",
+    "total_cost_usd": 3.234196,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8029,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-811 descriptor-only failure-recovery bridge pack (risk B, 40 units, RP26.P07.M02.S03-RP26.P07.M03.S20: Type And Shape Definition tail rows + Primary Implementation Slice rows) verified by read-only source inspection. Binding (registry.js:443), requirements (registry.js:2075), section rows (FAILURE_RECOVERY_ROWS registry.js:739 + EDGE_HANDOFF registry.js:762; required_section_rows registry.js:2100), descriptor and packets (service.js:1672/1997/2622/2880), validators (validators.js:174/767/745), tests (model.test.js:998-1069), persisted contract (current/latest_pack contract:54/70, latest_projection:34588, validation.valid:42547, mandatory_artifacts:456, no_leak_guards:484), live plan (closeout-pack-plan.json:398, same source_ledger_sha), README (#cp00-811) and index re-exports all reconcile exactly with the prompt baseline. Deliverable distribution 22/4/3/4/2/4/1=40 and micro-title split 20/20 match; clean non-overlapping continuation from CP810 (which closed M02.S01-S02), handing off to CP00-812/RP26.P07.M03.S21. No-write/no-real-data/runtime-closed boundaries are enforced at attestation, row, descriptor, validator, test, and contract layers (failure_recovery_runtime_opened, executes_api_handler/ui_runtime, writes_product_state/permission_decision, audit_event_body, hermes runtime receipts, real tenant data, SSO/SCIM/secret payloads, cross-tenant routes, enterprise_trust all closed). Claude is read-only/non-final (promotes_claude_to_final_approval false; P0/P1/P2 block the pack); Hermes is descriptor-only evidence, not embedded product runtime. No over-claim: manifest reports production_ready=false, runtime_ready=false, in_progress, review_pending with empty receipts. Review inputs are valid hardened evidence (auth preflight passed, model/effort/read-only tools correct, no forbidden tools, schema present, summary-only correctly prohibited for risk B). No P0/P1/P2 found; one non-blocking P3 records the expected pre-closeout absence of downstream artifacts and that validation commands were not executed by this read-only reviewer (mirrors CP809/CP810). PASS_WITH_FINDINGS; does not block pack closeout or this CP's closeout goal. Enterprise-trust/runtime opening remains deferred to human final approval, outside this receipt.",
+    "findings": [
+      {
+        "id": "CP811-P3-01",
+        "severity": "P3",
+        "title": "Downstream closeout artifacts and validation-command evidence not yet present (expected at the Claude-review stage)",
+        "file": "docs/closeout-packs/cp00-811/manifest.json",
+        "line": 527,
+        "details": "manifest.required_pack_artifacts (lines 527-533) lists command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but Glob of docs/closeout-packs/cp00-811/ confirms only manifest.json currently exists, and artifacts/closeout-pack-claude-review/cp00-811/ has no raw-output.json/review-receipt.json yet. pack_level_claude_review.status=review_pending with valid_review_receipts=[] and invalid_review_attempts=[] (manifest:517-526). This is the expected state during the Claude review step: claude-review-result.json wraps this review's verdict and adjudication.md is generated from the review receipt, so neither can exist before this review; command-evidence.json and construction-inspection.json plus execution of the listed validation commands (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) are produced/run by the closeout pipeline after this review. Being read-only (Read/Grep/Glob, no Bash), I verified the binding (registry.js:443), requirements/rows (registry.js:2075,739,762,2100), descriptor + createCaseSet no-write attestation and authority boundary (service.js:1672,293; registry.js:460), validators (validators.js:138,174,767,745), CP811 tests (model.test.js:998-1069), contract promotion/projection/validation.valid and guards (contract:54,70,34588,42547,456,484), live plan entry with matching source_ledger_sha (closeout-pack-plan.json:398-417), README (#cp00-811 README.md:65), index.js export * re-exports, and the validate-rp26 script logic by source inspection only; I did not and cannot execute the validation commands or confirm downstream adjudication/inspection output. No defect in the pack's current claims was found - the manifest correctly reports production_ready=false / runtime_ready=false / in_progress and does not overclaim runtime or enterprise trust. This mirrors the equivalent non-blocking P3 recorded for CP00-809 and CP00-810.",
+        "recommendation": "Proceed with the normal closeout pipeline: run the listed validation commands, capture command-evidence.json, and generate claude-review-result.json, adjudication.md, and construction-inspection.json; then obtain human final approval before any runtime or enterprise-trust opening (deferred to CP00-812 / RP26.P07.M03.S21). No code change required for this pack.",
+        "post_review_disposition": "expected_pre_closeout_state_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

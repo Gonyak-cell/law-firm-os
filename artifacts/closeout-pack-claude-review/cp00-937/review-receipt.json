@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-937",
+  "normalized_at": "2026-06-18T01:52:59.722Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-937/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-937/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-937/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-937/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e3484078-7bad-475d-89db-f3883ddcb623",
+    "uuid": "03e7c99e-99b9-4e72-8ea7-db06c151f537",
+    "total_cost_usd": 1.9505519999999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4890,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-937 is a clean descriptor-only HRX CandidateFixture-tail + LeaveFixture-foundation bridge pack (RP30.P05.M02.S09-RP30.P05.M03.S09, risk A, 10 units = 1 CandidateFixture S09 tail row + 9 LeaveFixture S01-S09 foundation rows), and its modest claim (production_ready=false, runtime_ready=false, descriptor_only) is fully supported. HRX_CP937_PACK_BINDING, HRX_CP937_REQUIRED_SECTION_ROWS, and HRX_CP937_REQUIREMENTS (registry.js) match the live closeout-pack-plan.json CP00-937 entry and the manifest included_units exactly, with deviation_from_plan=false and next=CP00-938/RP30.P05.M04.S01. The createHrxCp937CandidateLeaveFixtureBridgeDescriptor factory and createHrxDomainRows hold every runtime/record-write/real-data/permission-bypass/request-runtime/identity-link flag at false, spread HRX_NO_WRITE_ATTESTATION and HRX_BLOCKED_CLAIMS; validators.js (validateHrxCp937CandidateLeaveFixtureBridgeCoverage/Descriptor and validateHrxPeopleContract) enforces these boundaries and three CP937 tests in model.test.js assert binding, coverage, runtime-closed descriptor, and contract projection. The regenerated contracts/hrx-people-contract.json pins CP00-937 as latest_pack/latest_projection (HrxCp937CandidateLeaveFixtureBridgeDescriptor) with validation.valid=true and a full no_write_attestation. Authority boundary is correct: Claude is read-only and not promoted to final approval (claude_packet.promotes_claude_to_final_approval=false, c30_read_only=true), human approval is required for any runtime opening (deferred to CP00-938), and the Hermes packet is deterministic review metadata (emits_runtime_receipt=false, deterministic_only=true), not embedded product runtime. Review-evidence hardening passes: readiness auth-preflight succeeded (exit 0, 1228-byte valid JSON ok:true, no auth failure/0-byte/malformed/fenced/tool-call-shaped output), prompt is 2397B < 25600B with no full diff/source, review-schema present, only Read/Grep/Glob tools, and no active untracked implementation files omitted. Changed-file scope is respected: unrelated dirty/untracked files (progress-control-room UI, workbook matter docs, ldip review result) are segregated and not attributed to this pack. blocks_goal_closeout=false because the pack claims neither runtime nor enterprise trust, so the expected human/enterprise-trust approval authority boundary lies outside this receipt. Provenance: this verdict rests on direct read-only source inspection (Read/Grep/Glob) as the packet mandates; the full npm validation ladder is orchestrator-run and recorded as command evidence (HRX syntax checks, node --test, npm run rp30:hrx:validate all exit 0), not re-executed in this review. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

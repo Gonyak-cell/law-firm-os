@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-581",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T22:58:22.050Z",
+  "finished_at": "2026-06-12T23:03:22.575Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":299980,\"duration_api_ms\":300512,\"ttft_ms\":4263,\"num_turns\":46,\"result\":\"Review complete. **Verdict: PASS** — no findings, does not block pack or goal closeout.\\n\\nCP00-581 is a clean descriptor-only RP18 pack. I independently verified the 150-unit deliverable distribution from the baseline (not just the implementer's tests), confirmed all 7 required exports and substantive validator logic, and checked that every boundary holds: `production_ready: false`/`runtime_ready: false` with no enterprise-trust overclaim, no safety flag flipped to true anywhere in the attestation chain, Claude confined to read-only Read/Grep/Glob and not final approver, auth preflight passing with valid JSON, and `forbidden_review_evidence` covering all CP178+ invalid-evidence blockers. Unrelated dirty UI/workbook files are correctly excluded from pack scope.\",\"stop_reason\":\"end_turn\",\"session_id\":\"cadf6b6a-24c5-4788-bd22-aa8d0e45a191\",\"total_cost_usd\":2.22672375,\"usage\":{\"input_tokens\":50,\"cache_creation_input_tokens\":115039,\"cache_read_input_tokens\":1848574,\"output_tokens\":23278,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115039,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":277,\"cache_read_input_tokens\":112454,\"cache_creation_input_tokens\":3288,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3288},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1143,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001243,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":50,\"outputTokens\":23278,\"cacheReadInputTokens\":1848574,\"cacheCreationInputTokens\":115039,\"webSearchRequests\":0,\"costUSD\":2.22548075,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-581 is a clean descriptor-only RP18 closeout pack (P08 closeout / P09 foundation) covering exactly 150 units RP18.P08.M09.S03-RP18.P09.M06.S06, risk class C. The pack-level production_ready claim is correctly false (runtime_ready false, implementation_layer descriptor); the \\\"ai_legal_workflows_core_p08_closeout_p09_foundation_descriptor_verified\\\" flag and the Hermes production_ready_candidate are gated on substantive coverage+slice validation, so there is no enterprise-trust overclaim. Independent grep of review-baseline.json confirms the deliverable distribution exactly (implementation 80, hermes_evidence 20, claude_review 20, test 9, security_audit 14, ui 7 = 150), matching the prompt, the CP581 registry requirements, the manifest delivery_counts, and the contract. All 7 required public exports exist and the validators perform real count/title/boundary checks (pack id, risk, unit count, first/last unit, duplicate ids, RP18-only, per-deliverable/phase/micro counts, per-row descriptor_only/no-runtime/customer-safe/no-raw-payload guards, attestation flags, authority boundary, handoff). model.test.js and the contract validator carry comprehensive CP581 assertions, and command-evidence.json records every required validation command (npm test, validate, closeout-pack[-plan]:validate, weighted/fullplan/spec/goal/rp00 validates, git diff --check) at exit_code 0. The no-write/no-real-data boundaries hold: the attestation chain never flips a safety flag to true, manifest guards (claude_not_final_approver, enterprise_trust_not_claimed_from_local_validation, no_hermes_runtime_receipt, no_state_transition_write, no-leak guards) are all true, and no_real_data is true. Review hardening is satisfied: the readiness auth preflight passed with valid non-empty JSON (ok:true, exit_code 0), the prompt excludes full diff/source with source_inspection_mode read_tools_used, summary-only review is prohibited and not used, request tools are limited to Read/Grep/Glob with forbidden_tools_present false, and forbidden_review_evidence enumerates failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output and missing-field/approval/trust blockers per CP178+. Claude is bound as a read-only independent reviewer and not final approver, with human final approval and adjudication/construction-inspection still pending downstream (status implemented_pending_review). Hermes patterns appear only as deterministic evidence-packet/receipt descriptors (emits_hermes_runtime_receipt false), not product runtime. Unrelated dirty files (UI-workstream progress-control-room and matter workbook docs) are correctly segregated under unrelated_dirty_files_preserved and not treated as pack scope. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"f7ae68c1-1498-4238-8173-75dd0cd90c77\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5228,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "cadf6b6a-24c5-4788-bd22-aa8d0e45a191",
+    "uuid": "f7ae68c1-1498-4238-8173-75dd0cd90c77",
+    "total_cost_usd": 2.22672375,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

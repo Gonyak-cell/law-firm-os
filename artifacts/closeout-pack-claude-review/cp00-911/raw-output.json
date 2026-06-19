@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-911",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T17:12:25.422Z",
+  "finished_at": "2026-06-17T17:16:59.707Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":273765,\"duration_api_ms\":274451,\"ttft_ms\":4009,\"num_turns\":43,\"result\":\"Review complete. **Verdict: PASS** — zero findings, does not block pack or goal closeout.\\n\\nCP00-911 is a clean descriptor-only RP30/HRX RiskWorkflow→ApprovalWorkflow bridge: implementation/validators/contract/tests are mutually consistent, all runtime/write/real-data/score/payload/delegation boundaries are enforced in code and attestation, Hermes is review-packet-only (no runtime receipt), and Claude is correctly scoped as read-only reviewer rather than final approver. The manifest's `production_ready=false`/`in_progress` is the expected pre-review state; promotion + adjudication + commit are the documented next steps and are outside this read-only receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"60d5741c-7eaf-4bb3-bdbb-896dadabb377\",\"total_cost_usd\":1.95333975,\"usage\":{\"input_tokens\":48,\"cache_creation_input_tokens\":114381,\"cache_read_input_tokens\":1512439,\"output_tokens\":19231,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":114381,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":276,\"cache_read_input_tokens\":100212,\"cache_creation_input_tokens\":6293,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6293},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1124,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001224,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":19231,\"cacheReadInputTokens\":1512439,\"cacheCreationInputTokens\":114381,\"webSearchRequests\":0,\"costUSD\":1.95211575,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-911 is a descriptor-only RP30 embedded-HRX bridge (RiskWorkflow tail M04.S07-S12 implementation -> ApprovalWorkflow M05.S01-S04 security_audit), 10 units, risk class A. Read-only inspection (Read/Grep/Glob) confirms the pack-level descriptor production_ready claim is supported and all closed boundaries hold. (1) Implementation is consistent across all three layers: HRX_CP911_PACK_BINDING (registry.js:321), createHrxCp911RiskApprovalWorkflowBridgeDescriptor (registry.js:3218) and createHrxDomainRows (registry.js:1162) emit deep-frozen rows with every runtime/write/real-data/payload/score/delegation flag set false; the generated contracts/hrx-people-contract.json latest_projection matches the generator (descriptor HrxCp911RiskApprovalWorkflowBridgeDescriptor, source_descriptor HrxCp910..., baseline_decisions all deferred). (2) Coverage matches baseline exactly: 6 implementation + 4 security_audit, phase RP30.P02=10, micro M04=6/M05=4, titles RiskWorkflow=6/ApprovalWorkflow=4, range and binding chain CP910->CP911->CP912 / next subphase RP30.P02.M05.S05. (3) validateHrxCp911...Descriptor (validators.js:2446) and ...Coverage (validators.js:2407) enforce the chain, authority boundary, distribution, and every deferral flag; validateHrxPeopleContract (validators.js:2580) pins latest pack/projection. (4) Tests in model.test.js (lines 805/827/861) are substantive and read the real contract. (5) No-write / no-real-data / no-runtime boundaries enforced via HRX_NO_WRITE_ATTESTATION plus per-row flags; Hermes packet emits_runtime_receipt=false (review packet/receipt only, not product runtime); Claude packet read_only=true and promotes_claude_to_final_approval=false, so Claude remains an independent read-only reviewer, not final approver. (6) All validation npm scripts exist in package.json and validate-rp30-hrx-people-contract.mjs is a deterministic exit-1-on-drift gate; command-evidence records exit_code 0 for syntax/test/rp30/hrx validators (verified by code inspection, not re-executed, per read-only mandate). (7) Manifest production_ready=false / runtime_ready=false / status in_progress is the correct pre-review state; no runtime or enterprise-trust claim is made, so the human-final-approval boundary is preserved and out of scope for this receipt. (8) Review harness is healthy: readiness auth-preflight passed with valid JSON, prompt is 2415 bytes (<25600), contains no full source/diff, source_inspection_mode=read_tools_used, summary-only correctly prohibited and not used; no malformed/0-byte/tool-call-shaped prior evidence counted. (9) Unrelated dirty files (progress-control-room, workbook/*, .docx) are correctly excluded from pack scope. No P0-P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"28b2fb6d-7381-4fb2-bf9e-dd87fa1f835a\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5051,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "60d5741c-7eaf-4bb3-bdbb-896dadabb377",
+    "uuid": "28b2fb6d-7381-4fb2-bf9e-dd87fa1f835a",
+    "total_cost_usd": 1.95333975,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "packet_version": "law-firm-os.claude-review-packet.v0.1",
+  "goal_id": "goal1-foundation-slice",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "claude_gate": "C00",
+  "checkpoint_id": "RP00.C00.all_checkpoints",
+  "status": "packet_ready",
+  "review_checkpoints": [
+    "RP00.P00.M01 contract shell review",
+    "RP00.P00.M05 AI authority boundary review",
+    "RP00.P00.M08 Hermes attachment review",
+    "RP00.P00.M09 C00 design brief review",
+    "RP00.P03.M09 product interface review",
+    "RP00.P06.M09 permission and audit baseline review",
+    "RP00.P08.M05 Hermes dependency review",
+    "RP00.P09.M00-M10 final cross-validation closeout"
+  ],
+  "changed_files": [
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal1-mutual-agreement-contract.json",
+    "hermes/project.json",
+    "package.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal1-claude-review-contract.json",
+    "contracts/goal1-mutual-agreement-contract.json"
+  ],
+  "tests_reviewed": [
+    "npm run validate",
+    "npm run goal1:agreement:validate",
+    "npm run goal1:claude-review:validate",
+    "npm run goal1:foundation:validate"
+  ],
+  "hermes_evidence_refs": [
+    "H00.product_contract_validate",
+    "H00.goal1_agreement_validate",
+    "H00.goal1_claude_review_validate"
+  ],
+  "requirement_refs": [
+    "REQ-001",
+    "REQ-002",
+    "REQ-003"
+  ],
+  "risk_focus": [
+    "scope drift",
+    "AI authority overreach",
+    "Hermes/product boundary confusion",
+    "missing human approval",
+    "validation theater"
+  ],
+  "claude_questions": [
+    "Does the product contract clearly keep Law Firm OS as the real product codebase?",
+    "Does Hermes remain a validation and evidence harness instead of a product owner?",
+    "Can AI, Hermes, or Claude Code mutate production data or bypass human approval?",
+    "Are Goal 1 completion claims blocked until implementation evidence exists?"
+  ],
+  "expected_verdict_format": {
+    "allowed_verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "finding_severity": [
+      "P0_BLOCKER",
+      "P1_MUST_FIX",
+      "P2_SHOULD_FIX",
+      "P3_NOTE"
+    ]
+  },
+  "finding_routing": "P0/P1 findings must create correction subphases before RP00 production_ready closeout."
+}

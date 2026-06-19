@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP19",
+  "program_title": "Client Portal",
+  "program_scope": "Client users, secure link, client review, Q&A, watermark",
+  "ai_owner": "Cursor/Codex",
+  "hermes_gate": "H19",
+  "claude_gate": "C19",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP19.P00.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Client users, secure link, client review, Q&A, watermark requirements and identify client cross-matter access, expired link usable, and download without watermark as explicit acceptance risks.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Client Portal contract shape for ClientUser, PortalWorkspace, SecureLink, ClientReview, QAMessage, Watermark.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns ClientUser, PortalWorkspace, and SecureLink, and which modules may only reference them.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for client invite, secure link share, and document review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Client Portal records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Client Portal behavior can run.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Client Portal examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Client Portal planning and later implementation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H19 preflight",
+      "objective": "Define the fields Hermes records before Client Portal implementation starts.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C19 design brief",
+      "objective": "Prepare Claude Code questions around client cross-matter access, expired link usable, download without watermark, and missing tests.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P00.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP19.P00 handoff",
+      "objective": "Hand off a contract-first Client Portal implementation scope to AI.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "contracts/client-portal-contract.json",
+        "packages/client-portal/README.md",
+        "contracts/client-portal-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/client-portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement ClientUser model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for ClientUser.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement PortalWorkspace model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for PortalWorkspace.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement SecureLink model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for SecureLink.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement ClientReview model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for ClientReview.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement QAMessage model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for QAMessage.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among ClientUser, PortalWorkspace, SecureLink, ClientReview, QAMessage, Watermark and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Client Portal model definitions through a stable package interface.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P01.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Client Portal model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/model.js",
+        "packages/client-portal/src/states.js",
+        "packages/client-portal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for client invite, secure link share, and document review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement client invite",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for client invite.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement secure link share",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for secure link share.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement document review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for document review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement client Q&A",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for client Q&A.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement watermarked download",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for watermarked download.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for client cross-matter access, expired link usable, and download without watermark.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Client Portal operations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H19.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Client Portal outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P02.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Client Portal services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/service.js",
+        "packages/client-portal/src/policies.js",
+        "packages/client-portal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Client Portal models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define client invite API",
+      "objective": "Lock request, response, permission, audit, and error shape for client invite.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define secure link share API",
+      "objective": "Lock request, response, permission, audit, and error shape for secure link share.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define document review API",
+      "objective": "Lock request, response, permission, audit, and error shape for document review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define client Q&A API",
+      "objective": "Lock request, response, permission, audit, and error shape for client Q&A.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define watermarked download API",
+      "objective": "Lock request, response, permission, audit, and error shape for watermarked download.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Client Portal API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for client cross-matter access, expired link usable, download without watermark, Q&A privilege leak, and review_required.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H19 evidence without making Hermes product authority.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C19 cross-validation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P03.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Client Portal public interface until a later RP explicitly extends it.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/index.js",
+        "packages/client-portal/src/api-contract.js",
+        "packages/client-portal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify client portal home, shared document viewer, Q&A thread, and review approval panel in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan client portal home",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for client portal home.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan shared document viewer",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for shared document viewer.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan Q&A thread",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for Q&A thread.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan review approval panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for review approval panel.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Client Portal outcomes as review queue items, not silent successes.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Client Portal rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Client Portal context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Client Portal service decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P04.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp19-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define client user sees permitted matter golden case",
+      "objective": "Create a synthetic golden case proving client user sees permitted matter.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define secure link expires golden case",
+      "objective": "Create a synthetic golden case proving secure link expires.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define watermark applied golden case",
+      "objective": "Create a synthetic golden case proving watermark applied.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define Q&A audited golden case",
+      "objective": "Create a synthetic golden case proving Q&A audited.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define client cross-matter access failure fixture",
+      "objective": "Create a synthetic failing case that proves client cross-matter access is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define expired link usable failure fixture",
+      "objective": "Create a synthetic failing case that proves expired link usable is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define download without watermark failure fixture",
+      "objective": "Create a synthetic failing case that proves download without watermark is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Client Portal fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Client Portal appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P05.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Client Portal fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/fixtures.js",
+        "packages/client-portal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for client invite, secure link share, document review, and client Q&A.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Client Portal view and search surfaces.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Client Portal mutations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Client Portal export, download, or external-share actions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Client Portal where applicable.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Client Portal obey security trimming.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H19 audit evidence",
+      "objective": "Record which Client Portal decisions require downstream audit event persistence.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P06.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Client Portal cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/src/security-contract.js",
+        "packages/client-portal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define client cross-matter access failure",
+      "objective": "Fail closed or require review when client cross-matter access appears in Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define expired link usable failure",
+      "objective": "Fail closed or require review when expired link usable appears in Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define download without watermark failure",
+      "objective": "Fail closed or require review when download without watermark appears in Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define Q&A privilege leak failure",
+      "objective": "Fail closed or require review when Q&A privilege leak appears in Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Client Portal operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Client Portal operations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Client Portal micro phase is corrected before advancing.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P07.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Client Portal ambiguity fails closed or requires review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "packages/client-portal/test/failure-cases.test.js",
+        "docs/rp19-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/client-portal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H19 command matrix",
+      "objective": "Record exact product commands Hermes should run for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H19 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H19 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H19 no-real-data evidence",
+      "objective": "Record that Client Portal fixtures and examples contain only synthetic data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H19 blocked-claim evidence",
+      "objective": "Record unsafe Client Portal claims rejected by validators or tests.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H19 Claude dependency",
+      "objective": "Mark C19 review mandatory before Client Portal closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H19 human approval note",
+      "objective": "Record what the human must approve for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H19 command availability",
+      "objective": "Ensure npm scripts required by H19 exist before handoff.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H19 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Client Portal implementation closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H19 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H19.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P08.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Client Portal behavior without owning product code.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp19-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M00",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP19 architecture review questions",
+      "objective": "Ask whether Client Portal module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M01",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP19 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M02",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP19 bypass review questions",
+      "objective": "Ask Claude to find client cross-matter access, expired link usable, download without watermark, Q&A privilege leak, and undefined bypasses.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M03",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP19 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Client Portal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M04",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP19 downstream readiness questions",
+      "objective": "Ask whether Client Portal is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M05",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP19 risk register",
+      "objective": "List unresolved Client Portal risks and route them to future RP corrections.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M06",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Client Portal findings.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M07",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Client Portal closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M08",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP19.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M09",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Client Portal can be considered ready.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP19.P09.M10",
+      "program_id": "RP19",
+      "program_title": "Client Portal",
+      "program_scope": "Client users, secure link, client review, Q&A, watermark",
+      "phase_id": "RP19.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP19 detailed plan",
+      "objective": "Confirm Client Portal is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H19",
+      "claude_gate": "C19",
+      "target_files": [
+        "docs/rp19-claude-cross-validation-brief.md",
+        "docs/rp19-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H19 evidence or blocked reason can be recorded.",
+        "Claude C19 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

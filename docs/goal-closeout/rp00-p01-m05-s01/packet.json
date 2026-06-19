@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M05.S01",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "release_program": "RP00",
+  "release_program_title": "Product Constitution And AI Control Plane",
+  "title": "Package directory layout",
+  "status": "production_ready",
+  "minimum_closeout_status": "production_ready",
+  "created_at": "2026-06-04T05:57:53+09:00",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "implemented_slice": {
+    "entity": "HumanApproval",
+    "slice": "package_directory_layout",
+    "policy_export": "HUMAN_APPROVAL_PACKAGE_LAYOUT",
+    "assertion_export": "assertHumanApprovalPackageLayout",
+    "implemented_model": false,
+    "future_model_subphases": [
+      "RP00.P01.M05.S02",
+      "RP00.P01.M05.S03",
+      "RP00.P01.M05.S04",
+      "RP00.P01.M05.S05",
+      "RP00.P01.M05.S06",
+      "RP00.P01.M05.S07",
+      "RP00.P01.M05.S08",
+      "RP00.P01.M05.S09",
+      "RP00.P01.M05.S10",
+      "RP00.P01.M05.S11"
+    ],
+    "next_subphase": "RP00.P01.M05.S02",
+    "human_approval_boundary": "HumanApproval package layout opens metadata surfaces only and cannot synthesize, approve, or replace human approval decisions."
+  },
+  "target_files": [
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/states.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ],
+  "acceptance_gates": [
+    "package_layout_bound",
+    "target_files_listed",
+    "target_tests_listed",
+    "fixture_file_listed",
+    "future_model_subphases_listed",
+    "synthetic_fixture_layout_validates",
+    "registry_exposes_human_approval_package_layout",
+    "registry_keeps_human_approval_model_future",
+    "human_approval_synthesis_forbidden",
+    "no_product_state_writes",
+    "actual_claude_cli_review_required",
+    "construction_inspection_required",
+    "next_subphase_boundary_recorded"
+  ],
+  "scope_boundary": {
+    "implements_only_HumanApproval_package_layout": true,
+    "does_not_implement_HumanApproval_identifier": true,
+    "does_not_implement_HumanApproval_tenant_scope": true,
+    "does_not_implement_HumanApproval_matter_trace": true,
+    "does_not_implement_HumanApproval_lifecycle_status": true,
+    "does_not_implement_full_HumanApproval_model": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "does_not_create_ui": true,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "evidence_files": {
+    "command_evidence": "docs/goal-closeout/rp00-p01-m05-s01/command-evidence.json",
+    "claude_review_result": "docs/goal-closeout/rp00-p01-m05-s01/claude-review-result.json",
+    "adjudication": "docs/goal-closeout/rp00-p01-m05-s01/adjudication.md",
+    "construction_inspection": "docs/goal-closeout/rp00-p01-m05-s01/construction-inspection.json"
+  },
+  "next_subphase": "RP00.P01.M05.S02",
+  "closeout": {
+    "hermes_evidence_recorded": true,
+    "claude_review_completed": true,
+    "no_unresolved_p0_or_p1": true,
+    "p2_findings_fixed_or_deferred": true,
+    "construction_inspection_passed": true,
+    "final_validation_rerun_required_before_commit": true,
+    "production_ready_at": "2026-06-04T06:04:47+09:00"
+  }
+}

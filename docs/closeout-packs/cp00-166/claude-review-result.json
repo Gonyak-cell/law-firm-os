@@ -1,0 +1,91 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-166",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "45de8f7c-a103-4e27-a0db-f792ecb0bfc4",
+    "uuid": "dbf0caca-b9c9-4cad-8c37-c20d094b1449",
+    "duration_ms": 210514,
+    "duration_api_ms": 212598,
+    "total_cost_usd": 0.757422,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-166-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-166.master_data_permission_audit_decision_binding",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-166-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-166 is a descriptor-only Risk A pack binding CP00-165 matrix decisions to permission/audit decision outcomes for view/search/mutation/export_download/share/ai_retrieval across 10 units. The no-write and permission/audit boundaries hold: all constructors are pure frozen-descriptor builders, evaluates_runtime_permission/appends_audit_event/dispatches_review_route/dispatches_approval_route/executes_ai_retrieval are forced false, and no DB/API/network/UI/DOM/AI/analytics execution occurs. The special safety requirement is met: customer_facing_decision excludes permission_ref/audit_hint_ref/matched_rule_ref/matched_rule_id, which appear only in internal evidence descriptors; the exclusion is verified by computed checks over the actual object and asserted in tests. Contract, registry, validators, and validation script are mutually consistent (schema v0.11, current_pack CP00-166, 10 units, handoff to CP00-167/RP04.P06.M05.S08), and operator validation (1212/1212, 44/44, all validators, git diff --check) reportedly passed. Approved with three non-blocking P3 notes: plan/manifest not in diff, descriptor co-locates internal refs with the customer surface (selection-based guard), and catalog exercises only default scenarios.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "customer_surface_internal_ref_separation": true,
+      "notes": "CP00-166 builds frozen permission/audit decision binding descriptors only; package code does not execute runtime permission checks, audit appends, API handlers, UI rendering, AI retrieval, analytics, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "CP00-166-C04-F001",
+        "severity": "P3",
+        "title": "Coverage distribution depends on plan pack/manifest not present in diff",
+        "file": "docs/closeout-packs/cp00-166/manifest.json",
+        "line": null,
+        "description": "validateMasterDataCp166Coverage hardcodes deliverable distribution (security_audit=2, test=2, implementation=6) and micro-phase distribution (RP04.P06.M04=3, RP04.P06.M05=7) read from planPack.included_units. The CP00-166 closeout-pack-plan entry and docs/closeout-packs/cp00-166/manifest.json are not in the reviewed diff, so the 10-unit plan binding and these distributions cannot be proven from the diff alone. The internal unit_scope (S18 fixture, S19 allowed, S20 denied, M05.S01 row, M05.S02-S07 actions) is self-consistent (10 units, M04=3/M05=7), and operator-supplied validation (rp04:master-data:validate, closeout-pack-plan:validate, 44/44 model tests) reportedly passed.",
+        "recommendation": "Confirm the CP00-166 plan-pack entry and docs/closeout-packs/cp00-166/manifest.json are committed as pack evidence so the coverage distribution assertions are reproducible from the committed artifacts.",
+        "post_review_disposition": "addressed: CP00-166 manifest includes the full plan_binding_snapshot and all 10 included units; closeout-pack validation checks the manifest against the active plan."
+      },
+      {
+        "id": "CP00-166-C04-F002",
+        "severity": "P3",
+        "title": "Descriptor co-locates internal refs with customer surface in one frozen object",
+        "file": "packages/master-data/src/service.js",
+        "line": null,
+        "description": "createMasterDataPermissionAuditDecisionBindingDescriptor returns matrix_decision (full CP00-165 decision containing permission_ref, audit_hint_fields, matched_rule_capture) and internal_evidence_binding (permission_ref, audit_hint_ref, matched_rule_ref) in the same frozen object as customer_facing_decision. The required separation is satisfied: customer_facing_decision is a separate flat object exposing only fixture_id/action/scenario/decision_outcome/safe_error_code/security_trimmed/review_required/approval_required, and customer_surface_excludes_internal_refs plus prohibited_output_absent are computed from the real object and asserted in tests. Boundary holds because renderable_surface is documented as customer_facing_permission_audit_outcome_only and nothing renders here, but the leak guard is by-selection rather than structural at the top-level object.",
+        "recommendation": "Keep the documented renderable_surface contract and ensure any future downstream renderer selects only customer_facing_decision; consider asserting downstream consumers never serialize the full descriptor to a customer surface.",
+        "post_review_disposition": "deferred: CP00-166 has no runtime renderer or customer exposure; downstream render/API packs must serialize only customer_facing_decision and never the full descriptor."
+      },
+      {
+        "id": "CP00-166-C04-F003",
+        "severity": "P3",
+        "title": "Catalog exercises only the default scenario per action",
+        "file": "packages/master-data/src/service.js",
+        "line": null,
+        "description": "createMasterDataPermissionAuditDecisionBindingCatalog builds one row per action using defaultScenarioForCp166Action (view=allowed, search=allowed, mutation=review_required, export_download=denied, share=approval_required, ai_retrieval=ethical_wall). Several declared expected_scenarios (view object_acl, search cross_tenant, export_download legal_hold/approval_required, share legal_hold, ai_retrieval leak_prevention) are therefore not represented among catalog rows. The pack's stated allowed/denied coverage is satisfied (allowed_covered and denied_covered both true), and the descriptor function accepts arbitrary scenarios, so this is a completeness observation, not a boundary defect.",
+        "recommendation": "If exhaustive per-scenario binding evidence is later required, add catalog rows for the remaining expected_scenarios; otherwise document that catalog coverage is intentionally allowed/denied only.",
+        "post_review_disposition": "deferred: CP00-166 intentionally covers the planned allowed/denied test units and action binding rows; exhaustive per-scenario catalog expansion is reserved for later permission/audit binding packs."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  }
+}

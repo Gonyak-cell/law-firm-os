@@ -1,0 +1,154 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-135",
+  "subphase_id": "RP03.P01.M08.S05",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H03",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "git status --short",
+      "exit_code": 0,
+      "summary": "latest committed pack CP00-134; unrelated untracked files preserved"
+    },
+    {
+      "command": "git log --all --format='%h %aI %s' --grep='^Close CP00' -n 10",
+      "exit_code": 0,
+      "summary": "latest Close CP00 commit before this pack was CP00-134"
+    },
+    {
+      "command": "node --check packages/audit/src/entry-readiness-catalog.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/audit/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/audit/test/audit.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp03-audit-architecture.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/audit-compliance-contract.json','utf8')); JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('json ok')\"",
+      "exit_code": 0,
+      "summary": "audit contract and package.json parsed"
+    },
+    {
+      "command": "node --test packages/audit/test/*.test.js",
+      "exit_code": 0,
+      "summary": "14 audit tests passed"
+    },
+    {
+      "command": "npm run rp03:audit:validate",
+      "exit_code": 0,
+      "summary": "CP00-135, 150 units, audit_compliance_cp135_entry_readiness_contract"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-135-claude-review-output.json",
+      "exit_code": 0,
+      "summary": "one valid read-only Claude review completed; P0/P1/P2 0/0/0 and P3 4 non-blocking"
+    },
+    {
+      "command": "rg -n \"audit-compliance-contract\\.v0\\.1|law-firm-os\\.audit-compliance-contract\\.v0\\.1\" . || true",
+      "exit_code": 0,
+      "summary": "no stale v0.1 audit contract pins found"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-134 before CP00-135 evidence regeneration"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full test suite passed: 1088 tests after CP00-135 adds 4 audit tests"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-135",
+      "exit_code": 0,
+      "summary": "expected after CP00-135 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "expected after CP00-135 evidence creation to move queue to CP00-136"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "expected after queue regeneration"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "expected all packs through CP00-135 pass"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-135 is synthetic-only, metadata-only, and Risk C scoped to RP03 audit/compliance contract and domain model entry readiness rows.",
+    "CP00-135 does not append, mutate, delete, query, export, or render audit records and does not write product state.",
+    "H03 Hermes evidence packet and C03 Claude review packet are descriptor artifacts; actual command evidence is recorded in this file and the single valid CLI review is recorded in claude-review-result.json.",
+    "HRX remains embedded inside Law Firm OS and LDIP is not implemented by this pack.",
+    "P3 findings were adjudicated: two fixed, one verified by repo search, one descriptor-only clarification accepted as non-blocking."
+  ]
+}

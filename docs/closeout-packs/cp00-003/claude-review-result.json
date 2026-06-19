@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-003",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "outcome": "hung_terminated",
+      "exit_code": 143,
+      "reason": "Initial claude-opus-4-8 max read-only run produced no completed review output and was terminated; it is not counted as the valid pack review."
+    },
+    {
+      "outcome": "error_max_turns",
+      "exit_code": 1,
+      "session_id": "3becc25f-d2a4-4f0a-818c-c4627c675dfb",
+      "uuid": "aa20e10a-1069-408b-830e-2260c7e8b9d2",
+      "reason": "Second run attempted a Read tool and ended before final JSON due to max-turns; it is not counted as the valid pack review."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": [],
+    "session_id": "4038b30a-12ab-4ef7-90f5-c99ac9b79b69",
+    "uuid": "7af0311e-8893-480c-8a67-a5442b3029e9",
+    "total_cost_usd": 1.1600707499999998,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-003-C1",
+        "severity": "P2",
+        "file": "docs/closeout-packs/cp00-003/",
+        "line": null,
+        "title": "Closeout pack scaffold absent from reviewed diff",
+        "details": "Claude could not verify the untracked CP00-003 scaffold from the diff-only prompt. The scaffold is finalized in this pack evidence and then validated by closeout-pack and RP00 validators before commit.",
+        "required_action": "defer_with_reason"
+      },
+      {
+        "id": "CP00-003-C2",
+        "severity": "P2",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "title": "working_product_behavior_ref labels the metadata prechecker",
+        "details": "Claude noted that working_product_behavior_ref points at the metadata prechecker. It also confirmed the receipt is bounded by allow_metadata_only, false runtime/write permission flags, no_real_data, and no product-state writes.",
+        "required_action": "none"
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-003.",
+    "P2 CP00-003-C1 is handled by finalizing the previously untracked pack scaffold and requiring closeout-pack plus RP00 validators before commit.",
+    "P2 CP00-003-C2 is adjudicated as non-blocking because the referenced field remains a metadata-only behavior reference with all runtime permission, audit write, storage, and product-state write flags false.",
+    "No unresolved P0, P1, or P2 findings remain after adjudication."
+  ]
+}

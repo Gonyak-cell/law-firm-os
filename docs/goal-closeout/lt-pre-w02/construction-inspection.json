@@ -1,0 +1,21 @@
+{
+  "work_package_id": "LT-PRE-W02",
+  "inspected_at": "2026-06-18T14:39:45Z",
+  "verdict": "BLOCKED_CP_INTERLEAVE_WINDOW_MISSED",
+  "production_ready": false,
+  "quality_gates": {
+    "closeout_complete": true,
+    "remaining_rp25_26_29_pack_count": 0,
+    "closed_rp25_26_29_pack_count": 88,
+    "runtime_ready_pack_count": 0,
+    "decision_record_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_interleave_decision_synthesized": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

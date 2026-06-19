@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-743",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T10:12:40.723Z",
+  "finished_at": "2026-06-15T10:17:40.960Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":299601,\"duration_api_ms\":298924,\"ttft_ms\":2945,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS** — CP00-743 closes cleanly with no findings.\\n\\nThe pack-level descriptor-verification claim is fully supported across all evidence lines:\\n- Implementation, tests, and the contract validator (which re-derives the contract from source and asserts zero drift) are internally consistent and chain correctly from CP742.\\n- No-write/no-real-data boundaries are enforced structurally, not just asserted — every result carries the no-write attestation and `validateDescriptor` rejects any runtime opening, permission-decision detail, audit-event body, or cross-tenant access.\\n- Claude's read-only, non-final authority boundary holds; Hermes is confined to deterministic evidence packets, not product runtime.\\n- Manifest correctly stays `in_progress` / `production_ready:false` pending this review, and the pack claims neither runtime nor enterprise trust, so it does not block goal closeout.\\n\\nNo P0–P3 issues; `blocks_pack_closeout` and `blocks_goal_closeout` are both false.\",\"stop_reason\":\"end_turn\",\"session_id\":\"3e31c465-0d16-4969-a310-5ccd515ae99a\",\"total_cost_usd\":2.4324562499999995,\"usage\":{\"input_tokens\":197,\"cache_creation_input_tokens\":145963,\"cache_read_input_tokens\":2014715,\"output_tokens\":20425,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":145963,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":346,\"cache_read_input_tokens\":142381,\"cache_creation_input_tokens\":3997,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3997},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1120,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00122,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":197,\"outputTokens\":20425,\"cacheReadInputTokens\":2014715,\"cacheCreationInputTokens\":145963,\"webSearchRequests\":0,\"costUSD\":2.4312362499999995,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-743 (RP24.P06.M05.S07-S16, risk A, 10 units, Permission And Audit Binding) is a descriptor-only Korean Legal Depth pack and its pack-level descriptor-verification claim is fully supported by independent read-only inspection. Implementation is consistent and complete: KOREAN_LEGAL_CP743_PACK_BINDING (registry.js:366) and KOREAN_LEGAL_CP743_REQUIREMENTS (registry.js:3302) match the baseline distribution {implementation:3, security_audit:2, ui:4, claude_review:1}=10 and the 10 required section rows; the descriptor, case set, Hermes evidence packet, Claude review packet, and closeout handoff (service.js:96-97,166-168) chain from CP742 and are re-exported via index.js `export *`. No-write/no-real-data boundaries are enforced structurally: KOREAN_LEGAL_NO_WRITE_ATTESTATION is spread into every result, every case-set row carries descriptor_only/runtime_execution=false and excludes raw/legal/credential/client payloads, and validateDescriptor (validators.js:8) rejects any runtime opening, permission-decision detail, audit-event body, or cross-tenant access. Authority boundary is correct: descriptor asserts claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true (runtime_opening_pack_id=CP00-744), and local_validation_claims_enterprise_trust=false; Claude is a read-only non-final reviewer. Hermes is used only for a deterministic evidence packet (emits_runtime_receipt=false, writes_product_state=false), not product runtime. Tests (model.test.js:51-53) assert coverage, runtime-closed descriptor, and latest contract projection; the rp24 contract validator re-derives the contract from source and asserts zero drift, all referenced npm scripts exist, and command-evidence shows the 10 required validation commands plus git diff --check at exit 0 with a passing auth preflight. The manifest correctly holds production_ready=false/runtime_ready=false/in_progress pending this review, and the pack keeps HWPX, court filing, litigation, corporate document, Korean clause authority, Hermes runtime, and product-state surfaces closed, claiming neither runtime nor enterprise trust. No P0-P3 findings; pack is ready to close at the descriptor layer.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"b080a159-b693-4e74-8966-72c86377ddea\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4901,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "3e31c465-0d16-4969-a310-5ccd515ae99a",
+    "uuid": "b080a159-b693-4e74-8966-72c86377ddea",
+    "total_cost_usd": 2.4324562499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,2837 @@
+export const PAYMENTS_CORE_CP392_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-392",
+  planned_pack_id: "CP00-392",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P00.M00.S01",
+  last_unit_id: "RP13.P01.M05.S20",
+  range: "RP13.P00.M00.S01-RP13.P01.M05.S20",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-391",
+  next_pack_id: "CP00-393",
+  next_subphase_id: "RP13.P01.M06.S01",
+  production_ready_flag: "payments_core_scope_contract_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP393_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-393",
+  planned_pack_id: "CP00-393",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P01.M06.S01",
+  last_unit_id: "RP13.P02.M04.S06",
+  range: "RP13.P01.M06.S01-RP13.P02.M04.S06",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-392",
+  next_pack_id: "CP00-394",
+  next_subphase_id: "RP13.P02.M04.S07",
+  production_ready_flag: "payments_core_p01_closeout_p02_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP394_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-394",
+  planned_pack_id: "CP00-394",
+  risk_class: "B",
+  unit_count: 40,
+  first_unit_id: "RP13.P02.M04.S07",
+  last_unit_id: "RP13.P02.M06.S02",
+  range: "RP13.P02.M04.S07-RP13.P02.M06.S02",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-393",
+  next_pack_id: "CP00-395",
+  next_subphase_id: "RP13.P02.M06.S03",
+  production_ready_flag: "payments_core_p02_workflow_permission_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP395_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-395",
+  planned_pack_id: "CP00-395",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P02.M06.S03",
+  last_unit_id: "RP13.P02.M06.S12",
+  range: "RP13.P02.M06.S03-RP13.P02.M06.S12",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-394",
+  next_pack_id: "CP00-396",
+  next_subphase_id: "RP13.P02.M06.S13",
+  production_ready_flag: "payments_core_p02_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP396_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-396",
+  planned_pack_id: "CP00-396",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P02.M06.S13",
+  last_unit_id: "RP13.P03.M05.S04",
+  range: "RP13.P02.M06.S13-RP13.P03.M05.S04",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-395",
+  next_pack_id: "CP00-397",
+  next_subphase_id: "RP13.P03.M05.S05",
+  production_ready_flag: "payments_core_p02_closeout_p03_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP397_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-397",
+  planned_pack_id: "CP00-397",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P03.M05.S05",
+  last_unit_id: "RP13.P03.M05.S14",
+  range: "RP13.P03.M05.S05-RP13.P03.M05.S14",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-396",
+  next_pack_id: "CP00-398",
+  next_subphase_id: "RP13.P03.M05.S15",
+  production_ready_flag: "payments_core_p03_permission_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP398_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-398",
+  planned_pack_id: "CP00-398",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P03.M05.S15",
+  last_unit_id: "RP13.P03.M06.S04",
+  range: "RP13.P03.M05.S15-RP13.P03.M06.S04",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-397",
+  next_pack_id: "CP00-399",
+  next_subphase_id: "RP13.P03.M06.S05",
+  production_ready_flag: "payments_core_p03_permission_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP399_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-399",
+  planned_pack_id: "CP00-399",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P03.M06.S05",
+  last_unit_id: "RP13.P03.M06.S14",
+  range: "RP13.P03.M06.S05-RP13.P03.M06.S14",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-398",
+  next_pack_id: "CP00-400",
+  next_subphase_id: "RP13.P03.M06.S15",
+  production_ready_flag: "payments_core_p03_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP400_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-400",
+  planned_pack_id: "CP00-400",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P03.M06.S15",
+  last_unit_id: "RP13.P04.M05.S15",
+  range: "RP13.P03.M06.S15-RP13.P04.M05.S15",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-399",
+  next_pack_id: "CP00-401",
+  next_subphase_id: "RP13.P04.M05.S16",
+  production_ready_flag: "payments_core_p03_closeout_p04_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP401_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-401",
+  planned_pack_id: "CP00-401",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P04.M05.S16",
+  last_unit_id: "RP13.P04.M06.S03",
+  range: "RP13.P04.M05.S16-RP13.P04.M06.S03",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-400",
+  next_pack_id: "CP00-402",
+  next_subphase_id: "RP13.P04.M06.S04",
+  production_ready_flag: "payments_core_p04_permission_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP402_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-402",
+  planned_pack_id: "CP00-402",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P04.M06.S04",
+  last_unit_id: "RP13.P05.M04.S05",
+  range: "RP13.P04.M06.S04-RP13.P05.M04.S05",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-401",
+  next_pack_id: "CP00-403",
+  next_subphase_id: "RP13.P05.M04.S06",
+  production_ready_flag: "payments_core_p04_closeout_p05_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP403_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-403",
+  planned_pack_id: "CP00-403",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P05.M04.S06",
+  last_unit_id: "RP13.P06.M01.S12",
+  range: "RP13.P05.M04.S06-RP13.P06.M01.S12",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-402",
+  next_pack_id: "CP00-404",
+  next_subphase_id: "RP13.P06.M01.S13",
+  production_ready_flag: "payments_core_p05_closeout_p06_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP404_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-404",
+  planned_pack_id: "CP00-404",
+  risk_class: "B",
+  unit_count: 40,
+  first_unit_id: "RP13.P06.M01.S13",
+  last_unit_id: "RP13.P06.M03.S12",
+  range: "RP13.P06.M01.S13-RP13.P06.M03.S12",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-403",
+  next_pack_id: "CP00-405",
+  next_subphase_id: "RP13.P06.M03.S13",
+  production_ready_flag: "payments_core_p06_contract_implementation_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP405_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-405",
+  planned_pack_id: "CP00-405",
+  risk_class: "B",
+  unit_count: 40,
+  first_unit_id: "RP13.P06.M03.S13",
+  last_unit_id: "RP13.P06.M05.S08",
+  range: "RP13.P06.M03.S13-RP13.P06.M05.S08",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-404",
+  next_pack_id: "CP00-406",
+  next_subphase_id: "RP13.P06.M05.S09",
+  production_ready_flag: "payments_core_p06_implementation_workflow_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP406_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-406",
+  planned_pack_id: "CP00-406",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P06.M05.S09",
+  last_unit_id: "RP13.P06.M05.S18",
+  range: "RP13.P06.M05.S09-RP13.P06.M05.S18",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-405",
+  next_pack_id: "CP00-407",
+  next_subphase_id: "RP13.P06.M05.S19",
+  production_ready_flag: "payments_core_p06_permission_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP407_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-407",
+  planned_pack_id: "CP00-407",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P06.M05.S19",
+  last_unit_id: "RP13.P06.M06.S06",
+  range: "RP13.P06.M05.S19-RP13.P06.M06.S06",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-406",
+  next_pack_id: "CP00-408",
+  next_subphase_id: "RP13.P06.M06.S07",
+  production_ready_flag: "payments_core_p06_permission_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP408_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-408",
+  planned_pack_id: "CP00-408",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P06.M06.S07",
+  last_unit_id: "RP13.P07.M03.S06",
+  range: "RP13.P06.M06.S07-RP13.P07.M03.S06",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-407",
+  next_pack_id: "CP00-409",
+  next_subphase_id: "RP13.P07.M03.S07",
+  production_ready_flag: "payments_core_p06_closeout_p07_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP409_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-409",
+  planned_pack_id: "CP00-409",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P07.M03.S07",
+  last_unit_id: "RP13.P07.M03.S16",
+  range: "RP13.P07.M03.S07-RP13.P07.M03.S16",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-408",
+  next_pack_id: "CP00-410",
+  next_subphase_id: "RP13.P07.M03.S17",
+  production_ready_flag: "payments_core_p07_implementation_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP410_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-410",
+  planned_pack_id: "CP00-410",
+  risk_class: "B",
+  unit_count: 40,
+  first_unit_id: "RP13.P07.M03.S17",
+  last_unit_id: "RP13.P07.M05.S12",
+  range: "RP13.P07.M03.S17-RP13.P07.M05.S12",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-409",
+  next_pack_id: "CP00-411",
+  next_subphase_id: "RP13.P07.M05.S13",
+  production_ready_flag: "payments_core_p07_workflow_permission_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP411_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-411",
+  planned_pack_id: "CP00-411",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P07.M05.S13",
+  last_unit_id: "RP13.P07.M05.S22",
+  range: "RP13.P07.M05.S13-RP13.P07.M05.S22",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-410",
+  next_pack_id: "CP00-412",
+  next_subphase_id: "RP13.P07.M06.S01",
+  production_ready_flag: "payments_core_p07_permission_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP412_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-412",
+  planned_pack_id: "CP00-412",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P07.M06.S01",
+  last_unit_id: "RP13.P08.M03.S15",
+  range: "RP13.P07.M06.S01-RP13.P08.M03.S15",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-411",
+  next_pack_id: "CP00-413",
+  next_subphase_id: "RP13.P08.M03.S16",
+  production_ready_flag: "payments_core_p07_closeout_p08_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP413_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-413",
+  planned_pack_id: "CP00-413",
+  risk_class: "B",
+  unit_count: 40,
+  first_unit_id: "RP13.P08.M03.S16",
+  last_unit_id: "RP13.P08.M05.S13",
+  range: "RP13.P08.M03.S16-RP13.P08.M05.S13",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-412",
+  next_pack_id: "CP00-414",
+  next_subphase_id: "RP13.P08.M05.S14",
+  production_ready_flag: "payments_core_p08_implementation_workflow_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP414_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-414",
+  planned_pack_id: "CP00-414",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P08.M05.S14",
+  last_unit_id: "RP13.P08.M06.S01",
+  range: "RP13.P08.M05.S14-RP13.P08.M06.S01",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-413",
+  next_pack_id: "CP00-415",
+  next_subphase_id: "RP13.P08.M06.S02",
+  production_ready_flag: "payments_core_p08_permission_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP415_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-415",
+  planned_pack_id: "CP00-415",
+  risk_class: "C",
+  unit_count: 150,
+  first_unit_id: "RP13.P08.M06.S02",
+  last_unit_id: "RP13.P09.M05.S01",
+  range: "RP13.P08.M06.S02-RP13.P09.M05.S01",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-414",
+  next_pack_id: "CP00-416",
+  next_subphase_id: "RP13.P09.M05.S02",
+  production_ready_flag: "payments_core_p08_closeout_p09_foundation_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP416_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-416",
+  planned_pack_id: "CP00-416",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M05.S02",
+  last_unit_id: "RP13.P09.M05.S11",
+  range: "RP13.P09.M05.S02-RP13.P09.M05.S11",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-415",
+  next_pack_id: "CP00-417",
+  next_subphase_id: "RP13.P09.M05.S12",
+  production_ready_flag: "payments_core_p09_permission_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP417_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-417",
+  planned_pack_id: "CP00-417",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M05.S12",
+  last_unit_id: "RP13.P09.M06.S01",
+  range: "RP13.P09.M05.S12-RP13.P09.M06.S01",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-416",
+  next_pack_id: "CP00-418",
+  next_subphase_id: "RP13.P09.M06.S02",
+  production_ready_flag: "payments_core_p09_permission_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP418_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-418",
+  planned_pack_id: "CP00-418",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M06.S02",
+  last_unit_id: "RP13.P09.M06.S11",
+  range: "RP13.P09.M06.S02-RP13.P09.M06.S11",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-417",
+  next_pack_id: "CP00-419",
+  next_subphase_id: "RP13.P09.M06.S12",
+  production_ready_flag: "payments_core_p09_fixture_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP419_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-419",
+  planned_pack_id: "CP00-419",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M06.S12",
+  last_unit_id: "RP13.P09.M07.S01",
+  range: "RP13.P09.M06.S12-RP13.P09.M07.S01",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-418",
+  next_pack_id: "CP00-420",
+  next_subphase_id: "RP13.P09.M07.S02",
+  production_ready_flag: "payments_core_p09_fixture_test_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP420_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-420",
+  planned_pack_id: "CP00-420",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M07.S02",
+  last_unit_id: "RP13.P09.M07.S11",
+  range: "RP13.P09.M07.S02-RP13.P09.M07.S11",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-419",
+  next_pack_id: "CP00-421",
+  next_subphase_id: "RP13.P09.M07.S12",
+  production_ready_flag: "payments_core_p09_test_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP421_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-421",
+  planned_pack_id: "CP00-421",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M07.S12",
+  last_unit_id: "RP13.P09.M08.S01",
+  range: "RP13.P09.M07.S12-RP13.P09.M08.S01",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-420",
+  next_pack_id: "CP00-422",
+  next_subphase_id: "RP13.P09.M08.S02",
+  production_ready_flag: "payments_core_p09_test_hermes_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP422_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-422",
+  planned_pack_id: "CP00-422",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M08.S02",
+  last_unit_id: "RP13.P09.M08.S11",
+  range: "RP13.P09.M08.S02-RP13.P09.M08.S11",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-421",
+  next_pack_id: "CP00-423",
+  next_subphase_id: "RP13.P09.M08.S12",
+  production_ready_flag: "payments_core_p09_hermes_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP423_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-423",
+  planned_pack_id: "CP00-423",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M08.S12",
+  last_unit_id: "RP13.P09.M09.S01",
+  range: "RP13.P09.M08.S12-RP13.P09.M09.S01",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-422",
+  next_pack_id: "CP00-424",
+  next_subphase_id: "RP13.P09.M09.S02",
+  production_ready_flag: "payments_core_p09_hermes_review_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP424_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-424",
+  planned_pack_id: "CP00-424",
+  risk_class: "A",
+  unit_count: 10,
+  first_unit_id: "RP13.P09.M09.S02",
+  last_unit_id: "RP13.P09.M10.S03",
+  range: "RP13.P09.M09.S02-RP13.P09.M10.S03",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-423",
+  next_pack_id: "CP00-425",
+  next_subphase_id: "RP13.P09.M10.S04",
+  production_ready_flag: "payments_core_p09_review_closeout_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_CP425_PACK_BINDING = Object.freeze({
+  pack_id: "CP00-425",
+  planned_pack_id: "CP00-425",
+  risk_class: "A",
+  unit_count: 1,
+  first_unit_id: "RP13.P09.M10.S04",
+  last_unit_id: "RP13.P09.M10.S04",
+  range: "RP13.P09.M10.S04-RP13.P09.M10.S04",
+  plan_ref: "docs/closeout-pack-plan/closeout-pack-plan.json",
+  upstream_pack_id: "CP00-424",
+  next_pack_id: "CP00-426",
+  next_subphase_id: "RP14.P00.M00.S01",
+  production_ready_flag: "payments_core_p09_closeout_handoff_slice_descriptor_verified",
+  hermes_gate: "H13",
+  claude_gate: "C13",
+});
+
+export const PAYMENTS_CORE_PROGRAM_CONTRACT = Object.freeze({
+  program_id: "RP13",
+  program_title: "Payments AR Accounting Export",
+  program_scope: "Payment matching, AR aging, journal entry, VAT export",
+  upstream_program_id: "RP12",
+  hermes_gate: PAYMENTS_CORE_CP392_PACK_BINDING.hermes_gate,
+  claude_gate: PAYMENTS_CORE_CP392_PACK_BINDING.claude_gate,
+  current_pack_id: PAYMENTS_CORE_CP425_PACK_BINDING.pack_id,
+  contract_ref: "contracts/payments-core-contract.json",
+  package_ref: "packages/payments",
+  validator_ref: "scripts/validate-rp13-payments-core-contract.mjs",
+  descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP392_NO_WRITE_ATTESTATION = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP392_PACK_BINDING.pack_id,
+  validates_scope_contract_foundation_descriptor_only: true,
+  dispatches_payments_runtime: false,
+  dispatches_payment_matching_runtime: false,
+  dispatches_journal_entry_runtime: false,
+  dispatches_ar_aging_runtime: false,
+  evaluates_runtime_permission: false,
+  writes_audit_event: false,
+  writes_product_state: false,
+  creates_database_rows: false,
+  updates_database_rows: false,
+  reads_object_storage: false,
+  writes_object_storage: false,
+  emits_hermes_runtime_receipt: false,
+  executes_command_runtime: false,
+  loads_real_fixture_data: false,
+  exposes_raw_payload: false,
+  promotes_claude_to_final_approval: false,
+  claims_enterprise_trust_from_local_validation: false,
+});
+
+export const PAYMENTS_CORE_CP392_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP392_PACK_BINDING.pack_id,
+  source_billing_core_pack_id: PAYMENTS_CORE_CP392_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_scope_contract_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P00": 71,
+    "RP13.P01": 79,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P00.M00": 1,
+    "RP13.P00.M01": 3,
+    "RP13.P00.M02": 3,
+    "RP13.P00.M03": 11,
+    "RP13.P00.M04": 11,
+    "RP13.P00.M05": 11,
+    "RP13.P00.M06": 8,
+    "RP13.P00.M07": 11,
+    "RP13.P00.M08": 8,
+    "RP13.P00.M09": 3,
+    "RP13.P00.M10": 1,
+    "RP13.P01.M00": 3,
+    "RP13.P01.M01": 8,
+    "RP13.P01.M02": 8,
+    "RP13.P01.M03": 20,
+    "RP13.P01.M04": 20,
+    "RP13.P01.M05": 20,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Scope Inventory": 4,
+    "Contract Draft": 11,
+    "Type And Shape Definition": 11,
+    "Primary Implementation Slice": 31,
+    "Secondary Workflow Slice": 31,
+    "Permission And Audit Binding": 31,
+    "Synthetic Fixture Set": 8,
+    "Test And Golden Case Set": 11,
+    "Hermes Evidence Packet": 8,
+    "Claude Review Packet": 3,
+    "Closeout And Next Handoff": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 102,
+    "contract": 6,
+    "security_audit": 10,
+    "ui": 14,
+    "fixture": 3,
+    "test": 9,
+    "hermes_evidence": 3,
+    "claude_review": 3,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P00.M00": Object.freeze([
+      "Scope inventory",
+    ]),
+    "RP13.P00.M01": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+    ]),
+    "RP13.P00.M02": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+    ]),
+    "RP13.P00.M03": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+      "Target file map",
+      "Contract schema outline",
+      "Ownership note",
+      "Matter-first trace note",
+      "Permission baseline note",
+      "Audit baseline note",
+      "Synthetic data policy",
+      "Risk register row",
+    ]),
+    "RP13.P00.M04": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+      "Target file map",
+      "Contract schema outline",
+      "Ownership note",
+      "Matter-first trace note",
+      "Permission baseline note",
+      "Audit baseline note",
+      "Synthetic data policy",
+      "Risk register row",
+    ]),
+    "RP13.P00.M05": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+      "Target file map",
+      "Contract schema outline",
+      "Ownership note",
+      "Matter-first trace note",
+      "Permission baseline note",
+      "Audit baseline note",
+      "Synthetic data policy",
+      "Risk register row",
+    ]),
+    "RP13.P00.M06": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+      "Target file map",
+      "Contract schema outline",
+      "Ownership note",
+      "Matter-first trace note",
+      "Permission baseline note",
+    ]),
+    "RP13.P00.M07": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+      "Target file map",
+      "Contract schema outline",
+      "Ownership note",
+      "Matter-first trace note",
+      "Permission baseline note",
+      "Audit baseline note",
+      "Synthetic data policy",
+      "Risk register row",
+    ]),
+    "RP13.P00.M08": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+      "Target file map",
+      "Contract schema outline",
+      "Ownership note",
+      "Matter-first trace note",
+      "Permission baseline note",
+    ]),
+    "RP13.P00.M09": Object.freeze([
+      "Scope inventory",
+      "Acceptance gate definition",
+      "Non-goal boundary",
+    ]),
+    "RP13.P00.M10": Object.freeze([
+      "Scope inventory",
+    ]),
+    "RP13.P01.M00": Object.freeze([
+      "Package directory layout",
+      "Primary entity identifier",
+      "Tenant scope field",
+    ]),
+    "RP13.P01.M01": Object.freeze([
+      "Package directory layout",
+      "Primary entity identifier",
+      "Tenant scope field",
+      "Matter trace reference",
+      "Lifecycle status enum",
+      "Ownership metadata",
+      "Reference relationship map",
+      "Required field registry",
+    ]),
+    "RP13.P01.M02": Object.freeze([
+      "Package directory layout",
+      "Primary entity identifier",
+      "Tenant scope field",
+      "Matter trace reference",
+      "Lifecycle status enum",
+      "Ownership metadata",
+      "Reference relationship map",
+      "Required field registry",
+    ]),
+    "RP13.P01.M03": Object.freeze([
+      "Package directory layout",
+      "Primary entity identifier",
+      "Tenant scope field",
+      "Matter trace reference",
+      "Lifecycle status enum",
+      "Ownership metadata",
+      "Reference relationship map",
+      "Required field registry",
+      "Optional field registry",
+      "State transition map",
+      "Validation helper",
+      "Fixture model",
+      "Serialization shape",
+      "Public export",
+      "Model unit test",
+      "Invalid reference test",
+      "Ownership drift test",
+      "Hermes model summary",
+      "Claude model review prompt",
+      "Closeout handoff",
+    ]),
+    "RP13.P01.M04": Object.freeze([
+      "Package directory layout",
+      "Primary entity identifier",
+      "Tenant scope field",
+      "Matter trace reference",
+      "Lifecycle status enum",
+      "Ownership metadata",
+      "Reference relationship map",
+      "Required field registry",
+      "Optional field registry",
+      "State transition map",
+      "Validation helper",
+      "Fixture model",
+      "Serialization shape",
+      "Public export",
+      "Model unit test",
+      "Invalid reference test",
+      "Ownership drift test",
+      "Hermes model summary",
+      "Claude model review prompt",
+      "Closeout handoff",
+    ]),
+    "RP13.P01.M05": Object.freeze([
+      "Package directory layout",
+      "Primary entity identifier",
+      "Tenant scope field",
+      "Matter trace reference",
+      "Lifecycle status enum",
+      "Ownership metadata",
+      "Reference relationship map",
+      "Required field registry",
+      "Optional field registry",
+      "State transition map",
+      "Validation helper",
+      "Fixture model",
+      "Serialization shape",
+      "Public export",
+      "Model unit test",
+      "Invalid reference test",
+      "Ownership drift test",
+      "Hermes model summary",
+      "Claude model review prompt",
+      "Closeout handoff",
+    ]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P00.M00": "Scope Inventory",
+    "RP13.P00.M01": "Contract Draft",
+    "RP13.P00.M02": "Type And Shape Definition",
+    "RP13.P00.M03": "Primary Implementation Slice",
+    "RP13.P00.M04": "Secondary Workflow Slice",
+    "RP13.P00.M05": "Permission And Audit Binding",
+    "RP13.P00.M06": "Synthetic Fixture Set",
+    "RP13.P00.M07": "Test And Golden Case Set",
+    "RP13.P00.M08": "Hermes Evidence Packet",
+    "RP13.P00.M09": "Claude Review Packet",
+    "RP13.P00.M10": "Closeout And Next Handoff",
+    "RP13.P01.M00": "Scope Inventory",
+    "RP13.P01.M01": "Contract Draft",
+    "RP13.P01.M02": "Type And Shape Definition",
+    "RP13.P01.M03": "Primary Implementation Slice",
+    "RP13.P01.M04": "Secondary Workflow Slice",
+    "RP13.P01.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: Object.freeze([
+    "permission_decision_detail_excluded",
+    "audit_event_body_excluded",
+    "blocked_claim_detail_excluded",
+    "hermes_packet_body_excluded",
+    "fixture_payload_excluded",
+    "unauthorized_data_omitted",
+    "raw_payload_excluded",
+  ]),
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp392ScopeContractFoundationDescriptor",
+    "createPaymentsCoreCp392ScopeContractFoundationCaseSet",
+    "validatePaymentsCoreCp392Coverage",
+    "validatePaymentsCoreCp392ScopeContractFoundationDescriptor",
+    "createPaymentsCoreCp392HermesEvidencePacket",
+    "createPaymentsCoreCp392ClaudeReviewPacket",
+    "createPaymentsCoreCp392CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: Object.freeze([
+    "failed_authentication_run",
+    "zero_byte_output",
+    "malformed_json_output",
+    "fenced_json_output",
+    "tool_call_shaped_output",
+    "disabled_tools_run",
+    "missing_raw_output_reference",
+    "missing_source_inspection_basis",
+    "claude_final_approval_claim",
+    "source_mutation_claim",
+    "production_enterprise_trust_claim",
+  ]),
+  hardened_review_sequence: Object.freeze([
+    "baseline_capture",
+    "readiness_validation",
+    "read_only_claude_run_with_raw_capture",
+    "receipt_normalization",
+    "receipt_validation",
+    "finding_adjudication",
+    "construction_inspection",
+    "final_closeout_validation",
+    "commit",
+  ]),
+});
+
+export const PAYMENTS_CORE_CP393_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP392_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP393_PACK_BINDING.pack_id,
+  validates_p01_closeout_p02_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP393_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP393_PACK_BINDING.pack_id,
+  source_scope_contract_foundation_pack_id: PAYMENTS_CORE_CP393_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p01_closeout_p02_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P01": 71,
+    "RP13.P02": 79,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P01.M06": 20,
+    "RP13.P01.M07": 20,
+    "RP13.P01.M08": 20,
+    "RP13.P01.M09": 8,
+    "RP13.P01.M10": 3,
+    "RP13.P02.M00": 11,
+    "RP13.P02.M01": 20,
+    "RP13.P02.M02": 20,
+    "RP13.P02.M03": 22,
+    "RP13.P02.M04": 6,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 20,
+    "Test And Golden Case Set": 20,
+    "Hermes Evidence Packet": 20,
+    "Claude Review Packet": 8,
+    "Closeout And Next Handoff": 3,
+    "Scope Inventory": 11,
+    "Contract Draft": 20,
+    "Type And Shape Definition": 20,
+    "Primary Implementation Slice": 22,
+    "Secondary Workflow Slice": 6,
+  }),
+  deliverable_counts: Object.freeze({
+    "ui": 23,
+    "implementation": 77,
+    "fixture": 3,
+    "test": 17,
+    "hermes_evidence": 3,
+    "claude_review": 6,
+    "contract": 5,
+    "security_audit": 10,
+    "failure_recovery": 6,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P01.M06": Object.freeze(["Package directory layout", "Primary entity identifier", "Tenant scope field", "Matter trace reference", "Lifecycle status enum", "Ownership metadata", "Reference relationship map", "Required field registry", "Optional field registry", "State transition map", "Validation helper", "Fixture model", "Serialization shape", "Public export", "Model unit test", "Invalid reference test", "Ownership drift test", "Hermes model summary", "Claude model review prompt", "Closeout handoff"]),
+    "RP13.P01.M07": Object.freeze(["Package directory layout", "Primary entity identifier", "Tenant scope field", "Matter trace reference", "Lifecycle status enum", "Ownership metadata", "Reference relationship map", "Required field registry", "Optional field registry", "State transition map", "Validation helper", "Fixture model", "Serialization shape", "Public export", "Model unit test", "Invalid reference test", "Ownership drift test", "Hermes model summary", "Claude model review prompt", "Closeout handoff"]),
+    "RP13.P01.M08": Object.freeze(["Package directory layout", "Primary entity identifier", "Tenant scope field", "Matter trace reference", "Lifecycle status enum", "Ownership metadata", "Reference relationship map", "Required field registry", "Optional field registry", "State transition map", "Validation helper", "Fixture model", "Serialization shape", "Public export", "Model unit test", "Invalid reference test", "Ownership drift test", "Hermes model summary", "Claude model review prompt", "Closeout handoff"]),
+    "RP13.P01.M09": Object.freeze(["Package directory layout", "Primary entity identifier", "Tenant scope field", "Matter trace reference", "Lifecycle status enum", "Ownership metadata", "Reference relationship map", "Required field registry"]),
+    "RP13.P01.M10": Object.freeze(["Package directory layout", "Primary entity identifier", "Tenant scope field"]),
+    "RP13.P02.M00": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule"]),
+    "RP13.P02.M01": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path"]),
+    "RP13.P02.M02": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path"]),
+    "RP13.P02.M03": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M04": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P01.M06": "Synthetic Fixture Set",
+    "RP13.P01.M07": "Test And Golden Case Set",
+    "RP13.P01.M08": "Hermes Evidence Packet",
+    "RP13.P01.M09": "Claude Review Packet",
+    "RP13.P01.M10": "Closeout And Next Handoff",
+    "RP13.P02.M00": "Scope Inventory",
+    "RP13.P02.M01": "Contract Draft",
+    "RP13.P02.M02": "Type And Shape Definition",
+    "RP13.P02.M03": "Primary Implementation Slice",
+    "RP13.P02.M04": "Secondary Workflow Slice",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp393P01CloseoutP02FoundationDescriptor",
+    "createPaymentsCoreCp393P01CloseoutP02FoundationCaseSet",
+    "validatePaymentsCoreCp393Coverage",
+    "validatePaymentsCoreCp393P01CloseoutP02FoundationDescriptor",
+    "createPaymentsCoreCp393HermesEvidencePacket",
+    "createPaymentsCoreCp393ClaudeReviewPacket",
+    "createPaymentsCoreCp393CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP394_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP393_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP394_PACK_BINDING.pack_id,
+  validates_p02_workflow_permission_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP394_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP394_PACK_BINDING.pack_id,
+  source_p01_closeout_p02_foundation_pack_id: PAYMENTS_CORE_CP394_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p02_workflow_permission_slice",
+  phase_counts: Object.freeze({
+    "RP13.P02": 40,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P02.M04": 16,
+    "RP13.P02.M05": 22,
+    "RP13.P02.M06": 2,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Secondary Workflow Slice": 16,
+    "Permission And Audit Binding": 22,
+    "Synthetic Fixture Set": 2,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 16,
+    "ui": 6,
+    "claude_review": 2,
+    "failure_recovery": 4,
+    "test": 8,
+    "contract": 2,
+    "security_audit": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P02.M04": Object.freeze(["Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M05": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M06": Object.freeze(["Service entrypoint contract", "Request normalization"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P02.M04": "Secondary Workflow Slice",
+    "RP13.P02.M05": "Permission And Audit Binding",
+    "RP13.P02.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp394P02WorkflowPermissionSliceDescriptor",
+    "createPaymentsCoreCp394P02WorkflowPermissionSliceCaseSet",
+    "validatePaymentsCoreCp394Coverage",
+    "validatePaymentsCoreCp394P02WorkflowPermissionSliceDescriptor",
+    "createPaymentsCoreCp394HermesEvidencePacket",
+    "createPaymentsCoreCp394ClaudeReviewPacket",
+    "createPaymentsCoreCp394CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP395_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP394_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP395_PACK_BINDING.pack_id,
+  validates_p02_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP395_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP395_PACK_BINDING.pack_id,
+  source_p02_workflow_permission_slice_pack_id: PAYMENTS_CORE_CP395_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p02_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P02": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P02.M06": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 6,
+    "security_audit": 2,
+    "ui": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P02.M06": Object.freeze(["Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P02.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp395P02FixtureSliceDescriptor",
+    "createPaymentsCoreCp395P02FixtureSliceCaseSet",
+    "validatePaymentsCoreCp395Coverage",
+    "validatePaymentsCoreCp395P02FixtureSliceDescriptor",
+    "createPaymentsCoreCp395HermesEvidencePacket",
+    "createPaymentsCoreCp395ClaudeReviewPacket",
+    "createPaymentsCoreCp395CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP396_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP395_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP396_PACK_BINDING.pack_id,
+  validates_p02_closeout_p03_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP396_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP396_PACK_BINDING.pack_id,
+  source_p02_fixture_slice_pack_id: PAYMENTS_CORE_CP396_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p02_closeout_p03_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P02": 87,
+    "RP13.P03": 63,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P02.M06": 10,
+    "RP13.P02.M07": 22,
+    "RP13.P02.M08": 22,
+    "RP13.P02.M09": 22,
+    "RP13.P02.M10": 11,
+    "RP13.P03.M00": 3,
+    "RP13.P03.M01": 8,
+    "RP13.P03.M02": 8,
+    "RP13.P03.M03": 20,
+    "RP13.P03.M04": 20,
+    "RP13.P03.M05": 4,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 10,
+    "Test And Golden Case Set": 22,
+    "Hermes Evidence Packet": 22,
+    "Claude Review Packet": 22,
+    "Closeout And Next Handoff": 11,
+    "Scope Inventory": 3,
+    "Contract Draft": 8,
+    "Type And Shape Definition": 8,
+    "Primary Implementation Slice": 20,
+    "Secondary Workflow Slice": 20,
+    "Permission And Audit Binding": 4,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 62,
+    "claude_review": 6,
+    "ui": 12,
+    "failure_recovery": 8,
+    "test": 22,
+    "contract": 22,
+    "security_audit": 16,
+    "hermes_evidence": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P02.M06": Object.freeze(["Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M07": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M08": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M09": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule", "Persistence boundary", "Validation error mapping", "Review-required routing", "Approval-required routing", "Blocked-claim output", "Rollback behavior", "Retry behavior", "Unit test: happy path", "Unit test: denied path", "Unit test: review path", "Integration smoke case"]),
+    "RP13.P02.M10": Object.freeze(["Service entrypoint contract", "Request normalization", "Tenant boundary precheck", "Matter trace precheck", "Permission precheck", "Audit hint precheck", "Primary happy path", "Secondary workflow path", "State transition enforcement", "Idempotency key handling", "Lock acquisition rule"]),
+    "RP13.P03.M00": Object.freeze(["Public export map", "Request contract", "Response contract"]),
+    "RP13.P03.M01": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard"]),
+    "RP13.P03.M02": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard"]),
+    "RP13.P03.M03": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard", "Unauthorized data omission", "API fixture", "Contract test", "Invalid request test", "Denied response test", "Hermes API evidence", "Claude interface prompt", "Documentation example", "Versioning note", "Closeout handoff", "Downstream consumer note", "Command rerun"]),
+    "RP13.P03.M04": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard", "Unauthorized data omission", "API fixture", "Contract test", "Invalid request test", "Denied response test", "Hermes API evidence", "Claude interface prompt", "Documentation example", "Versioning note", "Closeout handoff", "Downstream consumer note", "Command rerun"]),
+    "RP13.P03.M05": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P02.M06": "Synthetic Fixture Set",
+    "RP13.P02.M07": "Test And Golden Case Set",
+    "RP13.P02.M08": "Hermes Evidence Packet",
+    "RP13.P02.M09": "Claude Review Packet",
+    "RP13.P02.M10": "Closeout And Next Handoff",
+    "RP13.P03.M00": "Scope Inventory",
+    "RP13.P03.M01": "Contract Draft",
+    "RP13.P03.M02": "Type And Shape Definition",
+    "RP13.P03.M03": "Primary Implementation Slice",
+    "RP13.P03.M04": "Secondary Workflow Slice",
+    "RP13.P03.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp396P02CloseoutP03FoundationDescriptor",
+    "createPaymentsCoreCp396P02CloseoutP03FoundationCaseSet",
+    "validatePaymentsCoreCp396Coverage",
+    "validatePaymentsCoreCp396P02CloseoutP03FoundationDescriptor",
+    "createPaymentsCoreCp396HermesEvidencePacket",
+    "createPaymentsCoreCp396ClaudeReviewPacket",
+    "createPaymentsCoreCp396CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP397_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP396_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP397_PACK_BINDING.pack_id,
+  validates_p03_permission_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP397_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP397_PACK_BINDING.pack_id,
+  source_p02_closeout_p03_foundation_pack_id: PAYMENTS_CORE_CP397_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p03_permission_slice",
+  phase_counts: Object.freeze({
+    "RP13.P03": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P03.M05": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "security_audit": 2,
+    "contract": 2,
+    "implementation": 2,
+    "test": 3,
+    "hermes_evidence": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P03.M05": Object.freeze(["Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard", "Unauthorized data omission", "API fixture", "Contract test", "Invalid request test", "Denied response test", "Hermes API evidence"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P03.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp397P03PermissionSliceDescriptor",
+    "createPaymentsCoreCp397P03PermissionSliceCaseSet",
+    "validatePaymentsCoreCp397Coverage",
+    "validatePaymentsCoreCp397P03PermissionSliceDescriptor",
+    "createPaymentsCoreCp397HermesEvidencePacket",
+    "createPaymentsCoreCp397ClaudeReviewPacket",
+    "createPaymentsCoreCp397CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP398_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP397_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP398_PACK_BINDING.pack_id,
+  validates_p03_permission_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP398_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP398_PACK_BINDING.pack_id,
+  source_p03_permission_slice_pack_id: PAYMENTS_CORE_CP398_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p03_permission_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P03": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P03.M05": 6,
+    "RP13.P03.M06": 4,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 6,
+    "Synthetic Fixture Set": 4,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 1,
+    "implementation": 7,
+    "contract": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P03.M05": Object.freeze(["Claude interface prompt", "Documentation example", "Versioning note", "Closeout handoff", "Downstream consumer note", "Command rerun"]),
+    "RP13.P03.M06": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P03.M05": "Permission And Audit Binding",
+    "RP13.P03.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp398P03PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp398P03PermissionFixtureSliceCaseSet",
+    "validatePaymentsCoreCp398Coverage",
+    "validatePaymentsCoreCp398P03PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp398HermesEvidencePacket",
+    "createPaymentsCoreCp398ClaudeReviewPacket",
+    "createPaymentsCoreCp398CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP399_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP398_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP399_PACK_BINDING.pack_id,
+  validates_p03_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP399_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP399_PACK_BINDING.pack_id,
+  source_p03_permission_fixture_slice_pack_id: PAYMENTS_CORE_CP399_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p03_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P03": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P03.M06": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "security_audit": 2,
+    "contract": 2,
+    "implementation": 2,
+    "test": 3,
+    "hermes_evidence": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P03.M06": Object.freeze(["Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard", "Unauthorized data omission", "API fixture", "Contract test", "Invalid request test", "Denied response test", "Hermes API evidence"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P03.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp399P03FixtureSliceDescriptor",
+    "createPaymentsCoreCp399P03FixtureSliceCaseSet",
+    "validatePaymentsCoreCp399Coverage",
+    "validatePaymentsCoreCp399P03FixtureSliceDescriptor",
+    "createPaymentsCoreCp399HermesEvidencePacket",
+    "createPaymentsCoreCp399ClaudeReviewPacket",
+    "createPaymentsCoreCp399CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP400_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP399_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP400_PACK_BINDING.pack_id,
+  validates_p03_closeout_p04_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP400_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP400_PACK_BINDING.pack_id,
+  source_p03_fixture_slice_pack_id: PAYMENTS_CORE_CP400_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p03_closeout_p04_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P03": 57,
+    "RP13.P04": 93,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P03.M06": 6,
+    "RP13.P03.M07": 20,
+    "RP13.P03.M08": 20,
+    "RP13.P03.M09": 8,
+    "RP13.P03.M10": 3,
+    "RP13.P04.M00": 8,
+    "RP13.P04.M01": 8,
+    "RP13.P04.M02": 20,
+    "RP13.P04.M03": 22,
+    "RP13.P04.M04": 20,
+    "RP13.P04.M05": 15,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 6,
+    "Test And Golden Case Set": 20,
+    "Hermes Evidence Packet": 20,
+    "Claude Review Packet": 8,
+    "Closeout And Next Handoff": 3,
+    "Scope Inventory": 8,
+    "Contract Draft": 8,
+    "Type And Shape Definition": 20,
+    "Primary Implementation Slice": 22,
+    "Secondary Workflow Slice": 20,
+    "Permission And Audit Binding": 15,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 12,
+    "implementation": 49,
+    "contract": 13,
+    "security_audit": 14,
+    "test": 9,
+    "hermes_evidence": 5,
+    "ui": 45,
+    "fixture": 3,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P03.M06": Object.freeze(["Claude interface prompt", "Documentation example", "Versioning note", "Closeout handoff", "Downstream consumer note", "Command rerun"]),
+    "RP13.P03.M07": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard", "Unauthorized data omission", "API fixture", "Contract test", "Invalid request test", "Denied response test", "Hermes API evidence", "Claude interface prompt", "Documentation example", "Versioning note", "Closeout handoff", "Downstream consumer note", "Command rerun"]),
+    "RP13.P03.M08": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard", "Unauthorized data omission", "API fixture", "Contract test", "Invalid request test", "Denied response test", "Hermes API evidence", "Claude interface prompt", "Documentation example", "Versioning note", "Closeout handoff", "Downstream consumer note", "Command rerun"]),
+    "RP13.P03.M09": Object.freeze(["Public export map", "Request contract", "Response contract", "Error code taxonomy", "Permission annotation", "Audit annotation", "Pagination or filtering contract", "Serialization guard"]),
+    "RP13.P03.M10": Object.freeze(["Public export map", "Request contract", "Response contract"]),
+    "RP13.P04.M00": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction"]),
+    "RP13.P04.M01": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction"]),
+    "RP13.P04.M02": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff"]),
+    "RP13.P04.M03": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff", "State snapshot", "No unauthorized count leak"]),
+    "RP13.P04.M04": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff"]),
+    "RP13.P04.M05": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P03.M06": "Synthetic Fixture Set",
+    "RP13.P03.M07": "Test And Golden Case Set",
+    "RP13.P03.M08": "Hermes Evidence Packet",
+    "RP13.P03.M09": "Claude Review Packet",
+    "RP13.P03.M10": "Closeout And Next Handoff",
+    "RP13.P04.M00": "Scope Inventory",
+    "RP13.P04.M01": "Contract Draft",
+    "RP13.P04.M02": "Type And Shape Definition",
+    "RP13.P04.M03": "Primary Implementation Slice",
+    "RP13.P04.M04": "Secondary Workflow Slice",
+    "RP13.P04.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp400P03CloseoutP04FoundationDescriptor",
+    "createPaymentsCoreCp400P03CloseoutP04FoundationCaseSet",
+    "validatePaymentsCoreCp400Coverage",
+    "validatePaymentsCoreCp400P03CloseoutP04FoundationDescriptor",
+    "createPaymentsCoreCp400HermesEvidencePacket",
+    "createPaymentsCoreCp400ClaudeReviewPacket",
+    "createPaymentsCoreCp400CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP401_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP400_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP401_PACK_BINDING.pack_id,
+  validates_p04_permission_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP401_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP401_PACK_BINDING.pack_id,
+  source_p03_closeout_p04_foundation_pack_id: PAYMENTS_CORE_CP401_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p04_permission_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P04": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P04.M05": 7,
+    "RP13.P04.M06": 3,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 7,
+    "Synthetic Fixture Set": 3,
+  }),
+  deliverable_counts: Object.freeze({
+    "fixture": 1,
+    "test": 1,
+    "hermes_evidence": 1,
+    "claude_review": 1,
+    "implementation": 3,
+    "ui": 3,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P04.M05": Object.freeze(["Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff", "State snapshot", "No unauthorized count leak"]),
+    "RP13.P04.M06": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P04.M05": "Permission And Audit Binding",
+    "RP13.P04.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp401P04PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp401P04PermissionFixtureSliceCaseSet",
+    "validatePaymentsCoreCp401Coverage",
+    "validatePaymentsCoreCp401P04PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp401HermesEvidencePacket",
+    "createPaymentsCoreCp401ClaudeReviewPacket",
+    "createPaymentsCoreCp401CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP402_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP401_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP402_PACK_BINDING.pack_id,
+  validates_p04_closeout_p05_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP402_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP402_PACK_BINDING.pack_id,
+  source_p04_permission_fixture_slice_pack_id: PAYMENTS_CORE_CP402_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p04_closeout_p05_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P04": 87,
+    "RP13.P05": 63,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P04.M06": 17,
+    "RP13.P04.M07": 22,
+    "RP13.P04.M08": 20,
+    "RP13.P04.M09": 20,
+    "RP13.P04.M10": 8,
+    "RP13.P05.M00": 8,
+    "RP13.P05.M01": 8,
+    "RP13.P05.M02": 20,
+    "RP13.P05.M03": 22,
+    "RP13.P05.M04": 5,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 17,
+    "Test And Golden Case Set": 22,
+    "Hermes Evidence Packet": 20,
+    "Claude Review Packet": 20,
+    "Closeout And Next Handoff": 8,
+    "Scope Inventory": 8,
+    "Contract Draft": 8,
+    "Type And Shape Definition": 20,
+    "Primary Implementation Slice": 22,
+    "Secondary Workflow Slice": 5,
+  }),
+  deliverable_counts: Object.freeze({
+    "ui": 37,
+    "claude_review": 13,
+    "security_audit": 12,
+    "implementation": 37,
+    "fixture": 35,
+    "test": 10,
+    "hermes_evidence": 6,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P04.M06": Object.freeze(["Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff"]),
+    "RP13.P04.M07": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff", "State snapshot", "No unauthorized count leak"]),
+    "RP13.P04.M08": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff"]),
+    "RP13.P04.M09": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction", "Permission badge", "Audit hint display", "Error message copy", "Responsive desktop layout", "Responsive mobile layout", "Keyboard/focus behavior", "Visual density check", "Synthetic fixture binding", "Build smoke", "Hermes UI evidence", "Claude UI leak prompt", "Closeout handoff"]),
+    "RP13.P04.M10": Object.freeze(["UI surface inventory", "Data dependency map", "Loading state", "Empty state", "Denied state", "Review-required state", "Primary interaction", "Secondary interaction"]),
+    "RP13.P05.M00": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case"]),
+    "RP13.P05.M01": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case"]),
+    "RP13.P05.M02": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check"]),
+    "RP13.P05.M03": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check", "Stable ID check", "Replay command"]),
+    "RP13.P05.M04": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P04.M06": "Synthetic Fixture Set",
+    "RP13.P04.M07": "Test And Golden Case Set",
+    "RP13.P04.M08": "Hermes Evidence Packet",
+    "RP13.P04.M09": "Claude Review Packet",
+    "RP13.P04.M10": "Closeout And Next Handoff",
+    "RP13.P05.M00": "Scope Inventory",
+    "RP13.P05.M01": "Contract Draft",
+    "RP13.P05.M02": "Type And Shape Definition",
+    "RP13.P05.M03": "Primary Implementation Slice",
+    "RP13.P05.M04": "Secondary Workflow Slice",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp402P04CloseoutP05FoundationDescriptor",
+    "createPaymentsCoreCp402P04CloseoutP05FoundationCaseSet",
+    "validatePaymentsCoreCp402Coverage",
+    "validatePaymentsCoreCp402P04CloseoutP05FoundationDescriptor",
+    "createPaymentsCoreCp402HermesEvidencePacket",
+    "createPaymentsCoreCp402ClaudeReviewPacket",
+    "createPaymentsCoreCp402CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP403_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP402_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP403_PACK_BINDING.pack_id,
+  validates_p05_closeout_p06_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP403_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP403_PACK_BINDING.pack_id,
+  source_p04_closeout_p05_foundation_pack_id: PAYMENTS_CORE_CP403_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p05_closeout_p06_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P05": 127,
+    "RP13.P06": 23,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P05.M04": 15,
+    "RP13.P05.M05": 22,
+    "RP13.P05.M06": 20,
+    "RP13.P05.M07": 22,
+    "RP13.P05.M08": 20,
+    "RP13.P05.M09": 20,
+    "RP13.P05.M10": 8,
+    "RP13.P06.M00": 11,
+    "RP13.P06.M01": 12,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Secondary Workflow Slice": 15,
+    "Permission And Audit Binding": 22,
+    "Synthetic Fixture Set": 20,
+    "Test And Golden Case Set": 22,
+    "Hermes Evidence Packet": 20,
+    "Claude Review Packet": 20,
+    "Closeout And Next Handoff": 8,
+    "Scope Inventory": 11,
+    "Contract Draft": 12,
+  }),
+  deliverable_counts: Object.freeze({
+    "fixture": 43,
+    "claude_review": 7,
+    "implementation": 57,
+    "security_audit": 16,
+    "test": 18,
+    "hermes_evidence": 6,
+    "ui": 3,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P05.M04": Object.freeze(["Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check"]),
+    "RP13.P05.M05": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check", "Stable ID check", "Replay command"]),
+    "RP13.P05.M06": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check"]),
+    "RP13.P05.M07": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check", "Stable ID check", "Replay command"]),
+    "RP13.P05.M08": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check"]),
+    "RP13.P05.M09": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case", "Cross-tenant case", "Missing context case", "Audit hint case", "Security trimming case", "AI retrieval or analytics case", "Fixture manifest", "Golden test", "Failure test", "Hermes fixture evidence", "Claude missing-test prompt", "Closeout handoff", "No-real-data check"]),
+    "RP13.P05.M10": Object.freeze(["Base tenant fixture", "Base user fixture", "Base matter fixture", "Base document fixture", "Primary golden case", "Secondary golden case", "Review-required case", "Denied case"]),
+    "RP13.P06.M00": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction"]),
+    "RP13.P06.M01": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P05.M04": "Secondary Workflow Slice",
+    "RP13.P05.M05": "Permission And Audit Binding",
+    "RP13.P05.M06": "Synthetic Fixture Set",
+    "RP13.P05.M07": "Test And Golden Case Set",
+    "RP13.P05.M08": "Hermes Evidence Packet",
+    "RP13.P05.M09": "Claude Review Packet",
+    "RP13.P05.M10": "Closeout And Next Handoff",
+    "RP13.P06.M00": "Scope Inventory",
+    "RP13.P06.M01": "Contract Draft",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp403P05CloseoutP06FoundationDescriptor",
+    "createPaymentsCoreCp403P05CloseoutP06FoundationCaseSet",
+    "validatePaymentsCoreCp403Coverage",
+    "validatePaymentsCoreCp403P05CloseoutP06FoundationDescriptor",
+    "createPaymentsCoreCp403HermesEvidencePacket",
+    "createPaymentsCoreCp403ClaudeReviewPacket",
+    "createPaymentsCoreCp403CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP404_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP403_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP404_PACK_BINDING.pack_id,
+  validates_p06_contract_implementation_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP404_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP404_PACK_BINDING.pack_id,
+  source_p05_closeout_p06_foundation_pack_id: PAYMENTS_CORE_CP404_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p06_contract_implementation_slice",
+  phase_counts: Object.freeze({
+    "RP13.P06": 40,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P06.M01": 8,
+    "RP13.P06.M02": 20,
+    "RP13.P06.M03": 12,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Contract Draft": 8,
+    "Type And Shape Definition": 20,
+    "Primary Implementation Slice": 12,
+  }),
+  deliverable_counts: Object.freeze({
+    "ui": 8,
+    "claude_review": 2,
+    "security_audit": 10,
+    "test": 4,
+    "implementation": 16,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P06.M01": Object.freeze(["Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test"]),
+    "RP13.P06.M02": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test"]),
+    "RP13.P06.M03": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P06.M01": "Contract Draft",
+    "RP13.P06.M02": "Type And Shape Definition",
+    "RP13.P06.M03": "Primary Implementation Slice",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp404P06ContractImplementationSliceDescriptor",
+    "createPaymentsCoreCp404P06ContractImplementationSliceCaseSet",
+    "validatePaymentsCoreCp404Coverage",
+    "validatePaymentsCoreCp404P06ContractImplementationSliceDescriptor",
+    "createPaymentsCoreCp404HermesEvidencePacket",
+    "createPaymentsCoreCp404ClaudeReviewPacket",
+    "createPaymentsCoreCp404CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP405_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP404_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP405_PACK_BINDING.pack_id,
+  validates_p06_implementation_workflow_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP405_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP405_PACK_BINDING.pack_id,
+  source_p06_contract_implementation_slice_pack_id: PAYMENTS_CORE_CP405_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p06_implementation_workflow_slice",
+  phase_counts: Object.freeze({
+    "RP13.P06": 40,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P06.M03": 10,
+    "RP13.P06.M04": 22,
+    "RP13.P06.M05": 8,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Primary Implementation Slice": 10,
+    "Secondary Workflow Slice": 22,
+    "Permission And Audit Binding": 8,
+  }),
+  deliverable_counts: Object.freeze({
+    "ui": 6,
+    "claude_review": 2,
+    "security_audit": 10,
+    "test": 8,
+    "implementation": 14,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P06.M03": Object.freeze(["Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M04": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M05": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P06.M03": "Primary Implementation Slice",
+    "RP13.P06.M04": "Secondary Workflow Slice",
+    "RP13.P06.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp405P06ImplementationWorkflowSliceDescriptor",
+    "createPaymentsCoreCp405P06ImplementationWorkflowSliceCaseSet",
+    "validatePaymentsCoreCp405Coverage",
+    "validatePaymentsCoreCp405P06ImplementationWorkflowSliceDescriptor",
+    "createPaymentsCoreCp405HermesEvidencePacket",
+    "createPaymentsCoreCp405ClaudeReviewPacket",
+    "createPaymentsCoreCp405CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP406_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP405_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP406_PACK_BINDING.pack_id,
+  validates_p06_permission_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP406_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP406_PACK_BINDING.pack_id,
+  source_p06_implementation_workflow_slice_pack_id: PAYMENTS_CORE_CP406_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p06_permission_slice",
+  phase_counts: Object.freeze({
+    "RP13.P06": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P06.M05": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 2,
+    "ui": 4,
+    "claude_review": 1,
+    "security_audit": 3,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P06.M05": Object.freeze(["Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P06.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp406P06PermissionSliceDescriptor",
+    "createPaymentsCoreCp406P06PermissionSliceCaseSet",
+    "validatePaymentsCoreCp406Coverage",
+    "validatePaymentsCoreCp406P06PermissionSliceDescriptor",
+    "createPaymentsCoreCp406HermesEvidencePacket",
+    "createPaymentsCoreCp406ClaudeReviewPacket",
+    "createPaymentsCoreCp406CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP407_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP406_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP407_PACK_BINDING.pack_id,
+  validates_p06_permission_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP407_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP407_PACK_BINDING.pack_id,
+  source_p06_permission_slice_pack_id: PAYMENTS_CORE_CP407_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p06_permission_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P06": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P06.M05": 4,
+    "RP13.P06.M06": 6,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 4,
+    "Synthetic Fixture Set": 6,
+  }),
+  deliverable_counts: Object.freeze({
+    "test": 4,
+    "security_audit": 1,
+    "implementation": 5,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P06.M05": Object.freeze(["Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M06": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P06.M05": "Permission And Audit Binding",
+    "RP13.P06.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp407P06PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp407P06PermissionFixtureSliceCaseSet",
+    "validatePaymentsCoreCp407Coverage",
+    "validatePaymentsCoreCp407P06PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp407HermesEvidencePacket",
+    "createPaymentsCoreCp407ClaudeReviewPacket",
+    "createPaymentsCoreCp407CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP408_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP407_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP408_PACK_BINDING.pack_id,
+  validates_p06_closeout_p07_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP408_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP408_PACK_BINDING.pack_id,
+  source_p06_permission_fixture_slice_pack_id: PAYMENTS_CORE_CP408_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p06_closeout_p07_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P06": 93,
+    "RP13.P07": 57,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P06.M06": 16,
+    "RP13.P06.M07": 22,
+    "RP13.P06.M08": 22,
+    "RP13.P06.M09": 22,
+    "RP13.P06.M10": 11,
+    "RP13.P07.M00": 11,
+    "RP13.P07.M01": 20,
+    "RP13.P07.M02": 20,
+    "RP13.P07.M03": 6,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 16,
+    "Test And Golden Case Set": 22,
+    "Hermes Evidence Packet": 22,
+    "Claude Review Packet": 22,
+    "Closeout And Next Handoff": 11,
+    "Scope Inventory": 11,
+    "Contract Draft": 20,
+    "Type And Shape Definition": 20,
+    "Primary Implementation Slice": 6,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 37,
+    "security_audit": 26,
+    "ui": 17,
+    "claude_review": 4,
+    "test": 20,
+    "failure_recovery": 40,
+    "hermes_evidence": 4,
+    "fixture": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P06.M06": Object.freeze(["AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M07": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M08": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M09": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction", "Ethical wall interaction", "Object ACL interaction", "Review-required route", "Approval-required route", "Security trimming proof", "Audit event expectation", "Permission fixture", "Allowed test", "Denied test", "Cross-tenant test", "Leak prevention test"]),
+    "RP13.P06.M10": Object.freeze(["Permission matrix row", "View decision binding", "Search decision binding", "Mutation decision binding", "Export/download decision binding", "Share decision binding", "AI retrieval decision binding", "Audit hint fields", "Matched rule capture", "Deny-over-allow check", "Legal hold interaction"]),
+    "RP13.P07.M00": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure"]),
+    "RP13.P07.M01": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence"]),
+    "RP13.P07.M02": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence"]),
+    "RP13.P07.M03": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P06.M06": "Synthetic Fixture Set",
+    "RP13.P06.M07": "Test And Golden Case Set",
+    "RP13.P06.M08": "Hermes Evidence Packet",
+    "RP13.P06.M09": "Claude Review Packet",
+    "RP13.P06.M10": "Closeout And Next Handoff",
+    "RP13.P07.M00": "Scope Inventory",
+    "RP13.P07.M01": "Contract Draft",
+    "RP13.P07.M02": "Type And Shape Definition",
+    "RP13.P07.M03": "Primary Implementation Slice",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp408P06CloseoutP07FoundationDescriptor",
+    "createPaymentsCoreCp408P06CloseoutP07FoundationCaseSet",
+    "validatePaymentsCoreCp408Coverage",
+    "validatePaymentsCoreCp408P06CloseoutP07FoundationDescriptor",
+    "createPaymentsCoreCp408HermesEvidencePacket",
+    "createPaymentsCoreCp408ClaudeReviewPacket",
+    "createPaymentsCoreCp408CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP409_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP408_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP409_PACK_BINDING.pack_id,
+  validates_p07_implementation_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP409_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP409_PACK_BINDING.pack_id,
+  source_p06_closeout_p07_foundation_pack_id: PAYMENTS_CORE_CP409_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p07_implementation_slice",
+  phase_counts: Object.freeze({
+    "RP13.P07": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P07.M03": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Primary Implementation Slice": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "failure_recovery": 6,
+    "security_audit": 1,
+    "implementation": 1,
+    "hermes_evidence": 1,
+    "fixture": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P07.M03": Object.freeze(["Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P07.M03": "Primary Implementation Slice",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp409P07ImplementationSliceDescriptor",
+    "createPaymentsCoreCp409P07ImplementationSliceCaseSet",
+    "validatePaymentsCoreCp409Coverage",
+    "validatePaymentsCoreCp409P07ImplementationSliceDescriptor",
+    "createPaymentsCoreCp409HermesEvidencePacket",
+    "createPaymentsCoreCp409ClaudeReviewPacket",
+    "createPaymentsCoreCp409CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP410_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP409_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP410_PACK_BINDING.pack_id,
+  validates_p07_workflow_permission_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP410_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP410_PACK_BINDING.pack_id,
+  source_p07_implementation_slice_pack_id: PAYMENTS_CORE_CP410_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p07_workflow_permission_slice",
+  phase_counts: Object.freeze({
+    "RP13.P07": 40,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P07.M03": 6,
+    "RP13.P07.M04": 22,
+    "RP13.P07.M05": 12,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Primary Implementation Slice": 6,
+    "Secondary Workflow Slice": 22,
+    "Permission And Audit Binding": 12,
+  }),
+  deliverable_counts: Object.freeze({
+    "test": 4,
+    "security_audit": 4,
+    "hermes_evidence": 3,
+    "claude_review": 2,
+    "implementation": 3,
+    "failure_recovery": 23,
+    "fixture": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P07.M03": Object.freeze(["Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+    "RP13.P07.M04": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+    "RP13.P07.M05": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P07.M03": "Primary Implementation Slice",
+    "RP13.P07.M04": "Secondary Workflow Slice",
+    "RP13.P07.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp410P07WorkflowPermissionSliceDescriptor",
+    "createPaymentsCoreCp410P07WorkflowPermissionSliceCaseSet",
+    "validatePaymentsCoreCp410Coverage",
+    "validatePaymentsCoreCp410P07WorkflowPermissionSliceDescriptor",
+    "createPaymentsCoreCp410HermesEvidencePacket",
+    "createPaymentsCoreCp410ClaudeReviewPacket",
+    "createPaymentsCoreCp410CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP411_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP410_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP411_PACK_BINDING.pack_id,
+  validates_p07_permission_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP411_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP411_PACK_BINDING.pack_id,
+  source_p07_workflow_permission_slice_pack_id: PAYMENTS_CORE_CP411_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p07_permission_slice",
+  phase_counts: Object.freeze({
+    "RP13.P07": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P07.M05": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "failure_recovery": 1,
+    "implementation": 2,
+    "hermes_evidence": 2,
+    "fixture": 1,
+    "test": 2,
+    "security_audit": 1,
+    "claude_review": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P07.M05": Object.freeze(["Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P07.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp411P07PermissionSliceDescriptor",
+    "createPaymentsCoreCp411P07PermissionSliceCaseSet",
+    "validatePaymentsCoreCp411Coverage",
+    "validatePaymentsCoreCp411P07PermissionSliceDescriptor",
+    "createPaymentsCoreCp411HermesEvidencePacket",
+    "createPaymentsCoreCp411ClaudeReviewPacket",
+    "createPaymentsCoreCp411CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP412_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP411_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP412_PACK_BINDING.pack_id,
+  validates_p07_closeout_p08_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP412_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP412_PACK_BINDING.pack_id,
+  source_p07_permission_slice_pack_id: PAYMENTS_CORE_CP412_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p07_closeout_p08_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P07": 99,
+    "RP13.P08": 51,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P07.M06": 22,
+    "RP13.P07.M07": 22,
+    "RP13.P07.M08": 22,
+    "RP13.P07.M09": 22,
+    "RP13.P07.M10": 11,
+    "RP13.P08.M00": 8,
+    "RP13.P08.M01": 8,
+    "RP13.P08.M02": 20,
+    "RP13.P08.M03": 15,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 22,
+    "Test And Golden Case Set": 22,
+    "Hermes Evidence Packet": 22,
+    "Claude Review Packet": 22,
+    "Closeout And Next Handoff": 11,
+    "Scope Inventory": 8,
+    "Contract Draft": 8,
+    "Type And Shape Definition": 20,
+    "Primary Implementation Slice": 15,
+  }),
+  deliverable_counts: Object.freeze({
+    "failure_recovery": 58,
+    "security_audit": 9,
+    "implementation": 20,
+    "hermes_evidence": 44,
+    "fixture": 4,
+    "test": 9,
+    "claude_review": 6,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P07.M06": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+    "RP13.P07.M07": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+    "RP13.P07.M08": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+    "RP13.P07.M09": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure", "Retry exhaustion failure", "Rollback expectation", "Compensation expectation", "Blocked-claim receipt", "Failure fixture", "Failure unit test", "Failure integration smoke", "Audit failure hint", "Hermes failure evidence", "Claude edge-case prompt", "Human escalation note"]),
+    "RP13.P07.M10": Object.freeze(["Failure taxonomy", "Missing tenant failure", "Missing actor failure", "Missing Matter failure", "Missing resource failure", "Unknown action failure", "Cross-tenant failure", "Permission denied failure", "Ambiguous rule failure", "Stale reference failure", "Lock conflict failure"]),
+    "RP13.P08.M00": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt"]),
+    "RP13.P08.M01": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt"]),
+    "RP13.P08.M02": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness"]),
+    "RP13.P08.M03": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P07.M06": "Synthetic Fixture Set",
+    "RP13.P07.M07": "Test And Golden Case Set",
+    "RP13.P07.M08": "Hermes Evidence Packet",
+    "RP13.P07.M09": "Claude Review Packet",
+    "RP13.P07.M10": "Closeout And Next Handoff",
+    "RP13.P08.M00": "Scope Inventory",
+    "RP13.P08.M01": "Contract Draft",
+    "RP13.P08.M02": "Type And Shape Definition",
+    "RP13.P08.M03": "Primary Implementation Slice",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp412P07CloseoutP08FoundationDescriptor",
+    "createPaymentsCoreCp412P07CloseoutP08FoundationCaseSet",
+    "validatePaymentsCoreCp412Coverage",
+    "validatePaymentsCoreCp412P07CloseoutP08FoundationDescriptor",
+    "createPaymentsCoreCp412HermesEvidencePacket",
+    "createPaymentsCoreCp412ClaudeReviewPacket",
+    "createPaymentsCoreCp412CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP413_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP412_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP413_PACK_BINDING.pack_id,
+  validates_p08_implementation_workflow_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP413_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP413_PACK_BINDING.pack_id,
+  source_p07_closeout_p08_foundation_pack_id: PAYMENTS_CORE_CP413_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p08_implementation_workflow_slice",
+  phase_counts: Object.freeze({
+    "RP13.P08": 40,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P08.M03": 7,
+    "RP13.P08.M04": 20,
+    "RP13.P08.M05": 13,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Primary Implementation Slice": 7,
+    "Secondary Workflow Slice": 20,
+    "Permission And Audit Binding": 13,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 17,
+    "test": 2,
+    "hermes_evidence": 19,
+    "claude_review": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P08.M03": Object.freeze(["Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness", "Documentation update", "Operator summary"]),
+    "RP13.P08.M04": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness"]),
+    "RP13.P08.M05": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P08.M03": "Primary Implementation Slice",
+    "RP13.P08.M04": "Secondary Workflow Slice",
+    "RP13.P08.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp413P08ImplementationWorkflowSliceDescriptor",
+    "createPaymentsCoreCp413P08ImplementationWorkflowSliceCaseSet",
+    "validatePaymentsCoreCp413Coverage",
+    "validatePaymentsCoreCp413P08ImplementationWorkflowSliceDescriptor",
+    "createPaymentsCoreCp413HermesEvidencePacket",
+    "createPaymentsCoreCp413ClaudeReviewPacket",
+    "createPaymentsCoreCp413CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP414_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP413_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP414_PACK_BINDING.pack_id,
+  validates_p08_permission_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP414_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP414_PACK_BINDING.pack_id,
+  source_p08_implementation_workflow_slice_pack_id: PAYMENTS_CORE_CP414_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p08_permission_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P08": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P08.M05": 9,
+    "RP13.P08.M06": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 9,
+    "Synthetic Fixture Set": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 7,
+    "hermes_evidence": 2,
+    "test": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P08.M05": Object.freeze(["BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness", "Documentation update", "Operator summary"]),
+    "RP13.P08.M06": Object.freeze(["Hermes command matrix"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P08.M05": "Permission And Audit Binding",
+    "RP13.P08.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp414P08PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp414P08PermissionFixtureSliceCaseSet",
+    "validatePaymentsCoreCp414Coverage",
+    "validatePaymentsCoreCp414P08PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp414HermesEvidencePacket",
+    "createPaymentsCoreCp414ClaudeReviewPacket",
+    "createPaymentsCoreCp414CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP415_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP414_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP415_PACK_BINDING.pack_id,
+  validates_p08_closeout_p09_foundation_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP415_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP415_PACK_BINDING.pack_id,
+  source_p08_permission_fixture_slice_pack_id: PAYMENTS_CORE_CP415_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p08_closeout_p09_foundation",
+  phase_counts: Object.freeze({
+    "RP13.P08": 89,
+    "RP13.P09": 61,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P08.M06": 19,
+    "RP13.P08.M07": 22,
+    "RP13.P08.M08": 20,
+    "RP13.P08.M09": 20,
+    "RP13.P08.M10": 8,
+    "RP13.P09.M00": 4,
+    "RP13.P09.M01": 8,
+    "RP13.P09.M02": 8,
+    "RP13.P09.M03": 20,
+    "RP13.P09.M04": 20,
+    "RP13.P09.M05": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 19,
+    "Test And Golden Case Set": 22,
+    "Hermes Evidence Packet": 20,
+    "Claude Review Packet": 20,
+    "Closeout And Next Handoff": 8,
+    "Scope Inventory": 4,
+    "Contract Draft": 8,
+    "Type And Shape Definition": 8,
+    "Primary Implementation Slice": 20,
+    "Secondary Workflow Slice": 20,
+    "Permission And Audit Binding": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "hermes_evidence": 47,
+    "claude_review": 17,
+    "implementation": 64,
+    "test": 8,
+    "security_audit": 10,
+    "ui": 4,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P08.M06": Object.freeze(["Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness"]),
+    "RP13.P08.M07": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness", "Documentation update", "Operator summary"]),
+    "RP13.P08.M08": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness"]),
+    "RP13.P08.M09": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt", "No-real-data receipt", "Claude dependency marker", "Human approval marker", "PASS semantics", "PASS_WITH_FINDINGS semantics", "BLOCK semantics", "Evidence template", "Validation command check", "Harness boundary note", "Closeout handoff", "Regression receipt", "Next gate readiness"]),
+    "RP13.P08.M10": Object.freeze(["Hermes command matrix", "Evidence field list", "Changed-file receipt", "Command result receipt", "Fixture summary receipt", "Blocked-claim receipt", "Permission summary receipt", "Audit summary receipt"]),
+    "RP13.P09.M00": Object.freeze(["Architecture review questions", "Security review questions", "Permission bypass questions", "Audit completeness questions"]),
+    "RP13.P09.M01": Object.freeze(["Architecture review questions", "Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register"]),
+    "RP13.P09.M02": Object.freeze(["Architecture review questions", "Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register"]),
+    "RP13.P09.M03": Object.freeze(["Architecture review questions", "Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register", "Severity taxonomy", "Go/no-go verdict format", "Finding routing map", "Human approval summary", "Claude review packet", "Closeout criteria", "PASS closeout note", "PASS_WITH_FINDINGS closeout note", "BLOCK closeout note", "Next RP dependency", "Documentation update", "Command rerun"]),
+    "RP13.P09.M04": Object.freeze(["Architecture review questions", "Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register", "Severity taxonomy", "Go/no-go verdict format", "Finding routing map", "Human approval summary", "Claude review packet", "Closeout criteria", "PASS closeout note", "PASS_WITH_FINDINGS closeout note", "BLOCK closeout note", "Next RP dependency", "Documentation update", "Command rerun"]),
+    "RP13.P09.M05": Object.freeze(["Architecture review questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P08.M06": "Synthetic Fixture Set",
+    "RP13.P08.M07": "Test And Golden Case Set",
+    "RP13.P08.M08": "Hermes Evidence Packet",
+    "RP13.P08.M09": "Claude Review Packet",
+    "RP13.P08.M10": "Closeout And Next Handoff",
+    "RP13.P09.M00": "Scope Inventory",
+    "RP13.P09.M01": "Contract Draft",
+    "RP13.P09.M02": "Type And Shape Definition",
+    "RP13.P09.M03": "Primary Implementation Slice",
+    "RP13.P09.M04": "Secondary Workflow Slice",
+    "RP13.P09.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp415P08CloseoutP09FoundationDescriptor",
+    "createPaymentsCoreCp415P08CloseoutP09FoundationCaseSet",
+    "validatePaymentsCoreCp415Coverage",
+    "validatePaymentsCoreCp415P08CloseoutP09FoundationDescriptor",
+    "createPaymentsCoreCp415HermesEvidencePacket",
+    "createPaymentsCoreCp415ClaudeReviewPacket",
+    "createPaymentsCoreCp415CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP416_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP415_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP416_PACK_BINDING.pack_id,
+  validates_p09_permission_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP416_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP416_PACK_BINDING.pack_id,
+  source_p08_closeout_p09_foundation_pack_id: PAYMENTS_CORE_CP416_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_permission_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M05": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 1,
+    "security_audit": 2,
+    "test": 1,
+    "ui": 1,
+    "implementation": 5,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M05": Object.freeze(["Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register", "Severity taxonomy", "Go/no-go verdict format", "Finding routing map"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M05": "Permission And Audit Binding",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp416P09PermissionSliceDescriptor",
+    "createPaymentsCoreCp416P09PermissionSliceCaseSet",
+    "validatePaymentsCoreCp416Coverage",
+    "validatePaymentsCoreCp416P09PermissionSliceDescriptor",
+    "createPaymentsCoreCp416HermesEvidencePacket",
+    "createPaymentsCoreCp416ClaudeReviewPacket",
+    "createPaymentsCoreCp416CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP417_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP416_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP417_PACK_BINDING.pack_id,
+  validates_p09_permission_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP417_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP417_PACK_BINDING.pack_id,
+  source_p09_permission_slice_pack_id: PAYMENTS_CORE_CP417_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_permission_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M05": 9,
+    "RP13.P09.M06": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Permission And Audit Binding": 9,
+    "Synthetic Fixture Set": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 8,
+    "claude_review": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M05": Object.freeze(["Human approval summary", "Claude review packet", "Closeout criteria", "PASS closeout note", "PASS_WITH_FINDINGS closeout note", "BLOCK closeout note", "Next RP dependency", "Documentation update", "Command rerun"]),
+    "RP13.P09.M06": Object.freeze(["Architecture review questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M05": "Permission And Audit Binding",
+    "RP13.P09.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp417P09PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp417P09PermissionFixtureSliceCaseSet",
+    "validatePaymentsCoreCp417Coverage",
+    "validatePaymentsCoreCp417P09PermissionFixtureSliceDescriptor",
+    "createPaymentsCoreCp417HermesEvidencePacket",
+    "createPaymentsCoreCp417ClaudeReviewPacket",
+    "createPaymentsCoreCp417CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP418_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP417_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP418_PACK_BINDING.pack_id,
+  validates_p09_fixture_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP418_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP418_PACK_BINDING.pack_id,
+  source_p09_permission_fixture_slice_pack_id: PAYMENTS_CORE_CP418_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_fixture_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M06": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 1,
+    "security_audit": 2,
+    "test": 1,
+    "ui": 1,
+    "implementation": 5,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M06": Object.freeze(["Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register", "Severity taxonomy", "Go/no-go verdict format", "Finding routing map"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M06": "Synthetic Fixture Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp418P09FixtureSliceDescriptor",
+    "createPaymentsCoreCp418P09FixtureSliceCaseSet",
+    "validatePaymentsCoreCp418Coverage",
+    "validatePaymentsCoreCp418P09FixtureSliceDescriptor",
+    "createPaymentsCoreCp418HermesEvidencePacket",
+    "createPaymentsCoreCp418ClaudeReviewPacket",
+    "createPaymentsCoreCp418CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP419_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP418_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP419_PACK_BINDING.pack_id,
+  validates_p09_fixture_test_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP419_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP419_PACK_BINDING.pack_id,
+  source_p09_fixture_slice_pack_id: PAYMENTS_CORE_CP419_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_fixture_test_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M06": 9,
+    "RP13.P09.M07": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Synthetic Fixture Set": 9,
+    "Test And Golden Case Set": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 8,
+    "claude_review": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M06": Object.freeze(["Human approval summary", "Claude review packet", "Closeout criteria", "PASS closeout note", "PASS_WITH_FINDINGS closeout note", "BLOCK closeout note", "Next RP dependency", "Documentation update", "Command rerun"]),
+    "RP13.P09.M07": Object.freeze(["Architecture review questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M06": "Synthetic Fixture Set",
+    "RP13.P09.M07": "Test And Golden Case Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp419P09FixtureTestSliceDescriptor",
+    "createPaymentsCoreCp419P09FixtureTestSliceCaseSet",
+    "validatePaymentsCoreCp419Coverage",
+    "validatePaymentsCoreCp419P09FixtureTestSliceDescriptor",
+    "createPaymentsCoreCp419HermesEvidencePacket",
+    "createPaymentsCoreCp419ClaudeReviewPacket",
+    "createPaymentsCoreCp419CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP420_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP419_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP420_PACK_BINDING.pack_id,
+  validates_p09_test_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP420_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP420_PACK_BINDING.pack_id,
+  source_p09_fixture_test_slice_pack_id: PAYMENTS_CORE_CP420_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_test_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M07": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Test And Golden Case Set": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 1,
+    "security_audit": 2,
+    "test": 1,
+    "ui": 1,
+    "implementation": 5,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M07": Object.freeze(["Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register", "Severity taxonomy", "Go/no-go verdict format", "Finding routing map"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M07": "Test And Golden Case Set",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp420P09TestSliceDescriptor",
+    "createPaymentsCoreCp420P09TestSliceCaseSet",
+    "validatePaymentsCoreCp420Coverage",
+    "validatePaymentsCoreCp420P09TestSliceDescriptor",
+    "createPaymentsCoreCp420HermesEvidencePacket",
+    "createPaymentsCoreCp420ClaudeReviewPacket",
+    "createPaymentsCoreCp420CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP421_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP420_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP421_PACK_BINDING.pack_id,
+  validates_p09_test_hermes_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP421_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP421_PACK_BINDING.pack_id,
+  source_p09_test_slice_pack_id: PAYMENTS_CORE_CP421_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_test_hermes_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M07": 9,
+    "RP13.P09.M08": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Test And Golden Case Set": 9,
+    "Hermes Evidence Packet": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 8,
+    "claude_review": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M07": Object.freeze(["Human approval summary", "Claude review packet", "Closeout criteria", "PASS closeout note", "PASS_WITH_FINDINGS closeout note", "BLOCK closeout note", "Next RP dependency", "Documentation update", "Command rerun"]),
+    "RP13.P09.M08": Object.freeze(["Architecture review questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M07": "Test And Golden Case Set",
+    "RP13.P09.M08": "Hermes Evidence Packet",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp421P09TestHermesSliceDescriptor",
+    "createPaymentsCoreCp421P09TestHermesSliceCaseSet",
+    "validatePaymentsCoreCp421Coverage",
+    "validatePaymentsCoreCp421P09TestHermesSliceDescriptor",
+    "createPaymentsCoreCp421HermesEvidencePacket",
+    "createPaymentsCoreCp421ClaudeReviewPacket",
+    "createPaymentsCoreCp421CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP422_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP421_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP422_PACK_BINDING.pack_id,
+  validates_p09_hermes_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP422_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP422_PACK_BINDING.pack_id,
+  source_p09_test_hermes_slice_pack_id: PAYMENTS_CORE_CP422_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_hermes_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M08": 10,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Hermes Evidence Packet": 10,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 1,
+    "security_audit": 2,
+    "test": 1,
+    "ui": 1,
+    "implementation": 5,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M08": Object.freeze(["Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register", "Severity taxonomy", "Go/no-go verdict format", "Finding routing map"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M08": "Hermes Evidence Packet",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp422P09HermesSliceDescriptor",
+    "createPaymentsCoreCp422P09HermesSliceCaseSet",
+    "validatePaymentsCoreCp422Coverage",
+    "validatePaymentsCoreCp422P09HermesSliceDescriptor",
+    "createPaymentsCoreCp422HermesEvidencePacket",
+    "createPaymentsCoreCp422ClaudeReviewPacket",
+    "createPaymentsCoreCp422CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP423_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP422_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP423_PACK_BINDING.pack_id,
+  validates_p09_hermes_review_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP423_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP423_PACK_BINDING.pack_id,
+  source_p09_hermes_slice_pack_id: PAYMENTS_CORE_CP423_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_hermes_review_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M08": 9,
+    "RP13.P09.M09": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Hermes Evidence Packet": 9,
+    "Claude Review Packet": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "implementation": 8,
+    "claude_review": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M08": Object.freeze(["Human approval summary", "Claude review packet", "Closeout criteria", "PASS closeout note", "PASS_WITH_FINDINGS closeout note", "BLOCK closeout note", "Next RP dependency", "Documentation update", "Command rerun"]),
+    "RP13.P09.M09": Object.freeze(["Architecture review questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M08": "Hermes Evidence Packet",
+    "RP13.P09.M09": "Claude Review Packet",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp423P09HermesReviewSliceDescriptor",
+    "createPaymentsCoreCp423P09HermesReviewSliceCaseSet",
+    "validatePaymentsCoreCp423Coverage",
+    "validatePaymentsCoreCp423P09HermesReviewSliceDescriptor",
+    "createPaymentsCoreCp423HermesEvidencePacket",
+    "createPaymentsCoreCp423ClaudeReviewPacket",
+    "createPaymentsCoreCp423CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP424_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP423_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP424_PACK_BINDING.pack_id,
+  validates_p09_review_closeout_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP424_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP424_PACK_BINDING.pack_id,
+  source_p09_hermes_review_slice_pack_id: PAYMENTS_CORE_CP424_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_review_closeout_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 10,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M09": 7,
+    "RP13.P09.M10": 3,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Claude Review Packet": 7,
+    "Closeout And Next Handoff": 3,
+  }),
+  deliverable_counts: Object.freeze({
+    "claude_review": 3,
+    "security_audit": 3,
+    "test": 1,
+    "ui": 1,
+    "implementation": 2,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M09": Object.freeze(["Security review questions", "Permission bypass questions", "Audit completeness questions", "Missing test questions", "UI leak questions", "Downstream readiness questions", "Risk register"]),
+    "RP13.P09.M10": Object.freeze(["Architecture review questions", "Security review questions", "Permission bypass questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M09": "Claude Review Packet",
+    "RP13.P09.M10": "Closeout And Next Handoff",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp424P09ReviewCloseoutSliceDescriptor",
+    "createPaymentsCoreCp424P09ReviewCloseoutSliceCaseSet",
+    "validatePaymentsCoreCp424Coverage",
+    "validatePaymentsCoreCp424P09ReviewCloseoutSliceDescriptor",
+    "createPaymentsCoreCp424HermesEvidencePacket",
+    "createPaymentsCoreCp424ClaudeReviewPacket",
+    "createPaymentsCoreCp424CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});
+
+export const PAYMENTS_CORE_CP425_NO_WRITE_ATTESTATION = Object.freeze({
+  ...PAYMENTS_CORE_CP424_NO_WRITE_ATTESTATION,
+  pack_id: PAYMENTS_CORE_CP425_PACK_BINDING.pack_id,
+  validates_p09_closeout_handoff_slice_descriptor_only: true,
+});
+
+export const PAYMENTS_CORE_CP425_REQUIREMENTS = Object.freeze({
+  pack_id: PAYMENTS_CORE_CP425_PACK_BINDING.pack_id,
+  source_p09_review_closeout_slice_pack_id: PAYMENTS_CORE_CP425_PACK_BINDING.upstream_pack_id,
+  boundary_mode: "descriptor_only_payments_p09_closeout_handoff_slice",
+  phase_counts: Object.freeze({
+    "RP13.P09": 1,
+  }),
+  micro_phase_row_counts: Object.freeze({
+    "RP13.P09.M10": 1,
+  }),
+  micro_title_row_counts: Object.freeze({
+    "Closeout And Next Handoff": 1,
+  }),
+  deliverable_counts: Object.freeze({
+    "security_audit": 1,
+  }),
+  required_section_rows: Object.freeze({
+    "RP13.P09.M10": Object.freeze(["Audit completeness questions"]),
+  }),
+  required_section_micro_titles: Object.freeze({
+    "RP13.P09.M10": "Closeout And Next Handoff",
+  }),
+  required_no_leak_guards: PAYMENTS_CORE_CP392_REQUIREMENTS.required_no_leak_guards,
+  required_public_exports: Object.freeze([
+    "createPaymentsCoreCp425P09CloseoutHandoffSliceDescriptor",
+    "createPaymentsCoreCp425P09CloseoutHandoffSliceCaseSet",
+    "validatePaymentsCoreCp425Coverage",
+    "validatePaymentsCoreCp425P09CloseoutHandoffSliceDescriptor",
+    "createPaymentsCoreCp425HermesEvidencePacket",
+    "createPaymentsCoreCp425ClaudeReviewPacket",
+    "createPaymentsCoreCp425CloseoutHandoff",
+  ]),
+  allowed_claude_tools: Object.freeze(["Read", "Grep", "Glob"]),
+  forbidden_review_evidence: PAYMENTS_CORE_CP392_REQUIREMENTS.forbidden_review_evidence,
+  hardened_review_sequence: PAYMENTS_CORE_CP392_REQUIREMENTS.hardened_review_sequence,
+});

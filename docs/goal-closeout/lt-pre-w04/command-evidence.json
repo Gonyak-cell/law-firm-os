@@ -1,0 +1,109 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W04",
+  "title": "Gap five-area coverage matrix and disposition input",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "blocked_pending_owner_disposition",
+  "recorded_at": "2026-06-18T10:18:00Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:18:00Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W04-T01",
+      "title": "Generate five-area gap coverage matrix",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/gap-five-area-coverage-matrix.md",
+        "docs/goal-closeout/lt-pre-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "area_row_count": 5,
+        "allowed_judgments_only": true,
+        "covered_or_partial_rows_have_evidence_ids": true,
+        "sample_id_count": 10,
+        "sample_ids_all_exist": true,
+        "partial_or_uncovered_rows_in_t02_input_list": true,
+        "planned_pack_count": 0
+      },
+      "commands": [
+        {
+          "command": "grep -c \"^| R\" docs/launch/gap-five-area-coverage-matrix.md",
+          "exit_code": 0,
+          "output": "5",
+          "purpose": "Verify the matrix has exactly five gap-area rows"
+        },
+        {
+          "command": "node - <<'NODE' ... verify sample IDs across weighted and HRX ledgers ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "planned_pack_count": 0,
+            "sample_count": 10,
+            "missing_ids": []
+          },
+          "purpose": "Confirm at least ten sampled evidence IDs exist in live ledgers"
+        },
+        {
+          "command": "grep -n \"## T02 Disposition Input List\" docs/launch/gap-five-area-coverage-matrix.md && grep -c \"| partial | overlay_admission_referral or deferred_explicit |\" docs/launch/gap-five-area-coverage-matrix.md",
+          "exit_code": 0,
+          "output": "31:## T02 Disposition Input List\n5",
+          "purpose": "Confirm every partial row is routed into the T02 disposition input list"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "All five areas are partial, not covered, because CP closeout has no remaining planned packs and the relevant rows still require overlay, runtime, UI/API, storage, HR-sensitive, or owner disposition work.",
+        "T01 only creates the matrix and disposition input list. It does not decide T02 disposition.",
+        "Full Claude review is waived by user instruction and is not counted as valid review evidence."
+      ]
+    },
+    {
+      "tuw_id": "LT-PRE-W04-T02",
+      "title": "Decide disposition for uncovered/partial rows",
+      "status": "blocked_pending_owner_disposition",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/gap-five-area-coverage-matrix.md",
+        "docs/goal-closeout/lt-pre-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "disposition_register_present": false,
+        "partial_or_uncovered_row_count": 5,
+        "owner_approved_disposition_count": 0,
+        "required_owner_approved_disposition_count": 5,
+        "final_state": "blocked_pending_owner_disposition"
+      },
+      "blocked_reason": "LT-PRE-W04-T02 requires a disposition decision for each partial row: overlay_admission_referral or deferred_explicit. Codex has prepared the input list but cannot synthesize owner-approved disposition.",
+      "next_required_action": {
+        "owner_role": "Launch owner / gap disposition approver",
+        "decision_needed": "For each of R5, R6, R8, R10, and R14 choose overlay_admission_referral or deferred_explicit, with decision date and basis.",
+        "evidence_to_add_after_decision": [
+          "docs/launch/gap-disposition-register.md",
+          "Updated LT-PRE-W04-T02 command evidence with five owner-approved disposition rows"
+        ]
+      }
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-PRE-W04 is terminally closed.",
+    "This record does not claim any partial row is admitted into scope.",
+    "This record does not claim any partial row is explicitly deferred.",
+    "This record does not modify or reinterpret closed CP evidence.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

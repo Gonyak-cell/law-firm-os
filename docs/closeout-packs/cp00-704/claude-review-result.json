@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-704",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e18c0b55-75f7-4060-bbf5-61e85d20eedc",
+    "uuid": "420abf47-af8e-4d68-8e85-050c3a3d8b64",
+    "total_cost_usd": 2.277203,
+    "permission_denials": []
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-704/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-704/review-receipt.json",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-704 (RP23 External Integrations II finance-integrations P03 fixture/review closeout + P04 UI-foundation descriptor, 150 units RP23.P03.M06.S13-RP23.P04.M03.S20, risk C) is a clean descriptor-only, no-write, no-real-data, runtime-closed continuation of CP00-694..CP00-703. Read-only inspection of source confirms: CP704 requirements deliverable/micro-title/phase counts each sum to 150 and exactly match the pack baseline distribution; binding (range, unit_count 150, next pack CP00-705 / RP23.P04.M03.S21) is consistent across registry.js, manifest, plan_binding_snapshot, closeout-pack-plan.json, and next-pack-queue.json (live_latest_pack_id=CP00-704). validateDescriptor enforces descriptor_only, runtime_execution=false, no raw/financial/credential payloads, no bank/card/WEHAGO/Douzone/tax/DART runtime opening, no permission-decision or audit-event-body leakage, and an intact authority boundary (claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false); freezeResult applies the comprehensive NO_WRITE attestation last so it cannot be overridden. model.test.js covers CP00-704 binding/coverage/descriptor/packets and the contract projection (latest_pack=CP00-704, latest_projection=FinanceIntegrationsCp704..., CP694-703 historical, validation.valid=true), and the regenerated contract shows cp704 coverage+descriptor valid:true/errors:[]. Hermes evidence is descriptor-only (emits_runtime_receipt=false); Claude packets are read-only and non-final. Manifest/construction-inspection/command-evidence/adjudication/claude-review-result all consistently report production_ready=false and pending_review (no premature production_ready claim), command-evidence records 23/23 exit-0 across the closeout validation matrix (runner-reported; not re-executed in this read-only review), and the readiness auth preflight is healthy (exit 0, non-empty valid-JSON stdout). No real client/matter/financial/credential data, no runtime opening, and no forbidden review-evidence conditions were found. The pending production_ready claim is supported; recommend allowing closeout adjudication and queue advancement to CP00-705. One non-blocking P3 design observation noted.",
+    "findings": [
+      {
+        "id": "CP00-704-P3-01",
+        "severity": "P3",
+        "title": "Contract validation command regenerates the artifact it is later asserted against",
+        "file": "scripts/validate-rp23-external-integrations-ii-contract.mjs",
+        "line": 52,
+        "details": "rp23:external-integrations-ii:validate is both validator and generator: it writeFile()s contracts/external-integrations-ii-contract.json, and the closeout matrix runs it immediately before model.test.js reads that same committed file and asserts latest_pack.pack_id===CP00-704 and validation.valid===true. Because the file is regenerated right before it is read, the test cannot detect a divergence between a hand-edited committed contract and the generated output, and the test asserts only selected fields rather than full equality of committed-vs-generated. This is a minor evidence-chain circularity, not a defect in CP00-704 deliverables, and human-visible drift is still signaled via git status (the contract shows as modified). The pattern is pre-existing and identical across CP00-694..CP00-703.",
+        "recommendation": "Optional, non-blocking: add a read-only verify mode (or assert that freshly-generated output deep-equals the committed contract before overwriting) so a stale/hand-edited committed contract is caught rather than silently overwritten. No change required for CP00-704 closeout.",
+        "post_review_disposition": "Acceptable / non-blocking. Pre-existing deterministic control-plane generation pattern consistent across the CP00-694..CP00-704 series; does not affect the descriptor-only, no-write, runtime-closed production_ready posture of CP00-704."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

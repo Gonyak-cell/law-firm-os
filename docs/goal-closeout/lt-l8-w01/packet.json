@@ -1,0 +1,98 @@
+{
+  "work_package_id": "LT-L8-W01",
+  "title": "Go-live readiness validator and contract",
+  "created_at": "2026-06-18T12:17:36Z",
+  "status": "local_acceptance_satisfied_review_waived_go_live_not_approved",
+  "scope": {
+    "phase": "L8",
+    "tuws": [
+      "LT-L8-W01-T01",
+      "LT-L8-W01-T02",
+      "LT-L8-W01-T03"
+    ],
+    "gate_binding": [
+      "G9",
+      "L8-EXIT"
+    ],
+    "implements": [
+      "contracts/go-live-gate-contract.json",
+      "scripts/validate-go-live-readiness.mjs",
+      "docs/goal-closeout/lt-l8-w01/fixtures/green/readiness-input.json",
+      "docs/goal-closeout/lt-l8-w01/fixtures/red/readiness-input.json",
+      "docs/launch/go-live-gate-non-weakening.md"
+    ]
+  },
+  "implementation_summary": [
+    "Added an additive go-live gate contract with G1 through G10 criteria, evidence slots, No-Go policy, and non-weakening clauses.",
+    "Added a dependency-free go-live readiness validator that loads the contract and emits a per-gate JSON report.",
+    "Added green and red fixtures that prove all ten gates pass when evidence is present and fail closed when one evidence slot is missing.",
+    "Documented that closed CP evidence is read-only, retroactive claims are blocked, and lower gates are not implied or replaced.",
+    "Recorded the user-directed full Claude review waiver as non-valid review evidence."
+  ],
+  "changed_surfaces": [
+    "contracts/go-live-gate-contract.json",
+    "scripts/validate-go-live-readiness.mjs",
+    "docs/goal-closeout/lt-l8-w01/fixtures/green/readiness-input.json",
+    "docs/goal-closeout/lt-l8-w01/fixtures/red/readiness-input.json",
+    "docs/launch/go-live-gate-non-weakening.md",
+    "docs/goal-closeout/lt-l8-w01/packet.json",
+    "docs/goal-closeout/lt-l8-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l8-w01/adjudication.md",
+    "docs/goal-closeout/lt-l8-w01/construction-inspection.json",
+    "docs/goal-closeout/lt-l8-w01/command-evidence.json"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l8-w01/packet.json",
+    "docs/goal-closeout/lt-l8-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l8-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l8-w01/adjudication.md",
+    "docs/goal-closeout/lt-l8-w01/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "launch_tuw_ledger": "passed",
+    "launch_tuw_total": 344,
+    "launch_wp_total": 72,
+    "contract_gate_count": 10,
+    "contract_criteria_nonempty": true,
+    "contract_evidence_nonempty": true,
+    "no_go_policy_present": true,
+    "validator_green_exit_code": 0,
+    "validator_green_all_pass": true,
+    "validator_red_exit_code": 1,
+    "validator_red_failed_gate_ids": [
+      "G7"
+    ],
+    "validator_red_missing_evidence": [
+      "G7-E02"
+    ],
+    "validator_threshold_hardcoding_scan_matches": 0
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false,
+    "reason": "User instructed that full Claude reviews are skipped from this point forward."
+  },
+  "boundaries": {
+    "go_live_approved": false,
+    "production_ready_claim": false,
+    "g1_g10_live_evidence_claim": false,
+    "human_approval_claim": false,
+    "closed_cp_evidence_rewritten": false,
+    "synthetic_fixture_only": true,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "next_work_package": "LT-L8-W02",
+  "notes": [
+    "Green fixture success proves validator behavior only; it is not live go-readiness evidence.",
+    "W02 must assemble real G1 through G10 evidence without rewriting closed CP evidence.",
+    "G10 human signoff remains unsatisfied until a valid owner-approved artifact exists."
+  ],
+  "terminal_tuw": "LT-L8-W01-T03",
+  "gate_binding": [
+    "G9",
+    "L8-EXIT"
+  ],
+  "phase": "L8"
+}

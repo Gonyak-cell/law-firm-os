@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-076",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "111bdbd4-b8d9-4c7f-9961-821f31eeda37",
+    "uuid": "34a89df3-428e-4bf9-8cea-bff8cffe7dc5",
+    "total_cost_usd": 1.2429955000000001,
+    "duration_ms": 337165,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "p0": [],
+    "p1": [],
+    "p2": [],
+    "p3": [],
+    "required_fixes": [],
+    "notes": [
+      "Scope/range verified: exactly 10 units RP00.P06.M06.S10–RP00.P06.M07.S08, unit_count=10, risk_class=A, pack_id/planned_pack_id=CP00-076, requested_pack_id=CP00-075 with documented live-cursor correction. current_subphase advanced to RP00.P06.M07.S08 ('Audit hint fields') and 10 matching subphase_closeouts added.",
+      "Micro-phase boundary verified: RP00.P06.M06 ('Synthetic Fixture Set') completed (present in completed_source_micro_phase_ids, synthetic_fixture_set_completed=true) and RP00.P06.M07 ('Test And Golden Case Set') started (open_source_micro_phase_ids, test_golden_case_set_started=true); source_micro_phase_completed=false and phase_completed=false; next_subphase=RP00.P06.M07.S09 across contract, fixture, policy, module, and validators.",
+      "Upstream consumption of CP00-075 verified: assembleControlPlanePermissionAuditSyntheticFixtureTestGoldenSeed fails closed unless upstream pack_id/planned_pack_id==='CP00-075', next_subphase==='RP00.P06.M06.S10', decision binding decision/bound flags are all true, no_raw_permission_policy/no_internal_audit_payload true, and ldip_implementation_allowed false. required/upstream evidence refs point to docs/closeout-packs/cp00-075/*.",
+      "Metadata-only behavior verified: assembler is a pure, deterministic function (assert + frozen object construction, no I/O, no DB/storage/lock/fetch). All runtime/eval/write permission flags are false in policy, module, fixture, and result: runtime_permission_evaluation, permission_engine_execution, authz_evaluator_called, security_trimming_execution, test_runner_execution, runtime_fixture/test_execution, golden_fixture_generation/persistence, golden_catalog_write, unit_test_contract_write, audit_ledger_append, audit_event_write, database/storage/product_state writes, idempotency/lock writes, plus no_real_data=true and writes_product_state=false.",
+      "Forbidden-claim enforcement verified: boundaryClaims must be a non-array object; any truthy forbidden claim (e.g., execute_test_golden_view_case, generate_golden_fixture, evaluate_runtime_permission, start_ldip_implementation, use_real/secret data) throws, and any truthy unknown claim throws — fail-closed. failClosedOn covers pack/next_subphase drift, runtime/security/audit/golden-write claims, LDIP, real-data/secret, and unknown_claim.",
+      "Cross-artifact consistency verified: contract definition lists, fixture result, policy constants, service module, and validator expectations are mutually aligned (result field set, included subphase ids, unit/micro titles, decision bindings length=6, ref strings scoped to cp00_076). Tests assert policy/module/fixture/contract mirroring and drift/unsafe-claim rejection.",
+      "validate-rp00-control-plane-contract.mjs correctly advances the live cursor (currentContractSubphaseId=RP00.P06.M07.S08, currentSourceMicroPhaseId=RP00.P06.M07), registers the 10 new required-closed subphases, and adds the construction-inspection gate requiring control_plane_permission_audit_synthetic_fixture_test_golden_seed_verified===true.",
+      "JSON appends to control-plane-contract.json and synthetic-control-plane.json follow the standard append pattern (prior entry closed with comma, trailing brace reused); the fixture-mirrors-policy test JSON-parses the file, providing coverage that structure remains valid.",
+      "Informational: result.command_evidence_ref intentionally references the consumed upstream docs/closeout-packs/cp00-075/command-evidence.json (consistent with upstream_evidence_refs/required_evidence_refs and prior-pack convention); not a defect.",
+      "Review gate: this is the single read-only Opus review for CP00-076. No files were inspected and no commands were run beyond reading the provided diff. CP00-076's own evidence artifacts (manifest/command-evidence/claude-review-result/adjudication/construction-inspection under docs/closeout-packs/cp00-076) are outside this diff and are enforced separately by the validation script."
+    ]
+  },
+  "raw_result": "{\n  \"verdict\": \"APPROVE\",\n  \"p0\": [],\n  \"p1\": [],\n  \"p2\": [],\n  \"p3\": [],\n  \"required_fixes\": [],\n  \"notes\": [\n    \"Scope/range verified: exactly 10 units RP00.P06.M06.S10–RP00.P06.M07.S08, unit_count=10, risk_class=A, pack_id/planned_pack_id=CP00-076, requested_pack_id=CP00-075 with documented live-cursor correction. current_subphase advanced to RP00.P06.M07.S08 ('Audit hint fields') and 10 matching subphase_closeouts added.\",\n    \"Micro-phase boundary verified: RP00.P06.M06 ('Synthetic Fixture Set') completed (present in completed_source_micro_phase_ids, synthetic_fixture_set_completed=true) and RP00.P06.M07 ('Test And Golden Case Set') started (open_source_micro_phase_ids, test_golden_case_set_started=true); source_micro_phase_completed=false and phase_completed=false; next_subphase=RP00.P06.M07.S09 across contract, fixture, policy, module, and validators.\",\n    \"Upstream consumption of CP00-075 verified: assembleControlPlanePermissionAuditSyntheticFixtureTestGoldenSeed fails closed unless upstream pack_id/planned_pack_id==='CP00-075', next_subphase==='RP00.P06.M06.S10', decision binding decision/bound flags are all true, no_raw_permission_policy/no_internal_audit_payload true, and ldip_implementation_allowed false. required/upstream evidence refs point to docs/closeout-packs/cp00-075/*.\",\n    \"Metadata-only behavior verified: assembler is a pure, deterministic function (assert + frozen object construction, no I/O, no DB/storage/lock/fetch). All runtime/eval/write permission flags are false in policy, module, fixture, and result: runtime_permission_evaluation, permission_engine_execution, authz_evaluator_called, security_trimming_execution, test_runner_execution, runtime_fixture/test_execution, golden_fixture_generation/persistence, golden_catalog_write, unit_test_contract_write, audit_ledger_append, audit_event_write, database/storage/product_state writes, idempotency/lock writes, plus no_real_data=true and writes_product_state=false.\",\n    \"Forbidden-claim enforcement verified: boundaryClaims must be a non-array object; any truthy forbidden claim (e.g., execute_test_golden_view_case, generate_golden_fixture, evaluate_runtime_permission, start_ldip_implementation, use_real/secret data) throws, and any truthy unknown claim throws — fail-closed. failClosedOn covers pack/next_subphase drift, runtime/security/audit/golden-write claims, LDIP, real-data/secret, and unknown_claim.\",\n    \"Cross-artifact consistency verified: contract definition lists, fixture result, policy constants, service module, and validator expectations are mutually aligned (result field set, included subphase ids, unit/micro titles, decision bindings length=6, ref strings scoped to cp00_076). Tests assert policy/module/fixture/contract mirroring and drift/unsafe-claim rejection.\",\n    \"validate-rp00-control-plane-contract.mjs correctly advances the live cursor (currentContractSubphaseId=RP00.P06.M07.S08, currentSourceMicroPhaseId=RP00.P06.M07), registers the 10 new required-closed subphases, and adds the construction-inspection gate requiring control_plane_permission_audit_synthetic_fixture_test_golden_seed_verified===true.\",\n    \"JSON appends to control-plane-contract.json and synthetic-control-plane.json follow the standard append pattern (prior entry closed with comma, trailing brace reused); the fixture-mirrors-policy test JSON-parses the file, providing coverage that structure remains valid.\",\n    \"Informational: result.command_evidence_ref intentionally references the consumed upstream docs/closeout-packs/cp00-075/command-evidence.json (consistent with upstream_evidence_refs/required_evidence_refs and prior-pack convention); not a defect.\",\n    \"Review gate: this is the single read-only Opus review for CP00-076. No files were inspected and no commands were run beyond reading the provided diff. CP00-076's own evidence artifacts (manifest/command-evidence/claude-review-result/adjudication/construction-inspection under docs/closeout-packs/cp00-076) are outside this diff and are enforced separately by the validation script.\"\n  ]\n}",
+  "raw_output_ref": "/tmp/cp00-076-claude-review-output.json"
+}

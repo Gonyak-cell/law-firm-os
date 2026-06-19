@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-682",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T13:20:20.728Z",
+  "finished_at": "2026-06-14T13:25:19.259Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":297377,\"duration_api_ms\":296482,\"ttft_ms\":6858,\"num_turns\":44,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0–P3 all zero), does not block pack or goal closeout.\\n\\nCP00-682 accurately represents itself as a descriptor-only, no-write, no-real-data, runtime-closed RP22.P06 bridge (production_ready:false). I directly verified the no-runtime/no-write flags in `service.js`, the substantive enforcement in `validators.js`, the coverage/no-runtime assertions in `model.test.js`, baseline-matching distributions, intact Claude read-only/non-final and Hermes-not-embedded authority boundaries, absence of secrets/PII, and a clean CP178+ auth-preflight. The one caveat I noted is provenance: the 22 green command exit codes are recorded evidence I could not re-run (read-only/no Bash), but the code I inspected directly supports every claim.\",\"stop_reason\":\"end_turn\",\"session_id\":\"9a4aaf0f-6478-4ae9-9e35-3bbda0852b87\",\"total_cost_usd\":2.148021,\"usage\":{\"input_tokens\":46,\"cache_creation_input_tokens\":130508,\"cache_read_input_tokens\":1614384,\"output_tokens\":20946,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":130508,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":329,\"cache_read_input_tokens\":126038,\"cache_creation_input_tokens\":4812,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4812},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1174,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001274,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":46,\"outputTokens\":20946,\"cacheReadInputTokens\":1614384,\"cacheCreationInputTokens\":130508,\"webSearchRequests\":0,\"costUSD\":2.146747,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-682 (RP22 External Integrations I, P06 scope/contract/implementation/fixture bridge descriptor; risk C, 150 units, RP22.P06.M00.S07-RP22.P06.M07.S06) passes hardened read-only review. The pack's headline claim is production_ready:false / runtime_ready:false / status pending_review — i.e. an explicitly descriptor-only, no-write, no-real-data, runtime-closed bridge — and that claim is fully supported by the evidence I inspected directly via Read/Grep/Glob.\\n\\nVerified: (1) Descriptor-only/no-write — no fetch/http/fs-write/exec/spawn/child_process in packages/integrations-core/src; freezeCp682Result (service.js:489) hard-codes ~25 no-runtime/no-write/no-real-data flags to false/true (writes_product_state:false, calls_external_provider_api:false, persists_access/refresh_token:false, emits_hermes_runtime_receipt:false, includes_credential/secret_value:false, leak_detected:false). (2) Validators are substantive, not trivial — validateExternalIntegrationsICp682P06...Descriptor (validators.js:1765) asserts every row descriptor_only / no runtime_execution / customer-safe / no raw payload, all 16 contract runtime flags false, and authority_boundary.claude_is_final_approval false; the projection validator pins current_pack=CP00-682 and re-validates CP666–682 descriptors, requirements, and no-write attestations. (3) Tests exercise the claims — model.test.js:438 (coverage matches live plan distribution) and :806 (descriptor bridges P06 rows with all runtime flags false, claude read_only/non-final, handoff to CP00-683/RP22.P06.M07.S07). (4) Coverage matches baseline exactly: 150 units, deliverable distribution {implementation:56, security_audit:35, ui:28, claude_review:7, test:24} and micro-title distribution all match registry requirements and the prompt baseline. (5) No secrets/PII in implementation or contracts; external contract carries 985 synthetic_only/no-real-data attestations. (6) Authority boundary intact and matches the prompt: Claude is read_only_independent_reviewer and not final approver; Hermes patterns appear only as deterministic descriptor-only review-packet/receipt handling (hermes_runtime_opened:false, runtime_receipt_emitted:false) — not product runtime. (7) Readiness auth-preflight meets CP178+ hardening: exit 0, 1445-byte stdout (non-zero), valid JSON result, no auth failure. (8) CP00-682 is live_latest_pack_id with CP00-683 queued at RP22.P06.M07.S07; handoff is consistent. The validate script writes contracts only with --write, so the validation runs are read-only.\\n\\nProvenance caveat: the 22 command exit codes in command-evidence.json (incl. npm test, npm run validate, closeout-pack:validate, rp22 validate, git diff --check, build) are recorded evidence — I did not re-execute them (read-only, no Bash). I independently confirmed the source, validators, tests, and contracts directly support every claim, so the recorded greens are consistent with the code. blocks_goal_closeout=false: the pack makes no runtime or enterprise-trust claim (enterprise trust closed outside this receipt, pending human approval as designed), so the human-approval boundary does not block this CP closeout goal. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"638a0fdb-15cc-45f6-9388-cf84e13b80fd\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5656,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "9a4aaf0f-6478-4ae9-9e35-3bbda0852b87",
+    "uuid": "638a0fdb-15cc-45f6-9388-cf84e13b80fd",
+    "total_cost_usd": 2.148021,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

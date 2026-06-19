@@ -1,0 +1,125 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-058",
+  "subphase_id": "RP00.P04.M01.S04",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "92cd8983-648e-4f5e-88b2-25d2efa93de4",
+    "uuid": "572a1103-34fb-448e-8c63-bd8022c731cd",
+    "duration_ms": 613767,
+    "duration_api_ms": 616502,
+    "total_cost_usd": 2.013769,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-058-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "CP00-058-F1",
+        "severity": "info",
+        "area": "no-write",
+        "location": "packages/control-plane/src/service.js (assembleControlPlaneUiOperatorSurfaceInventory), src/validators.js, src/policies.js",
+        "description": "No-write/no-runtime enforcement is complete and correct. Assembler hard-codes all write/runtime/render/route/fetch/audit/idempotency/lock flags to false, rejects any truthy boundaryClaims (forbidden -> 'cannot claim', unknown -> 'cannot accept unknown claim'), and freezes the result. Validator pins the same flags as expected-false and the policy/module/definition/fixture all mirror them. Genuinely metadata-only; no I/O, rendering, or route creation.",
+        "blocking": false,
+        "status": "not_applicable_after_adjudication",
+        "adjudication": "Informational confirmation; no code change required."
+      },
+      {
+        "id": "CP00-058-F2",
+        "severity": "info",
+        "area": "tenant-synthetic-safety",
+        "location": "service.js tenantBoundaryAllowed branch; fixtures/synthetic-control-plane.json fixture_integrity",
+        "description": "Tenant safety is fail-closed: bound/omitted/completion flags and state_transition collapse to the 'blocked' triplet with a blocked_claim_ref when tenant_id != actor/resource/matter tenant. All identifiers are synthetic (tenant.synthetic.lawfirm, user.synthetic.operator-designer, matter.synthetic.control-plane) and fixture_integrity asserts synthetic_only/deterministic/no real client/matter data/no secrets, all script-verified. Allow and deny triplets are exhaustively gated by assertControlPlaneUiOperatorSurfaceInventoryResult.",
+        "blocking": false,
+        "status": "not_applicable_after_adjudication",
+        "adjudication": "Informational confirmation; no code change required."
+      },
+      {
+        "id": "CP00-058-F3",
+        "severity": "info",
+        "area": "validation-consistency",
+        "location": "contract definition.result_fields / policies RESULT_FIELDS / service.js result object / fixture.result",
+        "description": "Cross-file consistency holds. RESULT_FIELDS (60) matches the assembler result key set and order; fixture.result reproduces assembler output for fixture.input (order-sensitive JSON.stringify check in the validate script will pass); policy/module/definition arrays (source_micro_phase_ids, subphase id sets, evidence refs, acceptance gates, forbidden claims, fail_closed_on) are mutually equal. All new exports are imported and exercised by tests.",
+        "blocking": false,
+        "status": "not_applicable_after_adjudication",
+        "adjudication": "Informational confirmation; no code change required."
+      },
+      {
+        "id": "CP00-058-F4",
+        "severity": "low",
+        "area": "plan-binding-traceability",
+        "location": "contract subphase_closeouts + definition.unit_titles; fixture.unit_titles; policies unitTitles",
+        "description": "RP00.P04.M00.S01 and RP00.P04.M01.S01 share the identical title 'UI surface inventory' (duplicated in unit_titles). Internally consistent and not script-checked (the validator binds plan on unit IDs/count, not titles), but the duplicate title reduces traceability between the scope-inventory unit and the contract-draft unit.",
+        "blocking": false,
+        "status": "deferred_with_explicit_boundary",
+        "adjudication": "Duplicate UI surface inventory titles are inherited from the locked source ledger; unit IDs, micro IDs, and source micro-phase IDs remain the authoritative trace keys."
+      },
+      {
+        "id": "CP00-058-F5",
+        "severity": "low",
+        "area": "plan-binding-scope-clarity",
+        "location": "contract definition.purpose; README.md added line; acceptance_gate_ids / result flags",
+        "description": "'Accessibility' and 'design-consistency' contracts are bound only as acceptance-gate ids and boolean result flags (accessibility_contract_bound, design_consistency_bound); they are not enumerated subphase units (unit_count=5, units are M00.S01 + M01.S01-S04). README/purpose prose calling them 'included units' slightly overstates scope. Consistent with metadata-only intent and the unit-id-based plan check, but confirm the plan does not expect dedicated M01.S05/S06 units before source_micro_phases_completed=true is relied on by RP00.P04.M02.",
+        "blocking": false,
+        "status": "fixed",
+        "adjudication": "README and contract purpose text were tightened so accessibility/design consistency are described as acceptance gates rather than separate included units."
+      },
+      {
+        "id": "CP00-058-F6",
+        "severity": "info",
+        "area": "evidence-binding",
+        "location": "definition.requested_pack_id / correction_reason; policies requestedPackId",
+        "description": "requested_pack_id is CP00-057 (an already-closed pack) while pack_id/planned_pack_id are CP00-058, reconciled by correction_reason 'requested CP00-057 shifted to CP00-058 by live sequential cursor' with deviation_from_plan=false. Consistent with the established live-cursor pattern and enforced by the validator; informational only. Upstream evidence correctly binds the five cp00-057 closeout artifacts.",
+        "blocking": false,
+        "status": "not_applicable_after_adjudication",
+        "adjudication": "Informational confirmation; no code change required."
+      },
+      {
+        "id": "CP00-058-F7",
+        "severity": "low",
+        "area": "validation-coverage",
+        "location": "scripts/validate-rp00-control-plane-contract.mjs (fixture array checks)",
+        "description": "The script cross-checks definition.forbidden_boundary_suite_claims and fail_closed_on against the policy, but does not assert the fixture's forbidden_boundary_suite_claims / fail_closed_on against the policy (only definition's). The fixture values are present and consistent, so this is a minor coverage gap rather than a defect.",
+        "blocking": false,
+        "status": "fixed",
+        "adjudication": "RP00 validator now checks fixture forbidden_boundary_suite_claims and fail_closed_on arrays against the policy."
+      },
+      {
+        "id": "CP00-058-F8",
+        "severity": "info",
+        "area": "external-dependency-verification",
+        "location": "weighted ledger entries for RP00.P04.M00.S01/M01.S01-S04; docs/closeout-pack-plan CP00-058 entry; docs/closeout-packs/cp00-058 artifacts",
+        "description": "Out-of-diff prerequisites the validate script requires but that are not in this diff: (a) weighted-ledger boundaries for the five RP00.P04 subphases with correct sourceMicroPhaseId and terminal flags (terminal for M00.S01 and M01.S04 only); (b) a CP00-058 plan entry with risk_class C, unit_count 5, within_default_risk_range=false, override_reason, and included_units = the five subphase ids; (c) the cp00-058 closeout-pack files (manifest, command-evidence, claude-review-result, adjudication, construction-inspection with control_plane_ui_operator_surface_inventory_verified=true and subphase_id RP00.P04.M01.S04). These must exist for closeout to pass; the wiring in the diff is correct, but the artifacts themselves are outside the reviewed diff.",
+        "blocking": false,
+        "status": "fixed_by_closeout_evidence",
+        "adjudication": "Closeout artifacts are generated in this pack and final validation is rerun after evidence creation; weighted ledger and plan bindings are checked by validators."
+      }
+    ],
+    "notes": "Read-only review of the CP00-058 diff only. The metadata-only UI Operator Surface Inventory boundary suite is internally consistent and correct across contract, policies, service module/assembler, validators, fixture, tests, and the contract-validation script. No-write/no-runtime, tenant fail-closed, synthetic-only, evidence binding to cp00-057, and plan binding (deviation=false, plan_ref present, unit-id/count enforced) all hold. Allow and deny completion triplets are exhaustively validated and the fixture mirrors assembler output (order-sensitive comparison will pass). No blocking correctness, validation, evidence, no-write, tenant/synthetic, or plan-binding defects were found. Findings are low/informational: a duplicated unit title, accessibility/design-consistency bound as gate flags rather than enumerated units (verify plan does not expect separate M01 subphases), an already-closed requested_pack_id reconciled by the live-cursor correction, a minor fixture-array validation-coverage gap, and out-of-diff prerequisites (weighted ledger, plan CP00-058 entry, cp00-058 closeout artifacts) that must exist for the validate script to pass. Could not execute the validate script or tests in this read-only pass; conclusions are from static cross-file tracing.",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "low": 3,
+      "info": 5
+    },
+    "boundary_checks": {
+      "plan_binding": "pass - CP00-058 Risk C 5-unit plan binding is enforced across contract, policy, module, fixture, README, and validator checks.",
+      "tenant_fail_closed": "pass - same-tenant metadata is required and cross-tenant metadata returns blocked refs without completing source micro phases.",
+      "no_runtime_ui_render": "pass - runtime_ui_render_permitted=false and UI render claims are rejected.",
+      "no_external_asset_fetch": "pass - external_asset_fetch_permitted=false and external asset fetch claims are rejected.",
+      "no_runtime_route_or_service_logic": "pass - runtime_route_created=false and service_logic_execution_permitted=false.",
+      "no_database_storage_idempotency_lock_audit_product_write": "pass - all persistence/write flags are false.",
+      "upstream_evidence_binding": "pass - CP00-057 evidence refs are required by policy and request."
+    }
+  }
+}

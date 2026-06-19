@@ -1,0 +1,111 @@
+{
+  "subphase_id": "RP00.P02.M04.S10",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Idempotency key handling",
+  "created_at": "2026-06-05T21:01:16Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s10-claude-review.json",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s10-review-packet.diff",
+  "session_id": "13bb8603-03bf-4784-bc00-61b79d3cbf53",
+  "uuid": "c3b067f0-744d-471e-a6f2-bf2d3ff143b7",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.59706,
+  "usage": {
+    "input_tokens": 25,
+    "cache_creation_input_tokens": 95264,
+    "cache_read_input_tokens": 989538,
+    "output_tokens": 20230,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 95264,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "GO",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    "P3: normalizeOptionalSyntheticIdempotencyKey and assertSyntheticIdempotencyKey are shared helpers defined outside the diff packet. This is accepted because they are pre-existing helpers from closed idempotency slices and S10 tests plus the RP00 validator exercise their positive and negative behavior.",
+    "P3: idempotency_key_pattern is declared in contract, policy, and fixture while runtime enforcement flows through the shared helper. This is accepted because the test matrix covers uppercase, spaces, overlong, non-synthetic, default, and explicit synthetic keys against the declared pattern."
+  ],
+  "review_text": "Claude returned GO for RP00.P02.M04.S10 with no P0, P1, or P2 findings. Claude verified that precheckControlPlaneClaudeReviewIdempotencyKeyHandling consumes and revalidates the S09 State transition enforcement result, preserves claude_review plus claude-opus-4-8 plus max plus read-only metadata, requires a state transition receipt and audit event ref, emits a frozen synthetic metadata-only idempotency receipt, rejects forbidden and unknown claims, rejects unsafe idempotency keys, hands off to RP00.P02.M04.S11, and does not persist idempotency records, write idempotency stores, acquire locks, invoke runtime Claude, write review queues, write audit ledgers or events, execute runtime permission/AuthZ/permission-engine logic, execute service logic, create runtime routes, or write product state. Two P3 observations were informational only and explicitly deferred.",
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "13bb8603-03bf-4784-bc00-61b79d3cbf53",
+    "uuid": "c3b067f0-744d-471e-a6f2-bf2d3ff143b7",
+    "total_cost_usd": 1.59706,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s10-claude-review.json",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s10-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Shared synthetic idempotency-key helpers are outside the review packet.",
+        "body": "No action required. The helpers are pre-existing module-scope helpers used by already-closed idempotency slices and are covered by current S10 service tests plus the RP00 validator positive and negative cases.",
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Declared key pattern is enforced through the shared helper.",
+        "body": "No action required. Contract, policy, and fixture declare the same pattern, and the test matrix demonstrates matching enforcement for default, explicit, uppercase, spaced, overlong, and non-synthetic keys.",
+        "status": "deferred_with_explicit_boundary"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T21:01:16Z",
+  "production_ready": true
+}

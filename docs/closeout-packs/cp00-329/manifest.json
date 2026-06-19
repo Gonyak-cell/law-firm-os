@@ -1,0 +1,700 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-329",
+  "planned_pack_id": "CP00-329",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "intake_core_permission_fixture_tail_descriptor_verified",
+  "program_id": "RP10",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP10.P05.M06.S01",
+  "next_subphase": "RP10.P05.M06.S02",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-329",
+    "planned_pack_id": "CP00-329",
+    "title": "CP00-329 RP10.P05.M05.S14-RP10.P05.M06.S01 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP10.P05.M05.S14",
+      "last_unit_id": "RP10.P05.M06.S01",
+      "description": "RP10.P05.M05.S14-RP10.P05.M06.S01"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP10.P05.M05.S14",
+        "title": "Fixture manifest",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP10.P05.M05.S15",
+        "title": "Golden test",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP10.P05.M05.S16",
+        "title": "Failure test",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP10.P05.M05.S17",
+        "title": "Hermes fixture evidence",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP10.P05.M05.S18",
+        "title": "Claude missing-test prompt",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP10.P05.M05.S19",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP10.P05.M05.S20",
+        "title": "No-real-data check",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP10.P05.M05.S21",
+        "title": "Stable ID check",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP10.P05.M05.S22",
+        "title": "Replay command",
+        "source_micro_phase_id": "RP10.P05.M05",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP10.P05.M06.S01",
+        "title": "Base tenant fixture",
+        "source_micro_phase_id": "RP10.P05.M06",
+        "program_id": "RP10",
+        "phase_id": "RP10.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      }
+    ]
+  },
+  "implementation_layer": "descriptor",
+  "runtime_ready": false,
+  "included_units": [
+    {
+      "id": "RP10.P05.M05.S14",
+      "title": "Fixture manifest",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S15",
+      "title": "Golden test",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S16",
+      "title": "Failure test",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S17",
+      "title": "Hermes fixture evidence",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S18",
+      "title": "Claude missing-test prompt",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S19",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S20",
+      "title": "No-real-data check",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S21",
+      "title": "Stable ID check",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M05.S22",
+      "title": "Replay command",
+      "source_micro_phase_id": "RP10.P05.M05",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    },
+    {
+      "id": "RP10.P05.M06.S01",
+      "title": "Base tenant fixture",
+      "source_micro_phase_id": "RP10.P05.M06",
+      "program_id": "RP10",
+      "phase_id": "RP10.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/intake-core-contract.json",
+        "packages/intake/README.md",
+        "packages/intake/src/index.js",
+        "packages/intake/src/registry.js",
+        "packages/intake/src/service.js",
+        "packages/intake/src/validators.js",
+        "packages/intake/test/model.test.js",
+        "scripts/validate-rp10-intake-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-329/manifest.json",
+        "docs/closeout-packs/cp00-329/command-evidence.json",
+        "docs/closeout-packs/cp00-329/claude-review-result.json",
+        "docs/closeout-packs/cp00-329/adjudication.md",
+        "docs/closeout-packs/cp00-329/construction-inspection.json",
+        "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+        "contracts/intake-core-contract.json"
+      ]
+    }
+  ],
+  "delivery_counts": {
+    "fixture": 2,
+    "test": 3,
+    "hermes_evidence": 1,
+    "implementation": 4
+  },
+  "micro_phase_row_counts": {
+    "RP10.P05.M05": 9,
+    "RP10.P05.M06": 1
+  },
+  "implementation_summary": {
+    "summary": "CP00-329 production-readies descriptor-only coverage for the RP10.P05.M05 permission/audit binding tail and RP10.P05.M06 synthetic fixture head across 10 planned rows: fixture manifest, golden/failure test descriptors, Hermes fixture evidence, Claude missing-test prompt, closeout handoff, no-real-data check, stable-ID check, replay command descriptor, and base tenant fixture head without opening intake, UI, API, AI, permission, audit, storage, command, Citation Ledger, Loop, or Hermes runtime execution.",
+    "source_refs": [
+      "contracts/intake-core-contract.json",
+      "packages/intake/README.md",
+      "packages/intake/src/index.js",
+      "packages/intake/src/registry.js",
+      "packages/intake/src/service.js",
+      "packages/intake/src/validators.js",
+      "packages/intake/test/model.test.js",
+      "scripts/validate-rp10-intake-core-contract.mjs"
+    ],
+    "deliverable_counts": {
+      "fixture": 2,
+      "test": 3,
+      "hermes_evidence": 1,
+      "implementation": 4
+    },
+    "microphase_counts": {
+      "RP10.P05.M05": 9,
+      "RP10.P05.M06": 1
+    },
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_intake_runtime": true,
+    "no_conflict_check_runtime": true,
+    "no_waiver_runtime": true,
+    "no_engagement_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_api_handler_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_unauthorized_count_leak": true,
+    "no_ui_leak_detected": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_validation_error_detail_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true,
+    "intake_core_permission_fixture_tail_descriptor_verified": true,
+    "review_findings_adjudicated": true,
+    "post_review_required_artifacts_generated": true,
+    "changed_file_scope_generator_hygiene_deferred": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-329/manifest.json",
+    "docs/closeout-packs/cp00-329/command-evidence.json",
+    "docs/closeout-packs/cp00-329/claude-review-result.json",
+    "docs/closeout-packs/cp00-329/adjudication.md",
+    "docs/closeout-packs/cp00-329/construction-inspection.json",
+    "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+    "contracts/intake-core-contract.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-329/manifest.json",
+    "docs/closeout-packs/cp00-329/command-evidence.json",
+    "docs/closeout-packs/cp00-329/claude-review-result.json",
+    "docs/closeout-packs/cp00-329/adjudication.md",
+    "docs/closeout-packs/cp00-329/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "c55c9b58-7ab9-490e-b9e3-71affa6104e2",
+      "uuid": "e2e5c2b6-960f-43ec-ab26-f40fc812db5f",
+      "total_cost_usd": 2.167072,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-329 is a Risk-A, 10-unit descriptor-only intake pack covering the RP10.P05.M05 permission/audit-binding tail (9 units) plus the RP10.P05.M06 synthetic-fixture head (1 unit), range RP10.P05.M05.S14-RP10.P05.M06.S01. Coverage matches exactly across the closeout-pack plan, manifest, registry binding, contract projection, and prompt baseline: deliverable distribution {fixture:2,test:3,hermes_evidence:1,implementation:4} and micro-title {Permission And Audit Binding:9, Synthetic Fixture Set:1}, all RP10. The pack does NOT over-claim: manifest sets production_ready=false, runtime_ready=false, implementation_layer=descriptor, status=in_progress; the only readiness signal is production_ready_candidate gated on coverage.valid && tail.valid (descriptor verification, not runtime). Grep found no \"production_ready\": true / \"runtime_ready\": true / enterprise-trust / Claude-final-approval over-claims in the contract or manifest. No-write/no-real-data boundaries hold at code level: packages/intake/src has no fs/network/child_process/eval calls, and row-extras enforce real_client_data_loaded=false, executes_unit_test_runtime_paths=false, executes_command_runtime=false, emits_hermes_runtime_receipt=false, cross_tenant_access_allowed=false. Claude stays read-only and not final approver across the descriptor authority_boundary, manifest, no-write attestation, and review-request (read_only=true, tools Read/Grep/Glob). Hermes is used only as a deterministic control-plane evidence/receipt pattern (receipt_shape ..._no_write, emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false), not product runtime. Tests (3 CP329 blocks in model.test.js), the contract validator (deep-equals descriptor/requirements/attestation, asserts CP321-328 no-regression, historical tail = CP00-329), and the README#cp00-329 descriptor section are all consistent, and the readiness auth-preflight passed (exit 0, 1432-byte valid JSON, non-zero stdout). Two non-blocking P3 notes only. This read-only PASS does not by itself close the pack: the hardening sequence still requires receipt validation, finding adjudication, construction inspection, final closeout validation (the npm validate/test suite), and human final approval before any enterprise-trust/runtime claim.",
+      "findings": [
+        {
+          "id": "CP00-329-F1",
+          "severity": "P3",
+          "title": "Post-review required pack artifacts not yet present (expected at this stage)",
+          "file": "docs/closeout-packs/cp00-329/manifest.json",
+          "line": 480,
+          "details": "manifest.required_pack_artifacts lists command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json currently exists under docs/closeout-packs/cp00-329/. This is consistent with the hardening_sequence: the current step is read_only_claude_run_raw_capture (step 3 of 9); those four artifacts are produced by the later normalize/finding_adjudication/construction_inspection/final_closeout_validation steps that consume this review. It is recorded only to make explicit that pack closeout remains gated on those post-review steps plus human final approval, not on this read-only PASS.",
+          "recommendation": "No code change. Ensure the remaining hardening steps generate the four required_pack_artifacts before commit, and confirm exactly one valid review receipt is recorded (pack_level_claude_review.valid_review_receipts is currently []).",
+          "post_review_disposition": "Informational/expected by design; non-blocking. Confirm artifacts are generated in subsequent hardening steps prior to closeout commit."
+        },
+        {
+          "id": "CP00-329-F2",
+          "severity": "P3",
+          "title": "changed-file-scope.json mis-classifies the pack's own evidence dir as unrelated dirty",
+          "file": "artifacts/closeout-pack-claude-review/cp00-329/changed-file-scope.json",
+          "line": 138,
+          "details": "changed-file-scope.json lists docs/closeout-packs/cp00-329/ (and docs/closeout-pack-plan/new-session-handoff.md) under both untracked_implementation_files and unrelated_dirty_files_preserved. The pack's own evidence directory docs/closeout-packs/cp00-329/ is a core required pack artifact, not an unrelated dirty file. The authoritative manifest.worktree_transition_policy.unrelated_dirty_files_preserved correctly omits cp00-329/ (listing only the docx, new-session-handoff.md, ldip result, and workbook/), so the over-inclusive classification is confined to this generated scope helper and does not affect pack boundaries, the production_ready claim, or the changed-file scoping used for review (active_untracked_implementation_files_omitted is []).",
+          "recommendation": "Adjust the changed-file-scope generator so the active pack's own evidence directory is not also emitted under unrelated_dirty_files_preserved; keep it solely under the pack/untracked-implementation classification for clarity.",
+          "post_review_disposition": "Minor generated-metadata hygiene nit; non-blocking. Manifest classification is authoritative and correct."
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 2,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 2
+      }
+    },
+    "review_refs": {
+      "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-329/review-baseline.json",
+      "request_ref": "artifacts/closeout-pack-claude-review/cp00-329/review-request.json",
+      "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-329/readiness-report.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-329/raw-output.json",
+      "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-329/review-receipt.json"
+    },
+    "post_review_finding_disposition": {
+      "p0": "none",
+      "p1": "none",
+      "p2": "none",
+      "p3": "one_fixed_by_artifact_generation_one_non_blocking_generated_scope_hygiene_deferred"
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-329 intake permission fixture tail descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "production_ready_at": "2026-06-11T11:18:57.304Z"
+}

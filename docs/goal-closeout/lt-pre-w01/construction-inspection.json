@@ -1,0 +1,21 @@
+{
+  "work_package_id": "LT-PRE-W01",
+  "inspected_at": "2026-06-18T14:39:45Z",
+  "verdict": "BLOCKED_OWNER_RATIFICATION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "plan_exists": true,
+    "adopted_status_count": 0,
+    "proposed_status_count": 1,
+    "ratification_decision_row_present": false,
+    "block_record_present": true,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_ratification_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

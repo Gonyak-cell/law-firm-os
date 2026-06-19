@@ -1,0 +1,24 @@
+{
+  "schema_version": "law-firm-os.scope-revision-register.v0.1",
+  "register_id": "launch-scope-revision-register",
+  "status": "approved",
+  "approved": true,
+  "approval_kind": "post_cp_closeout_baseline_confirmation",
+  "approved_by_role": "owner_instruction_thread",
+  "effective_after_closeout_pack_id": "CP00-987",
+  "scope_delta": {
+    "type": "no_scope_delta_after_cp_closeout",
+    "approved_delta_units": 0
+  },
+  "scope_sources": {
+    "law_firm_os_weighted_implementation_ledger": "docs/weighted-implementation-ledger.json",
+    "hrx_embedded_people_weighted_implementation_ledger": "docs/hrx-weighted-implementation-ledger.json",
+    "closeout_pack_plan": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "next_pack_queue": "docs/closeout-pack-plan/next-pack-queue.json"
+  },
+  "approval_basis": [
+    "All CP closeout work is complete through CP00-987.",
+    "Launch TUW execution starts from the closed CP baseline without rewriting closed CP evidence.",
+    "Any future scope delta must be recorded as a separate approved revision before it can affect final completion counts."
+  ]
+}

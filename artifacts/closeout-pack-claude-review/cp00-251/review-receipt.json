@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-251",
+  "normalized_at": "2026-06-10T15:49:21.899Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-251/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-251/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-251/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-251/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "97b46f35-b102-454e-bfd8-f165003dbdb2",
+    "uuid": "033467ef-d277-4ed1-9baa-ebbe7d8339ef",
+    "total_cost_usd": 2.7663992499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7684,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-251 is a descriptor-only closeout pack covering the RP07.P04.M05 Permission And Audit Binding tail (8 rows) and the M06 Synthetic Fixture Set head (2 rows), risk class A, 10 units, range RP07.P04.M05.S15-RP07.P04.M06.S02. The pack-level claim is correctly modest: manifest declares production_ready=false / implemented_pending_review and does not claim enterprise trust from local validation. Pack binding, requirements, plan pack, manifest, README, and the embedded contract descriptor are mutually consistent (deliverable distribution 4 implementation / 1 fixture / 1 test / 1 hermes_evidence / 1 claude_review / 2 ui = 10; micro-title 8/2; chains CP00-250->CP00-252, next subphase RP07.P04.M06.S03). All descriptor rows carry descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false, and the row-extra chain (CP248->CP250) supplies the per-row no-runtime/no-leak fields the validator checks (real_client_data_loaded, executes_command_runtime, emits_hermes_runtime_receipt, leak_detected, writes_state_transition, unauthorized_count_leak_detected, executes_ui_runtime), all false. The new code is purely frozen-object construction with no real-data loading or runtime dispatch; validators, model tests, and the contract validator script (which deepEquals the embedded contract descriptor against the code-generated descriptor) strictly enforce coverage, descriptor shape, authority boundary, and handoff. index.js re-exports via export * so the 7 new public functions propagate without an edit. Authority boundary holds: Claude is a read-only reviewer (Read/Grep/Glob, read_only=true), claude_is_final_approval=false, promotes_claude_to_final_approval=false, human_final_approval_required_for_runtime_opening=true. Hermes patterns are confined to deterministic review/evidence/receipt shapes (H07 gate, receipt_shape descriptor_only_..._no_write, emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false). CP178+ hardening is satisfied: forbidden_review_evidence enumerates failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, plus missing-reference and final-approval/enterprise-trust claims; the readiness auth-preflight passed with well-formed JSON; and no stale/invalid claude-review-result.json exists to be wrongly accepted. Changed-file scope is bounded to the 7 modified source files plus the pack's own untracked docs, with the unrelated dirty files (.docx, ldip JSON) explicitly preserved and git diff --check reported clean. No P0 or P1 issues found; two P3 observations are non-blocking. As read-only reviewer I do not provide final approval, which remains a human gate.",
+    "findings": [
+      {
+        "id": "CP00-251-P3-01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts not yet present (expected at this hardening step)",
+        "file": "docs/closeout-packs/cp00-251/manifest.json",
+        "line": 481,
+        "details": "The manifest lists claude-review-result.json, adjudication.md, and construction-inspection.json under required_pack_artifacts/evidence_refs, but only manifest.json and command-evidence.json currently exist in docs/closeout-packs/cp00-251/. This is expected: the pack is at the read_only_claude_run_with_raw_capture step of the hardened_review_sequence, which precedes receipt_normalization, receipt_validation, finding_adjudication, construction_inspection, and final_closeout_validation. command-evidence.json (notes) correctly classifies closeout-pack:validate and the review:run/normalize/receipt:validate commands as post-review gated, run before commit. This is a sequencing reminder, not an implementation defect.",
+        "recommendation": "Before commit/closeout, generate the normalized receipt, adjudication, and construction-inspection artifacts from this accepted review and run the post-review gated commands (npm run closeout-pack:validate and git diff --check --cached). Pack closeout must not be marked complete until those artifacts exist and validate.",
+        "post_review_disposition": "expected_sequencing_no_action_required"
+      },
+      {
+        "id": "CP00-251-P3-02",
+        "severity": "P3",
+        "title": "Cosmetic dual-categorization in changed-file-scope.json",
+        "file": "artifacts/closeout-pack-claude-review/cp00-251/changed-file-scope.json",
+        "line": 95,
+        "details": "docs/closeout-packs/cp00-251/ (the pack's own artifact directory) and docs/closeout-pack-plan/new-session-handoff.md are listed under both untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). The manifest's worktree_transition_policy.unrelated_dirty_files_preserved more precisely lists only the truly unrelated files (the .docx and docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json). The dual-listing is cosmetic and does not affect scope correctness: active_pack_implementation_refs are explicitly enumerated, no unrelated dirty file is claimed as pack implementation, and git diff --check is reported clean.",
+        "recommendation": "Adjust the changed-file-scope generator so pack-owned artifact directories are not also emitted under unrelated_dirty_files_preserved, to keep the two categories disjoint. No functional change required for this pack.",
+        "post_review_disposition": "cosmetic_tracked_no_closeout_impact"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

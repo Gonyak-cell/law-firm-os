@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-561",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-561/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-561/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5890a9e4-2517-4fd4-88c9-e944e779d607",
+    "uuid": "f2c93a06-1e45-43c3-b717-019a77d8ae63",
+    "total_cost_usd": 2.43676675,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-561 is a Risk C, descriptor-only closeout pack covering 150 RP18 units (RP18.P03.M06.S11-RP18.P04.M03.S18), the \"p03 closeout / p04 foundation\" slice of the AI Legal Workflows program. Independent read-only inspection (Read/Grep/Glob) confirms the pack is internally consistent and conservatively scoped, with no P0/P1/P2 defects.\n\nCounts verified: registry.js CP561_REQUIREMENTS deliverable_counts {test:15,hermes_evidence:7,claude_review:10,implementation:52,contract:17,security_audit:16,ui:30,fixture:3}, micro_title_row_counts, micro_phase_row_counts (P03=82, P04=68 = 150), and phase_counts exactly match the pack baseline and manifest delivery_counts. All 7 required public exports exist in service.js/validators.js and are surfaced through src/index.js (validated because model.test.js imports them from the index and passes). Every generated result is Object.freeze'd and carries the full no-write/no-real-data attestation (writes_product_state:false, no_real_data:true, synthetic_only:true, all runtime-dispatch/permission/audit flags false).\n\nproduction_ready claim is correctly conservative and NOT over-stated: manifest.json shows production_ready:false, runtime_ready:false, implementation_layer:\"descriptor\", status:\"implemented_pending_review\"; command-evidence.json shows production_ready:false with status \"implementation_and_plan_gates_passed_pending_final_closeout\" and all 27 listed commands at exit_code 0 (node --check/--test, all rpXX validators, closeout-pack-plan, weighted, spec:requirements, rp00:control-plane, goal:closeout, fullplan, npm test, npm run validate, npm run build, git diff --check). Hermes evidence emits only a gated production_ready_candidate (coverage.valid && slice.valid), never an enterprise-trust assertion.\n\nCP178+ review hardening is enforced: forbidden_review_evidence / invalid_review_blockers reject failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, disabled_tools_run, missing_raw_output_reference, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, production_enterprise_trust_claim. readiness-report auth-preflight passed (exit 0, valid JSON); validation-report confirms read_tools_used, summary_only_review_allowed:false for Risk C, forbidden_tools_present:false. No raw-output.json or review-receipt.json pre-exists, confirming a genuine pre-review state (invalid_attempts_preserved empty).\n\nAuthority boundary holds: claude_is_final_approval:false, claude_packet.read_only:true, promotes_claude_to_final_approval:false, human_final_approval_required_for_runtime_opening:true, runtime_opening_pack_id:CP00-562 — consistent across registry.js, service.js, and the contract's current descriptor (line 13133). Hermes control-plane is used only for deterministic descriptor evidence/receipt shapes (hermes_runtime_embedded_in_product:false, emits_hermes_runtime_receipt:false, receipt_shape \"descriptor_only_..._no_write\"; program descriptor_only:true). A secret/PII scan of the source found nothing. Unrelated dirty/untracked working-tree files are correctly partitioned out of pack scope by changed-file-scope.json. Verdict: PASS; pack is ready to proceed to the gated post-review closeout sequence (human final approval still required before any enterprise-trust/runtime claim).",
+    "findings": [
+      {
+        "id": "CP561-P3-01",
+        "severity": "P3",
+        "title": "Unrelated dirty/untracked working-tree files must not be staged into the CP00-561 commit",
+        "file": "artifacts/closeout-pack-claude-review/cp00-561/changed-file-scope.json",
+        "line": 156,
+        "details": "The working tree contains 11 dirty/untracked entries that are NOT part of CP00-561's active implementation refs and are correctly listed under unrelated_dirty_files_preserved (e.g. scripts/progress-control-room-data.mjs and tools/progress-control-room/index.html modified for the non-CP UI workstream, plus workbook/* docs, a binary .docx, and matter_development_documentation_pack.zip). They are properly excluded from pack scope by changed-file-scope.json, and active_untracked_implementation_files_omitted is empty, so this is not a defect in the reviewed pack. It is a forward-looking commit-hygiene caution: the closeout must stage only the 8 active pack files (contract, README, src/registry|service|validators, test/model.test.js, scripts/validate-rp18-ai-legal-workflows-core-contract.mjs) plus docs/closeout-packs/cp00-561/, so the gated git diff --check --cached and the per-pack commit stay clean.",
+        "recommendation": "During closeout, stage pack files explicitly (no git add -A) so unrelated dirty/untracked files are not swept into the CP00-561 commit; recent history shows clean per-pack commits, so the existing selective-staging convention already mitigates this.",
+        "post_review_disposition": "informational_non_blocking_already_mitigated_by_scope_partition_and_selective_staging"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

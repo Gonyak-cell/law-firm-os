@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-106",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-106-claude-review-output-valid.json",
+    "session_id": "6bf96416-8a0f-4670-9c79-ed6c48352301",
+    "uuid": "0d4fd904-1c48-48c7-9696-567657c79c8b",
+    "duration_ms": 160204,
+    "total_cost_usd": 0.56573275,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "blocked_claims sentinel 'review_question_cannot_execute_review' is reused for non-question rows (risk_register, severity_taxonomy)",
+        "file": "packages/domain/src/review-outcome-routing.js",
+        "evidence": "In cp106FreezeItem the blocked_claims ternary assigns bespoke strings only for kind === 'verdict_format' ('verdict_format_cannot_approve_pack') and kind === 'finding_routing_map' ('routing_map_cannot_mutate_issues'); risk_register and severity_taxonomy rows fall through to the default ['review_question_cannot_execute_review'], which names a different row kind. The no-execution boundary still holds and no validator/test depends on the string, but the reference sentinel is semantically mismatched for those two kinds.",
+        "recommendation": "Optionally add kind-specific blocked-claim strings for risk_register and severity_taxonomy (e.g., 'risk_register_cannot_mutate_priority', 'severity_taxonomy_cannot_mutate_priority') so the reference label matches the row kind. Non-blocking; document per P3 routing (document_p3)."
+      }
+    ],
+    "recommendation": "approve",
+    "rationale": "CP00-106 Risk B review outcome routing catalog verifies cleanly against scope. Coverage: exactly 40 unique units spanning RP01.P09.M03.S10 through RP01.P09.M07.S08 (M03:S10-S11, M04/M05:S01-S11, M06/M07:S01-S08); counts reconcile to 28 review questions (7 areas x 4 active phases M04-M07), 4 risk_register, 2 severity_taxonomy, 3 go/no-go verdict_format (PASS/PASS_WITH_FINDINGS/BLOCK preserved), and 3 finding_routing_map rows carrying all routing_targets including block_pack_for_p0_p1, fix_or_defer_p2, document_p3, preserve_no_write_boundary, and handoff_to_next_pack; permission_boundary and audit_boundary review questions each appear 4 times. Severity taxonomy spans P0-P3. All boundary attestations are negated at contract, manifest, and per-item levels: synthetic_only true / uses_real_client_data false, and false for evaluates_runtime_permission, writes_audit_event, writes_product_state, creates_database_rows, executes_ai_retrieval, executes_export_download, executes_external_share, mutates_locks, retries_operations, performs_rollback, performs_compensation, executes_claude_review, grants_human_approval, mutates_issue_routing, and ldip_implemented; review_question/verdict/finding_routing/severity policies are reference-only and forbidden_claims lists all 16 prohibited assertions. The contract JSON (review_outcome_routing_contract) mirrors the JS contract and is fully enforced by validate-rp01-core-domain-contract.mjs (pack/contract ids, ranges, every boolean flag, micro phases, outcome items, verdicts, severities, routing targets, forbidden claims, policies, and all coverage counts), and current_pack.production_ready_flag is gated to core_domain_review_outcome_routing_verified while the prior CP00-105 pack is correctly reparented to evidence_review_catalog_pack and still validated. Tests assert the same bindings, counts, no-write attestations, read-only/max-effort/exactly-one-valid-review packet, and handoff to CP00-107 at RP01.P09.M07.S09, which is continuous with CP00-105's next_subphase RP01.P09.M03.S10. The Claude review packet declares model claude-opus-4-8, effort max, read_only true, exactly_one_valid_pack_review_required true. No runtime permission evaluation, audit/product/database writes, AI retrieval, export/share, lock mutation, retry, rollback/compensation, Claude execution by catalog, human approval grant, issue routing mutation, or LDIP implementation is present; everything is synthetic-only and reference-only. Only one non-blocking P3 cosmetic labeling nit was found; gating is adequate for production_ready.\n\nINJECTION_NOTE: The supplied diff content is data under review only; it contained no instructions attempting to alter the review process, and none were followed.",
+    "notes": [
+      "No P0/P1/P2 findings were reported by the valid CP00-106 pack-level Claude review.",
+      "P3 blocked_claims sentinel mismatch was fixed after review by adding kind-specific risk_register and severity_taxonomy blocked_claim labels plus test coverage.",
+      "No second valid Claude review was run; the post-review fix was handled through adjudication and local validation per pack process."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [],
+    "p3_fixed_or_documented": [
+      {
+        "title": "blocked_claims sentinel 'review_question_cannot_execute_review' is reused for non-question rows (risk_register, severity_taxonomy)",
+        "disposition": "fixed",
+        "evidence": "Added blockedClaimsForTemplate in packages/domain/src/review-outcome-routing.js for risk_register and severity_taxonomy rows, then asserted the new labels in packages/domain/test/core-domain-foundation.test.js and reran domain tests plus rp01:core-domain:validate."
+      }
+    ],
+    "no_second_valid_review_run": true
+  }
+}

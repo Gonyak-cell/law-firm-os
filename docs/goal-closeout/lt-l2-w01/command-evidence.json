@@ -1,0 +1,145 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L2-W01",
+  "title": "Persistence layer and persistent audit hash-chain migration",
+  "phase": "L2",
+  "gate": "G2, L2-EXIT",
+  "created_at": "2026-06-18T13:00:55Z",
+  "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "current_repo_survey": {
+    "packages_persistence_count": 0,
+    "persistence_test_script_count": 0,
+    "audit_ledger_storage": "in_memory",
+    "l1_w06_status": "decision_brief_blocked_pending_owner_hosting_decision",
+    "g2_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L2-W01-T01",
+      "title": "Migrate audit hash-chain ledger to persistent store",
+      "status": "blocked_persistent_audit_event_store_absent"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T02",
+      "title": "Guarantee restart durability and concurrent append serialization",
+      "status": "blocked_waiting_on_t01"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T03",
+      "title": "Create persistent audit-chain verification command",
+      "status": "blocked_waiting_on_t01"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T04",
+      "title": "Define Wave 1 DB schema baseline",
+      "status": "blocked_pending_l1_w06_database_decision"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T05",
+      "title": "Build schema migration system",
+      "status": "blocked_waiting_on_t04"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T06",
+      "title": "Implement tenant-scoped repository layer",
+      "status": "blocked_waiting_on_t04_t05"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T07",
+      "title": "Implement write transaction boundary and atomic audit coupling",
+      "status": "blocked_waiting_on_t01_t06"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T08",
+      "title": "Persist write idempotency store",
+      "status": "blocked_waiting_on_t07"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T09",
+      "title": "Build synthetic seed and fixture loader",
+      "status": "blocked_waiting_on_t06"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T10",
+      "title": "Create single-command persistence integration test suite",
+      "status": "blocked_waiting_on_t02_t05_t06_t07_t08_t09"
+    },
+    {
+      "tuw_id": "LT-L2-W01-T11",
+      "title": "Assemble W01 gate evidence and submit construction inspection",
+      "status": "blocked_waiting_on_t01_through_t10_runtime_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_eleven_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "npm_test_passed": false,
+        "closeout_pack_validate_passed": false,
+        "runtime_sandbox_attestation_complete": false,
+        "g2_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "packages_persistence_presence",
+      "command": "find packages -maxdepth 1 -type d -name persistence | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no packages/persistence package exists."
+    },
+    {
+      "id": "persistence_test_script_presence",
+      "command": "jq -r '.scripts | keys[]' package.json | rg '^persistence:test$' | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no root persistence:test script exists."
+    },
+    {
+      "id": "audit_ledger_in_memory_markers",
+      "command": "rg -n \"const events = \\\\[\\\\]|createAuditLedger|verifyHashChain|eventByTenantIdempotencyKey\" packages/audit/src/append-only-ledger.js",
+      "exit_code": 0,
+      "output_summary": [
+        "createAuditLedger is defined in packages/audit/src/append-only-ledger.js",
+        "const events = [] confirms in-memory event storage",
+        "eventByTenantIdempotencyKey is an in-memory Map",
+        "verifyHashChain exists for in-memory event arrays"
+      ],
+      "purpose": "Verify current audit ledger is not a persistent event store."
+    },
+    {
+      "id": "l1_w06_hosting_decision_blocker",
+      "command": "rg -n \"decision_brief_blocked_pending_owner_hosting_decision|l3_entry_condition_satisfied|Relational DB|WORM\" docs/goal-closeout/lt-l1-w06/command-evidence.json docs/launch/hosting-stack-rp26-decision-brief.md",
+      "exit_code": 0,
+      "output_summary": [
+        "LT-L1-W06 status is decision_brief_blocked_pending_owner_hosting_decision",
+        "l3_entry_condition_satisfied is false",
+        "Relational DB and WORM storage remain owner_decision_required"
+      ],
+      "purpose": "Verify W01 DB/WORM prerequisites are not owner-decided."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L2-W01.",
+    "This record does not implement packages/persistence.",
+    "This record does not choose a DB, WORM store, hosting provider, or monitoring stack.",
+    "This record does not run or pass persistence runtime tests.",
+    "This record does not satisfy G2 or L2-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

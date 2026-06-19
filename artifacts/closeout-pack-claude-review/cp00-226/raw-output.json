@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-226",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T09:59:29.815Z",
+  "finished_at": "2026-06-10T10:06:30.976Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":420448,\"duration_api_ms\":421558,\"ttft_ms\":4282,\"num_turns\":53,\"result\":\"Review complete. **Verdict: PASS** — no findings at any severity.\\n\\nCP00-226 is a correctly-sequenced, descriptor-only DMS-core pack. Every boundary the review focus calls out holds up under independent read-only inspection:\\n\\n- **Implementation supports the claim, without over-claiming** — `production_ready` is still `false`/`implemented_pending_review`; only `production_ready_candidate` (gated on `coverage.valid && tail.valid`) is asserted, and the source backs it.\\n- **No runtime opened** — the CP226 functions are pure object builders; no DB, network, object storage, service/AI/Hermes dispatch, state writes, locks, or rollback/retry.\\n- **No-write/no-leak chain intact** — attestation spreads CP225←…←CP198, carrying `promotes_claude_to_final_approval:false` and `claims_enterprise_trust_from_local_validation:false`; validators enforce the no-leak guards.\\n- **Drift guarded** — all 28 prior-pack validators include CP00-226 in their `current_pack` allow-lists (spot-checked CP198/210/215/220/225); contract, validate-script, README, and tests are all consistently wired.\\n- **Cursor correct** — CP00-226 is the live queue head (live_latest CP00-225 = latest Close commit), no divergence.\\n- **Pipeline hardening met** — auth preflight passed with valid JSON; read-only tools only; prompt within limits.\\n\\nThis is independent read-only review evidence, not final approval — human sign-off remains required for any enterprise-trust claim, and the post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, normalized receipt) still need to be generated before the `Close CP00-226` commit.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ee3a755a-f6c3-405d-9ddf-dcb0cd8ee74c\",\"total_cost_usd\":2.76288275,\"usage\":{\"input_tokens\":175,\"cache_creation_input_tokens\":95285,\"cache_read_input_tokens\":2984041,\"output_tokens\":26931,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":95285,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":624,\"cache_read_input_tokens\":130254,\"cache_creation_input_tokens\":3651,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3651},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1076,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001181,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":175,\"outputTokens\":26931,\"cacheReadInputTokens\":2984041,\"cacheCreationInputTokens\":95285,\"webSearchRequests\":0,\"costUSD\":2.76170175,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-226 is a clean, descriptor-only continuation of the RP06 DMS-core sequence covering the planned 10 units (RP06.P07.M05.S21–RP06.P07.M06.S05): the M05 Permission And Audit Binding tail (Claude edge-case prompt, human escalation note, closeout handoff, no-silent-success and no-data-leak checks) and the M06 Synthetic Fixture Set head (failure taxonomy + missing tenant/actor/Matter/resource failures). Independent read-only inspection (Read/Grep/Glob) confirms the implementation supports the production_ready_candidate claim and that production_ready is correctly NOT yet asserted (manifest status implemented_pending_review, production_ready:false). Verified: pack binding (risk A, 10 units, range, upstream CP00-225 / next CP00-227); all 7 required public exports present in service.js/validators.js and re-exported via index.js wildcard; descriptor/case-set functions are pure (no DB, network, object storage, runtime dispatch, state writes, lock/rollback/retry, AI or Hermes runtime); no-leak guards and no-write attestation chain (CP226←CP225←…←CP198) carry promotes_claude_to_final_approval:false and claims_enterprise_trust_from_local_validation:false; contract JSON current_pack and failure_audit_tail_descriptor updated; validate-rp06 script, README #cp00-226, and node:test assertions are substantive; upstream descriptor name (DmsCoreCp225FailureBindingSliceDescriptor) matches the chain assertion; and all 28 prior-pack validators include CP00-226 in their current_pack allow-lists (spot-checked CP198/210/215/220/225). Cursor is correct: next-pack-queue live_latest_pack_id CP00-225 matches the latest Close commit and CP00-226 is the queue head with no divergence. Review pipeline integrity holds: auth preflight passed with valid JSON, validation-report shows read-only tools only with no forbidden tools and prompt within size limits. Claude remains a read-only independent reviewer (not final approver) and Hermes patterns appear only as deterministic evidence-packet descriptors, not product runtime. No P0/P1/P2/P3 findings. This verdict is independent read-only review evidence only; human final approval remains required for any enterprise-trust claim and post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, normalized receipt) must still be produced before commit.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"c5ad4866-5f43-4e6e-a944-c3bdc322b736\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5688,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ee3a755a-f6c3-405d-9ddf-dcb0cd8ee74c",
+    "uuid": "c5ad4866-5f43-4e6e-a944-c3bdc322b736",
+    "total_cost_usd": 2.76288275,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

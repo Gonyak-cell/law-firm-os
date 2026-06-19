@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L3-W07",
+  "title": "Entra app registration, Graph scope decision, and admin consent",
+  "created_at": "2026-06-18T13:22:14Z",
+  "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+  "phase": "L3",
+  "gate_binding": [
+    "G5",
+    "L3-EXIT"
+  ],
+  "terminal_tuw": "LT-L3-W07-T04",
+  "artifacts": [
+    "docs/launch/l3/entra-graph-admin-consent-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l3-w07/packet.json",
+    "docs/goal-closeout/lt-l3-w07/command-evidence.json",
+    "docs/goal-closeout/lt-l3-w07/claude-review-result.json",
+    "docs/goal-closeout/lt-l3-w07/adjudication.md",
+    "docs/goal-closeout/lt-l3-w07/construction-inspection.json"
+  ],
+  "current_status": {
+    "tenant_admin_confirmation_exists": false,
+    "graph_scope_register_exists": false,
+    "entra_app_registration_exists": false,
+    "admin_consent_evidence_exists": false,
+    "w07_m365_evidence_file_count": 0,
+    "msal_naa_auth_config_file_count": 0,
+    "m365_runtime_implementation_allowed": false,
+    "admin_consent_granted": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

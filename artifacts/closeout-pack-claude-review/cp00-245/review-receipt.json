@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-245",
+  "normalized_at": "2026-06-10T14:19:26.323Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-245/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-245/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-245/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-245/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "704b49e8-5c5c-4fc2-8e1c-6693cec99d82",
+    "uuid": "e11b62d7-c8c9-4eba-8fbd-23293c06d86d",
+    "total_cost_usd": 4.259921750000001,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6177,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-245 is a clean, descriptor-only RP07 search-core pack covering the M06 synthetic-fixture tail (blocked-claim output, rollback/retry behavior, happy/denied/review/integration tests) and the M07 test/golden head (service entrypoint contract, request normalization, tenant boundary precheck) across 10 units (range RP07.P02.M06.S16–RP07.P02.M07.S03), faithfully matching the weighted ledger plan (deliverable split impl 3 / failure_recovery 2 / test 4 / contract 1; micro split Synthetic Fixture Set 7 / Test And Golden Case Set 3).\n\nImplementation integrity: registry/service/validators/contract/tests/README/validator-script and manifest agree on pack binding (upstream CP00-244, next CP00-246, next_subphase RP07.P02.M07.S04, gates H07/C07), requirements, and distribution. freezeCp245Result (service.js:1367) stamps every runtime/write/leak flag false (writes_product_state, dispatches_search/ocr/index/embedding/review/approval/integration_smoke_runtime, evaluates_runtime_permission, writes_audit_event, creates/updates_database_rows, reads/writes_object_storage, emits_hermes_runtime_receipt, executes_command_runtime, writes_state_transition, persists_idempotency_key/workflow_attempt, performs_rollback/retry_runtime, leak_detected, permission_bypass_detected, exposes_blocked_claim_detail) while omits_unauthorized_data/customer_safe_errors_only are true. Rows resolve through the CP239 extras chain carrying the blocked-claim (no detail leak, customer_safe_error_code), rollback/retry (no runtime), unit-test (review_required), integration-smoke (no dispatch), service-entrypoint (no dispatch), and tenant-boundary (cross_tenant_access_allowed false) guards. No fs/network/exec/DB side effects are introduced; factories return deeply frozen pure data.\n\nContract & drift: contracts/search-core-contract.json current_pack_id is CP00-245; the service_golden_head_descriptor, cp245_requirements, and cp245_no_write_attestation blocks are exact serializations of the factory outputs and are protected by assert.deepEqual drift guards in scripts/validate-rp07-search-core-contract.mjs, with historical_pack_bindings tail = CP00-245.\n\nAuthority & review hardening: the descriptor and validators.js (drift guards at ~2081–2085) hold claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, and human_final_approval_required_for_runtime_opening=true; the Claude packet is read_only with allowed_tools Read/Grep/Glob and forbidden_review_evidence blockers. Hermes appears only as descriptor/receipt metadata (emits_hermes_runtime_receipt=false everywhere), satisfying the deterministic-control-plane-only constraint. The review setup itself is valid per CP178+ hardening: readiness ready with auth_preflight passed (exit 0), 2177-byte prompt embedding no full diff/source, tools restricted to Read/Grep/Glob with no forbidden tools, and a present review schema.\n\nPosture: manifest status is implemented_pending_review with production_ready=false, pack_level_claude_review.status pending, and valid_review_receipts empty — no premature production_ready or enterprise-trust claim. The pack is a production_ready_candidate pending the remaining downstream gates. The expected-but-absent downstream artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are produced after this review and are correctly not present yet; unrelated dirty files (the .docx, handoff note, ldip json) are preserved outside pack scope. command-evidence records required commands at exit 0 with post-review-gated commands deferred.\n\nNo P0/P1/P2/P3 findings. This verdict is advisory review evidence only and does not constitute final approval; human final approval remains required for any enterprise-trust claim or runtime opening.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

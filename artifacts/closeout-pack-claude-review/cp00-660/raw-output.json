@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-660",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T01:55:43.197Z",
+  "finished_at": "2026-06-14T02:00:52.848Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":308963,\"duration_api_ms\":310327,\"ttft_ms\":6194,\"num_turns\":42,\"result\":\"Review complete. **Verdict: PASS** — no findings (0 P0/P1/P2/P3), does not block pack or this-CP goal closeout.\\n\\nCP00-660's descriptor-only production-ready claim is fully supported: pack binding, contract projection, service builders, the CP660 validator, and model tests are all internally consistent, with no-write/no-real-data and runtime-closed boundaries enforced at code, validator, and test levels. The validation script regenerates and deep-equals the contract to source (CP659→CP660→CP661 chain intact), authority boundaries are correct (Claude read-only/non-final; Hermes evidence-only), and CP178+ hardening checks (valid auth preflight JSON, forbidden-evidence list, no invalid prior attempts) are satisfied.\",\"stop_reason\":\"end_turn\",\"session_id\":\"15cd5acd-c253-4670-8c9a-78ce32c207c7\",\"total_cost_usd\":2.346307,\"usage\":{\"input_tokens\":54,\"cache_creation_input_tokens\":134434,\"cache_read_input_tokens\":2008129,\"output_tokens\":20021,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":134434,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":295,\"cache_read_input_tokens\":130471,\"cache_creation_input_tokens\":4710,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4710},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1130,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001235,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":54,\"outputTokens\":20021,\"cacheReadInputTokens\":2008129,\"cacheCreationInputTokens\":134434,\"webSearchRequests\":0,\"costUSD\":2.345072,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-660 (RP21 Admin Console failure recovery fixture transition descriptor, risk A, 10 units, RP21.P07.M05.S21-RP21.P07.M06.S08) passes hardened read-only review with no findings. The descriptor-only production-ready claim is supported by consistent implementation, validation, and tests: registry binding, contract projection (cp660_descriptor/requirements/no_write_attestation/hermes+claude packets/closeout_handoff), service builders (service.js:4209-4376), the CP660 descriptor validator enforcing ~31 false-flags, no-leak guards, and runtime-closed boundaries (validators.js:2813), and model tests asserting coverage, descriptor-only rows, runtime closure, and no-write attestation (model.test.js:1170-1230). The validator script regenerates the projection and deepEquals the committed contract to source, asserting the CP659->CP660->CP661 handoff chain (next_subphase RP21.P07.M06.S09). Deliverable distribution (claude_review 1, implementation 1, failure_recovery 7, security_audit 1) and micro-title split (Permission And Audit Binding 2, Synthetic Fixture Set 8) match across baseline, manifest, and contract. No-write/no-real-data boundaries are enforced at code, validator, and test levels with all runtime flags false and runtime_opening_pack_id CP00-661; no secrets or real data present. Authority boundary is correct: Claude review packet is read_only with blocks_pack_on_p0_p1_p2, Hermes packet emits no runtime receipt and opens no runtime (evidence-label only, not product runtime). Manifest honestly reports production_ready=false, runtime_ready=false, status=pending_review pending exactly one valid review (this one). CP178+ hardening satisfied: readiness auth preflight returned valid non-empty JSON, forbidden_review_evidence list present, and no invalid prior review attempts. Pre-review command evidence is all exit_code 0. The pack does not claim runtime or enterprise trust, so this CP closeout goal is not blocked.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e6fd1bd9-0be5-4ff8-b74e-255ee13c5ba0\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4348,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "15cd5acd-c253-4670-8c9a-78ce32c207c7",
+    "uuid": "e6fd1bd9-0be5-4ff8-b74e-255ee13c5ba0",
+    "total_cost_usd": 2.346307,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

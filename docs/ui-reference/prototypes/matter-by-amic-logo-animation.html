@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>matter logo animation</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --ink: #06102d;
+    --red: #ff2d55;
+    --yellow: #ffcc00;
+    --green: #00ca72;
+    --bg: #ffffff;
+    --ease: cubic-bezier(.2,.8,.2,1);
+    --spring: cubic-bezier(.16,1.18,.32,1);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  }
+
+  .app-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 76px;
+    border-bottom: 1px solid rgba(6, 16, 45, .08);
+    background: rgba(255, 255, 255, .92);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  body.is-authenticated .app-header {
+    animation: headerIn .42s var(--ease) .16s both;
+  }
+
+  .auth-stage {
+    position: relative;
+    width: min(720px, calc(100vw - 32px));
+    min-height: min(620px, calc(100vh - 32px));
+    display: grid;
+    place-items: center;
+  }
+
+  .brand {
+    --size: clamp(62px, 10vw, 150px);
+    --word-target: 0px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    color: var(--ink);
+    line-height: 1;
+    overflow: visible;
+    transform-origin: 50% 50%;
+    z-index: 2;
+    animation:
+      brandGap .86s var(--ease) 1.52s both,
+      brandDock .72s var(--ease) 2.45s both;
+  }
+
+  .brand.fly-to-header {
+    animation: brandFlyToHeader .78s cubic-bezier(.2,.8,.18,1) both !important;
+    transform-origin: top left;
+    will-change: transform;
+    z-index: 20;
+  }
+
+  .mark {
+    position: relative;
+    width: calc(var(--size) * 1.25);
+    height: var(--size);
+    transform-origin: 50% 50%;
+  }
+
+  .pill,
+  .dot {
+    position: absolute;
+    display: block;
+    will-change: transform, opacity;
+  }
+
+  .pill {
+    width: calc(var(--size) * 0.36);
+    height: calc(var(--size) * 0.94);
+    top: calc(var(--size) * 0.02);
+    border-radius: 999px;
+  }
+
+  .pill-red {
+    left: calc(var(--size) * 0.1);
+    background: var(--red);
+    transform: rotate(31deg);
+    animation: redBuild 1.15s var(--spring) both;
+  }
+
+  .pill-yellow {
+    left: calc(var(--size) * 0.56);
+    background: var(--yellow);
+    transform: rotate(31deg);
+    animation: yellowBuild 1.15s var(--spring) .14s both;
+  }
+
+  .dot {
+    width: calc(var(--size) * 0.38);
+    height: calc(var(--size) * 0.38);
+    right: calc(var(--size) * 0.02);
+    bottom: calc(var(--size) * 0.09);
+    border-radius: 50%;
+    background: var(--green);
+    animation: dotBuild 1.1s var(--spring) .26s both;
+  }
+
+  .word-wrap {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    width: 0;
+    overflow: hidden;
+    clip-path: inset(-0.18em 100% -0.18em 0);
+    animation: wordReveal .86s var(--ease) 1.52s both;
+  }
+
+  .word {
+    display: inline-flex;
+    align-items: baseline;
+    color: var(--ink);
+    font-family: Comfortaa, "Avenir Next", "SF Pro Rounded", Inter, sans-serif;
+    font-size: clamp(64px, 9.2vw, 136px);
+    font-weight: 300;
+    letter-spacing: 0.035em;
+    transform: translateX(-0.42em) scaleX(.9);
+    transform-origin: 0 50%;
+    animation: wordPop .82s var(--spring) 1.52s both;
+  }
+
+  .word span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-0.35em) scale(.92);
+    animation: letterPop .58s var(--spring) both;
+  }
+
+  .word span:nth-child(1) { animation-delay: 1.54s; }
+  .word span:nth-child(2) { animation-delay: 1.59s; }
+  .word span:nth-child(3) { animation-delay: 1.64s; }
+  .word span:nth-child(4) { animation-delay: 1.69s; }
+  .word span:nth-child(5) { animation-delay: 1.74s; }
+  .word span:nth-child(6) { animation-delay: 1.79s; }
+
+  .byline {
+    position: absolute;
+    right: 0.02em;
+    top: calc(100% + 18px);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32em;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: bylineFade .5s var(--ease) 2.12s both;
+  }
+
+  .byline-text {
+    color: #0f3a32;
+    font-family: Comfortaa, "Avenir Next", Inter, sans-serif;
+    font-size: clamp(12px, 1vw, 15px);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .amic-law-logo {
+    display: block;
+    width: auto;
+    height: clamp(19px, 1.65vw, 24px);
+  }
+
+  .brand.fly-to-header .byline {
+    animation: bylineExit .24s var(--ease) both;
+  }
+
+  .login-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(380px, calc(100vw - 48px));
+    padding: 28px;
+    border: 1px solid rgba(6, 16, 45, .08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 22px 70px rgba(6, 16, 45, .1);
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 108px));
+    filter: blur(10px);
+    z-index: 1;
+    animation: panelIn .68s var(--ease) 2.72s both;
+  }
+
+  body.is-authenticated .login-panel {
+    pointer-events: none;
+    animation: panelOut .46s var(--ease) both;
+  }
+
+  .login-form {
+    display: grid;
+    gap: 14px;
+  }
+
+  .field {
+    display: grid;
+    gap: 7px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fieldIn .44s var(--ease) both;
+  }
+
+  .field:nth-child(1) { animation-delay: 2.92s; }
+  .field:nth-child(2) { animation-delay: 2.98s; }
+
+  label {
+    color: rgba(6, 16, 45, .7);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+
+  input {
+    width: 100%;
+    height: 46px;
+    border: 1px solid rgba(6, 16, 45, .13);
+    border-radius: 8px;
+    padding: 0 14px;
+    color: var(--ink);
+    background: #fff;
+    font: 500 15px/1 Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    outline: none;
+    transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+
+  input:focus {
+    border-color: rgba(0, 202, 114, .58);
+    box-shadow: 0 0 0 4px rgba(0, 202, 114, .12);
+  }
+
+  .form-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 20px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fieldIn .44s var(--ease) 3.04s both;
+  }
+
+  .link {
+    color: rgba(6, 16, 45, .62);
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .submit {
+    width: 100%;
+    height: 48px;
+    border: 0;
+    border-radius: 8px;
+    margin-top: 2px;
+    color: #fff;
+    background: var(--ink);
+    font: 750 15px/1 Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fieldIn .44s var(--ease) 3.1s both;
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+  }
+
+  .submit:hover {
+    background: #0a1738;
+    box-shadow: 0 12px 28px rgba(6, 16, 45, .18);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 520px) {
+    .byline {
+      top: calc(100% + 14px);
+      right: 0;
+    }
+
+    .amic-law-logo {
+      height: 20px;
+    }
+
+    .login-panel {
+      width: min(340px, calc(100vw - 36px));
+      padding: 24px;
+      transform: translate(-50%, calc(-50% + 96px));
+    }
+  }
+
+  @keyframes brandDock {
+    0%,
+    28% {
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      transform: translateY(-126px) scale(.64);
+    }
+  }
+
+  @keyframes brandFlyToHeader {
+    from {
+      transform: scale(var(--fly-start-scale));
+    }
+
+    to {
+      transform: translate(var(--fly-x), var(--fly-y)) scale(var(--fly-scale));
+    }
+  }
+
+  @keyframes brandGap {
+    to {
+      gap: calc(var(--size) * 0.2);
+    }
+  }
+
+  @keyframes redBuild {
+    0% {
+      opacity: 0;
+      transform: translate(-0.52em, 0.32em) rotate(95deg) scale(.22);
+    }
+    38% {
+      opacity: 1;
+      transform: translate(0.1em, -0.06em) rotate(-22deg) scale(1.04);
+    }
+    70% {
+      opacity: 1;
+      transform: translate(-0.04em, 0.02em) rotate(38deg) scale(.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(0, 0) rotate(31deg) scale(1);
+    }
+  }
+
+  @keyframes yellowBuild {
+    0% {
+      opacity: 0;
+      transform: translate(-0.8em, 0.1em) rotate(120deg) scale(.18);
+    }
+    38% {
+      opacity: 1;
+      transform: translate(-0.05em, 0.02em) rotate(-14deg) scale(1.02);
+    }
+    70% {
+      opacity: 1;
+      transform: translate(0.04em, -0.02em) rotate(37deg) scale(.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(0, 0) rotate(31deg) scale(1);
+    }
+  }
+
+  @keyframes dotBuild {
+    0% {
+      opacity: 0;
+      transform: translate(-1.65em, -1.1em) scale(.18);
+    }
+    34% {
+      opacity: 1;
+      transform: translate(-1.1em, -1.75em) scale(1.04);
+    }
+    62% {
+      opacity: 1;
+      transform: translate(-0.2em, 0.06em) scale(.95);
+    }
+    82% {
+      opacity: 1;
+      transform: translate(0.04em, -0.04em) scale(1.04);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+    }
+  }
+
+  @keyframes wordReveal {
+    to {
+      width: var(--word-target);
+      clip-path: inset(-0.18em -0.12em -0.18em 0);
+    }
+  }
+
+  @keyframes wordPop {
+    to {
+      transform: translateX(0) scaleX(1);
+    }
+  }
+
+  @keyframes letterPop {
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes bylineFade {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bylineExit {
+    to {
+      opacity: 0;
+      transform: translateY(-4px) scale(.96);
+    }
+  }
+
+  @keyframes headerIn {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes panelIn {
+    to {
+      opacity: 1;
+      transform: translate(-50%, calc(-50% + 88px));
+      filter: blur(0);
+    }
+  }
+
+  @keyframes panelOut {
+    to {
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 118px));
+      filter: blur(8px);
+    }
+  }
+
+  @keyframes fieldIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 520px) {
+    @keyframes brandDock {
+      0%,
+      28% {
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        transform: translateY(-122px) scale(.72);
+      }
+    }
+
+    @keyframes panelIn {
+      to {
+        opacity: 1;
+        transform: translate(-50%, calc(-50% + 86px));
+        filter: blur(0);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mark,
+    .pill-red,
+    .pill-yellow,
+    .dot,
+    .word-wrap,
+    .word,
+    .word span,
+    .byline,
+    .brand,
+    .login-panel,
+    .app-header,
+    .field,
+    .form-row,
+    .submit {
+      animation-duration: 1ms;
+      animation-delay: 0ms;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <header class="app-header" aria-hidden="true"></header>
+  <main class="auth-stage">
+    <div class="brand" aria-label="matter by AMIC Law">
+      <span class="mark" aria-hidden="true">
+        <span class="pill pill-red"></span>
+        <span class="pill pill-yellow"></span>
+        <span class="dot"></span>
+      </span>
+      <span class="word-wrap" aria-hidden="true">
+        <span class="word">
+          <span>m</span>
+          <span>a</span>
+          <span>t</span>
+          <span>t</span>
+          <span>e</span>
+          <span>r</span>
+        </span>
+      </span>
+      <span class="byline">
+        <span class="byline-text">by</span>
+        <svg class="amic-law-logo" viewBox="0 0 175 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          <path d="M0 27.708L12.017 0.0361719H12.3066L24.3235 27.708H18.2427L10.5692 8.2473L14.3697 5.64289L5.17599 27.708H0ZM8.21643 18.0862H16.2157L18.0617 22.4992H6.58763L8.21643 18.0862Z" fill="#0F3A32"/>
+          <path d="M31.6745 27.708V0H31.7107L46.5148 20.98L44.2706 20.4736L59.0385 0H59.1109V27.708H53.8625V11.8284L54.1883 14.5413L45.1755 27.3463H45.1031L35.837 14.5413L36.7419 12.0454V27.708H31.6745Z" fill="#0F3A32"/>
+          <path d="M69.4644 1.08517H74.7128V27.708H69.4644V1.08517Z" fill="#0F3A32"/>
+          <path d="M105.036 25.5015C104.747 25.7427 104.204 26.0682 103.407 26.4782C102.635 26.8881 101.682 27.2499 100.548 27.5633C99.4138 27.8768 98.159 28.0215 96.7835 27.9974C94.6842 27.9492 92.802 27.5754 91.137 26.8761C89.4961 26.1526 88.0965 25.176 86.9383 23.9461C85.8041 22.7162 84.9354 21.3055 84.3322 19.7139C83.7289 18.1224 83.4273 16.4223 83.4273 14.6136C83.4273 12.588 83.7289 10.7311 84.3322 9.04309C84.9596 7.35505 85.8403 5.8961 86.9745 4.66624C88.1327 3.43638 89.5082 2.48384 91.1008 1.80862C92.6934 1.1334 94.4549 0.795793 96.3854 0.795793C98.171 0.795793 99.7516 1.03694 101.127 1.51924C102.502 2.00154 103.625 2.52001 104.493 3.07465L102.43 8.03027C101.827 7.57208 101.018 7.10184 100.005 6.61954C99.0156 6.11313 97.8694 5.85992 96.5664 5.85992C95.5529 5.85992 94.5756 6.07696 93.6345 6.51103C92.7175 6.92098 91.8971 7.5118 91.1732 8.28347C90.4734 9.05515 89.9184 9.95946 89.5082 10.9964C89.098 12.0092 88.8929 13.1185 88.8929 14.3243C88.8929 15.6024 89.0738 16.7719 89.4358 17.833C89.8219 18.894 90.3648 19.8104 91.0646 20.5821C91.7644 21.3296 92.5969 21.9084 93.5621 22.3184C94.5515 22.7283 95.6615 22.9333 96.8921 22.9333C98.3158 22.9333 99.5344 22.7042 100.548 22.246C101.561 21.7878 102.334 21.3055 102.864 20.7991L105.036 25.5015Z" fill="#0F3A32"/>
+          <path d="M119.043 7.81892H121.634V24.6365H131.434V27.1191H119.043V7.81892Z" fill="#0F3A32"/>
+          <path d="M133.733 27.1191L142.171 7.01808H142.331L150.743 27.1191H147.779L141.477 11.0757L143.319 9.8744L136.27 27.1191H133.733ZM138.673 19.8048H145.856L146.711 22.0471H137.925L138.673 19.8048Z" fill="#0F3A32"/>
+          <path d="M150.272 7.92569H153.263L158.497 22.6611L158.043 22.4742L161.862 12.5972L163.063 16.0942L157.963 28L150.272 7.92569ZM159.538 7.92569H162.129L167.79 22.4475L167.256 22.3407L172.249 7.92569H175L167.416 27.9733L159.538 7.92569Z" fill="#0F3A32"/>
+        </svg>
+      </span>
+    </div>
+
+    <section class="login-panel" aria-label="로그인">
+      <form class="login-form">
+        <div class="field">
+          <label for="email">이메일</label>
+          <input id="email" type="email" autocomplete="email" placeholder="name@amiclaw.com" />
+        </div>
+        <div class="field">
+          <label for="password">비밀번호</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="비밀번호" />
+        </div>
+        <div class="form-row">
+          <a class="link" href="#">비밀번호 찾기</a>
+        </div>
+        <button class="submit" type="submit">로그인</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const brand = document.querySelector(".brand");
+    const word = document.querySelector(".word");
+    const form = document.querySelector(".login-form");
+    const submit = document.querySelector(".submit");
+
+    function setWordTarget() {
+      brand.style.setProperty("--word-target", `${Math.ceil(word.scrollWidth + 10)}px`);
+    }
+
+    setWordTarget();
+    window.addEventListener("resize", setWordTarget);
+    if (document.fonts) {
+      document.fonts.ready.then(setWordTarget);
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (document.body.classList.contains("is-authenticated")) return;
+
+      const rect = brand.getBoundingClientRect();
+      const layoutWidth = brand.scrollWidth;
+      const layoutHeight = brand.scrollHeight;
+      const startScale = rect.width / layoutWidth;
+      const targetLeft = window.matchMedia("(max-width: 520px)").matches ? 18 : 26;
+      const targetTop = window.matchMedia("(max-width: 520px)").matches ? 18 : 20;
+      const targetWidth = window.matchMedia("(max-width: 520px)").matches ? 142 : 178;
+      const scale = targetWidth / layoutWidth;
+
+      brand.style.position = "fixed";
+      brand.style.left = `${rect.left}px`;
+      brand.style.top = `${rect.top}px`;
+      brand.style.width = `${layoutWidth}px`;
+      brand.style.height = `${layoutHeight}px`;
+      brand.style.animation = "none";
+      brand.style.transform = `scale(${startScale})`;
+      brand.style.transformOrigin = "top left";
+      brand.style.setProperty("--fly-x", `${targetLeft - rect.left}px`);
+      brand.style.setProperty("--fly-y", `${targetTop - rect.top}px`);
+      brand.style.setProperty("--fly-start-scale", startScale);
+      brand.style.setProperty("--fly-scale", scale);
+
+      brand.offsetWidth;
+      submit.disabled = true;
+      document.body.classList.add("is-authenticated");
+      brand.classList.add("fly-to-header");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-924",
+  "subphase_id": "RP30.P03.M09.S03",
+  "production_ready": true,
+  "runtime_ready": null,
+  "status": null,
+  "boundary": null,
+  "verdict": "PASS",
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1,
+    "reported_p0": 0,
+    "reported_p1": 0,
+    "reported_p2": 0,
+    "reported_p3": 1,
+    "p2_status": "fixed_or_deferred"
+  },
+  "hrx_candidate_evidence_hr_operations_bridge_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-924 is descriptor-only production-ready; HRX runtime opening, CandidateApi/EvidenceApi/HROperations/EmployeeApi/LeaveApi/ErrorModel/HRApi runtime, API/error payloads, operations runtime, API/error/operations record writes, HROperations policy execution, HR state finalization, payroll runtime, HR AI final judgment, separate HRX product claims, enterprise trust, production deployment, and final human approval remain deferred to CP00-925/RP30.P04.M00.S03 or later human-approved packs.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-924/review-receipt.json",
+  "invalid_review_attempts": []
+}

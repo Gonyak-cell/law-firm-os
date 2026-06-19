@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-269",
+  "normalized_at": "2026-06-10T19:30:50.903Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-269/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-269/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-269/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-269/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0c2d9eb9-bb18-445a-a1e8-4fc97c78dab1",
+    "uuid": "d461e3c6-286b-4f0e-9770-673262a7b5aa",
+    "total_cost_usd": 2.7285115,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6557,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-269 is a descriptor-only closeout pack covering RP07.P09.M05.S09-S18 (risk A, 10 units: the \"Permission And Audit Binding\" middle rows, 9 implementation + 1 claude_review). Independent read-only inspection confirms the pack-level claim is supported. The registry binding, closeout-pack-plan.json, next-pack-queue.json (live latest CP00-268 -> next CP00-269), and weighted-implementation-ledger all agree on the same 10 units, titles, deliverable types, risk class, range, upstream (CP00-268), and next pack (CP00-270 / RP07.P09.M05.S19). service.js builds every row as descriptor_only with runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false; validators.js enforces coverage/descriptor/row/authority drift and its freeze wrapper does not mask failures; the contract projection (current_pack, review_binding_mid_descriptor, cp269_requirements, cp269_no_write_attestation, historical_pack_bindings tail, root authority_boundary) matches the source descriptor and is deep-equality checked by the validator script. All 7 public exports are defined and re-exported via the index.js wildcard, the README has a CP00-269 entry, and model.test.js covers coverage validity, descriptor-only rows, authority boundaries, evidence packets, and handoff. Authority boundaries hold throughout: claude_is_final_approval=false, read_only=true, promotes_claude_to_final_approval=false, human_final_approval_required=true, and enterprise trust is not claimed from local validation. Hermes is used only for the deterministic evidence packet (emits_hermes_runtime_receipt=false, receipt_shape=descriptor_only...no_write), not product runtime. No-write/no-real-data boundaries are attested and the manifest correctly declares production_ready=false / implemented_pending_review with no premature production-ready=true claim. CP178+ hardening holds: readiness auth-preflight passed (exit 0, 1469-byte valid JSON, end_turn), forbidden_tools_present=false, review schema present, and the descriptor/contract invalid_review_blockers enumerate the required rejection cases (failed authentication, zero-byte output, malformed JSON, fenced JSON, tool-call-shaped output, missing fields). Command evidence shows all 19 build/test/validate commands exiting 0 and Hermes gate H07 passed; the three post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly absent at this read_only_claude_run step. One non-blocking P3: changed-file-scope.json redundantly classifies new-session-handoff.md and the cp00-269/ directory under both untracked_implementation_files and unrelated_dirty_files_preserved, but this is cosmetic (active_untracked_implementation_files_omitted is empty and the truly-unrelated docx/ldip files are correctly excluded from active_pack_implementation_refs). No P0/P1/P2 issues; pack and goal closeout are not blocked. Claude remains a read-only independent reviewer and not the final approver; human final approval remains required for any enterprise trust claim.",
+    "findings": [
+      {
+        "id": "CP269-P3-01",
+        "severity": "P3",
+        "title": "Redundant file classification in changed-file-scope.json (cosmetic, non-blocking)",
+        "file": "artifacts/closeout-pack-claude-review/cp00-269/changed-file-scope.json",
+        "line": 100,
+        "details": "new-session-handoff.md and docs/closeout-packs/cp00-269/ appear in both untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). The two arrays use different definitions of 'preserved' than the manifest's worktree_transition_policy.unrelated_dirty_files_preserved, which lists only the truly-unrelated docx and ldip files. This is functionally harmless: active_untracked_implementation_files_omitted is empty (nothing required was dropped), the cp00-269/ directory legitimately holds this pack's own evidence, and the genuinely unrelated files (the .docx and c-ldip-01-invalid-attempt-01.json) are correctly excluded from active_pack_implementation_refs. No pack-integrity impact.",
+        "recommendation": "Optionally tighten the scope-generator so a file is listed in exactly one bucket (pack-related untracked vs. unrelated-preserved) to match the manifest's narrower definition. No change required for closeout.",
+        "post_review_disposition": "non_blocking_informational; no remediation required before pack or goal closeout"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

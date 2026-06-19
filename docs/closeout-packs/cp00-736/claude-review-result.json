@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-736",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-736/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-736/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "b6bf2c1c-0c58-4756-a2ee-90905b3fed48",
+    "uuid": "8e9e86ab-7d7e-4e3a-b2ed-1a19ee7ee205",
+    "total_cost_usd": 1.9706590000000002,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4319,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-736 (RP24 Korean Legal Depth P05 workflow/permission slice, Risk B, 40 units, RP24.P05.M03.S07-RP24.P05.M05.S02) is a clean descriptor-only pack and the production_ready claim is appropriately gated. The CP736 binding (registry.js:247) and requirements (registry.js:2440) exactly match the prompt baseline distribution (claude_review:2, implementation:16, security_audit:4, fixture:10, test:6, hermes_evidence:2; micro-titles 16/22/2). service.js/validators.js build and enforce descriptor-only rows carrying the no-write attestation, runtime-closed flags, and an authority boundary that keeps Claude non-final, requires human approval for runtime opening, and refuses any enterprise-trust claim from local validation. model.test.js:37-39 add CP736-specific coverage, runtime-closed-packet, and contract-latest-projection tests; the regenerated contract reports validation.valid=true with CP00-736 as latest and CP00-722..735 historical. command-evidence.json records the full required validation ladder (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) at exit 0. Boundaries hold: no real client/matter data or secrets in source, writes_product_state=false, no HWPX/court-filing/litigation/corporate/clause runtime opened, and Hermes is used only for deterministic descriptor evidence/review packets (emits_runtime_receipt=false). The manifest/inspection/adjudication correctly show production_ready=false/runtime_ready=false pending exactly this hardened read-only review receipt; the pack claims only descriptor verification, not runtime or enterprise trust. No P0/P1/P2/P3 findings. This verdict is based on read-only inspection of the recorded artifacts (Read/Grep/Glob); the validation commands were not re-executed in this review.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

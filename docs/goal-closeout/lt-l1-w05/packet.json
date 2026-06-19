@@ -1,0 +1,37 @@
+{
+  "work_package_id": "LT-L1-W05",
+  "title": "approval governance decision",
+  "created_at": "2026-06-18T14:46:00Z",
+  "status": "t01_brief_blocked_pending_owner_approval",
+  "phase": "L1",
+  "gate_binding": [
+    "G10",
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W05-T02",
+  "artifacts": [
+    "docs/launch/approval-governance-decision-brief.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w05/packet.json",
+    "docs/goal-closeout/lt-l1-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w05/adjudication.md",
+    "docs/goal-closeout/lt-l1-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "candidate_approval_model_present": true,
+    "signoff_artifact_format_present": true,
+    "claude_no_approval_authority_present": true,
+    "launch_decision_register_l1_5_row_present": false,
+    "owner_signature_reference_present": false,
+    "human_decision_synthesized": false,
+    "g10_satisfied": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

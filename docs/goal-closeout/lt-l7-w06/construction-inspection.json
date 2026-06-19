@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L7-W06",
+  "inspected_at": "2026-06-18T14:56:20Z",
+  "verdict": "BLOCKED_UAT_RUNTIME_EXECUTION_RECONCILIATION_AND_OWNER_ACCEPTANCE_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "uat_scenario_catalog_created": true,
+    "uat_execution_results_template_created": true,
+    "prohibition_bypass_results_template_created": true,
+    "uat_final_report_template_created": true,
+    "uat_executed": false,
+    "audit_reconciliation_complete": false,
+    "owner_acceptance_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "uat_execution_synthesized": false,
+    "owner_acceptance_synthesized": false,
+    "audit_reconciliation_synthesized": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

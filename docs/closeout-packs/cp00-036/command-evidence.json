@@ -1,0 +1,161 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-036",
+  "subphase_id": "RP00.P02.M07.S08",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T18:38:57.084Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "blocked_claims": [
+    "execute_service_logic",
+    "create_runtime_route",
+    "writes_product_state",
+    "append_audit_ledger",
+    "write_audit_event",
+    "mutate_audit_ledger",
+    "evaluate_runtime_permission",
+    "call_authz_evaluator",
+    "run_permission_engine",
+    "apply_security_trimming",
+    "execute_tests",
+    "generate_golden_fixture",
+    "persist_golden_fixture",
+    "write_database",
+    "write_storage",
+    "persist_product_state",
+    "mutate_entity_registry",
+    "mutate_golden_case_catalog",
+    "mutate_unit_test_contract",
+    "replace_human_approval",
+    "bypass_permission_audit",
+    "bypass_permission",
+    "bypass_audit_hint",
+    "bypass_primary_happy_path",
+    "bypass_secondary_workflow_path",
+    "bypass_human_approval",
+    "use_real_client_data",
+    "use_real_matter_data",
+    "use_credentials_or_secrets",
+    "complete_source_micro_phase",
+    "unknown_truthy_secondary_workflow_claim"
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-036 is a metadata-only Secondary workflow path pack: it accepts only RP00.P02.M07.S07 Test And Golden Case Set Primary happy path results, requires allow_metadata_only with fixed metadata permission and audit refs, and rejects secondary-workflow bypass, audit writes, runtime permission, AuthZ evaluator, permission engine, security trimming, test execution, golden fixture generation or persistence, runtime route, service execution, database/storage/product-state write, real-data/secret, catalog mutation, unit-test-contract mutation, source completion, and unknown truthy claims.",
+    "A preliminary RP00 validation run before evidence finalization failed only because CP00-036 review/adjudication/final gate evidence was intentionally pending.",
+    "The completed read-only Claude run is the single valid pack-level review for CP00-036; raw verdict was pass_with_findings, raw findings were P0=0/P1=0/P2=0/P3=1, and CP00-036-F1 was fixed by expanding the S08 negative drift test coverage before final gates."
+  ],
+  "evidence_summary": {
+    "implementation": "RP00.P02.M07.S08 Secondary workflow path result fields, policy, prechecker, service function, validators, fixture mirror, README entry, contract ledger row, and RP00 validator coverage were added.",
+    "tests": "Control-plane service tests include policy binding, metadata secondary workflow receipt, no-write drift rejection, unsafe claim fail-closed coverage, prechecker no-write handoff, wrong source rejection, and fixture mirror checks.",
+    "hermes_evidence": "H00 command ids rp00_control_plane_contract_validate and spec_requirement_validate are represented and will be finalized after review adjudication.",
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready; no P0/P1/P2 findings were reported and the single P3 test-coverage finding was fixed.",
+    "human_approval_boundary": "Human approval remains outside this metadata-only S08 Secondary workflow path pack; the explicit next goal boundary is RP00.P02.M07.S09 State transition enforcement."
+  },
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "expected": true,
+      "summary": "Pre-evidence RP00 validation failed only because docs/closeout-packs/cp00-036 evidence files did not exist yet."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test --test-name-pattern \"Test And Golden Case Set Secondary workflow path fails closed\" packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "Focused CP00-036 fail-closed service test passed."
+    },
+    {
+      "command": "node --test --test-name-pattern \"Test And Golden Case Set Secondary workflow path rejects drift\" packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "Focused CP00-036 drift coverage test passed after fixing CP00-036-F1."
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "521 tests passed after CP00-036 implementation and CP00-036-F1 test fix."
+    },
+    {
+      "command": "claude --no-session-persistence -p --model claude-opus-4-8 --effort max --permission-mode bypassPermissions --system-prompt \"read-only pack-level code reviewer\" --output-format json --max-budget-usd 5",
+      "exit_code": 0,
+      "summary": "Single valid pack-level read-only review completed; raw verdict pass_with_findings, raw findings P0=0/P1=0/P2=0/P3=1, unresolved P0/P1/P2 after adjudication 0, P3 fixed before final gates."
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Final Closeout Pack validation passed for CP00-001 through CP00-036."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Full test suite passed after CP00-036."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M07.S08 after CP00-036 evidence finalization."
+    }
+  ]
+}

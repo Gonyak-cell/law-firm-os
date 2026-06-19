@@ -1,0 +1,37 @@
+{
+  "subphase_id": "RP00.P02.M03.S12",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Persistence boundary",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T10:29:47Z",
+  "control_plane_hermes_validation_persistence_boundary_verified": true,
+  "verified_behaviors": [
+    "Consumes RP00.P02.M03.S11 Hermes Validation Lock acquisition rule results only after validating the S11 result shape, hermes_validation entrypoint, S11 marker, allow_metadata_only decision, lock_acquisition_rule_applied flag, lock_receipt, audit_event_ref, lock_rule_ref, and lock_scope.",
+    "Emits a frozen metadata-only persistence boundary receipt with tenant, actor, object, permission decision, audit event, lock acquisition rule, lock rule, lock scope, persistence boundary, persistence scope, working behavior, effect, and next-subphase fields.",
+    "Records no database, storage, product-state, or persistence-record writes while preserving a synthetic metadata-only persistence boundary receipt.",
+    "Carries S02 through S11, M00, permission, audit, TEN-001 through TEN-008, validation context, and acceptance gate references.",
+    "Rejects unsafe persistence, database, storage, product-state, unknown, runtime, AuthZ, Hermes execution, Hermes evidence, audit write, idempotency-store write, lock-store write, UI, tenant lifecycle mutation, requirement trace bypass, real-data, review-bypass, and product-write claims fail-closed.",
+    "Does not execute service logic, create runtime routes, append audit ledgers, write audit events, mutate tenant lifecycle state, run Hermes validation, create Hermes evidence, evaluate runtime permissions, call AuthZ, use real data, persist idempotency records, acquire locks, persist lock records, write databases, write storage, persist product state, create UI, or write product state.",
+    "Does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S13.",
+    "RP00 validator cross-checks the S12 terminal flag and successor against docs/weighted-implementation-ledger.json and live-executes positive and negative S12 precheck paths."
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s12/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s12/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s12/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s12/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s12/construction-inspection.json"
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p0_status": "none",
+    "p1_count": 0,
+    "p1_status": "none",
+    "p2_count": 1,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 1,
+    "p3_status": "deferred_with_explicit_boundary"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S12 is production_ready as a non-terminal persistence boundary and explicitly hands off to RP00.P02.M03.S13 Validation error mapping."
+}

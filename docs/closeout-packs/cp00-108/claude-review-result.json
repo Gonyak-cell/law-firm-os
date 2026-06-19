@@ -1,0 +1,91 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-108",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-108-claude-review-output-valid.json",
+    "session_id": "09074456-1a7d-41a1-a561-7239bdbb6b2f",
+    "uuid": "36cc20c6-3b3e-4e39-9044-58adad39b810",
+    "duration_ms": 230039,
+    "total_cost_usd": 0.6497689999999999,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Hermes evidence packet declares command anchors not present in the provided command evidence",
+        "file": "packages/authz/src/foundation-catalog.js",
+        "evidence": "createPermissionKernelCp108HermesEvidencePacket() sets status 'ready_for_command_evidence' and lists command_anchors including 'npm run closeout-pack:validate CP00-108' and 'npm run build'. The pre-review command-evidence summary covers node --check, JSON parse, node --test packages/authz/test/*.test.js (9 passed), npm run rp02:permission-kernel:validate, and npm test (981 passed), but does not include closeout-pack:validate CP00-108 or npm run build. Note also that package.json adds only the rp02:permission-kernel:validate script in this diff, so the closeout-pack:validate / build scripts cannot be confirmed from the staged diff.",
+        "recommendation": "Before flipping production_ready_flag 'permission_kernel_foundation_catalog_verified', have Hermes execute and attach evidence for the remaining declared anchors (closeout-pack:validate CP00-108 and npm run build) and confirm those scripts exist. Non-blocking for the catalog-only diff; the packet's 'ready_for_command_evidence' status already signals evidence is pending."
+      },
+      {
+        "severity": "P3",
+        "title": "Catalog unit titles are positional placeholders reused across micro phases of differing roles, weakening the plan-aligned claim",
+        "file": "packages/authz/src/foundation-catalog.js",
+        "evidence": "titleFor() returns RP02_FOUNDATION_TITLES (11 entries) for every RP02.P00.* micro phase and RP02_MODEL_TITLES (20 entries) for every RP02.P01.* micro phase by positional index, rather than reading docs/closeout-pack-plan/closeout-pack-plan.json (plan_ref). As a result, foundation/scoping titles (e.g., 'Scope inventory', 'Contract schema outline') repeat verbatim across phases whose phase_role differs (primary_implementation_slice in RP02.P00.M03, secondary_workflow_slice in M04, permission_audit_binding in M05). Unit IDs and catalog_ids remain unique, and counts/range/boundaries are correct and gated, but per-unit titles do not reflect each micro phase's role.",
+        "recommendation": "Optionally source per-unit titles from the referenced plan or role-specific title sets so the catalog descriptively matches the planned units and the README/contract 'generated-plan-aligned' claim. Non-blocking; does not affect safety boundaries, coverage counts, or handoff gating."
+      },
+      {
+        "severity": "P3",
+        "title": "deliverable_type 'ui' mislabels non-UI permission-kernel artifacts",
+        "file": "packages/authz/src/foundation-catalog.js",
+        "evidence": "deliverableTypeFor() maps 'Package directory layout', 'Required field registry', and 'State transition map' to deliverable_type 'ui'. In the RP02 permission-kernel model context these are structural/spec artifacts, not UI deliverables. No validator or test asserts the 'ui' count (only contract=6, security_audit=10, test=9, hermes_evidence=3, claude_review=3 are gated), so coverage gating is unaffected, but the taxonomy label is misleading.",
+        "recommendation": "Reclassify these titles to a more accurate deliverable_type (e.g., 'implementation' or a dedicated structure/registry type). Cosmetic and non-blocking."
+      }
+    ],
+    "recommendation": "approve_with_minor_findings",
+    "rationale": "CP00-108 is a synthetic, catalog-only RP02 Permission Kernel foundation pack. The diff adds packages/authz/src/foundation-catalog.js, a re-export from index.js, an additive contract bump (v0.1 -> v0.2) with current_pack/foundation_pack/boundary-invariant/permission-surface/no-write-attestation blocks, a dedicated validator (scripts/validate-rp02-permission-kernel-contract.mjs), the rp02:permission-kernel:validate npm script, README docs, and three tests. Verified against the staged diff and evidence: the range RP02.P00.M00.S01-RP02.P01.M05.S20 yields exactly 150 unique units (RP02.P00=71, RP02.P01=79; 17 micro phases), and the iteration order makes first/last unit IDs correct. Deliverable counts are internally consistent and provably match the validator/test assertions (contract=6, security_audit=10, test=9, hermes_evidence=3, claude_review=3). The runtime evaluator (evaluate.js) is unchanged and only re-exported, with no observed export-name collisions (9 authz tests pass). All 16 no-write attestation flags are false and are double-checked in both the JS source contract and the JSON contract, then re-verified per catalog row; product_state_effect is 'none'. Boundary invariants (no permission-policy mutation, audit deferred to RP03, external-share/export/AI deferred, LDIP planning preserved without implementation) and permission surfaces are cross-checked between source and contract, and the handoff is fixed to CP00-109 / RP02.P01.M06.S01 with ldip_implemented false. Evidence packets bind to H02/C02 and assert exactly-one-valid read-only review (model claude-opus-4-8, effort max, read_only true). Tests (9 passed) plus npm run rp02:permission-kernel:validate gate these invariants, and npm test (981 passed) shows no regressions. The three findings are low-severity and non-blocking: two declared Hermes anchors are not represented in the provided evidence (collect before flipping production_ready), per-unit titles are positional placeholders reused across micro phases, and one deliverable_type label ('ui') is inaccurate. None affect the safety boundaries, counts, range, or handoff that gate this Risk C catalog-only pack, so the pack is approvable with these minor, advisory follow-ups.",
+    "notes": [
+      "No P0/P1/P2 findings were reported by the valid CP00-108 pack-level Claude review.",
+      "P3 finding about missing final anchors is resolved by final command evidence and final validation.",
+      "P3 findings about repeated unit titles and ui deliverable labels are documented as generated ledger taxonomy alignment, not safety or coverage defects.",
+      "No second valid Claude review was run."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [],
+    "p3_fixed_or_documented": [
+      {
+        "title": "Hermes evidence packet declares command anchors not present in the provided command evidence",
+        "disposition": "fixed_by_final_command_evidence",
+        "evidence_refs": [
+          "docs/closeout-packs/cp00-108/command-evidence.json"
+        ]
+      },
+      {
+        "title": "Catalog unit titles are positional placeholders reused across micro phases of differing roles, weakening the plan-aligned claim",
+        "disposition": "documented_as_plan_ledger_taxonomy",
+        "rationale": "The weighted implementation ledger repeats generic unit titles across micro phases; CP00-108 preserves exact plan unit ids and micro-phase roles while keeping counts and safety boundaries gated."
+      },
+      {
+        "title": "deliverable_type 'ui' mislabels non-UI permission-kernel artifacts",
+        "disposition": "documented_as_plan_ledger_taxonomy",
+        "rationale": "The source ledger classifies package directory layout, required field registry, and state transition map as ui deliverables; CP00-108 preserves this plan classification instead of silently deviating from the plan."
+      }
+    ],
+    "no_second_valid_review_run": true
+  }
+}

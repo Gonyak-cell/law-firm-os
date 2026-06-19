@@ -1,0 +1,110 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-027",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "46af9854-bacd-424e-9feb-19b558c10790",
+    "uuid": "332ddb2c-add9-4bcf-ba4c-5a378e7a7ce6",
+    "duration_ms": 273765,
+    "duration_api_ms": 278117,
+    "total_cost_usd": 1.1669040000000002,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 49880,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.04997,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 26326,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 73160,
+        "webSearchRequests": 0,
+        "costUSD": 1.116934,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_P3_FINDINGS_ADJUDICATED",
+    "claude_reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-027-RAW-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "docs/closeout-packs/cp00-027/:1",
+        "title": "CP00-027 evidence pack artifacts not yet present (expected closeout step)",
+        "details": "The contract (current_subphase + subphase_closeouts + definition + production_ready_requires flag), fixture, policies.js, service.js, validators.js, service.test.js, and README for RP00.P02.M06.S11 are complete and mutually consistent, and validate-rp00-control-plane-contract.mjs now requires docs/closeout-packs/cp00-027/{manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json}. These files do not exist yet, so `npm run rp00:control-plane:validate` fails pre-evidence exactly as stated in the caller context. The newly added inspection gate (closeout.id === RP00.P02.M06.S11) additionally requires construction-inspection.json to set control_plane_synthetic_fixture_set_lock_acquisition_rule_verified === true.",
+        "recommendation": "Generate the cp00-027 evidence pack — including this review as claude-review-result.json and a construction-inspection.json with control_plane_synthetic_fixture_set_lock_acquisition_rule_verified: true — then re-run the validator to confirm green. This is the normal closeout flow, not a code defect.",
+        "adjudication_status": "resolved_by_evidence_generation",
+        "adjudication_detail": "The CP00-027 evidence pack is generated with manifest, command evidence, Claude review, adjudication, and construction inspection containing the required production-ready flag."
+      },
+      {
+        "id": "CP00-027-RAW-P3-02",
+        "severity": "P3",
+        "blocking": false,
+        "location": ".DS_Store:1",
+        "title": "Untracked working-tree entries outside CP00-027 scope",
+        "details": "Git status lists untracked `.DS_Store` and `Law Firm OS UI/`, neither of which is part of the CP00-027 diff. The pack touches exactly the 8 declared target_files; these untracked entries are unrelated to the lock-acquisition-rule unit and could be inadvertently bundled into the pack commit.",
+        "recommendation": "Keep both out of the CP00-027 commit; add `.DS_Store` to .gitignore and confirm `Law Firm OS UI/` is intentional in-progress work tracked separately. Out-of-scope housekeeping, non-blocking.",
+        "adjudication_status": "accepted_nonblocking_out_of_scope_worktree_items_excluded",
+        "adjudication_detail": "The untracked .DS_Store and Law Firm OS UI/ entries are explicitly outside CP00-027 scope, remain unstaged, and are listed in manifest.worktree_transition_policy. They do not block this pack commit."
+      }
+    ],
+    "security_notes": [
+      "Claude found the S11 metadata-only no-write and no-runtime-lock guarantee holds.",
+      "Claude found no P0/P1/P2 issues and no production_ready blocker after evidence generation."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 479/479 before evidence generation.",
+      "CP00-027 records one valid pack-level Claude Opus 4.8 max read-only review."
+    ],
+    "summary": "Claude reported two nonblocking P3 findings. The missing evidence pack is resolved by generating CP00-027 evidence before final validation; untracked .DS_Store and Law Firm OS UI/ are excluded from the pack commit. Unresolved P0/P1/P2/P3 after adjudication is 0."
+  },
+  "raw_review_text": "{\n  \"review_id\": \"CP00-027\",\n  \"model\": \"claude-opus-4-8\",\n  \"effort\": \"max\",\n  \"read_only\": true,\n  \"summary\": \"CP00-027 (RP00.P02.M06.S11 Synthetic Fixture Set Lock acquisition rule) is a clean, metadata-only unit. precheckControlPlaneSyntheticFixtureSetLockAcquisitionRule consumes a fully-validated S10 idempotency result (asserts entrypoint=synthetic_fixture_set, idempotency_key_handling_subphase_id=RP00.P02.M06.S10, re-runs the S10 result assert, requires carried allow_metadata_only + applied=true, and a present idempotency_receipt/audit_event_ref/idempotency_key) and emits a frozen lock-rule receipt with lock_acquisition_decision=allow_metadata_only. Every capability flag is false: lock_acquisition_permitted, lock_record_write_permitted, lock_store_write_permitted, ui_created, fixture_generation/persistence_permitted, idempotency_record/store_write_permitted, runtime_permission/authz/permission_engine/security_trimming, audit_ledger_append/audit_event_write, database/storage/product_state. It fails closed on wrong upstream, any truthy forbidden claim (41 pinned), any unknown truthy claim, falsy-non-false values (e.g. 0), and non-object claims. no_real_data=true, writes_product_state=false, source_micro_phase_completed=false, next_subphase=RP00.P02.M06.S12 (Persistence boundary). The 72-field result list is identical across policies.js, contract definition, and fixture; the 20-field lock_receipt matches requiredLockReceiptFields; validator pins forbiddenLockClaims=41 and failClosedOn=24 with anti-drift length checks; validate script adds definition/policy/prechecker/fixture parity, live allow + 16 fail-closed reject checks, README/test text gates, and a construction-inspection gate. No product state, runtime lock acquisition, UI, fixture generation/persistence, idempotency/lock store/record, audit append, or runtime permission/AuthZ/trimming is performed; no real data/secrets; no source-microphase-completion claim. No P0/P1/P2 issues found. Only outstanding item is the expected evidence-pack generation.\",\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"CP00-027 evidence pack artifacts not yet present (expected closeout step)\",\n      \"file\": \"docs/closeout-packs/cp00-027/\",\n      \"line\": 1,\n      \"details\": \"The contract (current_subphase + subphase_closeouts + definition + production_ready_requires flag), fixture, policies.js, service.js, validators.js, service.test.js, and README for RP00.P02.M06.S11 are complete and mutually consistent, and validate-rp00-control-plane-contract.mjs now requires docs/closeout-packs/cp00-027/{manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json}. These files do not exist yet, so `npm run rp00:control-plane:validate` fails pre-evidence exactly as stated in the caller context. The newly added inspection gate (closeout.id === RP00.P02.M06.S11) additionally requires construction-inspection.json to set control_plane_synthetic_fixture_set_lock_acquisition_rule_verified === true.\",\n      \"recommendation\": \"Generate the cp00-027 evidence pack — including this review as claude-review-result.json and a construction-inspection.json with control_plane_synthetic_fixture_set_lock_acquisition_rule_verified: true — then re-run the validator to confirm green. This is the normal closeout flow, not a code defect.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"title\": \"Untracked working-tree entries outside CP00-027 scope\",\n      \"file\": \".DS_Store\",\n      \"line\": 1,\n      \"details\": \"Git status lists untracked `.DS_Store` and `Law Firm OS UI/`, neither of which is part of the CP00-027 diff. The pack touches exactly the 8 declared target_files; these untracked entries are unrelated to the lock-acquisition-rule unit and could be inadvertently bundled into the pack commit.\",\n      \"recommendation\": \"Keep both out of the CP00-027 commit; add `.DS_Store` to .gitignore and confirm `Law Firm OS UI/` is intentional in-progress work tracked separately. Out-of-scope housekeeping, non-blocking.\"\n    }\n  ],\n  \"blocking_findings\": [],\n  \"p0_p1_count\": 0,\n  \"p2_count\": 0,\n  \"verdict\": \"pass\"\n}",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude raw P3 findings were adjudicated without running a second valid review: evidence-pack absence is resolved by CP00-027 evidence generation plus final validation, and untracked out-of-scope worktree entries remain unstaged. Unresolved P0/P1/P2/P3 after adjudication is 0."
+}

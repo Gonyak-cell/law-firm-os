@@ -1,0 +1,103 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-014",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "attempted_scope": "full_diff_read_only_review_packet",
+      "status": "terminated_without_structured_output",
+      "counted_as_valid_review": false,
+      "reason": "Claude CLI process produced a zero-byte output file after an extended wait and was terminated; no result, session id, or structured_output was available."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "62a7f8e7-472f-4f5f-82cb-4f359e2e8817",
+    "uuid": "be441f50-3fe4-434a-9f00-6e20f2eb8ef4",
+    "duration_ms": 247203,
+    "duration_api_ms": 249095,
+    "total_cost_usd": 1.70754575,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 35289,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.035379,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 3,
+        "outputTokens": 22891,
+        "cacheReadInputTokens": 3816,
+        "cacheCreationInputTokens": 175675,
+        "webSearchRequests": 0,
+        "costUSD": 1.6721667500000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 0
+    },
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "Forbidden claim `increment_retry_attempt` is declared but never validator-checked or test-exercised",
+        "file": "packages/control-plane/src/policies.js",
+        "line": 9495,
+        "description": "`increment_retry_attempt` is listed in `CONTROL_PLANE_PERMISSION_AUDIT_BINDING_RETRY_BEHAVIOR_POLICY.forbiddenRetryBehaviorClaims`, but unlike every sibling retry claim it is absent from both the policy validator's expected forbidden-claims loop in validators.js (assertControlPlanePermissionAuditBindingRetryBehaviorPolicy) and the fail-closed test loop in service.test.js ('fails closed on unsafe claims and wrong source'). It is still rejected at runtime by the generic forbidden-claim handling, so this is not a safety gap, only an unverified declaration that could be silently dropped in a future edit without any test catching it.",
+        "recommendation": "Add `increment_retry_attempt` to the validator's expected forbiddenRetryBehaviorClaims assertion loop and to the fail-closed test's claim array (one line each) so the declared forbidden claim is pinned by both the contract validator and the unit tests."
+      }
+    ],
+    "validation_notes": [
+      "Confirmed metadata-only safety posture: precheckControlPlanePermissionAuditBindingRetryBehavior performs no I/O/execution and returns a frozen receipt; all *_permitted flags (retry enqueue/execution/schedule write/attempt record/timer/worker, rollback, compensation, operator, customer, incident, observability) are hard-false; no_real_data=true, writes_product_state=false.",
+      "Confirmed micro-phase RP00.P02.M05 stays open (policy.completesSourceMicroPhase=false, result.source_micro_phase_completed=false) and hands off to RP00.P02.M05.S19; status 'production_ready' is the project contract-first convention and the policy explicitly disclaims retry execution, so it is not a false readiness claim.",
+      "Confirmed fail-closed behavior: any truthy claim (forbidden or unknown) throws; input gating rejects missing/wrong S17 rollback result, wrong entrypoint, missing rollback receipt, and missing/incorrect carried retry_strategy_ref before building the receipt.",
+      "Confirmed carry-forward integrity: assertControlPlanePermissionAuditBindingRetryBehaviorResult re-validates the carried S17 result by overriding working_product_behavior_ref/next_subphase back to S17 values, so carried fields cannot drift while passing S18.",
+      "Confirmed RP00 validator advancement: currentContractSubphaseId moved to S18, RP00.P02.M05.S17 added to requiredClosedSubphases, and new contract-definition binding/closeout-requirement checks added for control_plane_permission_audit_binding_retry_behavior.",
+      "Treated the expected RP00 validator failure (missing docs/closeout-packs/cp00-014 files) as out of scope per review instructions; not counted as a finding.",
+      "Could not inspect the full contract (+661) and fixture (+790) JSON diffs (truncated after 90000 chars); relied on the reported passing project validators (validate, weighted:validate, fullplan:validate, spec:requirements:validate, goal:closeout:validate, closeout-pack:validate CP00-001..013) plus 409 control-plane and 493 total tests for contract/fixture/ledger consistency.",
+      "Receipt note (non-finding): retry_behavior_receipt carries an extra diagnostic field decision_reason not enumerated in requiredRetryBehaviorReceiptFields; this is consistent with the prior S17 pattern and is explicitly asserted, so it is correct, not a defect."
+    ],
+    "summary": "CP00-014 closes RP00.P02.M05.S18 (Permission And Audit Binding \"Retry behavior\") as a metadata-only boundary following the established S10–S17 pattern. The new policy, prechecker, precheck function, asserts, getter, tests, fixture mirror, and RP00 validator advancement are internally consistent and safe: the precheck is a pure function returning a frozen synthetic retry-behavior receipt with no I/O, no execution, and all write/execution permission flags hard-false (retry enqueue/execution/schedule/attempt/timer/worker, plus carried rollback/compensation/customer/incident/observability). It is no-real-data, no-product-write, keeps RP00.P02.M05 open (completesSourceMicroPhase=false), fails closed on both forbidden and unknown truthy claims, strictly gates on the S17 rollback source (entrypoint, rollback_behavior_subphase_id, receipt presence, carried retry_strategy_ref), and re-validates carried S17 fields via an override-based re-assert. No P0/P1 blocker would make S18 unsafe or falsely production_ready. One minor P2 hygiene gap: the forbidden claim increment_retry_attempt is declared but neither validator-checked nor test-exercised. The expected RP00 validator failure for missing docs/closeout-packs/cp00-014 files was treated as out of scope per instructions; the full 661-line contract and 790-line fixture diffs were truncated, so contract/fixture/ledger consistency was confirmed via the passing project validators rather than line-by-line."
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-014.",
+    "Claude returned PASS_WITH_FINDINGS with zero P0 and zero P1 findings.",
+    "The single raw P2 finding about increment_retry_attempt claim pinning was fixed by adding explicit validator and test coverage after review, then rerunning targeted validation.",
+    "The expected pre-evidence RP00 failure is resolved by creating this CP00-014 evidence and rerunning final validation."
+  ]
+}

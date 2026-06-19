@@ -1,0 +1,275 @@
+{
+  "schema_version": "law-firm-os.unified-product-risk-register.v0.1",
+  "status": "planning_only_reference_index",
+  "owner_default": "jwsuh@amic.kr",
+  "entries": [
+    {
+      "id": "UPR-001",
+      "source_id": "RISK-001",
+      "severity": "P1_HIGH",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-002",
+      "source_id": "RISK-002",
+      "severity": "P0_BLOCKER",
+      "status": "mitigated_by_design",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "RP11",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "MAT-DEC-02 decided User/Employee separation with Employee.user_id reverse link"
+    },
+    {
+      "id": "UPR-003",
+      "source_id": "RISK-003",
+      "severity": "P1_HIGH",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-004",
+      "source_id": "RISK-004",
+      "severity": "P1_HIGH",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-005",
+      "source_id": "RISK-005",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-006",
+      "source_id": "RISK-006",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-007",
+      "source_id": "RISK-007",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-008",
+      "source_id": "RISK-008",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-009",
+      "source_id": "RISK-009",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-010",
+      "source_id": "RISK-010",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-011",
+      "source_id": "RISK-011",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    },
+    {
+      "id": "UPR-012",
+      "source_id": "RISK-012",
+      "severity": "P2_MEDIUM",
+      "status": "open_reference_index",
+      "owner": "jwsuh@amic.kr",
+      "first_anchor": "future_rp_anchor",
+      "source_refs": [
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md"
+      ],
+      "notes": "Seeded from Plan A product risk register; primary record remains reference-index only"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "UPQ-001",
+      "source_id": "OQ-001",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before RP11 first pack",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-002",
+      "source_id": "OQ-002",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before RP11 first pack",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-003",
+      "source_id": "OQ-003",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before RP11 first pack",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-004",
+      "source_id": "OQ-004",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-005",
+      "source_id": "OQ-005",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-006",
+      "source_id": "OQ-006",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-007",
+      "source_id": "OQ-007",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-008",
+      "source_id": "OQ-008",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-009",
+      "source_id": "OQ-009",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-010",
+      "source_id": "OQ-010",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-011",
+      "source_id": "OQ-011",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-012",
+      "source_id": "OQ-012",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-013",
+      "source_id": "OQ-013",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-014",
+      "source_id": "OQ-014",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    },
+    {
+      "id": "UPQ-015",
+      "source_id": "OQ-015",
+      "owner": "jwsuh@amic.kr",
+      "due_anchor": "before consuming RP anchor",
+      "status": "open",
+      "update_trigger": "RP entry, MAT-DEC decision, or review finding"
+    }
+  ],
+  "primary_records_moved": 0,
+  "pack_risk_class_is_not_product_severity": true
+}

@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP23",
+  "program_title": "External Integrations II",
+  "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+  "ai_owner": "Codex",
+  "hermes_gate": "H23",
+  "claude_gate": "C23",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP23.P00.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Bank, card, WEHAGO, Douzone, tax export, DART requirements and identify financial data mismatch, duplicate transaction, and tax export wrong period as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future External Integrations II contract shape for BankFeed, CardFeed, WEHAGOExport, DouzoneExport, DARTRecord, TaxExportBatch.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns BankFeed, CardFeed, and WEHAGOExport, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for bank import, card import, and tax export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how External Integrations II records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before External Integrations II behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that External Integrations II examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify External Integrations II planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H23 preflight",
+      "objective": "Define the fields Hermes records before External Integrations II implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C23 design brief",
+      "objective": "Prepare Claude Code questions around financial data mismatch, duplicate transaction, tax export wrong period, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P00.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP23.P00 handoff",
+      "objective": "Hand off a contract-first External Integrations II implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "contracts/finance-integrations-contract.json",
+        "packages/finance-integrations/README.md",
+        "contracts/external-integrations-ii-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/finance-integrations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement BankFeed model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for BankFeed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement CardFeed model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for CardFeed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement WEHAGOExport model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for WEHAGOExport.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement DouzoneExport model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for DouzoneExport.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement DARTRecord model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for DARTRecord.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among BankFeed, CardFeed, WEHAGOExport, DouzoneExport, DARTRecord, TaxExportBatch and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export External Integrations II model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P01.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the External Integrations II model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/model.js",
+        "packages/finance-integrations/src/states.js",
+        "packages/finance-integrations/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for bank import, card import, and tax export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement bank import",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for bank import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement card import",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for card import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement tax export",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for tax export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement DART lookup",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for DART lookup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement accounting sync",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for accounting sync.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for financial data mismatch, duplicate transaction, and tax export wrong period.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky External Integrations II operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H23.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous External Integrations II outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P02.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm External Integrations II services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/service.js",
+        "packages/finance-integrations/src/policies.js",
+        "packages/finance-integrations/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose External Integrations II models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define bank import API",
+      "objective": "Lock request, response, permission, audit, and error shape for bank import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define card import API",
+      "objective": "Lock request, response, permission, audit, and error shape for card import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define tax export API",
+      "objective": "Lock request, response, permission, audit, and error shape for tax export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define DART lookup API",
+      "objective": "Lock request, response, permission, audit, and error shape for DART lookup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define accounting sync API",
+      "objective": "Lock request, response, permission, audit, and error shape for accounting sync.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure External Integrations II API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for financial data mismatch, duplicate transaction, tax export wrong period, external API failure, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H23 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C23 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P03.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze External Integrations II public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/index.js",
+        "packages/finance-integrations/src/api-contract.js",
+        "packages/finance-integrations/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify bank feed review, card expense matching, tax export panel, and DART entity lookup in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan bank feed review",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for bank feed review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan card expense matching",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for card expense matching.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan tax export panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for tax export panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan DART entity lookup",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for DART entity lookup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk External Integrations II outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized External Integrations II rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep External Integrations II context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override External Integrations II service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P04.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp23-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define bank transaction matched golden case",
+      "objective": "Create a synthetic golden case proving bank transaction matched.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define card expense linked golden case",
+      "objective": "Create a synthetic golden case proving card expense linked.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define tax export generated golden case",
+      "objective": "Create a synthetic golden case proving tax export generated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define DART record associated golden case",
+      "objective": "Create a synthetic golden case proving DART record associated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define financial data mismatch failure fixture",
+      "objective": "Create a synthetic failing case that proves financial data mismatch is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define duplicate transaction failure fixture",
+      "objective": "Create a synthetic failing case that proves duplicate transaction is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define tax export wrong period failure fixture",
+      "objective": "Create a synthetic failing case that proves tax export wrong period is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize External Integrations II fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If External Integrations II appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P05.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm External Integrations II fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/fixtures.js",
+        "packages/finance-integrations/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for bank import, card import, tax export, and DART lookup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for External Integrations II view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for External Integrations II mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for External Integrations II export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for External Integrations II where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for External Integrations II obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H23 audit evidence",
+      "objective": "Record which External Integrations II decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P06.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm External Integrations II cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/src/security-contract.js",
+        "packages/finance-integrations/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define financial data mismatch failure",
+      "objective": "Fail closed or require review when financial data mismatch appears in External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define duplicate transaction failure",
+      "objective": "Fail closed or require review when duplicate transaction appears in External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define tax export wrong period failure",
+      "objective": "Fail closed or require review when tax export wrong period appears in External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define external API failure failure",
+      "objective": "Fail closed or require review when external API failure appears in External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any External Integrations II operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed External Integrations II operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed External Integrations II micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P07.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous External Integrations II ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "packages/finance-integrations/test/failure-cases.test.js",
+        "docs/rp23-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/finance-integrations/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H23 command matrix",
+      "objective": "Record exact product commands Hermes should run for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H23 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H23 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H23 no-real-data evidence",
+      "objective": "Record that External Integrations II fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H23 blocked-claim evidence",
+      "objective": "Record unsafe External Integrations II claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H23 Claude dependency",
+      "objective": "Mark C23 review mandatory before External Integrations II closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H23 human approval note",
+      "objective": "Record what the human must approve for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H23 command availability",
+      "objective": "Ensure npm scripts required by H23 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H23 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during External Integrations II implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H23 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H23.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P08.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates External Integrations II behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp23-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M00",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP23 architecture review questions",
+      "objective": "Ask whether External Integrations II module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M01",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP23 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M02",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP23 bypass review questions",
+      "objective": "Ask Claude to find financial data mismatch, duplicate transaction, tax export wrong period, external API failure, and undefined bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M03",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP23 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for External Integrations II.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M04",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP23 downstream readiness questions",
+      "objective": "Ask whether External Integrations II is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M05",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP23 risk register",
+      "objective": "List unresolved External Integrations II risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M06",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for External Integrations II findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M07",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for External Integrations II closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M08",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP23.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M09",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before External Integrations II can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP23.P09.M10",
+      "program_id": "RP23",
+      "program_title": "External Integrations II",
+      "program_scope": "Bank, card, WEHAGO, Douzone, tax export, DART",
+      "phase_id": "RP23.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP23 detailed plan",
+      "objective": "Confirm External Integrations II is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H23",
+      "claude_gate": "C23",
+      "target_files": [
+        "docs/rp23-claude-cross-validation-brief.md",
+        "docs/rp23-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H23 evidence or blocked reason can be recorded.",
+        "Claude C23 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-049",
+  "subphase_id": "RP00.P02.M08.S01",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "ab584242-b8ca-4d19-9851-2d6d157c89e3",
+    "uuid": "7d183952-ab90-4798-ba9c-f99f94c36674",
+    "duration_ms": 491954,
+    "duration_api_ms": 494233,
+    "total_cost_usd": 1.55711325,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-049-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_result_form": "json_result_with_fenced_json_findings_body",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "CP00-049-P3-01",
+          "title": "Weighted-ledger entry for RP00.P02.M08.S01 is relied upon but not present in this diff",
+          "file": "scripts/validate-rp00-control-plane-contract.mjs",
+          "line_or_area": "getWeightedSubphaseBoundary / findWeightedSubphase checks for controlPlaneHermesEvidencePacketServiceEntrypointContractSubphaseId",
+          "issue": "Validation asserts the weighted ledger contains M08.S01 with sourceMicroPhaseId=RP00.P02.M08, terminal=false, nextSubphaseId=RP00.P02.M08.S02, but the diff adds no weighted-ledger record. Correctness depends on the ledger being pre-seeded elsewhere in control-plane-contract.json.",
+          "recommendation": "No action required if the ledger is pre-seeded. The local validate run reporting only the missing-evidence-file failure confirms these ledger checks already pass; treat as informational confirmation."
+        },
+        {
+          "id": "CP00-049-P3-02",
+          "title": "Validator coverage of scope_policy is a subset; a few negation flags are unchecked at the contract-JSON layer",
+          "file": "scripts/validate-rp00-control-plane-contract.mjs",
+          "line_or_area": "scope_policy flag loop for control_plane_hermes_evidence_packet_service_entrypoint_contract_definition",
+          "issue": "scope_policy.does_not_mutate_entity_registry, does_not_replace_human_approval, does_not_replace_H00_or_C00, and no_real_data are present in the contract JSON but not individually asserted by the script's scope_policy loop. (The canonical policy object's doesNotMutateEntityRegistry/doesNotReplaceHumanApproval ARE enforced by assertControlPlaneHermesEvidencePacketServiceEntrypointContract, so the safety-critical flags remain gated.)",
+          "recommendation": "Optional hygiene: extend the scope_policy loop to cover the remaining negation flags for full defense-in-depth parity. Non-blocking and consistent with prior packs' subset checks."
+        },
+        {
+          "id": "CP00-049-P3-03",
+          "title": "Minor metadata redundancy",
+          "file": "contracts/control-plane-contract.json",
+          "line_or_area": "control_plane_hermes_evidence_packet_service_entrypoint_contract_definition",
+          "issue": "no_real_data appears both at the definition top level and inside scope_policy; writes_product_state likewise duplicated. Harmless and internally consistent, mirrors prior subphase definitions.",
+          "recommendation": "No change needed; noted for awareness only."
+        }
+      ]
+    },
+    "boundary_checks": [
+      {
+        "check": "no_runtime_execution (service logic / routes)",
+        "status": "PASS",
+        "evidence": "Only frozen literal constants, a pure assert (no I/O), and a getter that returns the constant; doesNotExecuteServiceLogic/doesNotCreateRuntimeRoute=true and asserted."
+      },
+      {
+        "check": "no_hermes_runtime / no_hermes_validation / no_hermes_evidence_creation",
+        "status": "PASS",
+        "evidence": "doesNotRunHermesValidation, doesNotCreateHermesEvidence, doesNotExecuteHermesRuntime all true and enforced in validators.js flag loop."
+      },
+      {
+        "check": "no_product_state_writes (db/storage/persist)",
+        "status": "PASS",
+        "evidence": "writesProductState=false; doesNotWriteDatabase/doesNotWriteStorage/doesNotPersistProductState=true and asserted; no fs-write/network/process calls in diff."
+      },
+      {
+        "check": "no_real_data (synthetic-only fixtures)",
+        "status": "PASS",
+        "evidence": "noRealData=true; fixture_integrity declares synthetic_only/deterministic/no_real_client_data/no_real_matter_data/no_credentials_or_secrets and is verified by script + test."
+      },
+      {
+        "check": "human_approval_boundary preserved (H00/C00 not replaced)",
+        "status": "PASS",
+        "evidence": "doesNotReplaceHumanApproval=true (asserted), scope_policy.does_not_replace_H00_or_C00=true, human_approval_boundary_context present in context ids."
+      },
+      {
+        "check": "deterministic",
+        "status": "PASS",
+        "evidence": "All values are frozen literals; no Date/random/ordering nondeterminism; deterministic=true asserted."
+      },
+      {
+        "check": "handoff_to_RP00.P02.M08.S02 recorded; M08/P02/RP00 not closed",
+        "status": "PASS",
+        "evidence": "nextSubphase=RP00.P02.M08.S02 everywhere; completesSourceMicroPhase=false; scope_policy does_not_complete_RP00_P02_M08/_P02/does_not_close_RP00=true; weighted boundary terminal=false."
+      },
+      {
+        "check": "upstream dependency on RP00.P02.M07.S20 denied-path closeout",
+        "status": "PASS",
+        "evidence": "upstream refs RP00.P02.M07.S20 / RP00.P02.M07; requiredClosedSubphases now includes S16–S20 (idempotent push); denied_path_proof_ref + required_evidence_refs consistent."
+      },
+      {
+        "check": "cross-file consistency (contract / policies / service / validators / fixture / test / script)",
+        "status": "PASS",
+        "evidence": "All 8 array contracts (required_evidence_refs, context_ids, schema/command_receipt/evidence_summary/blocked_claim/gate_outcome fields, acceptance_gate_ids, future_subphases) match in content AND order; JSON.stringify and deepEqual comparisons align; required_exports/target_files complete."
+      },
+      {
+        "check": "credentials/secrets excluded",
+        "status": "PASS",
+        "evidence": "no_credentials_or_secrets=true; credential_secret_exclusion_context present; no secrets in diff."
+      },
+      {
+        "check": "current_subphase + closeout_requirements + closeout pack refs",
+        "status": "PASS",
+        "evidence": "current_subphase advanced to M08.S01/CP00-049; production_ready_requires adds the verified flag; CP00-049 vs docs/closeout-packs/cp00-049 casing consistent throughout."
+      }
+    ],
+    "recommendation": "PASS_WITH_FINDINGS — Approve. This is a purely additive, metadata-only service-entrypoint-contract subphase that follows the established M0x.S01 pattern with full validator/test/fixture/script cross-checks and preserves every required boundary (no runtime, no writes, no real data, no Hermes execution, no human-approval replacement, no premature M08/P02/RP00 closure). The only validate-command failure is the expected missing CP00-049 evidence files. Next step: create the docs/closeout-packs/cp00-049 evidence artifacts (construction inspection asserting control_plane_hermes_evidence_packet_service_entrypoint_contract_verified=true, command evidence, adjudication) so npm run rp00:control-plane:validate goes green, then hand off to RP00.P02.M08.S02. P3 items are informational only and need not block this pack."
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":491954,\"duration_api_ms\":494233,\"ttft_ms\":320245,\"num_turns\":1,\"result\":\"```json\\n{\\n  \\\"overall_verdict\\\": \\\"PASS_WITH_FINDINGS\\\",\\n  \\\"p0\\\": [],\\n  \\\"p1\\\": [],\\n  \\\"p2\\\": [],\\n  \\\"p3\\\": [\\n    {\\n      \\\"id\\\": \\\"CP00-049-P3-01\\\",\\n      \\\"title\\\": \\\"Weighted-ledger entry for RP00.P02.M08.S01 is relied upon but not present in this diff\\\",\\n      \\\"file\\\": \\\"scripts/validate-rp00-control-plane-contract.mjs\\\",\\n      \\\"line_or_area\\\": \\\"getWeightedSubphaseBoundary / findWeightedSubphase checks for controlPlaneHermesEvidencePacketServiceEntrypointContractSubphaseId\\\",\\n      \\\"issue\\\": \\\"Validation asserts the weighted ledger contains M08.S01 with sourceMicroPhaseId=RP00.P02.M08, terminal=false, nextSubphaseId=RP00.P02.M08.S02, but the diff adds no weighted-ledger record. Correctness depends on the ledger being pre-seeded elsewhere in control-plane-contract.json.\\\",\\n      \\\"recommendation\\\": \\\"No action required if the ledger is pre-seeded. The local validate run reporting only the missing-evidence-file failure confirms these ledger checks already pass; treat as informational confirmation.\\\"\\n    },\\n    {\\n      \\\"id\\\": \\\"CP00-049-P3-02\\\",\\n      \\\"title\\\": \\\"Validator coverage of scope_policy is a subset; a few negation flags are unchecked at the contract-JSON layer\\\",\\n      \\\"file\\\": \\\"scripts/validate-rp00-control-plane-contract.mjs\\\",\\n      \\\"line_or_area\\\": \\\"scope_policy flag loop for control_plane_hermes_evidence_packet_service_entrypoint_contract_definition\\\",\\n      \\\"issue\\\": \\\"scope_policy.does_not_mutate_entity_registry, does_not_replace_human_approval, does_not_replace_H00_or_C00, and no_real_data are present in the contract JSON but not individually asserted by the script's scope_policy loop. (The canonical policy object's doesNotMutateEntityRegistry/doesNotReplaceHumanApproval ARE enforced by assertControlPlaneHermesEvidencePacketServiceEntrypointContract, so the safety-critical flags remain gated.)\\\",\\n      \\\"recommendation\\\": \\\"Optional hygiene: extend the scope_policy loop to cover the remaining negation flags for full defense-in-depth parity. Non-blocking and consistent with prior packs' subset checks.\\\"\\n    },\\n    {\\n      \\\"id\\\": \\\"CP00-049-P3-03\\\",\\n      \\\"title\\\": \\\"Minor metadata redundancy\\\",\\n      \\\"file\\\": \\\"contracts/control-plane-contract.json\\\",\\n      \\\"line_or_area\\\": \\\"control_plane_hermes_evidence_packet_service_entrypoint_contract_definition\\\",\\n      \\\"issue\\\": \\\"no_real_data appears both at the definition top level and inside scope_policy; writes_product_state likewise duplicated. Harmless and internally consistent, mirrors prior subphase definitions.\\\",\\n      \\\"recommendation\\\": \\\"No change needed; noted for awareness only.\\\"\\n    }\\n  ],\\n  \\\"boundary_checks\\\": [\\n    { \\\"check\\\": \\\"no_runtime_execution (service logic / routes)\\\", \\\"status\\\": \\\"PASS\\\", \\\"evidence\\\": \\\"Only frozen literal constants, a pure assert (no I/O), and a getter that returns the constant; doesNotExecuteServiceLogic/doesNotCreateRuntimeRoute=true and asserted.\\\" },\\n    { \\\"check\\\": \\\"no_hermes_runtime / no_hermes_validation / no_hermes_evidence_creation\\\", \\\"status\\\": \\\"PASS\\\", \\\"evidence\\\": \\\"doesNotRunHermesValidation, doesNotCreateHermesEvidence, doesNotExecuteHermesRuntime all true and enforced in validators.js flag loop.\\\" },\\n    { \\\"check\\\": \\\"no_product_state_writes (db/storage/persist)\\\", \\\"status\\\": \\\"PASS\\\", \\\"evidence\\\": \\\"writesProductState=false; doesNotWriteDatabase/doesNotWriteStorage/doesNotPersistProductState=true and asserted; no fs-write/network/process calls in diff.\\\" },\\n    { \\\"check\\\": \\\"no_real_data (synthetic-only fixtures)\\\", \\\"status\\\": \\\"PASS\\\", \\\"evidence\\\": \\\"noRealData=true; fixture_integrity declares synthetic_only/deterministic/no_real_client_data/no_real_matter_data/no_credentials_or_secrets and is verified by script + test.\\\" },\\n    { \\\"check\\\": \\\"human_approval_boundary preserved"
+}

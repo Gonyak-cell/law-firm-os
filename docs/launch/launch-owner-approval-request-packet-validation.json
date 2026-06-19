@@ -1,0 +1,31 @@
+{
+  "schema_version": "law-firm-os.launch-owner-approval-request-packet.validation.v0.1",
+  "generated_at": "2026-06-19T00:06:55.456Z",
+  "source_refs": [
+    "docs/launch/launch-owner-approval-request-packet.json",
+    "docs/launch/launch-owner-approval-request-packet.md",
+    "docs/launch/launch-owner-approval-receipt-ledger.json",
+    "docs/launch/launch-owner-approval-receipt-ledger-validation.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "request_card_count": 4,
+    "pending_receipt_slot_count": 4,
+    "real_owner_receipt_count": 0,
+    "copy_allowed_count": 0,
+    "target_count_by_pending_requests": 117,
+    "response_field_count": 7,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "validates_owner_approval_request_packet_only": true,
+    "go_live_approved_by_validation": false,
+    "owner_deferrals_approved_by_validation": false,
+    "launch_decision_register_modified_by_validation": false,
+    "pending_requests_count_as_owner_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "findings": []
+}

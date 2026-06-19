@@ -1,0 +1,136 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P02.M00.S01",
+  "source_micro_phase_id": "RP00.P02.M00",
+  "status": "passed",
+  "executed_at": "2026-06-04T12:31:10.000Z",
+  "commands": [
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "purpose": "JSON syntax validation for contract and synthetic fixture"
+    },
+    {
+      "command": "node -c packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "purpose": "service entrypoint policy module syntax check"
+    },
+    {
+      "command": "node -c packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "purpose": "service entrypoint validator module syntax check"
+    },
+    {
+      "command": "node -c packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "purpose": "service module syntax check"
+    },
+    {
+      "command": "node -c scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "RP00 validator syntax and brace-balance check"
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js packages/control-plane/test/model.test.js",
+      "exit_code": 0,
+      "purpose": "focused control-plane service and model tests"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Hermes H00 RP00 control-plane contract validation after S01 evidence materialization"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "weighted implementation ledger validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "spec requirement ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "full local test suite"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "purpose": "whitespace conflict check"
+    },
+    {
+      "command": "git diff --cached --name-only",
+      "exit_code": 0,
+      "purpose": "confirm new service implementation and test files are staged for the final commit"
+    },
+    {
+      "command": "git diff -- packages/control-plane/src/states.js packages/control-plane/src/registry.js",
+      "exit_code": 0,
+      "purpose": "confirm S01 did not mutate shared state enum definitions or the existing domain model registry"
+    }
+  ],
+  "hermes_gate": {
+    "gate_id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "outcome": "passed"
+  },
+  "evidence_summary": {
+    "implemented_slice": "ControlPlaneServiceEntrypointContract service_entrypoint_contract",
+    "policy_export": "CONTROL_PLANE_SERVICE_ENTRYPOINT_CONTRACT",
+    "entrypoint_id_export": "CONTROL_PLANE_SERVICE_ENTRYPOINT_IDS",
+    "validator_export": "assertControlPlaneServiceEntrypointContract",
+    "service_module_export": "CONTROL_PLANE_SERVICE_MODULE",
+    "entrypoint_ids": [
+      "plan_authoring",
+      "ai_implementation_handoff",
+      "hermes_validation"
+    ],
+    "required_context_fields": [
+      "tenant_id",
+      "actor_id",
+      "idempotency_key",
+      "permission_decision_ref",
+      "audit_event_ref"
+    ],
+    "request_normalization_deferred_to": "RP00.P02.M00.S02",
+    "tenant_boundary_precheck_deferred_to": "RP00.P02.M00.S03",
+    "next_subphase": "RP00.P02.M00.S02",
+    "states_js_mutated": false,
+    "entity_registry_mutated": false,
+    "service_logic_executed": false,
+    "runtime_route_created": false,
+    "rp00_closed": false,
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready",
+    "human_approval_boundary": "Human approval is not replaced; this synthetic service entrypoint contract cannot approve decisions or product mutation."
+  },
+  "blocked_claims": [],
+  "gate_outcome": "passed",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "No product runtime state was written; only contract, fixture, service metadata modules, tests, validator, README, and closeout evidence files were changed.",
+    "The final npm run rp00:control-plane:validate receipt is confirmed after this evidence packet is materialized.",
+    "Claude P1-01 was addressed without a second Claude review by staging packages/control-plane/src/service.js, packages/control-plane/src/policies.js, packages/control-plane/src/validators.js, and packages/control-plane/test/service.test.js for the final commit and validating their behavior locally."
+  ],
+  "no_real_data": true,
+  "writes_product_state": false
+}

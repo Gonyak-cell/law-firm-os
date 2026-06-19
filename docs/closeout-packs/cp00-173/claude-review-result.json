@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-173",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "dab413f1-32a8-4339-901c-94e2ea614d30",
+    "uuid": "c3126f77-249a-4f63-a424-5dd6280ba984",
+    "duration_ms": 236479,
+    "total_cost_usd": 0.8797370000000001,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-173-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-173.master_data_failure_evidence_review_handoff_bridge",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-173-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Valid CP00-173 Claude Opus 4.8 max read-only review approved the descriptor-only Risk C bridge pack with two non-blocking P3 observations and no production_ready blockers.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "no_review_or_approval_dispatch": true,
+      "no_retry_rollback_compensation_execution": true,
+      "no_runtime_lock_acquisition": true,
+      "no_case_note_write": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_c_scope_preserved": true,
+      "sensitive_tail_deferred_to_cp174": true,
+      "handoff_valid": true
+    },
+    "findings": [
+      {
+        "id": "CP00-173-C04-F001",
+        "severity": "P3",
+        "file": "packages/master-data/src/registry.js",
+        "line": null,
+        "title": "Inconsistent descriptor-key naming in CP173 no-write attestation",
+        "description": "MASTER_DATA_CP173_NO_WRITE_ATTESTATION uses builds_failure_evidence_review_handoff_bridge without the _descriptors suffix used by sibling keys. Registry and contract are self-consistent, validators pass, and there is no functional or boundary impact.",
+        "required_action": "Optional future naming alignment only; non-blocking.",
+        "post_review_disposition": "deferred_as_cosmetic: key is self-consistent across registry and contract, no validator or runtime boundary impact, and changing it would create unnecessary contract churn inside CP00-173."
+      },
+      {
+        "id": "CP00-173-C04-F002",
+        "severity": "P3",
+        "file": "packages/master-data/src/service.js",
+        "line": null,
+        "title": "Bracket lookup on bridge_sections can resolve prototype members for non-own keys",
+        "description": "createMasterDataFailureEvidenceReviewHandoffBridgeDescriptor previously used bracket lookup before defaulting. Claude assessed it as defensive hardening only and non-blocking because catalog callers use Object.keys and outputs remain benign.",
+        "required_action": "Gate section lookup with Object.hasOwn before reading bridge_sections.",
+        "post_review_disposition": "fixed: createMasterDataFailureEvidenceReviewHandoffBridgeDescriptor now checks Object.hasOwn before section lookup; focused tests and RP04 master-data validation pass afterward."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-641",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T14:22:30.863Z",
+  "finished_at": "2026-06-13T14:31:23.193Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":531682,\"duration_api_ms\":531388,\"ttft_ms\":4037,\"num_turns\":68,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** — does not block pack or goal closeout.\\n\\nCP00-641 (Risk B, 40-unit descriptor-only RP20 Data Room/VDR pack) is sound: the descriptor is internally consistent across contract projection, registry, service, validators, tests, and the rp20 validation script; counts match (M04=8/M05=22/M06=10, deliverables 20/16/2/2); no-write/no-real-data boundaries are code-enforced and test-asserted; and the authority boundary holds (Claude read-only and not final approver, enterprise trust not claimed locally, human approval required before runtime opens in CP00-642). The pack correctly sits in pending state with no premature production_ready claim.\\n\\nOnly one **non-blocking P3** (`CP00-641-P3-01`): `command-evidence.json` doesn't itemize the generically-expected `rp05:matter-core:validate`, but the in-scope rp20 validator, `npm run validate`, `npm test`, and all closeout gates passed — identical to CP00-640's adjudicated nit. 0 P0 / 0 P1 / 0 P2.\",\"stop_reason\":\"end_turn\",\"session_id\":\"16efcafe-74b8-47af-af28-e598b5147cda\",\"total_cost_usd\":3.7365014999999997,\"usage\":{\"input_tokens\":243,\"cache_creation_input_tokens\":140400,\"cache_read_input_tokens\":4029945,\"output_tokens\":33665,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":140400,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":392,\"cache_read_input_tokens\":135088,\"cache_creation_input_tokens\":6071,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6071},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1089,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001189,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":243,\"outputTokens\":33665,\"cacheReadInputTokens\":4029945,\"cacheCreationInputTokens\":140400,\"webSearchRequests\":0,\"costUSD\":3.7353124999999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-641 is a Risk B, descriptor-only RP20 Data Room/VDR pack (40 units across RP20.P08.M04.S15-RP20.P08.M06.S10; deliverables 20 hermes_evidence / 16 implementation / 2 test / 2 claude_review). The pack is in the correct pre-review state: manifest, construction-inspection, adjudication, and claude-review-result all report production_ready=false / pending, so there is no premature production_ready claim. The production_ready promotion that this review gates is well supported: the CP00-641 descriptor is internally consistent across the contract projection (contracts/data-room-vdr-core-contract.json), registry constants, service builders, validators, package tests (packages/data-room/test/model.test.js), and the rp20 validation script. Section/row/deliverable counts match exactly (M04=8 Secondary Workflow Slice, M05=22 Permission And Audit Binding, M06=10 Synthetic Fixture Set). No-write/no-real-data boundaries are enforced in validators.js and asserted by tests and the no_write_attestation. The authority boundary holds: Claude is read-only and not final approver (claude_is_final_approval=false), local validation does not claim enterprise trust, and human approval is required before runtime opening (deferred to CP00-642). Hermes patterns are used only for descriptor-only review packet/receipt handling (emits_hermes_runtime_receipt=false), not product runtime. command-evidence records a comprehensive matrix all exiting 0; readiness auth preflight passed with valid JSON. One non-blocking P3: command-evidence does not itemize the generically-expected rp05:matter-core:validate, though the in-scope rp20 validator, npm run validate, npm test, and all closeout gates passed (mirrors CP00-640's adjudicated non-blocking P3). Verdict: PASS_WITH_FINDINGS; does not block pack or goal closeout. Final enterprise-trust/production promotion remains subject to human approval.\",\"findings\":[{\"id\":\"CP00-641-P3-01\",\"severity\":\"P3\",\"title\":\"command-evidence omits itemized rp05:matter-core:validate (sibling-program checklist nit)\",\"file\":\"docs/closeout-packs/cp00-641/command-evidence.json\",\"line\":null,\"details\":\"The prompt's expected pre-closeout command list includes `npm run rp05:matter-core:validate`, but command-evidence.json does not itemize it. The recorded matrix instead includes the in-scope program validator `npm run rp20:data-room-vdr-core:validate` (exit 0), plus `npm run validate` (validate-product-contract.mjs, which checks the matter-core module entry), `npm test` (which runs packages/matter and packages/data-room test suites), `npm run build`, and all closeout gates (closeout-pack-plan:validate, closeout-pack:validate, weighted:validate, spec:requirements:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) — all exit 0. CP00-641 is an RP20-scoped descriptor-only pack with no matter-core changes; changed-file-scope.json limits active implementation refs to contracts/data-room-vdr-core-contract.json, packages/data-room/* and the pack docs. This is the same situation adjudicated non-blocking for the prior pack CP00-640 (note: 'rp05:matter-core is a sibling-program checklist nit, while npm run validate and the in-scope rp20:data-room-vdr-core validator both passed').\",\"recommendation\":\"Optionally itemize `npm run rp05:matter-core:validate` with its exit code in command-evidence.json for checklist completeness, or add a note that it is intentionally out-of-scope for RP20 packs (as done for CP00-640). No code or boundary change required.\",\"post_review_disposition\":\"Non-blocking P3; does not gate CP00-641 pack or goal closeout. Equivalent and broader validation (rp20 program validator, npm run validate, npm test, npm run build, and all closeout gates) is recorded as passing, and the pack introduces no matter-core changes. Human final approval remains required before any runtime opening (CP00-642).\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"f2fd487f-f310-4eb9-94e3-7c29724d384b\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6600,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "16efcafe-74b8-47af-af28-e598b5147cda",
+    "uuid": "f2fd487f-f310-4eb9-94e3-7c29724d384b",
+    "total_cost_usd": 3.7365014999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

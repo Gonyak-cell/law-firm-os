@@ -1,0 +1,121 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L6-W04",
+  "title": "AI human-review operations readiness",
+  "phase": "L6",
+  "gate": "L6-EXIT",
+  "status": "t01_reviewer_roster_decision_brief_t02_operations_draft_blocked_pending_owner_approval_sla_disable_authority_and_dry_run",
+  "recorded_at": "2026-06-18T11:25:09Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L6-W04-T01",
+      "title": "AI reviewer roster and disable authority decision brief",
+      "status": "decision_brief_blocked_pending_owner_approval_l1_w08_staffing_and_wave2_gate_inputs",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/ai-reviewer-roster-decision.md",
+        "docs/launch/runbooks/ai-review-operations.md",
+        "docs/goal-closeout/lt-l6-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "required_inputs": 6,
+        "reviewer_coverage_slots": 6,
+        "disable_rollback_authority_slots": 4,
+        "l9_w04_mapping_rows": 6,
+        "ai_release_gate_mapping_rows": 7,
+        "runbook_update_steps": 5,
+        "decision_register_updated": false,
+        "named_reviewers_assigned": false,
+        "disable_authority_granted": false,
+        "ai_runtime_activated": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count roster slots, authority slots, L9-W04 mappings, AI gate mappings, runbook steps, and verify register was not mutated ... NODE",
+          "exit_code": 0,
+          "output": "{\"required_inputs\":6,\"reviewer_slots\":6,\"authority_slots\":4,\"l9_mapping_rows\":6,\"ai_gate_rows\":7,\"runbook_update_steps\":5,\"register_has_ai_roster_row\":false}",
+          "purpose": "Verify the AI reviewer roster decision brief is decision-ready without synthesizing owner approval, names, authority, or register rows"
+        },
+        {
+          "command": "grep -c \"^| AI-REVIEWER-\" docs/launch/ai-reviewer-roster-decision.md && grep -c \"^| AI-AUTH-\" docs/launch/ai-reviewer-roster-decision.md && grep -c \"^| AI-GATE-\" docs/launch/ai-reviewer-roster-decision.md",
+          "exit_code": 0,
+          "output": "6\n4\n7",
+          "purpose": "Verify reviewer slot, authority slot, and AI Release Gate mapping row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a decision-input brief only. It intentionally does not update the launch decision register because owner evidence does not exist.",
+        "No reviewer names, disable authority, rollback authority, AI runtime activation, prompt/output data, or product state was created.",
+        "LT-L6-W04-T01 remains open pending owner-approved names, authority slots, staffing basis, SLA values, and register row authority."
+      ]
+    },
+    {
+      "tuw_id": "LT-L6-W04-T02",
+      "title": "AI Review Queue operations and release gate signoff draft",
+      "status": "draft_blocked_pending_l6_w04_t01_reviewer_roster_and_sla_decision",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/runbooks/ai-review-operations.md",
+        "docs/goal-closeout/lt-l6-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "ai_ops_steps": 5,
+        "release_gate_rows": 7,
+        "disable_switch_steps": 7,
+        "wave1_ai_off_rule_present": true,
+        "sla_values_set": false,
+        "reviewer_roster_named": false,
+        "dry_run_performed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count AI-OPS, AI-GATE, disable steps, Wave 1 off-state markers, and pending decision markers ... NODE",
+          "exit_code": 0,
+          "output": "{\"ai_ops_steps\":5,\"release_gate_rows\":7,\"disable_steps\":7,\"wave1_ai_off\":true,\"sla_values_set\":false,\"reviewer_roster_named\":false,\"dry_run_performed\":false}",
+          "purpose": "Verify AI review operations draft covers operating steps and seven release-gate signoff rows while preserving Wave 1 AI-off and pending human decisions"
+        },
+        {
+          "command": "grep -c \"^| AI-OPS-\" docs/launch/runbooks/ai-review-operations.md && grep -c \"^| AI-GATE-\" docs/launch/runbooks/ai-review-operations.md",
+          "exit_code": 0,
+          "output": "5\n7",
+          "purpose": "Verify AI operations and release gate row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an operations/signoff-form draft only; no AI runtime activation, reviewer roster, SLA decision, disable authority, dry-run, or product state was created.",
+        "LT-L6-W04-T01 now has a decision-input brief, but the brief is not owner approval and is not a launch decision register row.",
+        "LT-L6-W04 remains open because T01 human decisions and T02 dry-run requirements are not complete."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L6-W04, LT-L6-W04-T01, or LT-L6-W04-T02 is complete.",
+    "This record does not activate AI or create prompt/output data.",
+    "This record does not name reviewers, grant disable authority, set SLA values, or perform a dry-run.",
+    "This record does not create or update a launch decision register row.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

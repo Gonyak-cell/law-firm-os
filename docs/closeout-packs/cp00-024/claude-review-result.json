@@ -1,0 +1,110 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-024",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "a46503e1-1bef-48d5-b205-cf209a128476",
+    "uuid": "27d4452c-1d08-4ea5-9ce8-0b166e8f0ab3",
+    "duration_ms": 331212,
+    "duration_api_ms": 333937,
+    "total_cost_usd": 1.33075975,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 53977,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.054077,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 2,
+        "outputTokens": 30892,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 80455,
+        "webSearchRequests": 0,
+        "costUSD": 1.27668275,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_P3_FINDINGS_ADJUDICATED",
+    "claude_reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-024-RAW-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/src/policies.js:11203",
+        "title": "secondary_workflow_receipt emits more fields than the declared receipt manifest",
+        "details": "requiredSecondaryWorkflowReceiptFields (and the mirrored result.secondary_workflow_receipt_fields) enumerate 11 fields, but the actual frozen secondary_workflow_receipt produced in service.js contains 15: it also carries matter_id, fixture_file_ref, primary_happy_path_behavior_ref, and decision_reason. The result assert fully validates all 15, so there is no correctness gap, but a downstream consumer (e.g., S09) reading secondary_workflow_receipt_fields as the receipt schema would not see those provenance fields. This mirrors the S07 happy_path_receipt subset pattern, so it appears intentional, yet the field name implies completeness.",
+        "recommendation": "Either rename/document the list as the required/contracted subset, or extend the manifest (and the assert's expectedSecondaryWorkflowFields) to include the provenance fields so the receipt is self-describing. Non-blocking; keep consistent with the established S07 convention if intentional.",
+        "adjudication_status": "deferred_nonblocking_schema_clarity",
+        "adjudication_detail": "The secondary_workflow_receipt_fields list is treated as the minimum required receipt field set. The validator value-pins the emitted receipt object and the fixture deep-equal test covers the full receipt, so CP00-024 is not blocked."
+      },
+      {
+        "id": "CP00-024-RAW-P3-02",
+        "severity": "P3",
+        "blocking": false,
+        "location": "contracts/control-plane-contract.json:1088",
+        "title": "Contract marks S08 closeout/current_subphase production_ready before cp00-024 evidence exists",
+        "details": "current_subphase and a new subphase_closeouts entry both set status production_ready with evidence_root docs/closeout-packs/cp00-024, and the validator now requires the S08 construction-inspection flag control_plane_synthetic_fixture_set_secondary_workflow_path_verified===true. No cp00-024 evidence files are present in this diff. Per the review scope this is a closeout-process note, not a code blocker (this review result is itself slated for inclusion before final validation), but the generated evidence pack must supply that construction-inspection flag and evidence_root contents or the validator will error at finalization.",
+        "recommendation": "Ensure the cp00-024 evidence pack includes the construction-inspection record with control_plane_synthetic_fixture_set_secondary_workflow_path_verified=true (and any evidence_root files the existing closeout loop asserts) before running the contract validator for final closeout.",
+        "adjudication_status": "resolved_by_evidence_generation",
+        "adjudication_detail": "The CP00-024 closeout pack evidence files are generated in this pack and final RP00/closeout validation is required before commit."
+      }
+    ],
+    "security_notes": [
+      "Claude found the S08 metadata-only no-write guarantee holds.",
+      "Claude found no P0/P1/P2 issues and no false production_ready overreach after evidence generation."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 461/461 before evidence generation.",
+      "CP00-024 records one valid pack-level Claude review."
+    ],
+    "summary": "Claude reported two nonblocking P3 findings. The receipt-field self-description note is explicitly deferred as schema clarity; the missing evidence note is resolved by generating CP00-024 evidence before final validation. Unresolved P0/P1/P2/P3 after adjudication is 0."
+  },
+  "raw_review_text": "{\n  \"review_id\": \"CP00-024\",\n  \"model\": \"claude-opus-4-8\",\n  \"effort\": \"max\",\n  \"read_only\": true,\n  \"summary\": \"CP00-024 closes RP00.P02.M06.S08 (Synthetic Fixture Set Secondary workflow path) as a metadata-only, no-write precheck. The implementation (precheckControlPlaneSyntheticFixtureSetSecondaryWorkflowPath), policy, prechecker, result-field set, validators, fixture, contract definition, README line, and validator wiring are internally consistent and cross-checked. S07 dependency is strong: the function fails closed unless the input is a full, asserted S07 primary-happy-path result with synthetic_fixture_set entrypoint, primary_happy_path_subphase_id RP00.P02.M06.S07, carried allow_metadata_only decision, applied=true, non-blank audit_event_ref, and a present happy_path_receipt; it also re-runs assertControlPlaneSyntheticFixtureSetPrimaryHappyPathResult. Fail-closed behavior is solid: any truthy forbidden OR unknown claim throws, all 13 capability/permitted flags are hardcoded false and pinned false by the result assert, and the 28 forbidden claims + 19 fail_closed_on reasons comprehensively block service execution, runtime routes, permission/AuthZ/engine/trimming evaluation, audit ledger/event writes, fixture generation/persistence, DB/storage/product-state writes, human-approval bypass, real-data/secret use, and source-microphase completion. Permission/audit boundary integrity is preserved (only prior synthetic permission_decision_ref/audit_event_ref are referenced, never re-evaluated or written). S09 handoff is consistent across policy.nextSubphase, prechecker, result, receipt, futureSubphases, weighted boundary, and closeout_state_policy. The contract keeps source_micro_phase_completed=false and RP00.P02.M06 open. Synthetic/no-real-data guarantees hold (synthetic namespaces/domains only, no secrets). The validator adds weighted-boundary, definition, policy/prechecker/getter, fixture, live-chain JSON-equality, firm-level, and negative-rejection coverage. No P0/P1/P2 issues found; two non-blocking P3 notes below. Missing docs/closeout-packs/cp00-024 evidence is a closeout-process note per review scope, not a code blocker.\",\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"secondary_workflow_receipt emits more fields than the declared receipt manifest\",\n      \"file\": \"packages/control-plane/src/policies.js\",\n      \"line\": 11203,\n      \"details\": \"requiredSecondaryWorkflowReceiptFields (and the mirrored result.secondary_workflow_receipt_fields) enumerate 11 fields, but the actual frozen secondary_workflow_receipt produced in service.js contains 15: it also carries matter_id, fixture_file_ref, primary_happy_path_behavior_ref, and decision_reason. The result assert fully validates all 15, so there is no correctness gap, but a downstream consumer (e.g., S09) reading secondary_workflow_receipt_fields as the receipt schema would not see those provenance fields. This mirrors the S07 happy_path_receipt subset pattern, so it appears intentional, yet the field name implies completeness.\",\n      \"recommendation\": \"Either rename/document the list as the required/contracted subset, or extend the manifest (and the assert's expectedSecondaryWorkflowFields) to include the provenance fields so the receipt is self-describing. Non-blocking; keep consistent with the established S07 convention if intentional.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"title\": \"Contract marks S08 closeout/current_subphase production_ready before cp00-024 evidence exists\",\n      \"file\": \"contracts/control-plane-contract.json\",\n      \"line\": 1088,\n      \"details\": \"current_subphase and a new subphase_closeouts entry both set status production_ready with evidence_root docs/closeout-packs/cp00-024, and the validator now requires the S08 construction-inspection flag control_plane_synthetic_fixture_set_secondary_workflow_path_verified===true. No cp00-024 evidence files are present in this diff. Per the review scope this is a closeout-process note, not a code blocker (this review result is itself slated for inclusion before final validation), but the generated evidence pack must supply that construction-inspection flag and evidence_root contents or the validator will error at finalization.\",\n      \"recommendation\": \"Ensure the cp00-024 evidence pack includes the construction-inspection record with control_plane_synthetic_fixture_set_secondary_workflow_path_verified=true (and any evidence_root files the existing closeout loop asserts) before running the contract validator for final closeout.\"\n    }\n  ],\n  \"blocking_findings\": 0,\n  \"p0_p1_count\": 0,\n  \"p2_count\": 0,\n  \"verdict\": \"pass\"\n}",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude raw P3 findings were adjudicated without running a second valid review: receipt-field exhaustiveness is deferred as nonblocking schema clarity, and the evidence-pack absence is resolved by CP00-024 evidence generation plus final validation. Unresolved P0/P1/P2/P3 after adjudication is 0."
+}

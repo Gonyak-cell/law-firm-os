@@ -1,0 +1,156 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-068",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "printf prompt and /tmp/cp00-068-review.diff | claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "output_ref": "/tmp/cp00-068-claude-review-output.json",
+    "session_id": "10e3fb32-2628-4ecf-a630-eff21c5d633d",
+    "uuid": "bc791e17-605e-4a06-a857-89353922321e",
+    "total_cost_usd": 1.05614425,
+    "duration_ms": 285509,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 0
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "findings": [
+      {
+        "id": "CP00-068-F1",
+        "source_id": "F1",
+        "severity": "P3",
+        "area": "validator_coverage",
+        "title": "validator_coverage",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "assertControlPlanePermissionAuditIntegrationBootstrapResult/Policy validate permission_matrix_rows and decision_bindings only by array length (3/3); they do not assert each row/binding's internal runtime_permission_evaluation_permitted:false and audit_event_write_permitted:false. Values are correct and sourced from frozen constants, so no live risk, but nested assertions would harden against future regression of the most security-relevant payload.",
+        "recommendation": ""
+      },
+      {
+        "id": "CP00-068-F2",
+        "source_id": "F2",
+        "severity": "P3",
+        "area": "test_coverage",
+        "title": "test_coverage",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "The static fixture result (control_plane_permission_audit_integration_bootstrap.result) is not run through assertControlPlanePermissionAuditIntegrationBootstrapResult nor deep-compared to assembler output; the fixture test only spot-checks individual fields, so drift in un-checked fields between stored fixture and live assembler would go undetected.",
+        "recommendation": ""
+      },
+      {
+        "id": "CP00-068-F3",
+        "source_id": "F3",
+        "severity": "P3",
+        "area": "evidence_readiness",
+        "title": "evidence_readiness",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "New rp00 validator loops require pre-existing weighted-ledger entries for RP00.P06.M00.S01-M02.S04 (H00.weighted_subphase_evidence / C00.weighted_subphase_review refs) and the LDIP overlay map docs/ldip-integration/ldip-overlay-closeout-pack-map.json; neither is added in this diff. Confirm they pre-exist — consistent with author reporting that the only expected rp00 failure is missing evidence files.",
+        "recommendation": ""
+      },
+      {
+        "id": "CP00-068-F4",
+        "source_id": "F4",
+        "severity": "P3",
+        "area": "coupling",
+        "title": "coupling",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "Upstream gate in assembleControlPlanePermissionAuditIntegrationBootstrap reads phaseTerminalPackResult.permission_audit_hint_verified / no_raw_permission_policy / no_internal_audit_payload directly; these are not in the declared requiredInputFields contract (CP00-067 RESULT_FIELDS) and rely on the CP00-067 result carrying them. Green npm test confirms presence; noted as an implicit cross-pack coupling.",
+        "recommendation": ""
+      }
+    ],
+    "residual_risks": [
+      "Low. Metadata-only, deterministic, fully fail-closed pack with no runtime evaluation, no permission/audit engine execution, and no writes; all boundary flags false and re-asserted, synthetic-only identifiers, LDIP planning-only. Residual exposure is limited to (a) regression hardening of nested matrix-row/decision-binding safety flags not yet asserted, (b) fixture-vs-assembler drift not deep-checked, and (c) the standard pending evidence-pack generation that the rp00 validator will enforce before final closeout."
+    ],
+    "overall_summary": "Permission Audit Integration Bootstrap is a metadata-only pack binding 3 permission matrix rows plus view/search/mutation decision bindings across RP00.P06.M00.S01-RP00.P06.M02.S04 (10 units, Risk A). Policy/module/assembler/validator/fixture/contract/README are mutually consistent; the 90-field result list matches across all sites. Every no-write/no-runtime boundary (runtime permission eval, permission engine/AuthZ/security trimming, audit ledger/event, db/storage/product-state/idempotency/lock) is set false and re-asserted by the result validator, the assembler rejects all positive boundary claims (forbidden and unknown), the upstream CP00-067 gate is enforced, LDIP is referenced planning-only with ldip_implementation_allowed:false, and source_micro_phase/phase completion stay false with next_subphase RP00.P06.M02.S05. No P0/P1/P2 issues. Only hardening/verification notes and the expected pending evidence pack remain."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 285509,
+    "duration_api_ms": 287371,
+    "ttft_ms": 264280,
+    "num_turns": 1,
+    "result": "I reviewed the CP00-068 diff (contract, fixture, policies, service, validators, test, rp00 validator script, README) against the stated boundaries and plan binding. The implementation is internally consistent and fully fail-closed; all findings are P3/informational and non-blocking.\n\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"pack_id\": \"CP00-068\",\n  \"model\": \"claude-opus-4-8\",\n  \"effort\": \"max\",\n  \"read_only\": true,\n  \"verdict\": \"pass_with_findings\",\n  \"summary\": \"Permission Audit Integration Bootstrap is a metadata-only pack binding 3 permission matrix rows plus view/search/mutation decision bindings across RP00.P06.M00.S01-RP00.P06.M02.S04 (10 units, Risk A). Policy/module/assembler/validator/fixture/contract/README are mutually consistent; the 90-field result list matches across all sites. Every no-write/no-runtime boundary (runtime permission eval, permission engine/AuthZ/security trimming, audit ledger/event, db/storage/product-state/idempotency/lock) is set false and re-asserted by the result validator, the assembler rejects all positive boundary claims (forbidden and unknown), the upstream CP00-067 gate is enforced, LDIP is referenced planning-only with ldip_implementation_allowed:false, and source_micro_phase/phase completion stay false with next_subphase RP00.P06.M02.S05. No P0/P1/P2 issues. Only hardening/verification notes and the expected pending evidence pack remain.\",\n  \"findings\": [\n    {\n      \"id\": \"F1\",\n      \"severity\": \"P3\",\n      \"area\": \"validator_coverage\",\n      \"blocking\": false,\n      \"description\": \"assertControlPlanePermissionAuditIntegrationBootstrapResult/Policy validate permission_matrix_rows and decision_bindings only by array length (3/3); they do not assert each row/binding's internal runtime_permission_evaluation_permitted:false and audit_event_write_permitted:false. Values are correct and sourced from frozen constants, so no live risk, but nested assertions would harden against future regression of the most security-relevant payload.\"\n    },\n    {\n      \"id\": \"F2\",\n      \"severity\": \"P3\",\n      \"area\": \"test_coverage\",\n      \"blocking\": false,\n      \"description\": \"The static fixture result (control_plane_permission_audit_integration_bootstrap.result) is not run through assertControlPlanePermissionAuditIntegrationBootstrapResult nor deep-compared to assembler output; the fixture test only spot-checks individual fields, so drift in un-checked fields between stored fixture and live assembler would go undetected.\"\n    },\n    {\n      \"id\": \"F3\",\n      \"severity\": \"P3\",\n      \"area\": \"evidence_readiness\",\n      \"blocking\": false,\n      \"description\": \"New rp00 validator loops require pre-existing weighted-ledger entries for RP00.P06.M00.S01-M02.S04 (H00.weighted_subphase_evidence / C00.weighted_subphase_review refs) and the LDIP overlay map docs/ldip-integration/ldip-overlay-closeout-pack-map.json; neither is added in this diff. Confirm they pre-exist — consistent with author reporting that the only expected rp00 failure is missing evidence files.\"\n    },\n    {\n      \"id\": \"F4\",\n      \"severity\": \"P3\",\n      \"area\": \"coupling\",\n      \"blocking\": false,\n      \"description\": \"Upstream gate in assembleControlPlanePermissionAuditIntegrationBootstrap reads phaseTerminalPackResult.permission_audit_hint_verified / no_raw_permission_policy / no_internal_audit_payload directly; these are not in the declared requiredInputFields contract (CP00-067 RESULT_FIELDS) and rely on the CP00-067 result carrying them. Green npm test confirms presence; noted as an implicit cross-pack coupling.\"\n    }\n  ],\n  \"severity_counts\": { \"P0\": 0, \"P1\": 0, \"P2\": 0, \"P3\": 4 },\n  \"blocking_findings\": [],\n  \"required_fixes\": [],\n  \"deferred_or_informational\": [\n    \"Evidence pack docs/closeout-packs/cp00-068/{manifest,command-evidence,claude-review-result,adjudication,construction-inspection}.json not yet created; rp00 validator is expected to fail until present. construction-inspection.json must set control_plane_permission_audit_integration_bootstrap_verified:true and subphase_id RP00.P06.M02.S04 (terminal) for all 10 closeouts.\",\n    \"Plan-binding/contiguity (10 units = M00 3 + M01 3 + M02 4 subphases, range RP00.P06.M00.S01-RP00.P06.M02.S04, deviation_from_plan:false) is asserted by closeout-pack-plan:validate (reported passing) and will be re-confirmed by rp00 sequential-closure once evidence exists.\",\n    \"requested_pack_id:CP00-067 vs planned/actual CP00-068 with correction_reason 'requested CP00-067 shifted to CP00-068 by live sequential cursor' follows the established live-cursor convention (each pack's requested == prior pack's actual id); not a deviation.\",\n    \"Mutation decision binding correctly defers to future runtime permission audit + human approval (human_approval_for_sensitive_required:true) with no premature AuthZ implementation.\"\n  ],\n  \"residual_risk\": \"Low. Metadata-only, deterministic, fully fail-closed pack with no runtime evaluation, no permission/audit engine execution, and no writes; all boundary flags false and re-asserted, synthetic-only identifiers, LDIP planning-only. Residual exposure is limited to (a) regression hardening of nested matrix-row/decision-binding safety flags not yet asserted, (b) fixture-vs-assembler drift not deep-checked, and (c) the standard pending evidence-pack generation that the rp00 validator will enforce before final closeout.\"\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "10e3fb32-2628-4ecf-a630-eff21c5d633d",
+    "total_cost_usd": 1.05614425,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 55737,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 26772,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 55737,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 26772,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 55737,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 55737
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 36849,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.036954,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 26772,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 55737,
+        "webSearchRequests": 0,
+        "costUSD": 1.01919025,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "bc791e17-605e-4a06-a857-89353922321e"
+  }
+}

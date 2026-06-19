@@ -1,0 +1,207 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M05.S09",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Optional field registry",
+  "entity": "HumanApproval",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T02:55:00Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "failed_tooling_attempts_not_counted_as_completed_review": 0,
+    "completed_diff_based_reviews_counted": 1
+  },
+  "tooling_attempts": [],
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "pasted_git_diff_and_weighted_subphase_context",
+    "session_id": "b59bc45d-aa46-4a0f-9e89-1f97aa22d7ed",
+    "uuid": "f8e6d68a-ffcf-43ef-bc58-11ac75b3ef41",
+    "duration_ms": 161958,
+    "duration_api_ms": 163883,
+    "ttft_ms": 145278,
+    "stop_reason": "end_turn",
+    "terminal_reason": "completed",
+    "total_cost_usd": 0.72899375
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "b59bc45d-aa46-4a0f-9e89-1f97aa22d7ed",
+    "uuid": "f8e6d68a-ffcf-43ef-bc58-11ac75b3ef41",
+    "duration_ms": 161958,
+    "duration_api_ms": 163883,
+    "total_cost_usd": 0.72899375,
+    "permission_denials": []
+  },
+  "raw_claude_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "low",
+        "title": "Dead/misleading tenantContext parameter in validateHumanApprovalOptionalFields",
+        "evidence": "validateHumanApprovalOptionalFields declared tenantContext but did not reference it; only matterContext was used.",
+        "recommendation": "Drop the unused parameter, wire it to tenant-scope validation, or document it as intentionally reserved.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "low",
+        "title": "Validator silently ignores unknown or typo'd optional keys",
+        "evidence": "validateHumanApprovalOptionalFields gated checks behind if field in value, so a misspelled key could be skipped and still return true.",
+        "recommendation": "Reject keys outside HUMAN_APPROVAL_OPTIONAL_FIELDS plus required identity fields, or document strict unknown-key rejection as deferred.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "low",
+        "title": "Untested edge: null matter_id combined with a non-null matterContext",
+        "evidence": "The tests covered null matter_id without context and concrete matter_id with context, but not matter_id null with non-null matterContext.",
+        "recommendation": "Add a test asserting intended semantics.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "info",
+        "title": "High metadata-mirroring surface, but backed by real behavioral tests",
+        "evidence": "Optional field metadata is duplicated across contract JSON, model registry, fixture, and validator parity assertions.",
+        "recommendation": "No action required for closeout; be aware parity scaffolding inflates maintenance cost.",
+        "defer_allowed": true
+      },
+      {
+        "severity": "info",
+        "title": "S09 closeout evidence artifacts not yet present",
+        "evidence": "rp00:control-plane:validate failed only because docs/goal-closeout/rp00-p01-m05-s09 lacked packet, command-evidence, claude-review-result, adjudication, and construction-inspection.",
+        "recommendation": "Write all five evidence artifacts before promoting S09.",
+        "defer_allowed": false
+      }
+    ]
+  },
+  "verdict": "approve_implementation_after_closeout_evidence_and_low_fixes",
+  "go_no_go": "go_after_adjudication",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "HA-S09-001",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Dead or misleading tenantContext parameter in validateHumanApprovalOptionalFields",
+        "details": "Claude found tenantContext was declared but unused in validateHumanApprovalOptionalFields.",
+        "recommendation": "Wire tenantContext to explicit tenant-scope validation or remove/document it.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "validateHumanApprovalOptionalFields now calls assertHumanApprovalTenantScope when tenantContext is supplied; model tests and RP00 validator cover matching and mismatched tenant context."
+      },
+      {
+        "id": "HA-S09-002",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Unknown optional keys were silently ignored",
+        "details": "Claude found typo keys could be skipped by the field-specific if-in checks.",
+        "recommendation": "Reject keys outside the optional field registry plus required identity fields.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "validateHumanApprovalOptionalFields now rejects unsupported keys; model tests and RP00 validator cover blocked_claim_ref as a typo case."
+      },
+      {
+        "id": "HA-S09-003",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Null matter_id with non-null Matter context edge was untested",
+        "details": "Claude found firm-level null matter_id with a provided Matter context was not pinned by a test.",
+        "recommendation": "Add a test asserting the intended fail-closed behavior.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "model.test.js and scripts/validate-rp00-control-plane-contract.mjs now assert that matter_id:null with non-null Matter context fails closed."
+      },
+      {
+        "id": "HA-S09-004",
+        "severity": "P3_NOTE",
+        "title": "High metadata-mirroring surface backed by behavioral tests",
+        "details": "Claude noted maintenance overhead from duplicated metadata parity assertions, while also confirming real behavior coverage exists.",
+        "recommendation": "No action required for closeout.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_maintenance_note",
+        "evidence": "S09 retains parity scaffolding because RP00 H00 gate intentionally requires model, contract, fixture, validator, and evidence agreement; runtime positive and negative tests remain the anti-theater coverage."
+      },
+      {
+        "id": "HA-S09-005",
+        "severity": "P1_MUST_FIX",
+        "title": "S09 closeout evidence artifacts not yet present",
+        "details": "Claude noted S09 could not be promoted until the five closeout artifacts exist under docs/goal-closeout/rp00-p01-m05-s09.",
+        "recommendation": "Record packet, command evidence, Claude review result, adjudication, and construction inspection; then rerun Hermes/local validation.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "fixed_by_recording_required_closeout_evidence",
+        "evidence": "S09 packet, command evidence, Claude review result, adjudication, and construction inspection are recorded under docs/goal-closeout/rp00-p01-m05-s09; final validation rerun is recorded in command evidence."
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [
+      {
+        "id": "HA-S09-005",
+        "title": "S09 closeout evidence artifacts not yet present",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "fixed_by_recording_required_closeout_evidence"
+      }
+    ],
+    "P2": [],
+    "P3": [
+      {
+        "id": "HA-S09-001",
+        "title": "Dead or misleading tenantContext parameter in validateHumanApprovalOptionalFields",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S09-002",
+        "title": "Unknown optional keys were silently ignored",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S09-003",
+        "title": "Null matter_id with non-null Matter context edge was untested",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "HA-S09-004",
+        "title": "High metadata-mirroring surface backed by behavioral tests",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_maintenance_note"
+      }
+    ]
+  },
+  "criteria_checks": {
+    "optional_fields_bound": "PASS",
+    "absent_optional_fields_accepted": "PASS",
+    "unknown_optional_fields_rejected": "PASS",
+    "matter_context_edge_covered": "PASS",
+    "tenant_context_checked_when_supplied": "PASS",
+    "gate_references_reference_only": "PASS",
+    "registry_exposes_optional_field_registry": "PASS",
+    "registry_keeps_human_approval_model_future": "PASS",
+    "no_approval_synthesis": "PASS",
+    "no_product_state_writes": "PASS",
+    "evidence_sufficiency_after_closeout_files": "PASS"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ]
+}

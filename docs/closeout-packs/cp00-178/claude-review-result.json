@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-178",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "session_id": "8ce2f25d-6165-4b1d-a29d-55d026f43787",
+    "uuid": "fe422650-d560-48c0-9af2-b0c75c835a88",
+    "duration_ms": null,
+    "duration_api_ms": null,
+    "total_cost_usd": 2.15590375,
+    "permission_denials": [],
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-178/raw-output.json"
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-178/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-178/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C05.CP00-178.matter_core_service_domain_descriptor_boundary",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "artifacts/closeout-pack-claude-review/cp00-178/prompt.txt",
+    "request_ref": "artifacts/closeout-pack-claude-review/cp00-178/review-request.json",
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-178/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-178/readiness-report.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-178 is a descriptor-only Matter Core service/domain boundary continuation of CP00-177 (range RP05.P01.M08.S06-RP05.P02.M07.S06, 150 units, risk C). Read-only inspection of the in-scope files (packages/matter/src/{service,registry,validators,model,index}.js, packages/matter/test/model.test.js, contracts/matter-core-contract.json, scripts/validate-rp05-matter-core-contract.mjs, packages/matter/README.md) shows the pack-level production_ready claim is supported: production_ready_candidate is gated on real coverage + service-boundary validation (validateMatterCoreCp178Coverage && validateMatterCoreCp178ServiceBoundary), the closeout plan CP00-178 entry matches the binding exactly, and the test suite exercises normalize/precheck plus happy/review/approval/blocked/tenant-leakage/retry-determinism paths and CP178 Hermes/Claude/handoff packet generation. No-write/no-real-data boundaries are enforced and attested: every service result is frozen with writes_product_state/creates_database_rows/evaluates_runtime_permission/writes_audit_event/acquires_runtime_lock=false, fixtures are synthetic-only, and source contains no fs/network/db/graph-runtime calls (neo4j appears only as forbidden/future-reference metadata). Claude is correctly bound as a read-only independent reviewer and NOT the final approver; human final approval / enterprise-trust closure is handled outside this receipt. Hermes control-plane patterns are used only as deterministic evidence-packet/handoff descriptor generators, not embedded product runtime (hermes_runtime_embedded_in_product=false). The auth preflight in readiness-report.json is valid (exit 0, 1432-byte parseable JSON result), so the review-evidence chain shows no auth failure, 0-byte stdout, malformed JSON, fenced-prose, or tool-call-shaped output. Verdict: PASS_WITH_FINDINGS - three P3 evidence/consistency observations, none blocking pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP178-R01",
+        "severity": "P3",
+        "title": "No closeout manifest present for CP00-178 at review time",
+        "file": "docs/closeout-packs/cp00-178/manifest.json",
+        "line": null,
+        "details": "The directory docs/closeout-packs/cp00-178/ contains no manifest.json (Glob returns no files). Both packages/matter/test/model.test.js (lines 43-45) and scripts/validate-rp05-matter-core-contract.mjs (lines 31-37) resolve the CP00-178 pack from closeout-pack-plan.json first and only fall back to a manifest plan_binding_snapshot, so the absent manifest does not break coverage/service-boundary validation. review-baseline.json records manifest_ref: null and the plan entry (line 414+) matches the binding (risk C, 150 units, range RP05.P01.M08.S06-RP05.P02.M07.S06).",
+        "recommendation": "Confirm the cp00-178 manifest is generated as part of the closeout step (consistent with prior RP05 packs) so post-closeout artifacts retain an authoritative per-pack snapshot rather than depending solely on the plan fallback.",
+        "post_review_disposition": "Non-blocking; plan fallback resolves CP00-178 correctly and matches the pack binding."
+      },
+      {
+        "id": "CP178-R02",
+        "severity": "P3",
+        "title": "Changed-file scope inferred from git working tree, not an authoritative pack manifest",
+        "file": "artifacts/closeout-pack-claude-review/cp00-178/changed-file-scope.json",
+        "line": 4,
+        "details": "active_pack_scope_available is false and active_pack_implementation_refs is empty, so the in-scope file set is inferred from dirty/untracked git status. The one new implementation file (packages/matter/src/service.js) is captured in untracked_implementation_files, active_untracked_implementation_files_omitted is empty, and unrelated dirty files (apps/web/*, matter-by-amic-*.html, amplitude/control-room scripts, docs/ldip-integration/*) are correctly preserved as out-of-scope. Scope was therefore verifiable by inspection.",
+        "recommendation": "When a pack manifest exists, populate active_pack_implementation_refs so the reviewer can distinguish pack files from unrelated working-tree changes without inference.",
+        "post_review_disposition": "Non-blocking; scope verified by inspection and matches the documented matter-core target files."
+      },
+      {
+        "id": "CP178-R03",
+        "severity": "P3",
+        "title": "Per-operation blocked_claims metadata is declarative-only and not wired to precheck logic",
+        "file": "packages/matter/src/registry.js",
+        "line": 352,
+        "details": "MATTER_CORE_SERVICE_OPERATIONS entries declare blocked_claims (e.g., matter_opening -> missing_permission_envelope; task_planning -> invalid_lifecycle_status) that executeMatterCoreServicePrechecks/executeMatterCoreServiceWorkflow in service.js never read; the permission precheck emits permission_precheck_required instead of missing_permission_envelope. Both claims have customer-safe error codes (registry.js lines 402-404) and the declared per-operation lists are documentation-only, so there is no functional or boundary impact, but the divergence could mislead a future reader into assuming the declared claims are enforced.",
+        "recommendation": "Either wire the declared per-operation blocked_claims into the precheck/validation path or annotate them as illustrative-only to avoid implying enforcement that does not occur.",
+        "post_review_disposition": "Non-blocking; declarative metadata with no runtime effect; descriptor-only no-write boundary unaffected."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  }
+}

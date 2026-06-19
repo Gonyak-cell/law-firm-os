@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M06.S01",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T10:03:59Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "e4f3f27e-690d-48fc-a9a6-58a0cce8bee5",
+    "uuid": "97b88fd8-86a2-4d23-97ee-04b67550f622",
+    "duration_ms": 209048,
+    "total_cost_usd": 1.16944975,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 16811,
+        "cache_read_input_tokens": 598572,
+        "cache_creation_input_tokens": 71811,
+        "cost_usd": 1.16845975
+      }
+    }
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI re-review verified synthetic_only_fixture_policy is correctly bound to RP00.P00.M06.S01, remains metadata-only, forbids real fixture data sources, requires synthetic markers/domains/prefixes, records H00 evidence, and does not claim migration, anonymization, production seed, real-data import, production mutation, or RP00 completion."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Prior non-goal wording P3 confirmed fixed; minor summary-vs-detailed forbidden-list breadth difference remains (non-blocking)",
+        "file": "contracts/control-plane-contract.json",
+        "line": 1933,
+        "details": "Re-review confirms the previously flagged P3 wording issue is resolved. The authoritative synthetic_only_fixture_policy.forbidden_data_sources list covers all required sources, including real_bank_account, real_tax_identifier, real_document_version, production_export, and customer_support_attachment. The coarse synthetic_data_policy.forbidden_data_classes summary remains narrower than the authoritative list. This is a documentation-parity note and does not block M06.S01 closeout.",
+        "recommendation": "Optionally expand synthetic_data_policy.forbidden_data_classes or add a cross-reference to synthetic_only_fixture_policy.forbidden_data_sources in RP00.P00.M07.S01 to prevent future drift."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m06-s01/packet.json",
+      "docs/goal-closeout/rp00-p00-m06-s01/command-evidence.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Actual claude-opus-4-8 max read-only CLI re-review completed with PASS_WITH_FINDINGS and no P0/P1/P2 findings. A first C00 run found one P3 purpose wording issue; that was fixed before this re-review. The remaining P3 documentation-parity note is deferred to RP00.P00.M07.S01 because the authoritative policy and validator are complete for M06."
+  }
+}

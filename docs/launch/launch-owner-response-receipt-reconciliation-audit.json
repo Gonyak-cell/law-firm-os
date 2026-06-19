@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.launch-owner-response-receipt-reconciliation-audit.v0.1",
+  "generated_at": "2026-06-19T00:18:14.953Z",
+  "source_refs": [
+    "docs/launch/launch-owner-approval-receipt-ledger.json",
+    "docs/launch/launch-owner-approval-receipt-ledger-validation.json",
+    "docs/launch/launch-owner-response-receipt-candidates.json",
+    "docs/launch/launch-owner-response-receipt-candidates-validation.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "reconciles_real_receipts_to_candidates_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "receipt_ledger_modified_by_this_audit": false,
+    "launch_decision_register_modified_by_this_audit": false,
+    "empty_real_receipt_state_counts_as_owner_approval": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "receipt_slot_count": 4,
+    "pending_receipt_slot_count": 4,
+    "real_owner_receipt_count": 0,
+    "copy_allowed_count": 0,
+    "receipt_update_candidate_count": 0,
+    "reconciled_real_receipt_count": 0,
+    "unreconciled_real_receipt_count": 0,
+    "field_mismatch_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "reconciled_receipt_slots": [],
+  "findings": []
+}

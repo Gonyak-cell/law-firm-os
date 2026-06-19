@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-241",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T13:08:15.574Z",
+  "finished_at": "2026-06-10T13:12:07.225Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":231139,\"duration_api_ms\":219649,\"ttft_ms\":3714,\"num_turns\":31,\"result\":\"Review complete. **Verdict: PASS** — zero findings (P0–P3 all clear).\\n\\nCP00-241 is a clean descriptor-only pack whose `production_ready: false` / `implemented_pending_review` posture is fully supported by the inspected source, contract projection, tests, and validator. The no-write / no-real-data / no-runtime boundaries are enforced in code and data, the S05/S06 security-audit rows correctly exclude permission-decision and audit-body detail, and Claude's read-only non-final-approver boundary holds throughout. The only caveat noted is that the `command-evidence.json` validation results are recorded claims I could not re-execute under the read-only constraint, but they are consistent with the source. Nothing blocks pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"203fcc34-12cd-4c50-a3c6-8ba04f6e6e20\",\"total_cost_usd\":2.1306990000000003,\"usage\":{\"input_tokens\":26,\"cache_creation_input_tokens\":170166,\"cache_read_input_tokens\":1299813,\"output_tokens\":16638,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":170166,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":288,\"cache_read_input_tokens\":157354,\"cache_creation_input_tokens\":5767,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5767},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1070,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001175,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":26,\"outputTokens\":16638,\"cacheReadInputTokens\":1299813,\"cacheCreationInputTokens\":170166,\"webSearchRequests\":0,\"costUSD\":2.1295240000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-241 (RP07.P02.M05.S01-S10, risk A, 10 units, \\\"Permission And Audit Binding\\\" head) is a clean descriptor-only pack and its production_ready posture is well supported. The manifest correctly holds production_ready=false / implemented_pending_review with flag search_core_service_audit_binding_descriptor_verified; the Hermes packet's production_ready_candidate=true is a coverage+binding derivation, not an enterprise-trust claim. Implementation (registry.js, service.js, validators.js) builds only frozen descriptor objects with no-write boolean flags — a Grep for fetch/fs/child_process/network/DB operations in packages/search/src returned only descriptor flags (e.g. creates_database_rows:false), confirming no search/OCR/index/embedding runtime, no permission/audit runtime evaluation, no state/idempotency persistence, no object storage, and no command/Hermes runtime. Coverage matches across closeout-pack-plan.json:412, the review baseline, the contract projection (service_audit_binding_descriptor with all 10 rows + historical_pack_bindings tail = CP00-241), and validateSearchCoreCp241Coverage/Binding; deliverable split contract:1/implementation:6/security_audit:2/ui:1 is exact. Security/audit deliverables S05 (permission_precheck: decision-detail excluded, deny_over_allow_enforced) and S06 (audit_hint_precheck: hint + event-body excluded) plus tenant_boundary_precheck (no cross-tenant), state_transition_enforcement (no write), and idempotency_key_handling (no persist) are enforced by validators.js:1287-1294 and asserted in model.test.js; summary-only review was correctly prohibited and source was inspected via Read/Grep/Glob. Authority boundary is intact everywhere: claude_is_final_approval=false, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false; the review ran read-only with model claude-opus-4-8 and a passing auth preflight (valid JSON, 1436-byte stdout). Hermes H07 appears only as a deterministic evidence-packet/review label (emits_hermes_runtime_receipt=false), not embedded product runtime. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, review-receipt.json) are appropriately absent pre-review and are generated from this review. Caveat: validation-command results in command-evidence.json (npm test, rp07:search-core:validate, etc., all exit 0) are recorded claims that I could not re-execute under read-only constraints, but they are consistent with the inspected source. No P0-P3 findings; unrelated dirty v2/loop planning docs were treated as out of scope per the changed-file-scope manifest.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"dc4720a3-bbc3-406f-9b48-6c842d42e4c9\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5097,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "203fcc34-12cd-4c50-a3c6-8ba04f6e6e20",
+    "uuid": "dc4720a3-bbc3-406f-9b48-6c842d42e4c9",
+    "total_cost_usd": 2.1306990000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

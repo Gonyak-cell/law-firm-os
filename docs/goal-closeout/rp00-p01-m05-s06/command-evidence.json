@@ -1,0 +1,137 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P01.M05.S06",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Ownership metadata",
+  "entity": "HumanApproval",
+  "status": "passed",
+  "recorded_at": "2026-06-04T01:47:32Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "cannot_synthesize_human_approval": true,
+  "commands": [
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "purpose": "Control-plane contract and synthetic fixture JSON parse check"
+    },
+    {
+      "command": "node --check packages/control-plane/src/model.js && node --check packages/control-plane/src/registry.js && node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "Control-plane model, registry, and validator syntax check"
+    },
+    {
+      "command": "node --test packages/control-plane/test/*.test.js",
+      "exit_code": 0,
+      "purpose": "Focused control-plane model tests after P3 mutation-boundary hardening",
+      "test_count": 35,
+      "pass_count": 35
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Hermes H00 control-plane contract validation after closeout evidence recording"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "227 requirement ledger validation",
+      "requirement_count": 227
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "Law Firm OS product contract validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "Weighted implementation ledger validation",
+      "implementation_subphase_count": 54355
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "Full microphase plan validation",
+      "micro_phase_count": 3300,
+      "release_program_count": 30
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "Global goal closeout protocol validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "Full repo test suite",
+      "test_count": 58,
+      "pass_count": 58
+    }
+  ],
+  "post_claude_finding_validation": [
+    {
+      "command": "node --test packages/control-plane/test/*.test.js",
+      "exit_code": 0,
+      "purpose": "Validate P3 required mutation/reference boundary hardening after the single Claude review",
+      "test_count": 35,
+      "pass_count": 35
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Confirm S06 ownership metadata closeout evidence and construction inspection after adjudication"
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was imported, read from production, or written by this subphase.",
+    "All validation commands are no-write evidence commands; this subphase only defines HumanApproval ownership metadata policy and validation behavior.",
+    "Claude review is limited to one completed claude-opus-4-8 max read-only review; post-review fixes are validated locally and through Hermes without rerunning Claude."
+  ],
+  "final_validation_rerun": {
+    "recorded_at": "2026-06-04T01:48:10Z",
+    "commands": [
+      {
+        "command": "npm run rp00:control-plane:validate",
+        "exit_code": 0,
+        "result": "RP00 control-plane contract validation passed; subphase RP00.P01.M05.S06 status production_ready"
+      },
+      {
+        "command": "npm run spec:requirements:validate",
+        "exit_code": 0,
+        "requirement_count": 227
+      },
+      {
+        "command": "npm run validate",
+        "exit_code": 0,
+        "modules": "9/9",
+        "principles": "9/9",
+        "invariants": "7/7"
+      },
+      {
+        "command": "npm run weighted:validate",
+        "exit_code": 0,
+        "implementation_subphase_count": 54355
+      },
+      {
+        "command": "npm run fullplan:validate",
+        "exit_code": 0,
+        "micro_phase_count": 3300,
+        "release_program_count": 30
+      },
+      {
+        "command": "npm run goal:closeout:validate",
+        "exit_code": 0,
+        "claude": "claude-opus-4-8 effort=max read-only"
+      },
+      {
+        "command": "npm test",
+        "exit_code": 0,
+        "test_count": 58,
+        "pass_count": 58
+      }
+    ]
+  }
+}

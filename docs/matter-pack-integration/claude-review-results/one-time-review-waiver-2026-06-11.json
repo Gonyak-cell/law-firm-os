@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.claude-review-waiver.v0.1",
+  "date": "2026-06-11",
+  "owner_instruction": "클로드 리뷰는 이번만 생략",
+  "applies_only_to": "workbook/absorption-package/08_Codex_TUW_백로그.md current landing",
+  "valid_reviews_completed": [
+    "C-MPACK-01",
+    "C-MPACK-02"
+  ],
+  "partial_not_counted_as_valid_review": [
+    {
+      "review_id": "C-MPACK-03",
+      "raw_evidence": "docs/matter-pack-integration/claude-review-results/raw/c-mpack-03-attempt-01-wrapper.raw.json",
+      "reason": "wrapper pass completed with PASS substance, but JSON restatement was blocked by Claude usage limit"
+    }
+  ],
+  "user_waived_reviews": [
+    "C-MPACK-03",
+    "C-MPACK-04",
+    "C-MPACK-05",
+    "C-MPACK-M365-01",
+    "C-MPACK-M365-02",
+    "C-HRX-01",
+    "C-HRX-02",
+    "C-HRX-03",
+    "C-HRX-04"
+  ],
+  "not_a_future_precedent": true,
+  "implementation_admission_allowed": false
+}

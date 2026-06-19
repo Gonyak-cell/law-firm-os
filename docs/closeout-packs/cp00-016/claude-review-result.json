@@ -1,0 +1,130 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-016",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "source": "claude_cli",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "reason_not_counted": "api_error_529_overloaded",
+      "is_error": true,
+      "api_error_status": 529,
+      "session_id": "7bfb6188-7ac4-42e4-8178-a36f2a6163b7",
+      "uuid": "d95651e5-5c4c-4963-b201-77f265fec185",
+      "duration_ms": 225349,
+      "total_cost_usd": 0.034977
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "0bb6cc7e-3848-4d73-b347-fb2e4ed1d6d8",
+    "uuid": "06cdc313-94fe-4d62-8d2b-4d92cd80dae7",
+    "duration_ms": 302083,
+    "duration_api_ms": 304270,
+    "total_cost_usd": 1.9133582500000001,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 40077,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.040182,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 4,
+        "outputTokens": 26260,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 194665,
+        "webSearchRequests": 0,
+        "costUSD": 1.8731762500000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": 14282,
+        "title": "Denied-path test asserts error.message only; expectedFailClosedOn reason codes are self-validated, not behavior-asserted",
+        "description": "assertPermissionAuditBindingDeniedPathCaseThrows checks error.message equals the expected string and, for forbidden_claim cases, cross-checks expectedReasonByForbiddenClaim[claim] against the case's expectedFailClosedOn (test data vs. test data). The thrown error's machine-readable fail-closed reason is never asserted, so a drift in the precheck's internal reason code (while the message stayed stable) would go undetected. Each message uniquely encodes the claim/reason so coverage is functionally adequate; the reason-code map is effectively documentation-only.",
+        "recommendation": "Optional: if the precheck attaches a structured reason (e.g., error.failClosedOn), assert it alongside the message so expectedFailClosedOn is behavior-verified rather than self-referential."
+      },
+      {
+        "severity": "P3",
+        "file": "packages/control-plane/src/policies.js",
+        "line": 9793,
+        "title": "Falsy-non-false fail-closed coverage limited to a single claim",
+        "description": "Only falsy_forbidden_claim.execute_retry_zero (execute_retry: 0) exercises rejection of a falsy-but-not-false forbidden value; the other 36 forbidden claims are tested only with true. Because the precheck applies one uniform presence-based check across all forbidden keys, a single falsy case is representative, but the falsy invariant is proven for one claim rather than the set.",
+        "recommendation": "Optional: leave as-is given uniform handling, or add a one-line comment noting all forbidden keys share one presence-based check so one falsy case suffices."
+      },
+      {
+        "severity": "P3",
+        "file": "packages/control-plane/src/policies.js",
+        "line": 9831,
+        "title": "unknown_claim type has no exposed sub-count; 37+4+1 sub-counts do not sum to deniedCaseCount 43",
+        "description": "deniedCaseCount=43 = 37 forbidden_claim + 4 input_drift + 1 claims_shape + 1 unknown_claim. Only forbiddenClaimCaseCount/inputDriftCaseCount/claimsShapeCaseCount are exposed and validated (sum 42); the unknown_claim is implicit in the total. deniedAssertions does include unknown_truthy_retry_claim_rejected, so the behavior is tested — this is a count-exposure clarity gap, not a correctness defect, and the RP validator checks each count independently so no contradiction exists.",
+        "recommendation": "Optional: add an unknownClaimCaseCount (mirrored in contract/fixture/validator) so all 43 cases are accounted for by explicit sub-counts."
+      }
+    ],
+    "security_notes": [
+      "Denied matrix enforces fail-closed rejection of 37 forbidden claims spanning service execution, runtime route creation, DB/storage/product-state writes, runtime permission/authz/permission-engine/security-trimming, audit ledger/event writes, Claude review invocation, review/approval/human-approval/blocked-claim writes, rollback/retry/compensation execution, operator/customer notification, incident/observability writes, and real client/matter data usage — consistent with the test-only, no-write boundary.",
+      "Presence-based fail-closed is demonstrated: execute_retry: 0 (falsy, non-false) is rejected, not just truthy values; unknown truthy override (unreviewed_retry_override) is also rejected.",
+      "Input-drift cases (wrong S16 rollback marker, claude_review entrypoint, null rollback receipt, denied rollback decision) confirm upstream-chain validation; non-object claims are rejected (claims_must_be_object).",
+      "Fixture asserts synthetic_only / deterministic / tenant_scoped / no_real_client_data / no_real_matter_data / no_credentials_or_secrets; no secrets or real data present in the diff."
+    ],
+    "test_notes": [
+      "Pre-review reports node --check = 0 across policies/service/validators/service.test/RP validator, and node --test packages/control-plane/test/service.test.js = 417 pass.",
+      "Only outstanding RP-validator failure pre-closeout is the not-yet-created CP00-016 evidence files (docs/closeout-packs/cp00-016); expected at this stage and resolved by pack assembly + adjudication. Implementation substance is internally consistent.",
+      "Cross-artifact consistency verified: contract control_plane_permission_audit_binding_unit_test_denied_path_definition, CONTROL_PLANE_..._UNIT_TEST_DENIED_PATH_POLICY/MODULE/CASE_IDS, fixture, service.test.js cases, and RP validator agree on subphase RP00.P02.M05.S20, testedSubphaseIds S01-S19 (19), denied counts 43/37/4/1, refs, gates, and handoff.",
+      "Denied matrix is adequate: 43 cases = 37 forbidden_claim + 1 unknown_claim + 4 input_drift + 1 claims_shape; valid retry-behavior baseline still passes (retry_behavior_decision=retry_behavior_metadata_only, source_micro_phase_completed=false, next_subphase=RP00.P02.M05.S19).",
+      "Closeout/handoff correct: S20 completes RP00.P02.M05 (completesSourceMicroPhase=true), weighted boundary is terminal with nextSubphaseId=null, and future handoff is RP00.P02.M06.S01 across policy/contract/fixture.",
+      "No false claims detected: noRealData=true, writesProductState=false, and all doesNot* safety flags=true accurately reflect a test-only, no-write subphase that exercises the pure precheckControlPlanePermissionAuditBindingRetryBehavior function via assert.throws."
+    ],
+    "summary": "CP00-016 / RP00.P02.M05.S20 is a metadata-and-precheck denied-path unit test that closes micro-phase RP00.P02.M05. Contract definition, policy/module/case-id exports, synthetic fixture, service.test.js cases, and the RP contract validator are mutually consistent: 43 denied cases (37 forbidden_claim + 1 unknown_claim + 4 input_drift + 1 claims_shape) reject every unsafe runtime/write/permission/audit/review/approval/recovery/retry/rollback claim, plus falsy-non-false, unknown override, input drift, and non-object claims, while the valid retry-behavior baseline still passes. Safety flags (noRealData, writesProductState=false, all doesNot* true) are accurate, the weighted boundary is terminal, and handoff to RP00.P02.M06.S01 is declared across policy/contract/fixture. Pre-review reports node --check=0 (5 files), node --test=417 pass, and the RP validator clean except for the not-yet-created CP00-016 evidence files (expected pre-closeout). No P0/P1/P2 issues; three P3 quality notes only (reason-code assertion granularity, single falsy case, missing unknown_claim sub-count). The pack can close after evidence assembly and adjudication."
+  },
+  "raw_review_text": "Review complete. **PASS_WITH_FINDINGS** — no blockers (0 P0/P1/P2, 3 P3 notes). CP00-016 / RP00.P02.M05.S20 is internally consistent across contract, policy/module, fixture, test, and RP validator; the 43-case denied matrix is comprehensive and fail-closed, safety flags are accurate, M05 completion + handoff to RP00.P02.M06.S01 are declared, and the only outstanding validator item is the not-yet-created evidence files (expected pre-closeout). The pack can close after evidence assembly and adjudication.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude returned PASS_WITH_FINDINGS with no P0, P1, or P2 findings. Three P3 findings are deferred in adjudication.md."
+}

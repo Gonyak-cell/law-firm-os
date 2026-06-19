@@ -1,0 +1,565 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-729",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "program_id": "RP24",
+  "risk_class": "A",
+  "planned_pack_id": "CP00-729",
+  "planned_risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "primary_subphase_id": "RP24.P02.M07.S12",
+  "next_subphase": "RP24.P02.M07.S13",
+  "production_ready_flag": "korean_legal_p02_test_golden_case_set_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "runtime_opened": false,
+    "summary": "CP00-729 extends the RP24 Korean Legal Depth korean-legal descriptor from RP24.P02.M07.S03 through RP24.P02.M07.S12 across 10 planned P02 Test And Golden Case Set units while preserving CP00-722 through CP00-728 as historical evidence and keeping HWPX, Korean clause, litigation, court filing, corporate document, permission, audit, Hermes runtime, and product-state surfaces closed.",
+    "source_refs": [
+      "contracts/korean-legal-depth-contract.json",
+      "packages/korean-legal/src/registry.js",
+      "packages/korean-legal/src/service.js",
+      "packages/korean-legal/src/validators.js",
+      "packages/korean-legal/src/index.js",
+      "packages/korean-legal/test/model.test.js",
+      "packages/korean-legal/package.json",
+      "packages/korean-legal/README.md",
+      "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+      "package.json",
+      "docs/closeout-packs/cp00-729/manifest.json",
+      "docs/closeout-packs/cp00-729/command-evidence.json",
+      "docs/closeout-packs/cp00-729/claude-review-result.json",
+      "docs/closeout-packs/cp00-729/adjudication.md",
+      "docs/closeout-packs/cp00-729/construction-inspection.json",
+      "artifacts/closeout-pack-claude-review/cp00-729/"
+    ]
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "included_units": [
+    {
+      "id": "RP24.P02.M07.S03",
+      "title": "Tenant boundary precheck",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S04",
+      "title": "Matter trace precheck",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S05",
+      "title": "Permission precheck",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S06",
+      "title": "Audit hint precheck",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S07",
+      "title": "Primary happy path",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S08",
+      "title": "Secondary workflow path",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S09",
+      "title": "State transition enforcement",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S10",
+      "title": "Idempotency key handling",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S11",
+      "title": "Lock acquisition rule",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "RP24.P02.M07.S12",
+      "title": "Persistence boundary",
+      "source_micro_phase_id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "phase_id": "RP24.P02",
+      "micro_id": "M07",
+      "micro_title": "Test And Golden Case Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_layer": "descriptor",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-729/manifest.json",
+        "docs/closeout-packs/cp00-729/command-evidence.json",
+        "docs/closeout-packs/cp00-729/claude-review-result.json",
+        "docs/closeout-packs/cp00-729/adjudication.md",
+        "docs/closeout-packs/cp00-729/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/korean-legal-depth-contract.json",
+        "packages/korean-legal/src/registry.js",
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/validators.js",
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/test/model.test.js",
+        "packages/korean-legal/package.json",
+        "packages/korean-legal/README.md",
+        "scripts/validate-rp24-korean-legal-depth-contract.mjs",
+        "package.json"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-729/manifest.json",
+    "docs/closeout-packs/cp00-729/command-evidence.json",
+    "docs/closeout-packs/cp00-729/claude-review-result.json",
+    "docs/closeout-packs/cp00-729/adjudication.md",
+    "docs/closeout-packs/cp00-729/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "commit_policy": {
+    "required": true,
+    "commit_message": "Close CP00-729 Korean Legal Depth P02 test golden case set pack",
+    "stage_only_pack_scope": true,
+    "preserve_unrelated_dirty_worktree_changes": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-729/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-729/review-receipt.json",
+    "parsed_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "review_artifacts": {
+    "root": "artifacts/closeout-pack-claude-review/cp00-729",
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-729/review-baseline.json",
+    "request_ref": "artifacts/closeout-pack-claude-review/cp00-729/review-request.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-729/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-729/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-729/review-receipt.json"
+  },
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-729",
+    "planned_pack_id": "CP00-729",
+    "title": "CP00-729 RP24.P02.M07.S03-RP24.P02.M07.S12 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP24.P02.M07.S03",
+      "last_unit_id": "RP24.P02.M07.S12",
+      "description": "RP24.P02.M07.S03-RP24.P02.M07.S12"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP24.P02.M07.S03",
+        "title": "Tenant boundary precheck",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP24.P02.M07.S04",
+        "title": "Matter trace precheck",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP24.P02.M07.S05",
+        "title": "Permission precheck",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP24.P02.M07.S06",
+        "title": "Audit hint precheck",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP24.P02.M07.S07",
+        "title": "Primary happy path",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP24.P02.M07.S08",
+        "title": "Secondary workflow path",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP24.P02.M07.S09",
+        "title": "State transition enforcement",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP24.P02.M07.S10",
+        "title": "Idempotency key handling",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP24.P02.M07.S11",
+        "title": "Lock acquisition rule",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP24.P02.M07.S12",
+        "title": "Persistence boundary",
+        "source_micro_phase_id": "RP24.P02.M07",
+        "program_id": "RP24",
+        "phase_id": "RP24.P02",
+        "micro_id": "M07",
+        "micro_title": "Test And Golden Case Set",
+        "deliverable_type": "implementation"
+      }
+    ]
+  }
+}

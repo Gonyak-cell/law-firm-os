@@ -1,0 +1,178 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M04.S03",
+  "source_micro_phase_id": "RP00.P01.M04",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T04:22:27+09:00",
+  "review_command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "read_only": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "cli_version": "2.1.143",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "91e7c2b8-e3c8-4361-a552-190c514a0718",
+    "uuid": "39f45ee4-7958-463b-8f2f-df8e1c38a267",
+    "total_cost_usd": 2.2136839999999998,
+    "duration_ms": 383390,
+    "duration_api_ms": 384566,
+    "permission_denials": []
+  },
+  "session_id": "91e7c2b8-e3c8-4361-a552-190c514a0718",
+  "uuid": "39f45ee4-7958-463b-8f2f-df8e1c38a267",
+  "duration_ms": 383390,
+  "duration_api_ms": 384566,
+  "total_cost_usd": 2.2136839999999998,
+  "overall_verdict": "PASS_WITH_FINDINGS",
+  "go_no_go": "GO_AFTER_EVIDENCE_RECONCILIATION",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 1,
+    "p3_count": 5,
+    "findings": [
+      {
+        "severity": "P2_FIXED",
+        "title": "Evidence state must not appear passed before review artifacts exist",
+        "summary": "Follow-up review flagged that the contract gate looked passed while claude-review-result.json was absent. This artifact, adjudication.md, construction-inspection.json, and the production_ready promotion reconcile that evidence state before commit.",
+        "blocks_closeout": false
+      },
+      {
+        "severity": "P3_FIXED",
+        "title": "Add direct non-object reviewGate coverage",
+        "summary": "Added null and truthy non-object reviewGate checks in both model tests and the RP00 validator.",
+        "blocks_closeout": false
+      },
+      {
+        "severity": "P3_FIXED",
+        "title": "Make numeric tenantContext assertion precise",
+        "summary": "Narrowed the model-test regex to /must provide tenant_id/ for numeric tenantContext rejection and retained validator fail-closed coverage.",
+        "blocks_closeout": false
+      },
+      {
+        "severity": "P3_ACCEPTED_NON_BLOCKING",
+        "title": "Declarative requiredWhen enforcement",
+        "summary": "Accepted as non-blocking because S03 is the field-definition slice; packet evaluation runtime remains a later implementation concern.",
+        "blocks_closeout": false
+      },
+      {
+        "severity": "P3_ACCEPTED_NON_BLOCKING",
+        "title": "Future-tense gate wording before promotion",
+        "summary": "Accepted only while implemented; production_ready promotion updates artifacts and final validation evidence before commit.",
+        "blocks_closeout": false
+      }
+    ]
+  },
+  "current_contract_status_reviewed": "implemented",
+  "promotion_target": "production_ready",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "P2-1",
+        "title": "Evidence state consistency for Claude review gate",
+        "disposition": "fixed",
+        "resolution": "Created claude-review-result.json, adjudication.md, and construction-inspection.json before promotion; production_ready status and final validation evidence are updated in the same closeout tranche."
+      }
+    ],
+    "P3": [
+      {
+        "id": "P3-1",
+        "title": "Direct truthy non-object reviewGate branch coverage",
+        "disposition": "fixed",
+        "resolution": "Added assertClaudeReviewGateTenantScope(42, null) model-test coverage and a truthy non-object reviewGate vector to the RP00 validator."
+      },
+      {
+        "id": "P3-2",
+        "title": "Numeric tenantContext assertion should target the exact context error",
+        "disposition": "fixed",
+        "resolution": "Changed the model-test assertion to /must provide tenant_id/."
+      },
+      {
+        "id": "P3-3",
+        "title": "Declarative requiredWhen enforcement is not runtime-enforced in S03",
+        "disposition": "accepted_non_blocking",
+        "resolution": "No code change; S03 defines the field contract, while packet-level runtime enforcement remains outside this subphase."
+      }
+    ]
+  },
+  "blocking_findings_remaining": false,
+  "post_finding_validation": {
+    "node_check_validator": "passed",
+    "control_plane_tests": "28/28 passed",
+    "rp00_control_plane_contract_validate": "passed"
+  },
+  "followup_reviews": [
+    {
+      "required": true,
+      "completed": true,
+      "reason": "P3 test-depth hardening changed tests and validator after the initial review.",
+      "reviewed_at": "2026-06-04T04:22:27+09:00",
+      "review_command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "permission_mode": "dontAsk",
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "read_only": true,
+      "session_id": "32f76290-e412-43a8-90d9-910ac17099d1",
+      "uuid": "a72876e9-4fab-43d0-9801-e553e454ce55",
+      "duration_ms": 239124,
+      "duration_api_ms": 242364,
+      "total_cost_usd": 1.5773252500000001,
+      "verdict": "PASS_WITH_FINDINGS",
+      "go_no_go": "NO_GO_UNTIL_EVIDENCE_ARTIFACTS_RECORDED",
+      "unresolved_findings": {
+        "P0": [],
+        "P1": [],
+        "P2": [
+          "Evidence artifacts were still pending at review time."
+        ],
+        "P3": [
+          "Truthy non-object reviewGate direct branch coverage was recommended.",
+          "Numeric tenantContext assertion regex was recommended to be more precise."
+        ]
+      },
+      "fixed_after_review": [
+        {
+          "id": "P2-1",
+          "status": "fixed_by_closeout_artifacts_and_promotion"
+        },
+        {
+          "id": "P3-1",
+          "status": "fixed_by_direct_truthy_non_object_vector"
+        },
+        {
+          "id": "P3-2",
+          "status": "fixed_by_precise_error_regex"
+        }
+      ],
+      "no_product_state_writes": true,
+      "files_modified_by_review": "none"
+    }
+  ],
+  "requires_followup_review": false,
+  "followup_review_reason": "Initial and follow-up claude-opus-4-8 max read-only reviews completed; remaining findings were fixed or accepted before production_ready promotion."
+}

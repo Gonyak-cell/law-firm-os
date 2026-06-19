@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-434",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T04:00:24.809Z",
+  "finished_at": "2026-06-12T04:07:11.408Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":405633,\"duration_api_ms\":406196,\"ttft_ms\":3703,\"num_turns\":39,\"result\":\"Review complete: **PASS** for CP00-434 with zero findings. The descriptor-only pack's evidence is internally consistent, the `production_ready` claim is honestly `false`/pending closeout, and all boundary, Hermes-scope, and CP178+ hardening checks hold — it does not block pack or goal closeout, but as read-only reviewer I don't grant the final approval that remains a human gate.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2a8b52c8-0b4c-46e1-b6ca-00ad7f419fce\",\"total_cost_usd\":2.81908725,\"usage\":{\"input_tokens\":125,\"cache_creation_input_tokens\":182893,\"cache_read_input_tokens\":1405548,\"output_tokens\":27050,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":182893,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":182,\"cache_read_input_tokens\":32363,\"cache_creation_input_tokens\":2915,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2915},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1157,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001257,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":2012,\"outputTokens\":33515,\"cacheReadInputTokens\":1569953,\"cacheCreationInputTokens\":189587,\"webSearchRequests\":0,\"costUSD\":2.8178302499999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-434 (RP14 Partner Settlement, Risk C, 150 units, range RP14.P03.M04.S16-RP14.P04.M02.S11) passes independent read-only review with zero findings. The pack-level production_ready claim is honest and conservative: manifest and command-evidence both record production_ready=false / runtime_ready=false with status \\\"implementation_and_plan_gates_passed_pending_final_closeout\\\"; only the contract-level production_ready_candidate is true, gated on coverage.valid && slice.valid. Deliverable distribution (implementation 60, contract 26, security_audit 18, test 15, hermes_evidence 5, claude_review 8, ui 18) and micro-title row counts reconcile to 150 across registry CP434_REQUIREMENTS, validators coverage checks, manifest delivery_counts, and the test suite. No-write/no-real-data boundaries are enforced in freezeCp434Result and the NO_WRITE_ATTESTATION (synthetic_only=true, no_real_data=true, writes_product_state=false, emits_hermes_runtime_receipt=false, executes_*_runtime=false, loads_real_fixture_data=false), and command-evidence confirms no_real_data=true with all 27 validation commands (full prompt suite) exiting 0. Authority boundary is intact: claude_role=read_only_independent_reviewer, claude_is_final_approval=false, promotes_claude_to_final_approval=false, human_final_approval_required_for_runtime_opening=true across registry, service, validators, and contract. Hermes (gate H14) is used only for deterministic control-plane review-packet/receipt validation, not embedded in product runtime. CP178+ review hardening holds: auth preflight passed with valid 1430-byte JSON result (not 0-byte, not fenced, not tool-call-shaped, no missing fields), readiness ready=true, and invalid_attempts_preserved is empty. Unrelated dirty files (the v2.0 docx, workbook/* artifacts, and docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json) are correctly classified out of pack scope and are not treated as this pack's review evidence. Post-review gated commands (closeout-pack:review/normalize/receipt:validate, closeout-pack-plan:generate, closeout-pack:validate, git diff --check --cached) are appropriately deferred until after an accepted review. As read-only reviewer I do not grant final approval or close the enterprise trust claim; this verdict supports closeout but human final approval remains required.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"02492849-b262-462e-88fe-104dbd5fe4e5\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4406,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "2a8b52c8-0b4c-46e1-b6ca-00ad7f419fce",
+    "uuid": "02492849-b262-462e-88fe-104dbd5fe4e5",
+    "total_cost_usd": 2.81908725,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

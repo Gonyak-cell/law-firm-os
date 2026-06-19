@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-063",
+  "subphase_id": "RP00.P04.M07.S11",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "bd828739-45af-44c2-a706-7f69c5adb582",
+    "uuid": "f8f35560-1e25-4f3e-9733-8ba307a96825",
+    "duration_ms": 56774,
+    "duration_api_ms": 59492,
+    "total_cost_usd": 0.172032,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-063-claude-review-output.json"
+  },
+  "invalid_review_attempts_not_counted": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "PASS",
+    "raw_gate_assessment": {
+      "implementation": "PASS",
+      "tests": "PASS",
+      "hermes_evidence_ready_after_pack_files": "PASS",
+      "adjudication_required": true,
+      "construction_inspection_ready_after_pack_files": "PASS",
+      "production_ready_allowed_after_evidence": "PASS"
+    },
+    "raw_review_summary": "Scope is coherent: 11 included units RP00.P04.M07.S01-S11 map 1:1 to the 11 metadata-only catalogue entries, current_subphase advanced to S11, 11 subphase_closeouts bind to cp00-063, and next boundary M08.S01 correctly follows full closure of M07. Fail-closed design (metadata-only; rejects runtime test execution, golden generation/persistence, catalog/contract writes, raw policy/audit payload exposure, real data, secrets) matches the established CP00-058..062 pattern. All non-evidence validations pass; the only rp00:control-plane:validate FAIL is the expected pre-review missing-evidence-files condition and should clear after pack evidence is generated. No correctness risks warranting FAIL identified from the provided evidence.",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "original_review_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "severity": "P3",
+          "file": "n/a",
+          "line": null,
+          "title": "Verification basis is summary + pre-run validation only",
+          "description": "Per instructions no tools were used, so this review relies on the implementation summary and the pre-run validation outputs rather than direct file inspection. The provided evidence is internally consistent (syntax PASS on all 5 files, 657 node:test PASS, plan validate PASS with queue starting after CP00-062), but assembler claim-rejection logic and fixture/contract byte-equality were not independently re-derived here.",
+          "required_action": "Rely on the RP00 control-plane validator's assembled-result-equality, fixture-integrity, and module no-write-flag checks (which the summary states were added for CP00-063) to mechanically confirm the assertions; ensure they execute green once docs/closeout-packs/cp00-063 evidence files exist.",
+          "status": "accepted_and_covered_by_final_validators",
+          "disposition": "The review was intentionally read-only with no tools; final RP00, closeout-pack, goal, weighted, requirements, full plan, npm test, and product validators provide the mechanical confirmation requested by the note."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "metadata_only_test_golden_catalogue": "pass",
+      "consumes_cp00_062_synthetic_fixture_set_result": "pass",
+      "no_runtime_test_execution_or_test_runner": "pass",
+      "no_runtime_fixture_or_golden_fixture_generation": "pass",
+      "no_golden_fixture_persistence_or_catalog_write": "pass",
+      "no_unit_test_contract_write": "pass",
+      "no_runtime_ui_route_or_external_assets": "pass",
+      "no_db_storage_product_state_idempotency_lock_writes": "pass",
+      "no_audit_or_review_writes": "pass",
+      "no_runtime_permission_authz_or_security_trimming": "pass",
+      "no_raw_permission_policy_or_internal_audit_payload": "pass",
+      "no_real_data_or_secrets": "pass",
+      "plan_drift": "none",
+      "source_micro_phase_completion": "RP00.P04.M07 completed; RP00.P04 open; next RP00.P04.M08.S01",
+      "fail_closed_two_state_enforcement": "pass",
+      "validator_coverage": "comprehensive",
+      "test_sufficiency": "allow+blocked+tamper+drift+forbidden/unknown-claim covered"
+    },
+    "notes": [
+      "Claude returned PASS with one non-blocking P3 meta note about no-tool review basis.",
+      "No P0, P1, or P2 findings were reported.",
+      "The P3 note is adjudicated by relying on final mechanical validators and keeping this review as the single valid pack-level read-only review."
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-396",
+  "normalized_at": "2026-06-11T23:33:57.352Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-396/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-396/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-396/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-396/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "3df769b1-3729-4e36-97b6-1bbf77820551",
+    "uuid": "146030b8-21fb-4a30-bd0f-930a3684c193",
+    "total_cost_usd": 2.1001302500000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7425,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-396 is a clean, descriptor-only continuation of the RP13 payments-core series (CP00-392..395). It covers exactly 150 RP13 units (RP13.P02.M06.S13 -> RP13.P03.M05.S04), risk class C, deviation_from_plan=false, with deliverable/micro-title distributions that agree across the live plan, manifest plan_binding_snapshot, review-baseline, registry requirements, and manifest delivery_counts, and are enforced by validatePaymentsCoreCp396Coverage. The implementation (registry.js/service.js/validators.js) produces only frozen descriptor objects via pure functions with exhaustive no-write/no-runtime/no-real-data flags; there are no state writes, no DB/object-storage access, no Hermes runtime receipts, no payments/matching/AR-aging/journal runtime, and no command/UI/API execution. Tests (model.test.js:313-371) and the contract validator (validate-rp13-payments-core-contract.mjs:272-312, deep-equality on contract projections) cover coverage, descriptor-only rows, authority boundaries, evidence packets, and the CP00-397 handoff. The production_ready claim is appropriately conservative: manifest and command-evidence both set production_ready=false with status implemented_pending_review, exposing only production_ready_candidate=true at the Hermes packet level. The authority boundary holds: claude_is_final_approval=false, enterprise_trust_not_claimed_from_local_validation=true, human_final_approval_required=true; the review request is read-only (Read/Grep/Glob) and Hermes patterns are used only for deterministic review packet/receipt descriptors, not product runtime. Review-evidence hardening checks pass: auth preflight succeeded with valid JSON (no auth failure, no 0-byte/malformed/fenced/tool-call-shaped output), and no invalid review attempts are recorded. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are absent at review time by design, matching the closed CP00-395 structure and the command-evidence post-review-gated-command notes; this is expected, not missing evidence. The 7 modified tracked files match the active implementation refs (index.js needs no change due to export *), active_untracked_implementation_files_omitted is empty, and unrelated dirty files are correctly excluded. No P0/P1/P2 issues found; one cosmetic P3 on scope-descriptor labeling. Recommend proceeding to post-review adjudication and human final approval (Claude does not grant final approval or enterprise-trust closure).",
+    "findings": [
+      {
+        "id": "CP00-396-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope lists the pack's own output dir as both implementation and unrelated-preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-396/changed-file-scope.json",
+        "line": 138,
+        "details": "docs/closeout-packs/cp00-396/ (the pack's own manifest/command-evidence output directory) appears simultaneously in untracked_implementation_files (line 132) and in unrelated_dirty_files_preserved (line 138). The same dual-listing applies to docs/closeout-pack-plan/new-session-handoff.md. This is a cosmetic inconsistency in the scope categorization: a directory cannot be both an in-scope implementation artifact and an 'unrelated' preserved file. It has no effect on review integrity because the decision-relevant field active_untracked_implementation_files_omitted is empty (nothing in-scope was hidden from review), and the substantive pack outputs were inspected directly.",
+        "recommendation": "In the changed-file-scope generator, treat the pack's own docs/closeout-packs/<pack>/ directory and pack handoff docs as in-scope implementation/output artifacts only, and exclude them from unrelated_dirty_files_preserved so the two lists are mutually exclusive. Non-blocking for CP00-396 closeout.",
+        "post_review_disposition": "Open, non-blocking. Cosmetic metadata-only labeling issue in the review scope descriptor; does not affect pack production-readiness, no-write/no-real-data boundaries, or closeout gating."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

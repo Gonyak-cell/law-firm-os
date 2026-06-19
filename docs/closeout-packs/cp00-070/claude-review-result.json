@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-070",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"You are a read-only code reviewer with no tools. Never emit a tool call. Return only valid JSON matching the requested schema.\" --json-schema \"$(tr -d '\\n' < /tmp/cp00-070-review-schema.json)\" --output-format json < /tmp/cp00-070-review-prompt-valid.txt > /tmp/cp00-070-claude-review-output-valid.json",
+    "output_ref": "/tmp/cp00-070-claude-review-output-valid.json",
+    "session_id": "011ac52e-c6af-4c38-b1d9-e62d5882b70f",
+    "uuid": "e34b0b41-c63e-4633-adbc-6bf8caa68afb",
+    "total_cost_usd": 1.6895362499999997,
+    "duration_ms": 207129,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 3
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "CP00-070-F1",
+        "source_id": "F1",
+        "severity": "P3",
+        "area": "consistency",
+        "title": "export_download egress marker remains false",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "blocking": false,
+        "details": "Claude noted that the export_download action row has external_sharing_surface=false even though export/download is an egress vector. The pack still requires legal hold, ethical wall, object ACL, matched rule capture, deny-over-allow, audit hint, and human approval metadata, and it performs no runtime permission or sharing action.",
+        "recommendation": "Consider a future naming or metadata refinement if downstream runtime packs distinguish external sharing from export/download egress. Not required for CP00-070 closeout."
+      },
+      {
+        "id": "CP00-070-F2",
+        "source_id": "F2",
+        "severity": "P3",
+        "area": "provenance",
+        "title": "command_evidence_ref convention points to upstream evidence in reviewed diff",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "blocking": false,
+        "details": "Claude noted that command_evidence_ref in the reviewed implementation points to the upstream CP00-069 evidence convention while CP00-070 evidence is created after review. This is a provenance convention question, not a behavior weakening issue, because required_evidence_refs and pack artifacts are validated at closeout.",
+        "recommendation": "Keep the convention adjudicated for this pack; future packs may make current-pack command evidence refs explicit after evidence creation."
+      },
+      {
+        "id": "CP00-070-F3",
+        "source_id": "F3",
+        "severity": "P3",
+        "area": "planning",
+        "title": "requested_pack_id collides with upstream pack id by live cursor correction",
+        "file": "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "line": null,
+        "blocking": false,
+        "details": "Claude noted requested_pack_id=CP00-069 while pack_id/planned_pack_id=CP00-070. This matches the locked queue live-cursor correction pattern and is explicitly recorded in correction_reason.",
+        "recommendation": "No action for this pack; retain correction_reason as the audit trail."
+      }
+    ],
+    "residual_risks": [
+      "Low. CP00-070 binds metadata-only primary action boundary rows and control fields, rejects runtime/write/LDIP claims, and leaves enforcement implementation deferred to later planned runtime packs.",
+      "Remaining risk is informational: export/download egress naming, command evidence provenance convention, and live-cursor requested_pack_id correction semantics."
+    ],
+    "overall_summary": "CP00-070 ControlPlanePermissionAuditPrimaryActionBoundary is internally consistent, metadata-only, fail-closed, and no-write. Claude reported no P0/P1/P2 findings and three non-blocking P3 observations."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 207129,
+    "duration_api_ms": 209173,
+    "num_turns": 2,
+    "stop_reason": "end_turn",
+    "session_id": "011ac52e-c6af-4c38-b1d9-e62d5882b70f",
+    "total_cost_usd": 1.6895362499999997,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "uuid": "e34b0b41-c63e-4633-adbc-6bf8caa68afb",
+    "result_excerpt": "APPROVE. No P0/P1/P2 blockers found. Severity counts: P0=0, P1=0, P2=0, P3=3 informational. Residual risk low."
+  },
+  "raw_output_ref": "/tmp/cp00-070-claude-review-output-valid.json"
+}

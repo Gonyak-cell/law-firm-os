@@ -1,0 +1,34 @@
+{
+  "work_package_id": "LT-L7-W02",
+  "inspected_at": "2026-06-18T14:27:52Z",
+  "verdict": "BLOCKED_PILOT_MIGRATION_DRYRUN_AND_ROLLBACK_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "engine_staging_setup_exists": false,
+    "dryrun_execution_summary_exists": false,
+    "dryrun_verification_report_exists": false,
+    "pilot_inspection_record_exists": false,
+    "rollback_rehearsal_report_exists": false,
+    "gl_mig_02_package_exists": false,
+    "rp25_engine_smoke_passed": false,
+    "dryrun_executed": false,
+    "rollback_rehearsed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "production_accessed": false,
+    "staging_real_data_accessed": false,
+    "file_server_accessed": false,
+    "sharepoint_accessed": false,
+    "outlook_mailbox_accessed": false,
+    "legacy_matter_register_accessed": false,
+    "pilot_team_access_granted": false,
+    "pilot_signature_synthesized": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

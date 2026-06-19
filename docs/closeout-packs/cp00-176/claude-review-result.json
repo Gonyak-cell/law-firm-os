@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-176",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema": true,
+    "session_id": "84f95c1a-bac9-439c-a72a-935d146d9e95",
+    "uuid": "b7409fc8-f342-4ba3-9d6d-2bc3ee4827ce",
+    "duration_ms": 198444,
+    "duration_api_ms": 200021,
+    "total_cost_usd": 0.9233735,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-176-claude-review-output-attempt3.json"
+  },
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "cp00-176-invalid-prompt-argument-full-diff-stalled",
+      "status": "invalid_not_accepted",
+      "reason": "full-diff prompt-argument invocation was terminated after prolonged 0-byte output and produced no review payload",
+      "raw_output_ref": "/tmp/cp00-176-claude-review-output.json"
+    },
+    {
+      "attempt_id": "cp00-176-invalid-prompt-argument-excerpt-tool-call-shaped",
+      "status": "invalid_not_accepted",
+      "reason": "excerpt prompt invocation returned prose plus tool-call-shaped output instead of the required verdict JSON; it was not accepted as the pack review",
+      "raw_output_ref": "/tmp/cp00-176-claude-review-output-attempt2.json"
+    }
+  ],
+  "review_packet": {
+    "review_id": "C04.CP00-176.master_data_terminal_review_closeout_readiness",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-176-claude-prompt-attempt3.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Reviewed CP00-176 against the provided pack facts and implementation summary. No source or diff excerpts were supplied, so verification is limited to internal consistency and to the described descriptor-only, no-write, and leak-guard boundaries; it cannot confirm the code matches the summary.\n\nConsistency checks all reconcile to 34 units. By type: 17 implementation + 7 claude_review + 6 security_audit + 2 test + 2 ui = 34. By micro-phase: M07 14 + M08 8 + M09 8 + M10 4 = 34. By section: test/golden closeout tail 14 + Hermes review 8 + Claude review 8 + closeout handoff 4 = 34. Range endpoints align: first unit RP04.P09.M07.S07 (M07 spanning S07 to S20 = 14) and last unit RP04.P09.M10.S04 (M10 spanning S01 to S04 = 4); all 34 units fall under RP04.P09 only.\n\nPack and gate identifiers are consistent: current_pack CP00-176, upstream CP00-175, next_pack and handoff CP00-177 to RP05.P00.M00.S01 (RP05 Matter Core). Gates H04/C04 align with the Hermes and Claude review sections; the contract schema bump to v0.21 is asserted by the RP04 validator. The boundary description is correct for a terminal descriptor-only pack: all sections descriptor-only with send/execute/write/permission/audit/route/UI/leak flags false; leak_guard exposes a customer summary surface only and excludes permission, audit, runtime, Hermes, Claude, and next-RP dependency internals; no_write_attestation extends CP175 and keeps data, permission, audit, routes, AI, Hermes, Claude, and case notes false; the service customer summary is trimmed to section_key/section_id/unit_range/unit_count/flags and internal evidence is source refs plus false flags only.\n\nCoverage, handoff, and production gates each have dedicated validators (validateMasterDataCp176Coverage/...TerminalReviewCloseoutReadiness, Hermes/Claude packets, closeout handoff) and three new tests, and the cited suites pass (74/74 model tests, 1242/1242 overall, rp04:master-data:validate reporting CP00-176, covered_units 34, next_pack CP00-177). No coverage gaps, handoff or gate drift, descriptor-only violations, permission or audit leakage, or invalid production-gate assumptions are evident from the summary. The two findings concern the review's evidence basis and a minor reconciliation spot-check; neither blocks closeout.",
+    "findings": [
+      {
+        "id": "CP00-176-C04-F001",
+        "severity": "P2",
+        "title": "Review limited to summary; no code or diff excerpts provided",
+        "file": "packages/master-data/src/registry.js",
+        "line": null,
+        "details": "Only the prose pack facts and implementation summary were available; no source, diff, or contract JSON excerpts were provided. The review confirms the described unit math, pack/gate identifiers, and descriptor-only/no-write/leak-guard boundaries are internally consistent, but cannot independently verify that registry.js, service.js, validators.js, the contract, and the RP04 validator script actually implement the described false flags, trimmed customer surface, and exclusions. This limitation applies pack-wide, not only to registry.js.",
+        "recommendation": "Treat this as a design and consistency sign-off and rely on the cited automated validators and CI (node --test, rp04:master-data:validate, npm run validate/build/test) for implementation-level assurance. If higher assurance is required, attach the diff for the registry binding, service descriptor/catalog, validator functions, and contract projection for a code-level pass.",
+        "post_review_disposition": "explicitly_deferred_with_mitigation: valid review was summary-bounded because prior full/excerpt attempts were invalid; implementation-level assurance is supplied by attached diff, validators, focused tests, full tests, and RP04 contract validation. No second valid review is run for this pack."
+      },
+      {
+        "id": "CP00-176-C04-F002",
+        "severity": "P3",
+        "title": "Confirm by-type and by-section unit groupings partition the same 34 units",
+        "file": "packages/master-data/src/validators.js",
+        "line": null,
+        "details": "The by-type distribution lists claude_review as 7 units while the by-section breakdown lists the Claude review questions section as 8 units, and there is no Hermes work-type in the by-type axis despite an 8-unit Hermes review section. These are orthogonal groupings that each independently sum to 34, so the mismatch is likely intentional, but it is the kind of drift that can hide a mis-typed or mis-sectioned unit.",
+        "recommendation": "Ensure validateMasterDataCp176Coverage asserts both the by-type distribution and the by-section totals against the same set of unit ids (the summary indicates both are checked), and confirm an assertion that the two groupings cover identical unit ids so any future divergence fails the validator.",
+        "post_review_disposition": "fixed: validateMasterDataCp176Coverage now expands terminal section unit ranges and asserts the resulting 34 unit IDs exactly match the planned CP00-176 unit IDs; focused tests and RP04 validator assert the same."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 1,
+      "reported_p3": 1
+    }
+  }
+}

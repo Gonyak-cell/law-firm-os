@@ -1,0 +1,130 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P02.M00.S03",
+  "source_micro_phase_id": "RP00.P02.M00",
+  "status": "passed",
+  "executed_at": "2026-06-04T13:09:57.000Z",
+  "commands": [
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "purpose": "JSON syntax validation for contract and synthetic fixture"
+    },
+    {
+      "command": "node -c packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "purpose": "service policy module syntax check"
+    },
+    {
+      "command": "node -c packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "purpose": "service validator module syntax check"
+    },
+    {
+      "command": "node -c packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "purpose": "service module syntax check"
+    },
+    {
+      "command": "node -c scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "RP00 validator syntax and brace-balance check"
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js packages/control-plane/test/model.test.js",
+      "exit_code": 0,
+      "purpose": "focused control-plane service and model tests"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Hermes H00 RP00 control-plane contract validation after S03 evidence materialization"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "weighted implementation ledger validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "spec requirement ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "full local test suite"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "purpose": "whitespace conflict check"
+    },
+    {
+      "command": "git diff -- packages/control-plane/src/states.js packages/control-plane/src/registry.js",
+      "exit_code": 0,
+      "purpose": "confirm S03 did not mutate shared state enum definitions or the existing domain model registry"
+    }
+  ],
+  "hermes_gate": {
+    "gate_id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "outcome": "passed"
+  },
+  "evidence_summary": {
+    "implemented_slice": "ControlPlaneTenantBoundaryPrecheck tenant_boundary_precheck",
+    "policy_export": "CONTROL_PLANE_TENANT_BOUNDARY_PRECHECK_POLICY",
+    "result_fields_export": "CONTROL_PLANE_TENANT_BOUNDARY_PRECHECK_RESULT_FIELDS",
+    "prechecker_export": "CONTROL_PLANE_TENANT_BOUNDARY_PRECHECKER",
+    "function_export": "precheckControlPlaneTenantBoundary",
+    "validator_exports": [
+      "assertControlPlaneTenantBoundaryPrecheckPolicy",
+      "assertControlPlaneTenantBoundaryPrecheckResult"
+    ],
+    "accepted_entrypoint_ids": [
+      "plan_authoring",
+      "ai_implementation_handoff",
+      "hermes_validation"
+    ],
+    "request_normalization_ref": "RP00.P02.M00.S02",
+    "source_micro_phase_completed": "RP00.P02.M00",
+    "next_subphase": "RP00.P02.M01.S01",
+    "states_js_mutated": false,
+    "entity_registry_mutated": false,
+    "service_logic_executed": false,
+    "runtime_route_created": false,
+    "rp00_p02_closed": false,
+    "rp00_closed": false,
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready",
+    "human_approval_boundary": "Human approval is not replaced; this synthetic tenant-boundary precheck rejects bypass claims and never approves sensitive actions."
+  },
+  "blocked_claims": [],
+  "gate_outcome": "passed",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "No product runtime state was written; only contract, fixture, service metadata modules, tests, validator, README, and closeout evidence files were changed.",
+    "The final npm run rp00:control-plane:validate receipt is confirmed after this evidence packet is materialized.",
+    "Claude P2 was fixed by requiring matter_tenant_id when matter_id is present and adding fail-closed validation coverage.",
+    "Claude P3 carry-forward semantics were covered with an explicit regression test; tenant_boundary_decision remains scoped to tenant-boundary mismatches."
+  ],
+  "no_real_data": true,
+  "writes_product_state": false
+}

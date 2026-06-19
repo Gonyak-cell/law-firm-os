@@ -1,0 +1,45 @@
+{
+  "work_package_id": "LT-L4-W04",
+  "title": "UI regression test system",
+  "created_at": "2026-06-18T14:11:16Z",
+  "status": "t01_ui_harness_passed_t02_t03_t04_blocked_pending_w01_w02",
+  "phase": "L4",
+  "gate_binding": [
+    "L4-EXIT"
+  ],
+  "terminal_tuw": "LT-L4-W04-T04",
+  "artifacts": [
+    "apps/web/package.json",
+    "apps/web/test/README.md",
+    "apps/web/test/ui-regression.test.mjs",
+    "docs/launch/l4/ui-regression-test-system-status.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l4-w04/packet.json",
+    "docs/goal-closeout/lt-l4-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l4-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l4-w04/adjudication.md",
+    "docs/goal-closeout/lt-l4-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "test_ui_script_exists": true,
+    "test_harness_readme_exists": true,
+    "sample_test_file_exists": true,
+    "sample_test_count": 2,
+    "test_ui_first_run_passed": true,
+    "test_ui_second_run_passed": true,
+    "ui_reference_grep_count": 0,
+    "web_build_passed": true,
+    "screens_directory_exists": false,
+    "permissions_directory_exists": false,
+    "screen_state_case_count": 0,
+    "permission_state_case_count": 0,
+    "full_suite_case_count": 2,
+    "l4_exit_ui_regression_green": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

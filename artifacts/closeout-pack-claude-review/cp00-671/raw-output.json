@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-671",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T09:39:44.468Z",
+  "finished_at": "2026-06-14T09:45:55.059Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":369803,\"duration_api_ms\":371660,\"ttft_ms\":4650,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — does not block pack or goal closeout.\\n\\nCP00-671 is a descriptor-only \\\"permission/audit fixture bridge v2\\\" slice whose pre-promotion state is honest and well-supported:\\n\\n- **No P0/P1/P2 findings.** One P3 cosmetic note: the generated `changed-file-scope.json` dual-lists a session-handoff doc as both untracked-implementation and unrelated-dirty, but it's correctly excluded from the pack's required files — no scope, boundary, or validation impact.\\n- **Boundaries hold:** synthetic-only / no-real-data, no token-secret persistence, all provider/OAuth/sync/e-sign/webhook/permission/audit/UI/Hermes runtimes closed. Secret scan surfaced only `*: false` flags.\\n- **Authority correct:** Claude stays read-only and non-final; human approval gates runtime; Hermes is used only as an H22 evidence-packet descriptor, not product runtime.\\n- **Claims honest:** manifest/inspection report `production_ready:false`, `runtime_ready:false`, pending review; auth preflight returned well-formed non-empty JSON; the full validation matrix is pack-reported at exit 0 (not re-run by this read-only reviewer).\",\"stop_reason\":\"end_turn\",\"session_id\":\"f93d0fe2-bb04-4a8e-91ce-42fc9a7345c4\",\"total_cost_usd\":2.7916390000000004,\"usage\":{\"input_tokens\":52,\"cache_creation_input_tokens\":151534,\"cache_read_input_tokens\":2360673,\"output_tokens\":26508,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":151534,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":445,\"cache_read_input_tokens\":145362,\"cache_creation_input_tokens\":6582,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6582},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1150,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001255,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":52,\"outputTokens\":26508,\"cacheReadInputTokens\":2360673,\"cacheCreationInputTokens\":151534,\"webSearchRequests\":0,\"costUSD\":2.7903840000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-671 (RP22 External Integrations I, permission/audit fixture bridge v2; risk B, 40 units, RP22.P02.M04.S19-RP22.P02.M06.S14) is a descriptor-only slice and its production_ready promotion is well supported. Verified via Read/Grep/Glob only. (1) Scope consistency: the deliverable distribution {test:8,contract:2,implementation:17,security_audit:4,ui:5,claude_review:2,failure_recovery:2} and micro-title distribution {Secondary Workflow Slice:4,Permission And Audit Binding:22,Synthetic Fixture Set:14} each total 40 and match exactly across registry.js EXTERNAL_INTEGRATIONS_I_CP671_REQUIREMENTS, the review baseline included_units, the manifest plan_binding_snapshot, and both contract files. (2) Implementation: service.js builds the CP671 case-set/descriptor/Hermes/Claude/handoff with all runtimes closed; validators.js enforces descriptor_only, runtime_execution=false, customer_safe_errors_only, raw_payload_included=false, deny cross-tenant, persistence no-write, and claude_is_final_approval=false; the contract projection advances current_pack/generated_from_pack_id to CP00-671 with CP666-670 as history; index.js re-exports the full surface. (3) Tests: model.test.js asserts CP671 coverage, descriptor boundaries (permission/audit/fixture closed, external_api_runtime_opened=false, handoff to CP00-672/RP22.P02.M06.S15), and projection equality against both contract files. (4) No-write/no-real-data: freezeCp671Result + CP666_NO_WRITE_ATTESTATION assert synthetic_only/no_real_data and no token/secret/credential persistence; a secret scan of the implementation surface returned only boolean *:false flags, no real values. (5) Authority/Hermes boundary: Claude stays read_only and non-final (promotes_claude_to_final_approval=false, human_final_approval_required_for_runtime_opening=true, blocks_pack_on_p0_p1_p2=true, allowed tools Read/Grep/Glob); Hermes is used only as an H22 evidence-packet descriptor (hermes_runtime_opened=false, emits_hermes_runtime_receipt=false, runtime_receipt_emitted=false), not product runtime. (6) Honesty of claims: manifest/command-evidence/construction-inspection report production_ready=false, runtime_ready=false, status pending_pack_level_review; readiness auth preflight passed with well-formed non-empty JSON. command-evidence reports the full validation matrix (closeout-pack/plan validators, rp22 validators, model tests, weighted/spec/fullplan/global/goal/RP00 validators, git diff --check, npm test, build) at exit 0 — these are pack-reported and not re-run by this read-only reviewer. The pack does not claim runtime or enterprise trust, so this CP closeout goal is not blocked. Only one cosmetic, non-blocking scope-file classification note found; no P0/P1/P2 issues.\",\"findings\":[{\"id\":\"CP671-P3-01\",\"severity\":\"P3\",\"title\":\"changed-file-scope.json dual-lists new-session-handoff.md as both untracked implementation and unrelated dirty file\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-671/changed-file-scope.json\",\"line\":184,\"details\":\"docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 184) and unrelated_dirty_files_preserved (line 192), while correctly being absent from active_pack_required_untracked_files. This is a benign redundancy in generated tooling metadata: the file is a session-handoff doc, not a CP00-671 artifact, and is correctly excluded from the pack's required files. active_untracked_implementation_files_omitted is empty, so no in-scope file was hidden from review, and the manifest classifies the doc only under unrelated_dirty_files_preserved. No effect on scope correctness, no-write/no-real-data boundaries, validation, or the production_ready claim.\",\"recommendation\":\"Optionally tighten the scope-generator so a file classified as unrelated_dirty_files_preserved is not also emitted under untracked_implementation_files, to avoid future reader confusion. Non-blocking; no action required for CP00-671 closeout.\",\"post_review_disposition\":\"non_blocking_informational_no_action_required_for_closeout\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"99bb2529-ce6e-4b8a-b7c5-e51c27652327\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6901,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "f93d0fe2-bb04-4a8e-91ce-42fc9a7345c4",
+    "uuid": "99bb2529-ce6e-4b8a-b7c5-e51c27652327",
+    "total_cost_usd": 2.7916390000000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

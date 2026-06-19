@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-773",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T16:18:56.092Z",
+  "finished_at": "2026-06-15T16:24:04.648Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":307913,\"duration_api_ms\":307505,\"ttft_ms\":4199,\"num_turns\":51,\"result\":\"Review complete. CP00-773 passes independent read-only review with zero findings: the descriptor-only pack makes no runtime/enterprise-trust claim, all no-write/no-real-data boundaries are enforced in code and validated by tests (3003/3003 passing), every required gate command exits 0, and the CP178+ hardening + authority-boundary constraints all hold.\",\"stop_reason\":\"end_turn\",\"session_id\":\"0bb31210-4e42-454d-9681-3a6d3f69afb4\",\"total_cost_usd\":2.5788979999999992,\"usage\":{\"input_tokens\":60,\"cache_creation_input_tokens\":133290,\"cache_read_input_tokens\":2423545,\"output_tokens\":21299,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":133290,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":157,\"cache_read_input_tokens\":128728,\"cache_creation_input_tokens\":4928,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4928},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1188,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001288,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":60,\"outputTokens\":21299,\"cacheReadInputTokens\":2423545,\"cacheCreationInputTokens\":133290,\"webSearchRequests\":0,\"costUSD\":2.5776099999999995,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-773 (Migration Platform fixture-evidence + UI-foundation descriptor, Risk C, 150 units, RP25.P05.M06.S19-RP25.P06.M02.S20) is a descriptor-only pack whose production_ready claim is honestly scoped. Manifest, construction-inspection, and adjudication all declare production_ready=false / runtime_ready=false / status=pending_review, and the production_ready_flag (migration_platform_fixture_evidence_ui_foundation_descriptor_verified) is limited to descriptor verification rather than runtime or enterprise trust. Implementation (registry.js/service.js/validators.js) constructs a deep-frozen descriptor whose every row carries descriptor_only=true, runtime_execution=false, and no-payload/no-credential/no-real-data guards, all enforced by validateMigrationPlatformCp773FixtureEvidenceUiFoundationDescriptor; a source scan found no real IO (no fetch/http/fs writes/exec/spawn/process.env/credentials) anywhere in packages/migration/src. Tests assert CP773 binding, coverage distribution (58/28/7/23/18/4/12), runtime-closed descriptor, and contract-latest projection; command evidence shows node --test 55/55 and full npm test 3003/3003 with 0 failures, and all 10 required validation commands plus extras exit 0 with substantive stdout. Hermes patterns are used only for deterministic evidence packet/receipt shape (emits_runtime_receipt=false, hermes_packet_body_included=false), and Claude is held read-only and explicitly not final approver (claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true). CP178+ hardening checks pass: auth preflight succeeded (exit 0, 1449-byte non-empty stdout), prompt 2642<25600 bytes, no forbidden tools, summary-only correctly prohibited, review schema present. No findings at any severity. The pending_review state of claude-review-result.json/adjudication is the expected pre-review condition that this receipt resolves, not a defect. The pack does not claim runtime or enterprise trust, so it does not block goal closeout; final enterprise-trust approval remains a human authority outside this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"a0174272-7059-48ac-ad9e-e58647dc7ccf\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4130,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "0bb31210-4e42-454d-9681-3a6d3f69afb4",
+    "uuid": "a0174272-7059-48ac-ad9e-e58647dc7ccf",
+    "total_cost_usd": 2.5788979999999992,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

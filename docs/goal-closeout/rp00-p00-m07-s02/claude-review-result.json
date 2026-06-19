@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M07.S02",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T10:31:15Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "f8e6b470-50c3-4c1e-950a-1cd231a21734",
+    "uuid": "039e1d6d-84a9-4a86-8f60-76bc37e8746c",
+    "duration_ms": 225820,
+    "total_cost_usd": 1.06989575,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 18144,
+        "cache_read_input_tokens": 532300,
+        "cache_creation_input_tokens": 55851,
+        "cost_usd": 1.06889875
+      }
+    }
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI re-review confirmed the prior P2 generation-command enforcement gap is fixed. The validator now enforces M07 command-matrix generation exclusion, no-real-data attestation, H00 subset mapping, exit_code 0 evidence, actual Claude metadata, and construction inspection requirements without claiming all M07 or RP00 completion."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Prior P2 generation-command enforcement gap is fixed and non-regressive",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1178,
+        "details": "The previously declarative-only exclusion is now machine-enforced against M07 command-matrix closeouts and was cross-checked against the production_ready M07.S01 evidence.",
+        "recommendation": "None; P2 confirmed resolved."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Generation-exclusion enforcement covers only the 4 enumerated scripts",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1179,
+        "details": "The current exclusion loop uses the explicit S01 excluded_mutating_or_generation_commands list. Additional package generation scripts are outside that list.",
+        "recommendation": "At RP00.P00.M07.S03, add a broader generation-command pattern or expand the excluded list for defense in depth."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "No-real-data attestation relies on brittle substring matching",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1184,
+        "details": "The current attestation check looks for canonical note substrings. Current evidence passes, but a structured boolean would be less brittle.",
+        "recommendation": "At RP00.P00.M07.S03, add a structured no_real_data boolean to command evidence and validate it."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m07-s02/packet.json",
+      "docs/goal-closeout/rp00-p00-m07-s02/command-evidence.json",
+      "docs/goal-closeout/rp00-p00-m07-s01/command-evidence.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Actual claude-opus-4-8 max read-only CLI re-review completed with PASS_WITH_FINDINGS and no P0/P1/P2 findings. The initial P2 was fixed before this final re-review. Remaining P3 hardening notes are deferred to RP00.P00.M07.S03."
+  }
+}

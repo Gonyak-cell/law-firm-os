@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.launch-decision-register-import-reconciliation-audit.v0.1",
+  "generated_at": "2026-06-19T00:04:02.447Z",
+  "source_refs": [
+    "docs/launch/launch-decision-register.md",
+    "docs/launch/launch-decision-register-import-candidates.json",
+    "docs/launch/launch-decision-register-import-candidates-validation.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "reconciles_import_candidates_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "launch_decision_register_modified_by_this_audit": false,
+    "empty_register_counts_as_owner_approval": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "decision_register_total_rows": 0,
+    "valid_deferred_rows": 0,
+    "import_candidate_count": 0,
+    "reconciled_row_count": 0,
+    "unreconciled_row_count": 0,
+    "field_mismatch_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "reconciled_rows": [],
+  "findings": []
+}

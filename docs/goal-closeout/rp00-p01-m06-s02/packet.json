@@ -1,0 +1,37 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M06.S02",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Primary entity identifier",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "status": "production_ready",
+  "production_ready_at": "2026-06-04T04:29:17Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "next_subphase": "RP00.P01.M06.S03",
+  "summary": "Implements the control-plane synthetic fixture set primary identifier policy with canonical fs_ fixture_set_id normalization, stored-value validation, synthetic fixture evidence, registry exposure, and no-real-data/no-write boundaries before tenant scope.",
+  "acceptance": {
+    "implementation_complete": true,
+    "tests_passed": true,
+    "hermes_evidence_recorded": true,
+    "claude_review_completed_once": true,
+    "claude_findings_adjudicated": true,
+    "construction_inspection_passed": true,
+    "production_ready_marked": true
+  },
+  "boundaries": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "identifier_only": true,
+    "identifier_field": "fixture_set_id",
+    "stable_prefix": "fs_",
+    "canonical_pattern": "^fs_[a-z0-9]+(?:_[a-z0-9]+)*$",
+    "layout_completion_subphase": "RP00.P01.M06.S01",
+    "fixture_tenant_scope_deferred_to": "RP00.P01.M06.S03",
+    "does_not_create_real_fixture_data": true,
+    "does_not_complete_fixture_tenant_scope": true,
+    "does_not_close_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true
+  }
+}

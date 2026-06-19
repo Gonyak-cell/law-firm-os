@@ -1,0 +1,1596 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-098",
+  "planned_pack_id": "CP00-098",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "core_domain_ui_state_surface_verified",
+  "program_id": "RP01",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "primary_subphase_id": "RP01.P04.M05.S04",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-098",
+    "planned_pack_id": "CP00-098",
+    "title": "CP00-098 RP01.P04.M02.S04-RP01.P04.M05.S04 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP01.P04.M02.S04",
+      "last_unit_id": "RP01.P04.M05.S04",
+      "description": "RP01.P04.M02.S04-RP01.P04.M05.S04"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP01.P04.M02.S04",
+        "title": "Empty state",
+        "source_micro_phase_id": "RP01.P04.M02",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M02.S05",
+        "title": "Denied state",
+        "source_micro_phase_id": "RP01.P04.M02",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M02.S06",
+        "title": "Review-required state",
+        "source_micro_phase_id": "RP01.P04.M02",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P04.M02.S07",
+        "title": "Primary interaction",
+        "source_micro_phase_id": "RP01.P04.M02",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M02.S08",
+        "title": "Secondary interaction",
+        "source_micro_phase_id": "RP01.P04.M02",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S01",
+        "title": "UI surface inventory",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S02",
+        "title": "Data dependency map",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M03.S03",
+        "title": "Loading state",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S04",
+        "title": "Empty state",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S05",
+        "title": "Denied state",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S06",
+        "title": "Review-required state",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P04.M03.S07",
+        "title": "Primary interaction",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S08",
+        "title": "Secondary interaction",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S09",
+        "title": "Permission badge",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P04.M03.S10",
+        "title": "Audit hint display",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P04.M03.S11",
+        "title": "Error message copy",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M03.S12",
+        "title": "Responsive desktop layout",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S13",
+        "title": "Responsive mobile layout",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M03.S14",
+        "title": "Keyboard/focus behavior",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M03.S15",
+        "title": "Visual density check",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M03.S16",
+        "title": "Synthetic fixture binding",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP01.P04.M03.S17",
+        "title": "Build smoke",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP01.P04.M03.S18",
+        "title": "Hermes UI evidence",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP01.P04.M03.S19",
+        "title": "Claude UI leak prompt",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P04.M03.S20",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP01.P04.M03",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M04.S01",
+        "title": "UI surface inventory",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M04.S02",
+        "title": "Data dependency map",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M04.S03",
+        "title": "Loading state",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M04.S04",
+        "title": "Empty state",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M04.S05",
+        "title": "Denied state",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M04.S06",
+        "title": "Review-required state",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP01.P04.M04.S07",
+        "title": "Primary interaction",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M04.S08",
+        "title": "Secondary interaction",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M04.S09",
+        "title": "Permission badge",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P04.M04.S10",
+        "title": "Audit hint display",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP01.P04.M04.S11",
+        "title": "Error message copy",
+        "source_micro_phase_id": "RP01.P04.M04",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M05.S01",
+        "title": "UI surface inventory",
+        "source_micro_phase_id": "RP01.P04.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M05.S02",
+        "title": "Data dependency map",
+        "source_micro_phase_id": "RP01.P04.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP01.P04.M05.S03",
+        "title": "Loading state",
+        "source_micro_phase_id": "RP01.P04.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP01.P04.M05.S04",
+        "title": "Empty state",
+        "source_micro_phase_id": "RP01.P04.M05",
+        "program_id": "RP01",
+        "phase_id": "RP01.P04",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP01.P04.M02.S04",
+      "title": "Empty state",
+      "source_micro_phase_id": "RP01.P04.M02",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M02.S05",
+      "title": "Denied state",
+      "source_micro_phase_id": "RP01.P04.M02",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M02.S06",
+      "title": "Review-required state",
+      "source_micro_phase_id": "RP01.P04.M02",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M02.S07",
+      "title": "Primary interaction",
+      "source_micro_phase_id": "RP01.P04.M02",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M02.S08",
+      "title": "Secondary interaction",
+      "source_micro_phase_id": "RP01.P04.M02",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S01",
+      "title": "UI surface inventory",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S02",
+      "title": "Data dependency map",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S03",
+      "title": "Loading state",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S04",
+      "title": "Empty state",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S05",
+      "title": "Denied state",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S06",
+      "title": "Review-required state",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S07",
+      "title": "Primary interaction",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S08",
+      "title": "Secondary interaction",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S09",
+      "title": "Permission badge",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S10",
+      "title": "Audit hint display",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S11",
+      "title": "Error message copy",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S12",
+      "title": "Responsive desktop layout",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S13",
+      "title": "Responsive mobile layout",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S14",
+      "title": "Keyboard/focus behavior",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S15",
+      "title": "Visual density check",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S16",
+      "title": "Synthetic fixture binding",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S17",
+      "title": "Build smoke",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S18",
+      "title": "Hermes UI evidence",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S19",
+      "title": "Claude UI leak prompt",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M03.S20",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S01",
+      "title": "UI surface inventory",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S02",
+      "title": "Data dependency map",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S03",
+      "title": "Loading state",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S04",
+      "title": "Empty state",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S05",
+      "title": "Denied state",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S06",
+      "title": "Review-required state",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S07",
+      "title": "Primary interaction",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S08",
+      "title": "Secondary interaction",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S09",
+      "title": "Permission badge",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S10",
+      "title": "Audit hint display",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M04.S11",
+      "title": "Error message copy",
+      "source_micro_phase_id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M05.S01",
+      "title": "UI surface inventory",
+      "source_micro_phase_id": "RP01.P04.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M05.S02",
+      "title": "Data dependency map",
+      "source_micro_phase_id": "RP01.P04.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M05.S03",
+      "title": "Loading state",
+      "source_micro_phase_id": "RP01.P04.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    },
+    {
+      "id": "RP01.P04.M05.S04",
+      "title": "Empty state",
+      "source_micro_phase_id": "RP01.P04.M05",
+      "program_id": "RP01",
+      "phase_id": "RP01.P04",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-098/command-evidence.json",
+        "docs/closeout-packs/cp00-098/claude-review-result.json",
+        "docs/closeout-packs/cp00-098/adjudication.md",
+        "docs/closeout-packs/cp00-098/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/domain/src/ui-surfaces.js",
+        "packages/domain/src/index.js",
+        "contracts/core-domain-contract.json",
+        "packages/domain/test/core-domain-foundation.test.js",
+        "scripts/validate-rp01-core-domain-contract.mjs",
+        "packages/domain/README.md"
+      ]
+    }
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-098/manifest.json",
+    "docs/closeout-packs/cp00-098/command-evidence.json",
+    "docs/closeout-packs/cp00-098/claude-review-result.json",
+    "docs/closeout-packs/cp00-098/adjudication.md",
+    "docs/closeout-packs/cp00-098/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "dirty_untracked_work_outside_pack_preserved": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed"
+  },
+  "implementation_summary": {
+    "scope": "RP01 core-domain UI state surface contract, responsive state matrix, permission badge references, audit hint displays, Hermes UI evidence packet, and CP00-099 handoff.",
+    "no_runtime_permission_evaluation": true,
+    "no_audit_ledger_write": true,
+    "no_product_state_write": true,
+    "synthetic_only": true,
+    "ldip_implemented": false,
+    "hrx_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-098/command-evidence.json",
+    "docs/closeout-packs/cp00-098/claude-review-result.json",
+    "docs/closeout-packs/cp00-098/adjudication.md",
+    "docs/closeout-packs/cp00-098/construction-inspection.json"
+  ],
+  "implementation_refs": [
+    "packages/domain/src/ui-surfaces.js",
+    "packages/domain/src/index.js",
+    "contracts/core-domain-contract.json",
+    "packages/domain/test/core-domain-foundation.test.js",
+    "scripts/validate-rp01-core-domain-contract.mjs",
+    "packages/domain/README.md"
+  ],
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-098 core domain UI state surface pack"
+  }
+}

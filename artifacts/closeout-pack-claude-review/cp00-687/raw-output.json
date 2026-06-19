@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-687",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T14:44:39.146Z",
+  "finished_at": "2026-06-14T14:52:13.359Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":453658,\"duration_api_ms\":453402,\"ttft_ms\":3544,\"num_turns\":59,\"result\":\"Review complete. **Verdict: PASS** (0 findings) for CP00-687.\\n\\nThe pack is a descriptor-only P07 fixture/evidence/review tail + P08 evidence-contract foundation bridge (risk C, 150 units). I independently verified through read-only inspection that:\\n\\n- **Distributions** are internally consistent (sum to 150) and identical across manifest, both contracts, and registry; enforced by the coverage validator and tests.\\n- **Implementation** (descriptor/case-set/Hermes/Claude/handoff functions in service.js) is complete, frozen, and `descriptor_only`/`runtime_execution=false`/`raw_payload_included=false`; resolves via index.js wildcard exports; no stub/TODO/skip markers.\\n- **Validators** enforce descriptor-only flags, all `runtime_opened=false`, no real/golden payloads, no cross-tenant, and `claude_is_final_approval=false`.\\n- **Boundaries** hold: Claude is read-only and non-final; Hermes is control-plane evidence/receipt only (not product runtime); no-write/no-real-data attestation is comprehensive; no over-claim of runtime or enterprise trust.\\n- **Pre-review state** is correct (`production_ready=false`, `pending_review`, empty receipts/invalid-attempts) — my review is the gating receipt.\\n- **Hardening**: auth preflight returned valid JSON, tools restricted to Read/Grep/Glob, forbidden-evidence taxonomy present.\\n\\nTwo caveats noted in the output: (1) the 22/22 validation commands are *reported* (exit 0) — I corroborated their structural assertions by source inspection but could not re-execute them; (2) the untracked `c-ldip-01-invalid-attempt-01.json` is an unrelated LDIP file, correctly out of scope. `blocks_pack_closeout=false`, `blocks_goal_closeout=false`.\",\"stop_reason\":\"end_turn\",\"session_id\":\"3aad038d-e75f-4831-b436-b7517ac5ca13\",\"total_cost_usd\":2.67483725,\"usage\":{\"input_tokens\":217,\"cache_creation_input_tokens\":126095,\"cache_read_input_tokens\":2262827,\"output_tokens\":30118,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":126095,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":684,\"cache_read_input_tokens\":123009,\"cache_creation_input_tokens\":3408,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3408},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1190,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012950000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":217,\"outputTokens\":30118,\"cacheReadInputTokens\":2262827,\"cacheCreationInputTokens\":126095,\"webSearchRequests\":0,\"costUSD\":2.67354225,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Independent read-only review of CP00-687 (RP22 External Integrations I, P07 synthetic fixture/test/evidence/review/closeout tail + P08 evidence-contract foundation bridge; risk C; 150 units; RP22.P07.M06.S03-RP22.P08.M02.S14) via Read/Grep/Glob only.\\n\\nVERIFIED: (1) Scope/identity consistent across prompt, manifest, both contracts, registry, and validator. (2) Deliverable/phase/micro distributions are internally consistent (sum to 150) and identical across manifest delivery_counts, contract requirements, and registry EXTERNAL_INTEGRATIONS_I_CP687_REQUIREMENTS; failure_recovery=58 and hermes_evidence=38 spot-counted in the manifest unit list (2 unit arrays, each consistent); enforced by validateExternalIntegrationsICp687Coverage and asserted in model.test.js against the live plan pack. (3) Implementation present/complete in service.js (descriptor, case-set, Hermes packet, Claude packet, closeout handoff) — all Object.freeze, descriptor_only=true, runtime_execution=false, raw_payload_included=false; resolved through index.js wildcard re-exports; no skip/TODO/placeholder markers. (4) validators.js enforces descriptor-only flags, all runtime_opened=false, no real/golden payloads, no cross-tenant, and authority_boundary.claude_is_final_approval=false. (5) Both contract files regenerated and validated against the deterministic projection. (6) Comprehensive no-write/no-real-data attestation; freeze wrappers stamp synthetic_only/no_real_data/writes_product_state=false and all provider/credential/permission/audit/persistence/command flags false. (7) Claude boundary: read_only=true, promotes_claude_to_final_approval=false. (8) Hermes boundary: control-plane evidence/receipt only — hermes_runtime_opened=false, runtime_receipt_emitted=false, not embedded in product runtime. (9) Pre-review state correct: production_ready=false, runtime_ready=false, status in_progress/pending_review; no premature raw-output.json or review-receipt.json; valid_review_receipts=[] and invalid_review_attempts=[] (no laundered invalid evidence). (10) Review hardening: auth preflight returned valid success JSON (exit 0, non-empty stdout); tools restricted to Read/Grep/Glob; forbidden_tools_present=false; forbidden_review_evidence taxonomy present (not_logged_in, malformed_json, quota_failure, permission_denied, tool_call_only_output, non_read_only_review). (11) No over-claim of runtime/enterprise-trust anywhere. (12) Pack ordering consistent: upstream CP00-686 (just closed per git log), next CP00-688, live_latest_pack_id=CP00-687.\\n\\nPROVENANCE CAVEAT: command-evidence.json reports 22/22 validation commands passing (exit 0). As a read-only reviewer I did not and cannot re-execute them; I independently corroborated via source inspection the structural consistency those commands assert (coverage/descriptor validators, contract-projection equality, export resolution). This is reported-but-not-re-executed evidence.\\n\\nOUT-OF-SCOPE NOTE: docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json is an untracked file from a different program (LDIP), correctly listed as an unrelated dirty file in changed-file-scope.json; it is not CP00-687 review evidence and was not treated as such.\\n\\nThe descriptor-verified production_ready claim (descriptor-only, runtime-closed; not an enterprise-trust/runtime claim) is supported by implementation, tests, validation, inspection, and the no-write/no-real-data boundaries. blocks_goal_closeout=false because the pack makes no runtime or enterprise-trust claim and the human/final-approval authority boundary is outside this receipt. Verdict: PASS with zero findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"0b2d212a-f2dc-46c0-b55e-d98eb38ba84c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 7032,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "3aad038d-e75f-4831-b436-b7517ac5ca13",
+    "uuid": "0b2d212a-f2dc-46c0-b55e-d98eb38ba84c",
+    "total_cost_usd": 2.67483725,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

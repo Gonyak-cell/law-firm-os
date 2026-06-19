@@ -1,0 +1,102 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-009",
+  "subphase_id": "RP00.P02.M05.S13",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T06:34:31Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "S13 emits only a synthetic metadata validation error mapping receipt and does not map runtime errors, translate runtime exceptions, write error records or stores, run permission engines, call AuthZ, append audit ledgers, write audit events, create routes, execute service logic, persist product state, write databases or storage, write persistence/idempotency/lock stores, acquire runtime locks, create UI, or use real data.",
+    "A preliminary RP00 validation run before evidence creation failed only on the expected missing CP00-009 evidence files; final RP00 validation is recorded after evidence creation."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e 'JSON.parse(require(\"fs\").readFileSync(\"contracts/control-plane-contract.json\", \"utf8\")); JSON.parse(require(\"fs\").readFileSync(\"packages/control-plane/fixtures/synthetic-control-plane.json\", \"utf8\"));'",
+      "exit_code": 0,
+      "summary": "contract and synthetic fixture JSON parsed successfully"
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "384 tests passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "468 tests passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with current repo requirement_count 227."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 54355 implementation subphases."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed with 3300 micro phases."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Closeout Pack validation passed for CP00-001 through CP00-009."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M05.S13 after CP00-009 evidence finalization."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

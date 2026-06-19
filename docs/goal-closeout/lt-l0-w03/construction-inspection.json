@@ -1,0 +1,21 @@
+{
+  "work_package_id": "LT-L0-W03",
+  "inspected_at": "2026-06-18T12:56:50Z",
+  "verdict": "BLOCKED_SOURCE_COUNTS_RECORDED",
+  "production_ready": false,
+  "quality_gates": {
+    "deferral_review_register_exists": true,
+    "source_family_counts_recorded": true,
+    "item_level_extraction_complete": false,
+    "owner_rejudgment_complete": false,
+    "blocking_referral_list_complete": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

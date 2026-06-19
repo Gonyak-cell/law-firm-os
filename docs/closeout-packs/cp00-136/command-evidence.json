@@ -1,0 +1,150 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-136",
+  "subphase_id": "RP03.P02.M07.S06",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H03",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "git status --short",
+      "exit_code": 0,
+      "summary": "latest committed pack CP00-135; unrelated untracked files preserved"
+    },
+    {
+      "command": "git log --all --format='%h %aI %s' --grep='^Close CP00' -n 12",
+      "exit_code": 0,
+      "summary": "latest Close CP00 commit before this pack was CP00-135"
+    },
+    {
+      "command": "node --check packages/audit/src/service-interface-readiness-catalog.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/audit/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/audit/test/audit.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp03-audit-architecture.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/audit-compliance-contract.json','utf8')); console.log('audit contract json ok')\"",
+      "exit_code": 0,
+      "summary": "audit-compliance-contract.json parsed"
+    },
+    {
+      "command": "node --test packages/audit/test/*.test.js",
+      "exit_code": 0,
+      "summary": "18 audit tests passed"
+    },
+    {
+      "command": "npm run rp03:audit:validate",
+      "exit_code": 0,
+      "summary": "CP00-136, 150 units, audit_compliance_cp136_service_interface_readiness_contract"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-135 before CP00-136 evidence regeneration"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full test suite passed: 1092 tests after CP00-136 adds 4 audit tests"
+    },
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-136-claude-review-output.json",
+      "exit_code": 0,
+      "summary": "one valid read-only Claude review completed; P0/P1/P2 0/0/0 and P3 2 non-blocking"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-136",
+      "exit_code": 0,
+      "summary": "expected after CP00-136 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "expected after CP00-136 evidence creation to move queue to CP00-137"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "expected after queue regeneration"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "expected all packs through CP00-136 pass"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-136 is synthetic-only, metadata-only, and Risk C scoped to RP03 domain model terminal rows plus service-interface readiness rows.",
+    "CP00-136 does not append, mutate, delete, query, export, or render audit records and does not write product state.",
+    "Tenant, matter, permission, audit-hint, idempotency, lock, persistence, rollback, retry, UI, and review rows remain inert/reference-only descriptors.",
+    "H03 Hermes evidence packet and C03 Claude review packet are descriptor artifacts; actual command evidence is recorded in this file and the single valid CLI review is recorded in claude-review-result.json.",
+    "HRX remains embedded inside Law Firm OS and LDIP is not implemented by this pack.",
+    "P3 findings were adjudicated: plan/manifest alignment confirmed by green validators and static Hermes descriptor semantics accepted as non-blocking."
+  ]
+}

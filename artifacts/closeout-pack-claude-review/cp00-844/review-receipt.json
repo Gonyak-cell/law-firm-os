@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-844",
+  "normalized_at": "2026-06-16T15:15:55.229Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-844/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-844/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-844/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-844/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "fc11fa0f-7dbd-4229-bd64-8dff38f2136e",
+    "uuid": "04555358-00d1-4578-a969-7f1501ee1751",
+    "total_cost_usd": 2.1783345,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5971,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-844 is a descriptor-only RP27 Platform Extensibility review-evidence closeout bridge (risk C, 77 units, RP27.P09.M06.S14-RP27.P09.M10.S08). Static read-only inspection (Read/Grep/Glob; no commands executed) supports the pack-level production_ready (descriptor-verified) claim: (1) registry.js CP844 binding/requirements/case-set/Hermes packet/Claude packet/closeout handoff/descriptor/contract projection are runtime-closed and route to CP00-845/RP28.P00.M00.S01; (2) validators.js enforces coverage (deliverable {impl 49, claude_review 11, security_audit 8, test 4, ui 4, hermes_evidence 1}, phase/micro/title distributions, first/last unit, RP27-only, no duplicate IDs) plus per-row descriptor_only/no-secret/no-real-data/no-write guards, authority boundary (claude_is_final_approval=false, human approval required for runtime opening, local validation does not claim enterprise trust), Hermes emits_runtime_receipt=false, and handoff routing; (3) model.test.js asserts coverage/descriptor/projection against the live closeout-pack-plan and the committed contract artifact; (4) the committed contract lists CP00-844 as latest_pack/latest_projection with mandatory_artifacts, required_capabilities, safety_gates, no_leak_guards, and an all-false no_write_attestation, and a secret/real-data grep found nothing. Claude remains a read-only reviewer and not final approver; Hermes (H27) is confined to deterministic review packet/receipt evidence, not product runtime (hermes_runtime_embedded_in_product=false). production_ready/runtime_ready are still false; the production_ready_flag is descriptor-verification only with enterprise trust deferred to human approval. command-evidence records node --check and rp27 platform validate/test at exit 0 [agent-reported, not re-executed in this read-only review]; the full closeout validation suite and the production_ready flip remain correctly gated post-review (gate_outcome=pending_valid_review_and_full_validation) and must complete with git diff --check clean before commit. No P0/P1/P2 issues; one P3 hygiene note that does not affect runtime-closed, no-write, no-real-data, or authority-boundary guarantees.",
+    "findings": [
+      {
+        "id": "CP844-P3-01",
+        "severity": "P3",
+        "title": "Stale to_pack_id in shared ROW_EXTRAS.closeout_handoff template (inert for CP844)",
+        "file": "packages/platform/src/registry.js",
+        "line": 1935,
+        "details": "ROW_EXTRAS.closeout_handoff hardcodes to_pack_id 'CP00-821' and next_subphase_id 'RP27.P01.M05.S12'. createRow merges ROW_EXTRAS[key] into any case-set row whose key resolves to 'closeout_handoff'. CP844 section rows are drawn from CLAUDE_REVIEW_ROWS (slices), which contains 'Closeout criteria' but no 'Closeout handoff' row, so this stale value is never applied to any CP844 row. The CP844 descriptor-level closeout_handoff (createPlatformExtensibilityCp844CloseoutHandoff) correctly derives to_pack_id/next_subphase_id from PLATFORM_EXTENSIBILITY_CP844_PACK_BINDING (CP00-845 / RP28.P00.M00.S01), and validators check descriptor_only/no-secret/no-write/no-real-data per row rather than row-level to_pack_id. No functional impact on CP00-844.",
+        "recommendation": "Optionally derive ROW_EXTRAS.closeout_handoff.to_pack_id/next_subphase_id from the active pack binding (or remove the static values) to prevent latent drift for packs whose row sets do include a 'Closeout handoff' row. Not required for CP00-844 closeout.",
+        "post_review_disposition": "Non-blocking hygiene; out of CP844 functional scope; does not affect production_ready, no-write, no-real-data, or authority-boundary guarantees."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

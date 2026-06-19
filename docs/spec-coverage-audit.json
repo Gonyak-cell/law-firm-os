@@ -1,0 +1,7225 @@
+{
+  "schema_version": "law-firm-os.spec-coverage-audit.v1",
+  "generated_from": "scripts/audit-spec-coverage.mjs",
+  "spec_path": "/Users/jws/.codex/attachments/696e9f72-c1ec-4c7f-a8b8-4367755c57c3/pasted-text.txt",
+  "plan_sources": [
+    "docs/full-spec-microphase-ledger.md",
+    "docs/weighted-implementation-ledger.md",
+    "docs/spec-requirement-ledger.md",
+    "docs/rp00-...-rp29 detailed microphase markdown files"
+  ],
+  "anchored_requirement_count": 227,
+  "feature_count": 209,
+  "feature_status_counts": {
+    "covered": 209,
+    "weak": 0,
+    "missing": 0
+  },
+  "prefix_summary": [
+    {
+      "prefix": "ACC",
+      "total": 7,
+      "covered": 7,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ]
+    },
+    {
+      "prefix": "AI",
+      "total": 12,
+      "covered": 12,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ]
+    },
+    {
+      "prefix": "AUD",
+      "total": 8,
+      "covered": 8,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ]
+    },
+    {
+      "prefix": "BILL",
+      "total": 12,
+      "covered": 12,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ]
+    },
+    {
+      "prefix": "CAM",
+      "total": 4,
+      "covered": 4,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ]
+    },
+    {
+      "prefix": "CLI",
+      "total": 8,
+      "covered": 8,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ]
+    },
+    {
+      "prefix": "CON",
+      "total": 7,
+      "covered": 7,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ]
+    },
+    {
+      "prefix": "CONF",
+      "total": 9,
+      "covered": 9,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ]
+    },
+    {
+      "prefix": "DOC",
+      "total": 16,
+      "covered": 16,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ]
+    },
+    {
+      "prefix": "EML",
+      "total": 10,
+      "covered": 10,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ]
+    },
+    {
+      "prefix": "ENG",
+      "total": 8,
+      "covered": 8,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ]
+    },
+    {
+      "prefix": "ENT",
+      "total": 6,
+      "covered": 6,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ]
+    },
+    {
+      "prefix": "EXP",
+      "total": 9,
+      "covered": 9,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ]
+    },
+    {
+      "prefix": "LEAD",
+      "total": 5,
+      "covered": 5,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP09"
+      ]
+    },
+    {
+      "prefix": "MAT",
+      "total": 10,
+      "covered": 10,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ]
+    },
+    {
+      "prefix": "OPP",
+      "total": 10,
+      "covered": 10,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ]
+    },
+    {
+      "prefix": "PAY",
+      "total": 9,
+      "covered": 9,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ]
+    },
+    {
+      "prefix": "PROP",
+      "total": 7,
+      "covered": 7,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ]
+    },
+    {
+      "prefix": "REF",
+      "total": 6,
+      "covered": 6,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ]
+    },
+    {
+      "prefix": "REL",
+      "total": 3,
+      "covered": 3,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ]
+    },
+    {
+      "prefix": "SET",
+      "total": 9,
+      "covered": 9,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ]
+    },
+    {
+      "prefix": "SRCH",
+      "total": 8,
+      "covered": 8,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ]
+    },
+    {
+      "prefix": "TEN",
+      "total": 8,
+      "covered": 8,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ]
+    },
+    {
+      "prefix": "TIME",
+      "total": 10,
+      "covered": 10,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ]
+    },
+    {
+      "prefix": "USR",
+      "total": 8,
+      "covered": 8,
+      "weak": 0,
+      "missing": 0,
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ]
+    }
+  ],
+  "features": [
+    {
+      "id": "TEN-001",
+      "prefix": "TEN",
+      "name": "Tenant 생성",
+      "description": "고객 조직별 tenant 생성",
+      "priority": "P0",
+      "acceptance": "tenant_id가 발급되고 기본 정책이 자동 생성된다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "tenant",
+        "생성",
+        "조직별",
+        "tenant"
+      ],
+      "acceptance_hits": [
+        "tenant",
+        "id가",
+        "발급되고",
+        "정책이",
+        "생성된다"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-002",
+      "prefix": "TEN",
+      "name": "도메인 설정",
+      "description": "허용 이메일 도메인 등록",
+      "priority": "P0",
+      "acceptance": "승인된 도메인 사용자만 초대 가능하다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "도메인",
+        "설정",
+        "이메일",
+        "도메인"
+      ],
+      "acceptance_hits": [
+        "승인된",
+        "도메인",
+        "사용자만",
+        "가능하다"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-003",
+      "prefix": "TEN",
+      "name": "관리자 지정",
+      "description": "tenant owner, security admin, billing admin 지정",
+      "priority": "P0",
+      "acceptance": "최소 1명 이상의 tenant owner가 존재해야 한다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "관리자",
+        "지정",
+        "tenant",
+        "owner",
+        "security",
+        "admin",
+        "billing",
+        "admin"
+      ],
+      "acceptance_hits": [
+        "이상의",
+        "tenant",
+        "owner가",
+        "존재해야"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-004",
+      "prefix": "TEN",
+      "name": "조직정책",
+      "description": "MFA, 세션만료, IP 제한, 다운로드 제한 설정",
+      "priority": "P0",
+      "acceptance": "정책 변경은 즉시 신규 세션에 적용된다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "조직정책",
+        "mfa",
+        "세션만료",
+        "다운로드"
+      ],
+      "acceptance_hits": [
+        "변경은",
+        "세션에",
+        "적용된다"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-005",
+      "prefix": "TEN",
+      "name": "데이터 위치 선택",
+      "description": "한국, 미국, EU 등 region 선택",
+      "priority": "P1",
+      "acceptance": "신규 tenant 생성 시 region을 선택할 수 있다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "데이터",
+        "위치",
+        "선택",
+        "region"
+      ],
+      "acceptance_hits": [
+        "tenant",
+        "region을",
+        "선택할"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-006",
+      "prefix": "TEN",
+      "name": "Dedicated Tenant",
+      "description": "고객별 DB·storage·index 분리",
+      "priority": "P1",
+      "acceptance": "Enterprise tenant는 dedicated option을 선택할 수 있다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "dedicated",
+        "tenant",
+        "고객별",
+        "storage",
+        "index"
+      ],
+      "acceptance_hits": [
+        "enterprise",
+        "tenant는",
+        "dedicated",
+        "option을",
+        "선택할"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-007",
+      "prefix": "TEN",
+      "name": "Tenant별 암호화키",
+      "description": "KMS key 분리 또는 customer-managed key",
+      "priority": "P1",
+      "acceptance": "key rotation 이력이 감사로그에 남는다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "tenant별",
+        "암호화키",
+        "kms",
+        "key",
+        "customer",
+        "managed",
+        "key"
+      ],
+      "acceptance_hits": [
+        "key",
+        "rotation",
+        "이력이",
+        "감사로그에",
+        "남는다"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TEN-008",
+      "prefix": "TEN",
+      "name": "Tenant 삭제",
+      "description": "soft delete → retention → purge",
+      "priority": "P1",
+      "acceptance": "삭제 요청 후 보존기간 내 복구 가능하다.",
+      "expected_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP00",
+        "RP01",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "tenant",
+        "삭제",
+        "soft",
+        "delete",
+        "retention",
+        "purge"
+      ],
+      "acceptance_hits": [
+        "보존기간",
+        "가능하다"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-001",
+      "prefix": "USR",
+      "name": "사용자 초대",
+      "description": "이메일 기반 초대",
+      "priority": "P0",
+      "acceptance": "초대 링크 만료시간 설정 가능",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "사용자",
+        "초대",
+        "이메일"
+      ],
+      "acceptance_hits": [
+        "만료시간"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-002",
+      "prefix": "USR",
+      "name": "역할 부여",
+      "description": "사용자별 role 지정",
+      "priority": "P0",
+      "acceptance": "역할 변경 전후가 audit에 기록",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "역할",
+        "부여",
+        "사용자별",
+        "role"
+      ],
+      "acceptance_hits": [
+        "전후가",
+        "audit에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-003",
+      "prefix": "USR",
+      "name": "그룹 배정",
+      "description": "팀, 부서, practice group 배정",
+      "priority": "P0",
+      "acceptance": "그룹 권한이 검색·문서 접근에 반영",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "그룹",
+        "배정",
+        "practice",
+        "group"
+      ],
+      "acceptance_hits": [
+        "권한이",
+        "접근에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-004",
+      "prefix": "USR",
+      "name": "계정 비활성화",
+      "description": "퇴사자 접근 차단",
+      "priority": "P0",
+      "acceptance": "비활성화 즉시 세션 종료",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "계정",
+        "비활성화",
+        "퇴사자"
+      ],
+      "acceptance_hits": [
+        "비활성화"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-005",
+      "prefix": "USR",
+      "name": "대체 담당자 지정",
+      "description": "퇴사·휴직 시 matter handover",
+      "priority": "P1",
+      "acceptance": "기존 담당 matter 목록을 일괄 이전",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "대체",
+        "담당자",
+        "지정",
+        "matter",
+        "handover"
+      ],
+      "acceptance_hits": [
+        "matter",
+        "목록을"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-006",
+      "prefix": "USR",
+      "name": "SSO 연동",
+      "description": "SAML/OIDC",
+      "priority": "P1",
+      "acceptance": "고객 IDP로 로그인 가능",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "sso",
+        "연동",
+        "saml",
+        "oidc"
+      ],
+      "acceptance_hits": [
+        "idp로",
+        "로그인"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-007",
+      "prefix": "USR",
+      "name": "MFA 정책",
+      "description": "tenant별 MFA 적용",
+      "priority": "P1",
+      "acceptance": "보안등급 높은 matter 접근 시 MFA 요구",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "mfa",
+        "정책",
+        "tenant별",
+        "mfa"
+      ],
+      "acceptance_hits": [
+        "보안등급",
+        "matter",
+        "mfa"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "USR-008",
+      "prefix": "USR",
+      "name": "권한 리뷰",
+      "description": "정기 권한검토 workflow",
+      "priority": "P1",
+      "acceptance": "분기별 권한검토 report 생성",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "token_hits": [
+        "권한",
+        "리뷰",
+        "권한검토",
+        "workflow"
+      ],
+      "acceptance_hits": [
+        "분기별",
+        "권한검토",
+        "report"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-001",
+      "prefix": "AUD",
+      "name": "로그인 로그",
+      "description": "성공/실패, IP, device",
+      "priority": "P0",
+      "acceptance": "로그인 이벤트 검색 가능",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "로그인",
+        "로그",
+        "device"
+      ],
+      "acceptance_hits": [
+        "로그인",
+        "이벤트"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-002",
+      "prefix": "AUD",
+      "name": "문서 접근 로그",
+      "description": "view, download, upload, delete",
+      "priority": "P0",
+      "acceptance": "document_id, version_id 포함",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "문서",
+        "접근",
+        "로그",
+        "view",
+        "download",
+        "upload",
+        "delete"
+      ],
+      "acceptance_hits": [
+        "document",
+        "version"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-003",
+      "prefix": "AUD",
+      "name": "권한변경 로그",
+      "description": "변경 전후 권한 기록",
+      "priority": "P0",
+      "acceptance": "actor, 대상, 사유 기록",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "권한변경",
+        "로그"
+      ],
+      "acceptance_hits": [
+        "actor"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-004",
+      "prefix": "AUD",
+      "name": "청구·입금 로그",
+      "description": "invoice, payment, write-off 변경",
+      "priority": "P0",
+      "acceptance": "변경 전후 금액 기록",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "청구",
+        "입금",
+        "로그",
+        "invoice",
+        "payment",
+        "write",
+        "off"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-005",
+      "prefix": "AUD",
+      "name": "정산 로그",
+      "description": "rule, run, approval 변경",
+      "priority": "P1",
+      "acceptance": "정산 확정 후 수정 제한",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "정산",
+        "로그",
+        "rule",
+        "run",
+        "approval"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-006",
+      "prefix": "AUD",
+      "name": "AI 접근 로그",
+      "description": "질의, 참조문서, 출력, 모델",
+      "priority": "P1",
+      "acceptance": "AIJob 단위로 재현 가능",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "ai",
+        "접근",
+        "로그",
+        "참조문서"
+      ],
+      "acceptance_hits": [
+        "aijob",
+        "단위로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-007",
+      "prefix": "AUD",
+      "name": "대량반출 탐지",
+      "description": "다운로드·export 임계치 알림",
+      "priority": "P1",
+      "acceptance": "security admin에게 알림",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "대량반출",
+        "탐지",
+        "다운로드",
+        "export",
+        "임계치"
+      ],
+      "acceptance_hits": [
+        "security",
+        "admin에게"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AUD-008",
+      "prefix": "AUD",
+      "name": "감사 리포트",
+      "description": "CSV/PDF export",
+      "priority": "P1",
+      "acceptance": "기간·사용자·object 기준 추출 가능",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "token_hits": [
+        "감사",
+        "리포트",
+        "csv",
+        "pdf",
+        "export"
+      ],
+      "acceptance_hits": [
+        "사용자",
+        "object"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENT-001",
+      "prefix": "ENT",
+      "name": "Entity 생성",
+      "description": "회사, 개인, 기관, 펀드, SPC 등 등록",
+      "priority": "P0",
+      "acceptance": "entity_type 필수",
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "token_hits": [
+        "entity",
+        "생성",
+        "spc"
+      ],
+      "acceptance_hits": [
+        "entity",
+        "type"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENT-002",
+      "prefix": "ENT",
+      "name": "별칭 관리",
+      "description": "약칭, 영문명, 구 명칭, 오탈자",
+      "priority": "P0",
+      "acceptance": "conflict search에 반영",
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "token_hits": [
+        "별칭",
+        "관리",
+        "영문명",
+        "오탈자"
+      ],
+      "acceptance_hits": [
+        "conflict",
+        "search에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENT-003",
+      "prefix": "ENT",
+      "name": "관계 관리",
+      "description": "모회사, 자회사, GP/LP, 임원, 주주",
+      "priority": "P1",
+      "acceptance": "시점별 관계 이력 관리",
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "token_hits": [
+        "관계",
+        "관리",
+        "모회사",
+        "자회사"
+      ],
+      "acceptance_hits": [
+        "시점별"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENT-004",
+      "prefix": "ENT",
+      "name": "중복 탐지",
+      "description": "동일 사업자번호, 유사명칭 탐지",
+      "priority": "P1",
+      "acceptance": "병합 workflow 제공",
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "token_hits": [
+        "중복",
+        "탐지",
+        "사업자번호",
+        "유사명칭"
+      ],
+      "acceptance_hits": [
+        "workflow"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENT-005",
+      "prefix": "ENT",
+      "name": "위험등급",
+      "description": "일반, 주의, 고위험",
+      "priority": "P1",
+      "acceptance": "수임승인 workflow에 반영",
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "token_hits": [
+        "위험등급",
+        "고위험"
+      ],
+      "acceptance_hits": [
+        "수임승인",
+        "workflow에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENT-006",
+      "prefix": "ENT",
+      "name": "공시정보 연결",
+      "description": "DART 등 외부정보 연동",
+      "priority": "P2",
+      "acceptance": "외부출처와 업데이트 시점 표시",
+      "expected_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP10",
+        "RP23"
+      ],
+      "token_hits": [
+        "공시정보",
+        "연결",
+        "dart",
+        "외부정보"
+      ],
+      "acceptance_hits": [
+        "외부출처와",
+        "업데이트"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-001",
+      "prefix": "CLI",
+      "name": "Client 등록",
+      "description": "고객 등록",
+      "priority": "P0",
+      "acceptance": "entity_id와 연결",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "client",
+        "등록"
+      ],
+      "acceptance_hits": [
+        "entity",
+        "id와"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-002",
+      "prefix": "CLI",
+      "name": "Client Group",
+      "description": "그룹사·계열사 구조",
+      "priority": "P0",
+      "acceptance": "group 단위 매출조회 가능",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "client",
+        "group",
+        "그룹사",
+        "계열사"
+      ],
+      "acceptance_hits": [
+        "group",
+        "매출조회"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-003",
+      "prefix": "CLI",
+      "name": "Billing Entity 연결",
+      "description": "실제 청구처 분리",
+      "priority": "P0",
+      "acceptance": "invoice 생성 시 billing entity 선택",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "billing",
+        "entity",
+        "연결",
+        "청구처"
+      ],
+      "acceptance_hits": [
+        "invoice",
+        "billing",
+        "entity"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-004",
+      "prefix": "CLI",
+      "name": "Relationship Partner 지정",
+      "description": "관계 담당 파트너",
+      "priority": "P0",
+      "acceptance": "partner dashboard에 반영",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "relationship",
+        "partner",
+        "지정",
+        "파트너"
+      ],
+      "acceptance_hits": [
+        "partner",
+        "dashboard에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-005",
+      "prefix": "CLI",
+      "name": "Client 상태관리",
+      "description": "잠재, 활성, 휴면, 제한, 종료",
+      "priority": "P1",
+      "acceptance": "휴면고객 알림 가능",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "client",
+        "상태관리"
+      ],
+      "acceptance_hits": [
+        "휴면고객"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-006",
+      "prefix": "CLI",
+      "name": "고객별 매출",
+      "description": "청구·입금·미수 조회",
+      "priority": "P1",
+      "acceptance": "client dashboard 제공",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "고객별",
+        "매출"
+      ],
+      "acceptance_hits": [
+        "client",
+        "dashboard"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-007",
+      "prefix": "CLI",
+      "name": "고객별 수익성",
+      "description": "매출, 비용, time cost 분석",
+      "priority": "P2",
+      "acceptance": "client profitability report 생성",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "고객별",
+        "수익성",
+        "time",
+        "cost"
+      ],
+      "acceptance_hits": [
+        "client",
+        "profitability",
+        "report"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CLI-008",
+      "prefix": "CLI",
+      "name": "Key Account Plan",
+      "description": "핵심고객 연간계획",
+      "priority": "P2",
+      "acceptance": "activity와 opportunity 연결",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "key",
+        "account",
+        "plan",
+        "핵심고객",
+        "연간계획"
+      ],
+      "acceptance_hits": [
+        "activity와",
+        "opportunity"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CON-001",
+      "prefix": "CON",
+      "name": "Contact 등록",
+      "description": "개인 담당자 등록",
+      "priority": "P0",
+      "acceptance": "Person entity와 연결",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "contact",
+        "등록",
+        "담당자"
+      ],
+      "acceptance_hits": [
+        "person",
+        "entity와"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CON-002",
+      "prefix": "CON",
+      "name": "소속 이력",
+      "description": "현재·과거 소속 관리",
+      "priority": "P1",
+      "acceptance": "이직 후 이전 관계 확인 가능",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "소속",
+        "이력"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "CON-003",
+      "prefix": "CON",
+      "name": "관계 owner",
+      "description": "contact 담당 파트너 지정",
+      "priority": "P0",
+      "acceptance": "중복 owner 경고 가능",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "관계",
+        "owner",
+        "contact",
+        "파트너"
+      ],
+      "acceptance_hits": [
+        "owner"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CON-004",
+      "prefix": "CON",
+      "name": "접촉 이력",
+      "description": "미팅, 전화, 이메일 메모",
+      "priority": "P0",
+      "acceptance": "timeline 표시",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "접촉",
+        "이력",
+        "이메일"
+      ],
+      "acceptance_hits": [
+        "timeline"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CON-005",
+      "prefix": "CON",
+      "name": "수신동의",
+      "description": "뉴스레터·행사 수신동의",
+      "priority": "P1",
+      "acceptance": "opt-out 즉시 반영",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "수신동의",
+        "뉴스레터",
+        "수신동의"
+      ],
+      "acceptance_hits": [
+        "opt",
+        "out"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CON-006",
+      "prefix": "CON",
+      "name": "관계강도",
+      "description": "strong, medium, weak 또는 점수",
+      "priority": "P2",
+      "acceptance": "BD 분석에 사용",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "관계강도",
+        "strong",
+        "medium",
+        "weak"
+      ],
+      "acceptance_hits": [
+        "분석에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CON-007",
+      "prefix": "CON",
+      "name": "개인정보 최소화",
+      "description": "사적 정보 입력 제한",
+      "priority": "P1",
+      "acceptance": "민감 메모 경고",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16"
+      ],
+      "token_hits": [
+        "개인정보",
+        "최소화"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "LEAD-001",
+      "prefix": "LEAD",
+      "name": "Lead 생성",
+      "description": "문의, 소개, 세미나, 뉴스레터 반응 등록",
+      "priority": "P1",
+      "acceptance": "source 필수",
+      "expected_programs": [
+        "RP09"
+      ],
+      "matched_programs": [
+        "RP09"
+      ],
+      "token_hits": [
+        "lead",
+        "생성",
+        "세미나",
+        "뉴스레터"
+      ],
+      "acceptance_hits": [
+        "source"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "LEAD-002",
+      "prefix": "LEAD",
+      "name": "Lead Source",
+      "description": "referral, existing client, event, website 등",
+      "priority": "P1",
+      "acceptance": "source별 전환율 조회",
+      "expected_programs": [
+        "RP09"
+      ],
+      "matched_programs": [
+        "RP09"
+      ],
+      "token_hits": [
+        "lead",
+        "source",
+        "referral",
+        "existing",
+        "client",
+        "event",
+        "website"
+      ],
+      "acceptance_hits": [
+        "source별",
+        "전환율"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "LEAD-003",
+      "prefix": "LEAD",
+      "name": "Lead Assignment",
+      "description": "담당 파트너 또는 BD 담당자 배정",
+      "priority": "P1",
+      "acceptance": "미배정 lead 알림",
+      "expected_programs": [
+        "RP09"
+      ],
+      "matched_programs": [
+        "RP09"
+      ],
+      "token_hits": [
+        "lead",
+        "assignment",
+        "파트너",
+        "담당자"
+      ],
+      "acceptance_hits": [
+        "미배정",
+        "lead"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "LEAD-004",
+      "prefix": "LEAD",
+      "name": "Qualification",
+      "description": "수임 가능성 기초평가",
+      "priority": "P1",
+      "acceptance": "qualified 시 opportunity 전환",
+      "expected_programs": [
+        "RP09"
+      ],
+      "matched_programs": [
+        "RP09"
+      ],
+      "token_hits": [
+        "qualification",
+        "가능성",
+        "기초평가"
+      ],
+      "acceptance_hits": [
+        "qualified",
+        "opportunity"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "LEAD-005",
+      "prefix": "LEAD",
+      "name": "Lead Conversion",
+      "description": "Opportunity 또는 Client로 전환",
+      "priority": "P1",
+      "acceptance": "기존 contact/client와 병합 가능",
+      "expected_programs": [
+        "RP09"
+      ],
+      "matched_programs": [
+        "RP09"
+      ],
+      "token_hits": [
+        "lead",
+        "conversion",
+        "opportunity",
+        "client로"
+      ],
+      "acceptance_hits": [
+        "contact",
+        "client와"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-001",
+      "prefix": "OPP",
+      "name": "Opportunity 생성",
+      "description": "잠재 사건 생성",
+      "priority": "P0",
+      "acceptance": "client 또는 prospective client 연결",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "opportunity",
+        "생성"
+      ],
+      "acceptance_hits": [
+        "client",
+        "prospective",
+        "client"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-002",
+      "prefix": "OPP",
+      "name": "Pipeline 단계관리",
+      "description": "stage 변경 및 이력",
+      "priority": "P0",
+      "acceptance": "stage history 기록",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "pipeline",
+        "단계관리",
+        "stage"
+      ],
+      "acceptance_hits": [
+        "stage",
+        "history"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-003",
+      "prefix": "OPP",
+      "name": "예상 보수",
+      "description": "예상 수임금액, 성공보수, 월자문료",
+      "priority": "P0",
+      "acceptance": "forecast에 반영",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "예상",
+        "보수",
+        "수임금액",
+        "성공보수",
+        "월자문료"
+      ],
+      "acceptance_hits": [
+        "forecast에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-004",
+      "prefix": "OPP",
+      "name": "수임 가능성",
+      "description": "probability 설정",
+      "priority": "P1",
+      "acceptance": "weighted pipeline 계산",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "수임",
+        "가능성",
+        "probability"
+      ],
+      "acceptance_hits": [
+        "weighted",
+        "pipeline"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-005",
+      "prefix": "OPP",
+      "name": "예상 종결일",
+      "description": "expected close date",
+      "priority": "P1",
+      "acceptance": "forecast period에 반영",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "예상",
+        "종결일",
+        "expected",
+        "close",
+        "date"
+      ],
+      "acceptance_hits": [
+        "forecast",
+        "period에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-006",
+      "prefix": "OPP",
+      "name": "관련 당사자",
+      "description": "conflict 대상 입력",
+      "priority": "P0",
+      "acceptance": "conflict check와 연결",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "관련",
+        "당사자",
+        "conflict"
+      ],
+      "acceptance_hits": [
+        "conflict",
+        "check와"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-007",
+      "prefix": "OPP",
+      "name": "제안서 연결",
+      "description": "DMS document_id 연결",
+      "priority": "P0",
+      "acceptance": "proposal version 확인 가능",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "제안서",
+        "연결",
+        "dms",
+        "document"
+      ],
+      "acceptance_hits": [
+        "proposal",
+        "version"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-008",
+      "prefix": "OPP",
+      "name": "Matter 전환",
+      "description": "Won 시 Matter 자동 생성",
+      "priority": "P0",
+      "acceptance": "opportunity data가 matter에 이관",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "matter",
+        "전환",
+        "won",
+        "matter"
+      ],
+      "acceptance_hits": [
+        "opportunity",
+        "data가",
+        "matter에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-009",
+      "prefix": "OPP",
+      "name": "Lost reason",
+      "description": "미수임 사유 기록",
+      "priority": "P1",
+      "acceptance": "lost analysis report 생성",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "lost",
+        "reason",
+        "미수임"
+      ],
+      "acceptance_hits": [
+        "lost",
+        "analysis",
+        "report"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "OPP-010",
+      "prefix": "OPP",
+      "name": "경쟁 로펌",
+      "description": "확인 가능한 경우 경쟁자 기록",
+      "priority": "P2",
+      "acceptance": "무단추정 입력 방지 메모",
+      "expected_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP10",
+        "RP05",
+        "RP15"
+      ],
+      "token_hits": [
+        "경쟁",
+        "로펌",
+        "가능한",
+        "경쟁자"
+      ],
+      "acceptance_hits": [
+        "무단추정"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-001",
+      "prefix": "PROP",
+      "name": "제안서 생성",
+      "description": "template 기반 proposal 생성",
+      "priority": "P1",
+      "acceptance": "DMS 문서로 생성",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "제안서",
+        "생성",
+        "template",
+        "proposal"
+      ],
+      "acceptance_hits": [
+        "dms",
+        "문서로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-002",
+      "prefix": "PROP",
+      "name": "견적서 생성",
+      "description": "fee quote 생성",
+      "priority": "P1",
+      "acceptance": "fee arrangement 초안으로 이관",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "견적서",
+        "생성",
+        "fee",
+        "quote"
+      ],
+      "acceptance_hits": [
+        "fee",
+        "arrangement",
+        "초안으로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-003",
+      "prefix": "PROP",
+      "name": "버전관리",
+      "description": "proposal v1, v2, final",
+      "priority": "P0",
+      "acceptance": "DMS version과 연결",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "버전관리",
+        "proposal",
+        "final"
+      ],
+      "acceptance_hits": [
+        "dms",
+        "version과"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-004",
+      "prefix": "PROP",
+      "name": "제출 이력",
+      "description": "제출일, 제출자, 제출대상",
+      "priority": "P1",
+      "acceptance": "activity timeline에 표시",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "제출",
+        "이력",
+        "제출일",
+        "제출자",
+        "제출대상"
+      ],
+      "acceptance_hits": [
+        "activity",
+        "timeline에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-005",
+      "prefix": "PROP",
+      "name": "제출승인",
+      "description": "partner approval",
+      "priority": "P1",
+      "acceptance": "승인 전 외부발송 제한",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "제출승인",
+        "partner",
+        "approval"
+      ],
+      "acceptance_hits": [
+        "외부발송"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-006",
+      "prefix": "PROP",
+      "name": "수임조건 이관",
+      "description": "proposal fee를 engagement fee로 이관",
+      "priority": "P1",
+      "acceptance": "변경 차이 표시",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "수임조건",
+        "이관",
+        "proposal",
+        "fee를",
+        "engagement",
+        "fee로"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "PROP-007",
+      "prefix": "PROP",
+      "name": "RFP 관리",
+      "description": "RFP deadline, Q&A, 자료요청",
+      "priority": "P2",
+      "acceptance": "RFP dashboard 제공",
+      "expected_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP06",
+        "RP10"
+      ],
+      "token_hits": [
+        "rfp",
+        "관리",
+        "rfp",
+        "deadline",
+        "자료요청"
+      ],
+      "acceptance_hits": [
+        "rfp",
+        "dashboard"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REF-001",
+      "prefix": "REF",
+      "name": "소개자 기록",
+      "description": "내부·외부 소개자",
+      "priority": "P1",
+      "acceptance": "source document 연결 가능",
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "token_hits": [
+        "소개자",
+        "기록",
+        "소개자"
+      ],
+      "acceptance_hits": [
+        "source",
+        "document"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REF-002",
+      "prefix": "REF",
+      "name": "유치기여자",
+      "description": "origination partner 지정",
+      "priority": "P0",
+      "acceptance": "settlement rule로 이관",
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "token_hits": [
+        "유치기여자",
+        "origination",
+        "partner"
+      ],
+      "acceptance_hits": [
+        "settlement",
+        "rule로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REF-003",
+      "prefix": "REF",
+      "name": "공동유치",
+      "description": "복수 유치기여자 및 비율",
+      "priority": "P1",
+      "acceptance": "합계 100% validation",
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "token_hits": [
+        "공동유치",
+        "유치기여자"
+      ],
+      "acceptance_hits": [
+        "100",
+        "validation"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REF-004",
+      "prefix": "REF",
+      "name": "정산 연결",
+      "description": "settlement rule과 연결",
+      "priority": "P1",
+      "acceptance": "settlement preview 반영",
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "token_hits": [
+        "정산",
+        "연결",
+        "settlement",
+        "rule과"
+      ],
+      "acceptance_hits": [
+        "settlement",
+        "preview"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REF-005",
+      "prefix": "REF",
+      "name": "외부소개 검토 플래그",
+      "description": "외부 referral 관련 법률검토 필요 표시",
+      "priority": "P1",
+      "acceptance": "자동지급 금지",
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "token_hits": [
+        "외부소개",
+        "검토",
+        "플래그",
+        "referral",
+        "법률검토"
+      ],
+      "acceptance_hits": [
+        "자동지급"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REF-006",
+      "prefix": "REF",
+      "name": "근거문서 연결",
+      "description": "최초 소개 이메일, 메모 등",
+      "priority": "P1",
+      "acceptance": "DMS document/email 참조",
+      "expected_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP14",
+        "RP16"
+      ],
+      "token_hits": [
+        "근거문서",
+        "연결",
+        "이메일"
+      ],
+      "acceptance_hits": [
+        "dms",
+        "document",
+        "email"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CAM-001",
+      "prefix": "CAM",
+      "name": "뉴스레터 대상자",
+      "description": "분야별 수신자 그룹",
+      "priority": "P2",
+      "acceptance": "수신동의 있는 contact만 포함",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "뉴스레터",
+        "대상자",
+        "분야별",
+        "수신자"
+      ],
+      "acceptance_hits": [
+        "수신동의",
+        "contact만"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CAM-002",
+      "prefix": "CAM",
+      "name": "발송이력",
+      "description": "콘텐츠, 발송일, 대상자",
+      "priority": "P2",
+      "acceptance": "contact timeline에 표시",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "발송이력",
+        "콘텐츠",
+        "발송일",
+        "대상자"
+      ],
+      "acceptance_hits": [
+        "contact",
+        "timeline에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CAM-003",
+      "prefix": "CAM",
+      "name": "행사관리",
+      "description": "세미나, 웨비나, 조찬",
+      "priority": "P2",
+      "acceptance": "RSVP 관리",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "행사관리",
+        "세미나",
+        "웨비나"
+      ],
+      "acceptance_hits": [
+        "rsvp"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CAM-004",
+      "prefix": "CAM",
+      "name": "캠페인 기여분석",
+      "description": "campaign → lead/opportunity 연결",
+      "priority": "P3",
+      "acceptance": "attribution report 생성",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "캠페인",
+        "기여분석",
+        "campaign",
+        "lead",
+        "opportunity"
+      ],
+      "acceptance_hits": [
+        "attribution",
+        "report"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REL-001",
+      "prefix": "REL",
+      "name": "휴면고객 알림",
+      "description": "일정 기간 접촉 없는 고객",
+      "priority": "P2",
+      "acceptance": "partner에게 알림",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "휴면고객",
+        "알림"
+      ],
+      "acceptance_hits": [
+        "partner에게"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REL-002",
+      "prefix": "REL",
+      "name": "Cross-sell 추천",
+      "description": "기존 matter 기반 추가기회 추천",
+      "priority": "P3",
+      "acceptance": "사람이 승인 후 opportunity 생성",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "cross",
+        "sell",
+        "추천",
+        "matter",
+        "추가기회"
+      ],
+      "acceptance_hits": [
+        "사람이",
+        "opportunity"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "REL-003",
+      "prefix": "REL",
+      "name": "관계맵",
+      "description": "client 내부 key contact 구조",
+      "priority": "P2",
+      "acceptance": "contact relationship graph 표시",
+      "expected_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP09",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "관계맵",
+        "client",
+        "key",
+        "contact"
+      ],
+      "acceptance_hits": [
+        "contact",
+        "relationship",
+        "graph"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-001",
+      "prefix": "CONF",
+      "name": "Conflict 요청",
+      "description": "Opportunity 또는 Matter 생성 전 요청",
+      "priority": "P0",
+      "acceptance": "요청자, 요청일 기록",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "conflict",
+        "요청",
+        "opportunity",
+        "matter"
+      ],
+      "acceptance_hits": [
+        "요청자",
+        "요청일"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-002",
+      "prefix": "CONF",
+      "name": "당사자 검색",
+      "description": "client, 상대방, 계열사, 임원, 주주, 과거 matter",
+      "priority": "P0",
+      "acceptance": "exact/fuzzy search 지원",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "당사자",
+        "검색",
+        "client",
+        "상대방",
+        "계열사",
+        "matter"
+      ],
+      "acceptance_hits": [
+        "exact",
+        "fuzzy",
+        "search"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-003",
+      "prefix": "CONF",
+      "name": "Alias 검색",
+      "description": "영문명, 약칭, 구 명칭, 띄어쓰기 변형",
+      "priority": "P0",
+      "acceptance": "alias hit 표시",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "alias",
+        "검색",
+        "영문명",
+        "띄어쓰기"
+      ],
+      "acceptance_hits": [
+        "alias",
+        "hit"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-004",
+      "prefix": "CONF",
+      "name": "DMS 검색",
+      "description": "engagement letter, waiver, 관련 이메일 검색",
+      "priority": "P1",
+      "acceptance": "권한 있는 관리자만 가능",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "dms",
+        "검색",
+        "engagement",
+        "letter",
+        "waiver",
+        "이메일"
+      ],
+      "acceptance_hits": [
+        "관리자만"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-005",
+      "prefix": "CONF",
+      "name": "Hit 분류",
+      "description": "clear, potential, waiver required, decline",
+      "priority": "P0",
+      "acceptance": "reviewer가 risk level 지정",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "hit",
+        "분류",
+        "clear",
+        "potential",
+        "waiver",
+        "required",
+        "decline"
+      ],
+      "acceptance_hits": [
+        "reviewer가",
+        "risk",
+        "level"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-006",
+      "prefix": "CONF",
+      "name": "Waiver 관리",
+      "description": "이해상충 동의서 저장",
+      "priority": "P1",
+      "acceptance": "waiver document 연결",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "waiver",
+        "관리",
+        "이해상충",
+        "동의서"
+      ],
+      "acceptance_hits": [
+        "waiver",
+        "document"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-007",
+      "prefix": "CONF",
+      "name": "Ethical Wall 생성",
+      "description": "제한 사용자·그룹 차단",
+      "priority": "P1",
+      "acceptance": "deny rule로 생성",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "ethical",
+        "wall",
+        "생성",
+        "사용자"
+      ],
+      "acceptance_hits": [
+        "deny",
+        "rule로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-008",
+      "prefix": "CONF",
+      "name": "승인 이력",
+      "description": "검토자, 승인자, 승인일",
+      "priority": "P0",
+      "acceptance": "audit log 기록",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "승인",
+        "이력",
+        "검토자",
+        "승인자",
+        "승인일"
+      ],
+      "acceptance_hits": [
+        "audit",
+        "log"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "CONF-009",
+      "prefix": "CONF",
+      "name": "재검토 trigger",
+      "description": "당사자 추가, scope 변경 시 재검토",
+      "priority": "P1",
+      "acceptance": "matter 변경 시 알림",
+      "expected_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP02",
+        "RP04",
+        "RP16"
+      ],
+      "token_hits": [
+        "재검토",
+        "trigger",
+        "당사자",
+        "scope",
+        "재검토"
+      ],
+      "acceptance_hits": [
+        "matter"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-001",
+      "prefix": "ENG",
+      "name": "수임승인 요청",
+      "description": "conflict cleared 후 내부 승인",
+      "priority": "P0",
+      "acceptance": "approval workflow 시작",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "수임승인",
+        "요청",
+        "conflict",
+        "cleared"
+      ],
+      "acceptance_hits": [
+        "approval",
+        "workflow"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-002",
+      "prefix": "ENG",
+      "name": "업무범위 입력",
+      "description": "scope of work 구조화",
+      "priority": "P0",
+      "acceptance": "engagement letter에 반영",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "업무범위",
+        "입력",
+        "scope",
+        "work",
+        "구조화"
+      ],
+      "acceptance_hits": [
+        "engagement",
+        "letter에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-003",
+      "prefix": "ENG",
+      "name": "보수조건 입력",
+      "description": "hourly, fixed, retainer, success fee 등",
+      "priority": "P0",
+      "acceptance": "billing rule로 이관",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "보수조건",
+        "입력",
+        "hourly",
+        "fixed",
+        "retainer",
+        "success",
+        "fee"
+      ],
+      "acceptance_hits": [
+        "billing",
+        "rule로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-004",
+      "prefix": "ENG",
+      "name": "청구처 지정",
+      "description": "client와 billing entity 분리",
+      "priority": "P0",
+      "acceptance": "invoice 대상 지정",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "청구처",
+        "지정",
+        "client와",
+        "billing",
+        "entity"
+      ],
+      "acceptance_hits": [
+        "invoice"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-005",
+      "prefix": "ENG",
+      "name": "위험도 평가",
+      "description": "고위험, 장기미수, 민감사건 표시",
+      "priority": "P1",
+      "acceptance": "추가 승인권자 지정",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "위험도",
+        "평가",
+        "고위험",
+        "장기미수",
+        "민감사건"
+      ],
+      "acceptance_hits": [
+        "승인권자"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-006",
+      "prefix": "ENG",
+      "name": "수임계약서 생성",
+      "description": "engagement letter 생성",
+      "priority": "P1",
+      "acceptance": "DMS document로 저장",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "수임계약서",
+        "생성",
+        "engagement",
+        "letter"
+      ],
+      "acceptance_hits": [
+        "dms",
+        "document로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-007",
+      "prefix": "ENG",
+      "name": "수임조건 확정",
+      "description": "fee arrangement locked",
+      "priority": "P0",
+      "acceptance": "변경 시 approval 필요",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "수임조건",
+        "확정",
+        "fee",
+        "arrangement",
+        "locked"
+      ],
+      "acceptance_hits": [
+        "approval"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ENG-008",
+      "prefix": "ENG",
+      "name": "서명본 관리",
+      "description": "서명본 upload 및 execution copy 지정",
+      "priority": "P1",
+      "acceptance": "execution copy 수정 제한",
+      "expected_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP10",
+        "RP12",
+        "RP06"
+      ],
+      "token_hits": [
+        "서명본",
+        "관리",
+        "서명본",
+        "upload",
+        "execution",
+        "copy"
+      ],
+      "acceptance_hits": [
+        "execution",
+        "copy"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-001",
+      "prefix": "MAT",
+      "name": "Matter 생성",
+      "description": "수임승인 후 생성",
+      "priority": "P0",
+      "acceptance": "matter_code 자동 생성",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "matter",
+        "생성",
+        "수임승인"
+      ],
+      "acceptance_hits": [
+        "matter",
+        "code"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-002",
+      "prefix": "MAT",
+      "name": "Workspace 자동 생성",
+      "description": "matter type별 폴더 생성",
+      "priority": "P0",
+      "acceptance": "1분 이내 생성",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "workspace",
+        "자동",
+        "생성",
+        "matter",
+        "type별"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-003",
+      "prefix": "MAT",
+      "name": "담당자 관리",
+      "description": "partner, attorney, staff 배정",
+      "priority": "P0",
+      "acceptance": "MatterMember 생성",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "담당자",
+        "관리",
+        "partner",
+        "attorney",
+        "staff"
+      ],
+      "acceptance_hits": [
+        "mattermember"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-004",
+      "prefix": "MAT",
+      "name": "권한 자동부여",
+      "description": "matter team 기반 접근권한",
+      "priority": "P0",
+      "acceptance": "검색결과에도 반영",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "권한",
+        "자동부여",
+        "matter",
+        "team",
+        "접근권한"
+      ],
+      "acceptance_hits": [
+        "검색결과에도"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-005",
+      "prefix": "MAT",
+      "name": "상태관리",
+      "description": "active, on hold, closing, closed",
+      "priority": "P0",
+      "acceptance": "상태변경 이력 기록",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "상태관리",
+        "active",
+        "hold",
+        "closing",
+        "closed"
+      ],
+      "acceptance_hits": [
+        "상태변경"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-006",
+      "prefix": "MAT",
+      "name": "Task 관리",
+      "description": "업무, 담당자, due date",
+      "priority": "P1",
+      "acceptance": "미완료 task 알림",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "task",
+        "관리",
+        "담당자",
+        "due",
+        "date"
+      ],
+      "acceptance_hits": [
+        "미완료",
+        "task"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-007",
+      "prefix": "MAT",
+      "name": "Calendar",
+      "description": "기일, 미팅, closing 일정",
+      "priority": "P1",
+      "acceptance": "Outlook/Google 연동 가능",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "calendar",
+        "closing"
+      ],
+      "acceptance_hits": [
+        "outlook",
+        "google"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-008",
+      "prefix": "MAT",
+      "name": "Checklist",
+      "description": "LDD, CP, closing, litigation checklist",
+      "priority": "P1",
+      "acceptance": "완료율 표시",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "checklist",
+        "ldd",
+        "closing",
+        "litigation",
+        "checklist"
+      ],
+      "acceptance_hits": [
+        "완료율"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-009",
+      "prefix": "MAT",
+      "name": "Matter Note",
+      "description": "주요 쟁점·진행 메모",
+      "priority": "P1",
+      "acceptance": "note 권한 설정 가능",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "matter",
+        "note"
+      ],
+      "acceptance_hits": [
+        "note"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "MAT-010",
+      "prefix": "MAT",
+      "name": "Matter Closing",
+      "description": "종결 체크리스트 및 retention 적용",
+      "priority": "P1",
+      "acceptance": "미청구·미수 확인 후 종결",
+      "expected_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP02",
+        "RP06",
+        "RP15"
+      ],
+      "token_hits": [
+        "matter",
+        "closing",
+        "체크리스트",
+        "retention"
+      ],
+      "acceptance_hits": [
+        "미청구"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-001",
+      "prefix": "DOC",
+      "name": "업로드",
+      "description": "drag & drop, bulk upload",
+      "priority": "P0",
+      "acceptance": "파일 업로드 성공/실패 기록",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "업로드",
+        "drag",
+        "drop",
+        "bulk",
+        "upload"
+      ],
+      "acceptance_hits": [
+        "업로드"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-002",
+      "prefix": "DOC",
+      "name": "다운로드",
+      "description": "단일·복수 다운로드",
+      "priority": "P0",
+      "acceptance": "다운로드 audit 기록",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "다운로드",
+        "다운로드"
+      ],
+      "acceptance_hits": [
+        "다운로드",
+        "audit"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-003",
+      "prefix": "DOC",
+      "name": "미리보기",
+      "description": "PDF, Office, image preview",
+      "priority": "P0",
+      "acceptance": "원본 다운로드 없이 보기 가능",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "미리보기",
+        "pdf",
+        "office",
+        "image",
+        "preview"
+      ],
+      "acceptance_hits": [
+        "다운로드"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-004",
+      "prefix": "DOC",
+      "name": "버전관리",
+      "description": "새 버전 생성, 이전 버전 보존",
+      "priority": "P0",
+      "acceptance": "이전 버전 덮어쓰기 금지",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "버전관리"
+      ],
+      "acceptance_hits": [
+        "덮어쓰기"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-005",
+      "prefix": "DOC",
+      "name": "check-in/out",
+      "description": "편집 잠금",
+      "priority": "P1",
+      "acceptance": "checkout 사용자 외 수정 제한",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "check",
+        "in",
+        "out"
+      ],
+      "acceptance_hits": [
+        "checkout",
+        "사용자"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-006",
+      "prefix": "DOC",
+      "name": "문서상태",
+      "description": "draft, client sent, execution copy 등",
+      "priority": "P0",
+      "acceptance": "상태변경 이력 기록",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "문서상태",
+        "draft",
+        "client",
+        "sent",
+        "execution",
+        "copy"
+      ],
+      "acceptance_hits": [
+        "상태변경"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-007",
+      "prefix": "DOC",
+      "name": "문서번호",
+      "description": "영구 Document ID 부여",
+      "priority": "P0",
+      "acceptance": "파일명 변경에도 ID 유지",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "문서번호",
+        "document"
+      ],
+      "acceptance_hits": [
+        "파일명",
+        "변경에도"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-008",
+      "prefix": "DOC",
+      "name": "파일해시",
+      "description": "무결성 검증",
+      "priority": "P0",
+      "acceptance": "hash 저장",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "파일해시",
+        "무결성"
+      ],
+      "acceptance_hits": [
+        "hash"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-009",
+      "prefix": "DOC",
+      "name": "중복탐지",
+      "description": "동일 hash 또는 유사파일 경고",
+      "priority": "P1",
+      "acceptance": "업로드 시 중복 알림",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "중복탐지",
+        "hash",
+        "유사파일"
+      ],
+      "acceptance_hits": [
+        "업로드"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-010",
+      "prefix": "DOC",
+      "name": "비교",
+      "description": "Word/PDF redline 비교",
+      "priority": "P1",
+      "acceptance": "버전 간 변경점 확인",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "비교",
+        "word",
+        "pdf",
+        "redline"
+      ],
+      "acceptance_hits": [
+        "변경점"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-011",
+      "prefix": "DOC",
+      "name": "변환",
+      "description": "Office/HWPX/HWP/PDF 변환",
+      "priority": "P1",
+      "acceptance": "preview rendition 생성",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "변환",
+        "office",
+        "hwpx",
+        "hwp",
+        "pdf"
+      ],
+      "acceptance_hits": [
+        "preview",
+        "rendition"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-012",
+      "prefix": "DOC",
+      "name": "원본보존",
+      "description": "execution copy 수정 제한",
+      "priority": "P0",
+      "acceptance": "특별권한 없이는 삭제·수정 불가",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "원본보존",
+        "execution",
+        "copy"
+      ],
+      "acceptance_hits": [
+        "특별권한",
+        "없이는"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-013",
+      "prefix": "DOC",
+      "name": "대량업로드",
+      "description": "VDR·폴더 단위 import",
+      "priority": "P1",
+      "acceptance": "폴더구조 유지",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "대량업로드",
+        "vdr",
+        "import"
+      ],
+      "acceptance_hits": [
+        "폴더구조"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-014",
+      "prefix": "DOC",
+      "name": "문서관계",
+      "description": "원본, 마크업, 송부본, 체결본 연결",
+      "priority": "P1",
+      "acceptance": "relation graph 표시",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "문서관계",
+        "마크업",
+        "송부본",
+        "체결본"
+      ],
+      "acceptance_hits": [
+        "relation",
+        "graph"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-015",
+      "prefix": "DOC",
+      "name": "조항 추출",
+      "description": "계약서 조항 단위 추출",
+      "priority": "P2",
+      "acceptance": "clause search 대상 생성",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "조항",
+        "추출",
+        "계약서"
+      ],
+      "acceptance_hits": [
+        "clause",
+        "search"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "DOC-016",
+      "prefix": "DOC",
+      "name": "선례 지정",
+      "description": "좋은 선례, 금지 선례, 참고 선례 태그",
+      "priority": "P2",
+      "acceptance": "precedent search에 반영",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP08",
+        "RP17",
+        "RP24",
+        "RP25"
+      ],
+      "token_hits": [
+        "선례",
+        "지정"
+      ],
+      "acceptance_hits": [
+        "precedent",
+        "search에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-001",
+      "prefix": "EML",
+      "name": "Outlook Add-in",
+      "description": "이메일을 Matter에 filing",
+      "priority": "P1",
+      "acceptance": "3클릭 이내 filing",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "outlook",
+        "add",
+        "in",
+        "이메일을",
+        "matter에",
+        "filing"
+      ],
+      "acceptance_hits": [
+        "3클릭",
+        "filing"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-002",
+      "prefix": "EML",
+      "name": "Gmail Add-in",
+      "description": "Gmail 이메일 filing",
+      "priority": "P2",
+      "acceptance": "Gmail message metadata 보존",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "gmail",
+        "add",
+        "in",
+        "gmail",
+        "이메일",
+        "filing"
+      ],
+      "acceptance_hits": [
+        "gmail",
+        "message",
+        "metadata"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-003",
+      "prefix": "EML",
+      "name": "Matter 추천",
+      "description": "제목, 수신자, 첨부파일명 기반 추천",
+      "priority": "P1",
+      "acceptance": "추천 matter 표시",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "matter",
+        "추천",
+        "수신자",
+        "첨부파일명"
+      ],
+      "acceptance_hits": [
+        "matter"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-004",
+      "prefix": "EML",
+      "name": "Thread filing",
+      "description": "이메일 thread 단위 저장",
+      "priority": "P1",
+      "acceptance": "thread_id로 묶음",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "thread",
+        "filing",
+        "이메일",
+        "thread"
+      ],
+      "acceptance_hits": [
+        "thread",
+        "id로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-005",
+      "prefix": "EML",
+      "name": "Sent filing",
+      "description": "발송 이메일 저장",
+      "priority": "P1",
+      "acceptance": "발송 직후 filing prompt",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "sent",
+        "filing",
+        "이메일"
+      ],
+      "acceptance_hits": [
+        "filing",
+        "prompt"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-006",
+      "prefix": "EML",
+      "name": "Attachment extraction",
+      "description": "첨부파일을 Document로 분리저장",
+      "priority": "P1",
+      "acceptance": "이메일 원본과 연결",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "attachment",
+        "extraction",
+        "첨부파일을",
+        "document로",
+        "분리저장"
+      ],
+      "acceptance_hits": [
+        "이메일",
+        "원본과"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-007",
+      "prefix": "EML",
+      "name": "중복방지",
+      "description": "Message-ID 기준 중복 저장 방지",
+      "priority": "P1",
+      "acceptance": "동일 email 중복 filing 방지",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "중복방지",
+        "message"
+      ],
+      "acceptance_hits": [
+        "email",
+        "filing"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-008",
+      "prefix": "EML",
+      "name": "Email search",
+      "description": "제목, 본문, 송수신자, 첨부파일 검색",
+      "priority": "P1",
+      "acceptance": "권한 trimming 적용",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "email",
+        "search",
+        "송수신자",
+        "첨부파일"
+      ],
+      "acceptance_hits": [
+        "trimming"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-009",
+      "prefix": "EML",
+      "name": "Email-to-task",
+      "description": "이메일에서 업무 생성",
+      "priority": "P2",
+      "acceptance": "task와 email 연결",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "email",
+        "to",
+        "task",
+        "이메일에서"
+      ],
+      "acceptance_hits": [
+        "task와",
+        "email"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EML-010",
+      "prefix": "EML",
+      "name": "Negotiation summary",
+      "description": "협상 이메일 thread 요약",
+      "priority": "P2",
+      "acceptance": "근거 email 표시",
+      "expected_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP06",
+        "RP07",
+        "RP18"
+      ],
+      "token_hits": [
+        "negotiation",
+        "summary",
+        "이메일",
+        "thread"
+      ],
+      "acceptance_hits": [
+        "email"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-001",
+      "prefix": "SRCH",
+      "name": "기본검색",
+      "description": "문서명·본문 검색",
+      "priority": "P0",
+      "acceptance": "권한 있는 문서만 결과 표시",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "기본검색",
+        "문서명"
+      ],
+      "acceptance_hits": [
+        "문서만"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-002",
+      "prefix": "SRCH",
+      "name": "메타데이터 필터",
+      "description": "client, matter, type, date",
+      "priority": "P0",
+      "acceptance": "복합필터 가능",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "메타데이터",
+        "필터",
+        "client",
+        "matter",
+        "type",
+        "date"
+      ],
+      "acceptance_hits": [
+        "복합필터"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-003",
+      "prefix": "SRCH",
+      "name": "OCR 검색",
+      "description": "스캔 PDF 검색",
+      "priority": "P1",
+      "acceptance": "OCR 완료 후 검색 가능",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "ocr",
+        "검색",
+        "pdf"
+      ],
+      "acceptance_hits": [
+        "ocr"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-004",
+      "prefix": "SRCH",
+      "name": "이메일 검색",
+      "description": "email subject/body/participants",
+      "priority": "P1",
+      "acceptance": "message_id 확인 가능",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "이메일",
+        "검색",
+        "email",
+        "subject",
+        "body",
+        "participants"
+      ],
+      "acceptance_hits": [
+        "message"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-005",
+      "prefix": "SRCH",
+      "name": "조항검색",
+      "description": "clause type, clause text",
+      "priority": "P2",
+      "acceptance": "clause location 표시",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "조항검색",
+        "clause",
+        "type",
+        "clause",
+        "text"
+      ],
+      "acceptance_hits": [
+        "clause",
+        "location"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-006",
+      "prefix": "SRCH",
+      "name": "의미검색",
+      "description": "vector search",
+      "priority": "P2",
+      "acceptance": "score와 근거 표시",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "의미검색",
+        "vector",
+        "search"
+      ],
+      "acceptance_hits": [
+        "score와"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-007",
+      "prefix": "SRCH",
+      "name": "보안 trimming",
+      "description": "권한 없는 문서 비노출",
+      "priority": "P0",
+      "acceptance": "문서명/snippet도 비노출",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "보안",
+        "trimming",
+        "비노출"
+      ],
+      "acceptance_hits": [
+        "문서명",
+        "snippet도",
+        "비노출"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SRCH-008",
+      "prefix": "SRCH",
+      "name": "검색로그",
+      "description": "관리자 정책에 따라 기록",
+      "priority": "P1",
+      "acceptance": "민감검색어 정책 적용",
+      "expected_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP07",
+        "RP02",
+        "RP17",
+        "RP18"
+      ],
+      "token_hits": [
+        "검색로그",
+        "관리자",
+        "정책에"
+      ],
+      "acceptance_hits": [
+        "민감검색어"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-001",
+      "prefix": "TIME",
+      "name": "타임 입력",
+      "description": "날짜, Matter, 시간, task code, narrative",
+      "priority": "P0",
+      "acceptance": "0.1h 또는 tenant 단위 설정",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "타임",
+        "입력",
+        "matter",
+        "task",
+        "code",
+        "narrative"
+      ],
+      "acceptance_hits": [
+        "tenant"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-002",
+      "prefix": "TIME",
+      "name": "Timer",
+      "description": "시작·중지 기반 기록",
+      "priority": "P1",
+      "acceptance": "timer 기록을 time entry로 전환",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "timer"
+      ],
+      "acceptance_hits": [
+        "timer",
+        "기록을",
+        "time",
+        "entry로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-003",
+      "prefix": "TIME",
+      "name": "Billable 여부",
+      "description": "billable / non-billable",
+      "priority": "P0",
+      "acceptance": "billing 집계에 반영",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "billable",
+        "여부",
+        "billable",
+        "non",
+        "billable"
+      ],
+      "acceptance_hits": [
+        "billing",
+        "집계에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-004",
+      "prefix": "TIME",
+      "name": "Task code",
+      "description": "계약검토, 리서치, 회의, 서면작성 등",
+      "priority": "P0",
+      "acceptance": "표준 task code 사용",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "task",
+        "code",
+        "계약검토",
+        "리서치",
+        "서면작성"
+      ],
+      "acceptance_hits": [
+        "task",
+        "code"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-005",
+      "prefix": "TIME",
+      "name": "승인",
+      "description": "담당 파트너 승인",
+      "priority": "P1",
+      "acceptance": "미승인 time은 invoice 제외 가능",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "승인",
+        "파트너"
+      ],
+      "acceptance_hits": [
+        "미승인",
+        "time은",
+        "invoice"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-006",
+      "prefix": "TIME",
+      "name": "마감 후 잠금",
+      "description": "월마감 후 수정 제한",
+      "priority": "P0",
+      "acceptance": "수정 시 approval 필요",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "마감",
+        "잠금",
+        "월마감"
+      ],
+      "acceptance_hits": [
+        "approval"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-007",
+      "prefix": "TIME",
+      "name": "Write-down",
+      "description": "청구 전 감액",
+      "priority": "P0",
+      "acceptance": "원래 금액과 감액 이력 보존",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "write",
+        "down"
+      ],
+      "acceptance_hits": [
+        "금액과"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-008",
+      "prefix": "TIME",
+      "name": "Write-off",
+      "description": "청구 제외",
+      "priority": "P0",
+      "acceptance": "승인권자 필요",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "write",
+        "off"
+      ],
+      "acceptance_hits": [
+        "승인권자"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-009",
+      "prefix": "TIME",
+      "name": "AI narrative 개선",
+      "description": "청구 가능한 설명문구 추천",
+      "priority": "P2",
+      "acceptance": "사람이 확인 후 반영",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "ai",
+        "narrative",
+        "개선",
+        "가능한",
+        "설명문구"
+      ],
+      "acceptance_hits": [
+        "사람이"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "TIME-010",
+      "prefix": "TIME",
+      "name": "Calendar 기반 추천",
+      "description": "캘린더·이메일 기반 time draft",
+      "priority": "P2",
+      "acceptance": "자동확정 금지",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP15",
+        "RP18"
+      ],
+      "token_hits": [
+        "calendar",
+        "기반",
+        "추천",
+        "캘린더",
+        "이메일",
+        "time",
+        "draft"
+      ],
+      "acceptance_hits": [
+        "자동확정"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-001",
+      "prefix": "EXP",
+      "name": "비용 등록",
+      "description": "영수증, 비용유형, Matter 연결",
+      "priority": "P0",
+      "acceptance": "document_id 연결",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "비용",
+        "등록",
+        "영수증",
+        "비용유형",
+        "matter"
+      ],
+      "acceptance_hits": [
+        "document"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-002",
+      "prefix": "EXP",
+      "name": "대납금 구분",
+      "description": "비용과 대납금 분리",
+      "priority": "P0",
+      "acceptance": "대납금은 recoverable로 관리",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "대납금",
+        "구분",
+        "비용과",
+        "대납금"
+      ],
+      "acceptance_hits": [
+        "대납금은",
+        "recoverable로"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-003",
+      "prefix": "EXP",
+      "name": "청구 가능 여부",
+      "description": "client billable 여부",
+      "priority": "P0",
+      "acceptance": "proforma에 반영",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "청구",
+        "가능",
+        "여부",
+        "client",
+        "billable"
+      ],
+      "acceptance_hits": [
+        "proforma에"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-004",
+      "prefix": "EXP",
+      "name": "승인 workflow",
+      "description": "담당자 → 파트너 → 회계",
+      "priority": "P0",
+      "acceptance": "승인 전 청구 제한 가능",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "승인",
+        "workflow",
+        "담당자",
+        "파트너"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-005",
+      "prefix": "EXP",
+      "name": "법인카드 import",
+      "description": "카드 거래내역 업로드 또는 연동",
+      "priority": "P1",
+      "acceptance": "카드내역과 영수증 매칭",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "법인카드",
+        "import",
+        "거래내역",
+        "업로드"
+      ],
+      "acceptance_hits": [
+        "카드내역과",
+        "영수증"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-006",
+      "prefix": "EXP",
+      "name": "OCR",
+      "description": "영수증 금액·일자·거래처 추출",
+      "priority": "P1",
+      "acceptance": "사용자 확인 후 확정",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "ocr",
+        "영수증",
+        "거래처"
+      ],
+      "acceptance_hits": [
+        "사용자"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-007",
+      "prefix": "EXP",
+      "name": "비용정책 검사",
+      "description": "한도초과, 증빙누락, 중복비용 탐지",
+      "priority": "P1",
+      "acceptance": "warning 표시",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "비용정책",
+        "검사",
+        "한도초과",
+        "증빙누락",
+        "중복비용"
+      ],
+      "acceptance_hits": [
+        "warning"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-008",
+      "prefix": "EXP",
+      "name": "외주업체 청구서",
+      "description": "vendor invoice 관리",
+      "priority": "P1",
+      "acceptance": "vendor와 matter 연결",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "외주업체",
+        "청구서",
+        "vendor",
+        "invoice"
+      ],
+      "acceptance_hits": [
+        "vendor와",
+        "matter"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "EXP-009",
+      "prefix": "EXP",
+      "name": "비용 근거문서 연결",
+      "description": "DMS document_id 연결",
+      "priority": "P0",
+      "acceptance": "invoice 검토 시 열람 가능",
+      "expected_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "matched_programs": [
+        "RP11",
+        "RP12",
+        "RP13"
+      ],
+      "token_hits": [
+        "비용",
+        "근거문서",
+        "연결",
+        "dms",
+        "document"
+      ],
+      "acceptance_hits": [
+        "invoice"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-001",
+      "prefix": "BILL",
+      "name": "Proforma 생성",
+      "description": "타임·비용·정액보수 기반 청구 전 검토",
+      "priority": "P0",
+      "acceptance": "draft proforma 생성",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "proforma",
+        "생성",
+        "정액보수"
+      ],
+      "acceptance_hits": [
+        "draft",
+        "proforma"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-002",
+      "prefix": "BILL",
+      "name": "Partner review",
+      "description": "담당 파트너 검토·감액",
+      "priority": "P0",
+      "acceptance": "write-down 이력 기록",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "partner",
+        "review",
+        "파트너"
+      ],
+      "acceptance_hits": [
+        "write",
+        "down"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-003",
+      "prefix": "BILL",
+      "name": "Invoice 확정",
+      "description": "승인 후 정식 청구서 번호 부여",
+      "priority": "P0",
+      "acceptance": "확정 후 임의수정 제한",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "invoice",
+        "확정",
+        "청구서"
+      ],
+      "acceptance_hits": [
+        "임의수정"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-004",
+      "prefix": "BILL",
+      "name": "Hourly billing",
+      "description": "타임시트 기반 청구",
+      "priority": "P0",
+      "acceptance": "rate card 적용",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "hourly",
+        "billing",
+        "타임시트"
+      ],
+      "acceptance_hits": [
+        "rate",
+        "card"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-005",
+      "prefix": "BILL",
+      "name": "Fixed fee billing",
+      "description": "정액·단계별 보수 청구",
+      "priority": "P0",
+      "acceptance": "milestone 기준",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "fixed",
+        "fee",
+        "billing",
+        "단계별"
+      ],
+      "acceptance_hits": [
+        "milestone"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-006",
+      "prefix": "BILL",
+      "name": "Retainer drawdown",
+      "description": "선수금 차감",
+      "priority": "P1",
+      "acceptance": "retainer balance 업데이트",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "retainer",
+        "drawdown",
+        "선수금"
+      ],
+      "acceptance_hits": [
+        "retainer",
+        "balance",
+        "업데이트"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-007",
+      "prefix": "BILL",
+      "name": "Success fee billing",
+      "description": "성공조건 충족 시 청구",
+      "priority": "P1",
+      "acceptance": "trigger event 기록",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "success",
+        "fee",
+        "billing",
+        "성공조건"
+      ],
+      "acceptance_hits": [
+        "trigger",
+        "event"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-008",
+      "prefix": "BILL",
+      "name": "Expense billing",
+      "description": "실비 별도청구",
+      "priority": "P0",
+      "acceptance": "reimbursable expense 반영",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "expense",
+        "billing",
+        "별도청구"
+      ],
+      "acceptance_hits": [
+        "reimbursable",
+        "expense"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-009",
+      "prefix": "BILL",
+      "name": "Split billing",
+      "description": "하나의 Matter를 복수 청구처에 분할청구",
+      "priority": "P1",
+      "acceptance": "합계 validation",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "split",
+        "billing",
+        "하나의",
+        "matter를",
+        "청구처에",
+        "분할청구"
+      ],
+      "acceptance_hits": [
+        "validation"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-010",
+      "prefix": "BILL",
+      "name": "Consolidated billing",
+      "description": "복수 Matter를 하나의 청구서로 통합",
+      "priority": "P1",
+      "acceptance": "matter별 breakdown 표시",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "consolidated",
+        "billing",
+        "matter를",
+        "하나의",
+        "청구서로"
+      ],
+      "acceptance_hits": [
+        "matter별",
+        "breakdown"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-011",
+      "prefix": "BILL",
+      "name": "Tax invoice 연동",
+      "description": "전자세금계산서 데이터 생성",
+      "priority": "P1",
+      "acceptance": "외부연동/export",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "tax",
+        "invoice",
+        "연동",
+        "전자세금계산서",
+        "데이터"
+      ],
+      "acceptance_hits": [
+        "외부연동",
+        "export"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "BILL-012",
+      "prefix": "BILL",
+      "name": "청구서 DMS 보관",
+      "description": "invoice PDF를 DMS에 저장",
+      "priority": "P0",
+      "acceptance": "invoice와 document_id 연결",
+      "expected_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP11",
+        "RP13",
+        "RP15"
+      ],
+      "token_hits": [
+        "청구서",
+        "dms",
+        "보관",
+        "invoice",
+        "pdf를",
+        "dms에"
+      ],
+      "acceptance_hits": [
+        "invoice와",
+        "document"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-001",
+      "prefix": "PAY",
+      "name": "입금 등록",
+      "description": "수동 또는 은행거래 import",
+      "priority": "P0",
+      "acceptance": "bank transaction 저장",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "입금",
+        "등록",
+        "은행거래",
+        "import"
+      ],
+      "acceptance_hits": [
+        "bank",
+        "transaction"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-002",
+      "prefix": "PAY",
+      "name": "Invoice 매칭",
+      "description": "청구서와 입금 매칭",
+      "priority": "P0",
+      "acceptance": "부분입금 가능",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "invoice",
+        "매칭",
+        "청구서와"
+      ],
+      "acceptance_hits": [
+        "부분입금"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-003",
+      "prefix": "PAY",
+      "name": "부분입금",
+      "description": "일부 지급 처리",
+      "priority": "P0",
+      "acceptance": "outstanding amount 계산",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "부분입금"
+      ],
+      "acceptance_hits": [
+        "outstanding",
+        "amount"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-004",
+      "prefix": "PAY",
+      "name": "초과입금",
+      "description": "선수금 또는 환불채무 처리",
+      "priority": "P1",
+      "acceptance": "처리유형 선택",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "초과입금",
+        "선수금",
+        "환불채무"
+      ],
+      "acceptance_hits": [
+        "처리유형"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-005",
+      "prefix": "PAY",
+      "name": "AR aging",
+      "description": "30/60/90/180일 미수금",
+      "priority": "P0",
+      "acceptance": "aging report 생성",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "ar",
+        "aging",
+        "180일",
+        "미수금"
+      ],
+      "acceptance_hits": [
+        "aging",
+        "report"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-006",
+      "prefix": "PAY",
+      "name": "독촉관리",
+      "description": "알림, 메일 템플릿, 담당자 지정",
+      "priority": "P1",
+      "acceptance": "next action 기록",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "독촉관리",
+        "템플릿",
+        "담당자"
+      ],
+      "acceptance_hits": [
+        "next",
+        "action"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-007",
+      "prefix": "PAY",
+      "name": "장기미수 경고",
+      "description": "신규수임 제한 또는 대표 알림",
+      "priority": "P1",
+      "acceptance": "client risk level 반영",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "장기미수",
+        "경고",
+        "신규수임"
+      ],
+      "acceptance_hits": [
+        "client",
+        "risk",
+        "level"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-008",
+      "prefix": "PAY",
+      "name": "Write-off 승인",
+      "description": "회수불능·감액 처리 승인",
+      "priority": "P1",
+      "acceptance": "approval 후 반영",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "write",
+        "off",
+        "승인",
+        "회수불능"
+      ],
+      "acceptance_hits": [
+        "approval"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "PAY-009",
+      "prefix": "PAY",
+      "name": "현금흐름 예측",
+      "description": "청구예정·입금예정 기반 예측",
+      "priority": "P2",
+      "acceptance": "forecast dashboard 생성",
+      "expected_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP12",
+        "RP15"
+      ],
+      "token_hits": [
+        "현금흐름",
+        "예측",
+        "청구예정",
+        "입금예정"
+      ],
+      "acceptance_hits": [
+        "forecast",
+        "dashboard"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-001",
+      "prefix": "ACC",
+      "name": "계정과목 관리",
+      "description": "매출, 비용, 대납금, 선수금 등",
+      "priority": "P1",
+      "acceptance": "chart of accounts 설정",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "계정과목",
+        "관리",
+        "대납금",
+        "선수금"
+      ],
+      "acceptance_hits": [
+        "chart",
+        "accounts"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-002",
+      "prefix": "ACC",
+      "name": "전표 자동생성",
+      "description": "청구·입금·비용 이벤트 기반",
+      "priority": "P1",
+      "acceptance": "source_id 연결",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "전표",
+        "자동생성",
+        "이벤트"
+      ],
+      "acceptance_hits": [
+        "source"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-003",
+      "prefix": "ACC",
+      "name": "회계자료 export",
+      "description": "더존/WEHAGO/세무사무소용 CSV/Excel",
+      "priority": "P1",
+      "acceptance": "기간별 export",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "회계자료",
+        "export",
+        "wehago",
+        "세무사무소용",
+        "csv",
+        "excel"
+      ],
+      "acceptance_hits": [
+        "기간별",
+        "export"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-004",
+      "prefix": "ACC",
+      "name": "월마감",
+      "description": "기간 잠금, 수정승인",
+      "priority": "P0",
+      "acceptance": "closed period 수정 제한",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "월마감",
+        "수정승인"
+      ],
+      "acceptance_hits": [
+        "closed",
+        "period"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-005",
+      "prefix": "ACC",
+      "name": "부가세 자료",
+      "description": "매출·매입세금계산서 자료",
+      "priority": "P1",
+      "acceptance": "신고 보조자료 생성",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "부가세",
+        "자료",
+        "매입세금계산서"
+      ],
+      "acceptance_hits": [
+        "보조자료"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-006",
+      "prefix": "ACC",
+      "name": "원천세 자료",
+      "description": "개인·프리랜서·해외지급 관련",
+      "priority": "P2",
+      "acceptance": "지급명세서 보조",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "원천세",
+        "자료",
+        "프리랜서",
+        "해외지급"
+      ],
+      "acceptance_hits": [
+        "지급명세서"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "ACC-007",
+      "prefix": "ACC",
+      "name": "자체 장부",
+      "description": "장기적으로 자체 재무회계 기능",
+      "priority": "P3",
+      "acceptance": "trial balance 생성",
+      "expected_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP13",
+        "RP23",
+        "RP29"
+      ],
+      "token_hits": [
+        "자체",
+        "장부",
+        "장기적으로",
+        "재무회계"
+      ],
+      "acceptance_hits": [
+        "trial",
+        "balance"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-001",
+      "prefix": "SET",
+      "name": "정산규칙 설정",
+      "description": "역할별·사건별·팀별 규칙",
+      "priority": "P1",
+      "acceptance": "rule version 관리",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "정산규칙",
+        "설정",
+        "역할별",
+        "사건별"
+      ],
+      "acceptance_hits": [
+        "rule",
+        "version"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-002",
+      "prefix": "SET",
+      "name": "유치기여 비율",
+      "description": "origination split",
+      "priority": "P1",
+      "acceptance": "합계 100% 검증",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "유치기여",
+        "비율",
+        "origination",
+        "split"
+      ],
+      "acceptance_hits": [
+        "100"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-003",
+      "prefix": "SET",
+      "name": "실무기여 계산",
+      "description": "time entry 기반 working credit",
+      "priority": "P1",
+      "acceptance": "billable/non-billable 선택 가능",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "실무기여",
+        "계산",
+        "time",
+        "entry",
+        "working",
+        "credit"
+      ],
+      "acceptance_hits": [
+        "billable",
+        "non",
+        "billable"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-004",
+      "prefix": "SET",
+      "name": "비용 차감",
+      "description": "직접비·외주비 차감 후 배분",
+      "priority": "P1",
+      "acceptance": "cost basis 명확화",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "비용",
+        "차감",
+        "직접비",
+        "외주비"
+      ],
+      "acceptance_hits": [
+        "cost",
+        "basis",
+        "명확화"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-005",
+      "prefix": "SET",
+      "name": "정산 preview",
+      "description": "월마감 전 예상 정산",
+      "priority": "P1",
+      "acceptance": "확정 전 simulation",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "정산",
+        "preview",
+        "월마감"
+      ],
+      "acceptance_hits": [
+        "simulation"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-006",
+      "prefix": "SET",
+      "name": "정산 확정",
+      "description": "승인 후 locked status",
+      "priority": "P1",
+      "acceptance": "확정 후 수정 제한",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "정산",
+        "확정",
+        "locked",
+        "status"
+      ],
+      "acceptance_hits": [],
+      "status": "covered"
+    },
+    {
+      "id": "SET-007",
+      "prefix": "SET",
+      "name": "정산 근거문서",
+      "description": "수임계약서, 소개 이메일, 내부합의서 연결",
+      "priority": "P1",
+      "acceptance": "document_id 연결",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "정산",
+        "근거문서",
+        "수임계약서",
+        "이메일",
+        "내부합의서"
+      ],
+      "acceptance_hits": [
+        "document"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-008",
+      "prefix": "SET",
+      "name": "이의제기 workflow",
+      "description": "파트너 정산 이의제기 및 조정",
+      "priority": "P2",
+      "acceptance": "이의제기 이력 보존",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "이의제기",
+        "workflow",
+        "파트너",
+        "이의제기"
+      ],
+      "acceptance_hits": [
+        "이의제기"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "SET-009",
+      "prefix": "SET",
+      "name": "시뮬레이션",
+      "description": "정산규칙 변경 효과 분석",
+      "priority": "P2",
+      "acceptance": "scenario 비교 가능",
+      "expected_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP14",
+        "RP15",
+        "RP16"
+      ],
+      "token_hits": [
+        "시뮬레이션",
+        "정산규칙"
+      ],
+      "acceptance_hits": [
+        "scenario"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-001",
+      "prefix": "AI",
+      "name": "Matter AI Search",
+      "description": "특정 Matter 내 자연어 검색",
+      "priority": "P2",
+      "acceptance": "근거문서 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "matter",
+        "ai",
+        "search",
+        "matter",
+        "자연어"
+      ],
+      "acceptance_hits": [
+        "근거문서"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-002",
+      "prefix": "AI",
+      "name": "Firmwide Precedent Search",
+      "description": "전사 선례검색",
+      "priority": "P2",
+      "acceptance": "권한 있는 선례만 검색",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "firmwide",
+        "precedent",
+        "search",
+        "선례검색"
+      ],
+      "acceptance_hits": [
+        "선례만"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-003",
+      "prefix": "AI",
+      "name": "Clause Search",
+      "description": "조항유형별 검색·추천",
+      "priority": "P2",
+      "acceptance": "clause location 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "clause",
+        "search",
+        "조항유형별"
+      ],
+      "acceptance_hits": [
+        "clause",
+        "location"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-004",
+      "prefix": "AI",
+      "name": "Document Summary",
+      "description": "문서 요약, 주요 조항, 리스크",
+      "priority": "P2",
+      "acceptance": "문서버전 고정",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "document",
+        "summary",
+        "리스크"
+      ],
+      "acceptance_hits": [
+        "문서버전"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-005",
+      "prefix": "AI",
+      "name": "Email Thread Summary",
+      "description": "협상경과, 쟁점, next action",
+      "priority": "P2",
+      "acceptance": "참조 email 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "email",
+        "thread",
+        "summary",
+        "협상경과",
+        "next",
+        "action"
+      ],
+      "acceptance_hits": [
+        "email"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-006",
+      "prefix": "AI",
+      "name": "Markup Analyzer",
+      "description": "원본과 수정본 비교·법률효과 분석",
+      "priority": "P2",
+      "acceptance": "변경점별 근거 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "markup",
+        "analyzer",
+        "원본과",
+        "수정본",
+        "법률효과"
+      ],
+      "acceptance_hits": [
+        "변경점별"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-007",
+      "prefix": "AI",
+      "name": "DD Issue Extraction",
+      "description": "실사자료에서 이슈 후보 추출",
+      "priority": "P3",
+      "acceptance": "이슈별 근거문서 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "dd",
+        "issue",
+        "extraction",
+        "실사자료에서"
+      ],
+      "acceptance_hits": [
+        "이슈별",
+        "근거문서"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-008",
+      "prefix": "AI",
+      "name": "Contract Drafting",
+      "description": "선례·playbook 기반 계약서 초안",
+      "priority": "P3",
+      "acceptance": "사람이 승인 후 문서화",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "contract",
+        "drafting",
+        "playbook",
+        "계약서"
+      ],
+      "acceptance_hits": [
+        "사람이",
+        "문서화"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-009",
+      "prefix": "AI",
+      "name": "Litigation Assist",
+      "description": "사실관계·증거·판례 기반 서면 구조",
+      "priority": "P3",
+      "acceptance": "인용근거 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "litigation",
+        "assist",
+        "사실관계"
+      ],
+      "acceptance_hits": [
+        "인용근거"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-010",
+      "prefix": "AI",
+      "name": "Report Generator",
+      "description": "고객보고서·executive summary 초안",
+      "priority": "P3",
+      "acceptance": "report document 생성",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "report",
+        "generator",
+        "고객보고서",
+        "executive",
+        "summary"
+      ],
+      "acceptance_hits": [
+        "report",
+        "document"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-011",
+      "prefix": "AI",
+      "name": "Billing Narrative AI",
+      "description": "타임시트 청구문구 개선",
+      "priority": "P2",
+      "acceptance": "원문과 개선안 비교",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "billing",
+        "narrative",
+        "ai",
+        "타임시트",
+        "청구문구"
+      ],
+      "acceptance_hits": [
+        "원문과",
+        "개선안"
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "AI-012",
+      "prefix": "AI",
+      "name": "Settlement anomaly",
+      "description": "정산 이상치 탐지",
+      "priority": "P3",
+      "acceptance": "rule basis 표시",
+      "expected_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "matched_programs": [
+        "RP17",
+        "RP18",
+        "RP07",
+        "RP06"
+      ],
+      "token_hits": [
+        "settlement",
+        "anomaly",
+        "이상치"
+      ],
+      "acceptance_hits": [
+        "rule",
+        "basis"
+      ],
+      "status": "covered"
+    }
+  ],
+  "narrative_count": 18,
+  "narrative_status_counts": {
+    "covered": 18,
+    "weak": 0,
+    "missing": 0
+  },
+  "narrative_requirements": [
+    {
+      "id": "NARR-001",
+      "slug": "roles",
+      "title": "시스템 역할 17종",
+      "expected_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP02",
+        "RP21",
+        "RP26"
+      ],
+      "term_count": 17,
+      "matched_terms": [
+        "System Super Admin",
+        "Tenant Owner",
+        "Managing Partner",
+        "Practice Group Leader",
+        "Relationship Partner",
+        "Origination Partner",
+        "Responsible Partner",
+        "Matter Manager",
+        "Attorney",
+        "Paralegal",
+        "BD Manager",
+        "Finance Manager",
+        "Accounting Reviewer",
+        "Security Admin",
+        "External Counsel",
+        "Client User",
+        "Auditor"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-002",
+      "slug": "permission_layers",
+      "title": "권한 5계층 및 우선순위",
+      "expected_programs": [
+        "RP02",
+        "RP16"
+      ],
+      "matched_programs": [
+        "RP02",
+        "RP16"
+      ],
+      "term_count": 7,
+      "matched_terms": [
+        "RBAC",
+        "ABAC",
+        "Object ACL",
+        "Deny Rule",
+        "Security Trimming",
+        "Legal Hold",
+        "Ethical Wall"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-003",
+      "slug": "data_model",
+      "title": "핵심 데이터 모델 전체",
+      "expected_programs": [
+        "RP01",
+        "RP04",
+        "RP05",
+        "RP06",
+        "RP12",
+        "RP13",
+        "RP14",
+        "RP17"
+      ],
+      "matched_programs": [
+        "RP01",
+        "RP04",
+        "RP05",
+        "RP06",
+        "RP12",
+        "RP13",
+        "RP14",
+        "RP17"
+      ],
+      "term_count": 9,
+      "matched_terms": [
+        "Tenant",
+        "Entity",
+        "Client",
+        "Matter",
+        "Document",
+        "Invoice",
+        "Payment",
+        "Settlement",
+        "AIJob"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-004",
+      "slug": "analytics",
+      "title": "Analytics 대시보드와 수익성",
+      "expected_programs": [
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP15"
+      ],
+      "term_count": 6,
+      "matched_terms": [
+        "Managing Partner Dashboard",
+        "Partner Dashboard",
+        "Matter P&L",
+        "Client Profitability",
+        "Forecast",
+        "WIP"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-005",
+      "slug": "workflows",
+      "title": "주요 업무 workflow",
+      "expected_programs": [
+        "RP05",
+        "RP06",
+        "RP09",
+        "RP12",
+        "RP14"
+      ],
+      "matched_programs": [
+        "RP05",
+        "RP06",
+        "RP09",
+        "RP12",
+        "RP14"
+      ],
+      "term_count": 6,
+      "matched_terms": [
+        "Opportunity",
+        "Matter 전환",
+        "문서 Lifecycle",
+        "Billing Workflow",
+        "Settlement Workflow",
+        "Matter Closing"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-006",
+      "slug": "screens",
+      "title": "화면 설계",
+      "expected_programs": [
+        "RP15",
+        "RP05",
+        "RP11",
+        "RP12"
+      ],
+      "matched_programs": [
+        "RP15",
+        "RP05",
+        "RP11",
+        "RP12"
+      ],
+      "term_count": 5,
+      "matched_terms": [
+        "Managing Partner Home",
+        "Partner Home",
+        "Attorney Home",
+        "Finance Manager Home",
+        "Matter 상세 화면"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-007",
+      "slug": "security",
+      "title": "보안 컴플라이언스",
+      "expected_programs": [
+        "RP16",
+        "RP26",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP16",
+        "RP26",
+        "RP29"
+      ],
+      "term_count": 9,
+      "matched_terms": [
+        "Authentication",
+        "Authorization",
+        "Encryption",
+        "Key Management",
+        "DLP",
+        "Break-glass",
+        "Backup",
+        "Incident Response",
+        "WORM Storage"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-008",
+      "slug": "privacy",
+      "title": "개인정보 관리",
+      "expected_programs": [
+        "RP04",
+        "RP09",
+        "RP16",
+        "RP17"
+      ],
+      "matched_programs": [
+        "RP04",
+        "RP09",
+        "RP16",
+        "RP17"
+      ],
+      "term_count": 7,
+      "matched_terms": [
+        "수집 최소화",
+        "목적 제한",
+        "수신동의",
+        "수신거부",
+        "마스킹",
+        "보존기간",
+        "subprocessors"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-009",
+      "slug": "audit_events",
+      "title": "감사로그 이벤트",
+      "expected_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP03",
+        "RP16",
+        "RP17",
+        "RP29"
+      ],
+      "term_count": 16,
+      "matched_terms": [
+        "Login",
+        "View",
+        "Download",
+        "Upload",
+        "Edit",
+        "Delete",
+        "Share",
+        "Permission Change",
+        "Search",
+        "AI Access",
+        "Billing Change",
+        "Payment Match",
+        "Settlement Run",
+        "Admin Access",
+        "Export",
+        "Break-glass"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-010",
+      "slug": "performance",
+      "title": "성능 목표",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP12",
+        "RP14",
+        "RP18",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP12",
+        "RP14",
+        "RP18",
+        "RP29"
+      ],
+      "term_count": 10,
+      "matched_terms": [
+        "로그인",
+        "Matter 목록",
+        "문서목록",
+        "일반검색",
+        "복합검색",
+        "OCR 처리",
+        "AI 요약",
+        "Proforma 생성",
+        "월정산 preview",
+        "대량 업로드"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-011",
+      "slug": "availability",
+      "title": "가용성/RPO/RTO/DR",
+      "expected_programs": [
+        "RP26",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP26",
+        "RP29"
+      ],
+      "term_count": 9,
+      "matched_terms": [
+        "99.0",
+        "99.5",
+        "99.9",
+        "99.95",
+        "RPO",
+        "RTO",
+        "백업",
+        "재해복구",
+        "status page"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-012",
+      "slug": "scalability",
+      "title": "확장성 목표",
+      "expected_programs": [
+        "RP26",
+        "RP27",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP26",
+        "RP27",
+        "RP29"
+      ],
+      "term_count": 8,
+      "matched_terms": [
+        "5,000",
+        "1,000,000",
+        "100,000,000",
+        "500,000,000",
+        "dedicated index",
+        "Vector index",
+        "rate limit",
+        "cold storage"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-013",
+      "slug": "architecture",
+      "title": "권장 기술 아키텍처",
+      "expected_programs": [
+        "RP26",
+        "RP27",
+        "RP29"
+      ],
+      "matched_programs": [
+        "RP26",
+        "RP27",
+        "RP29"
+      ],
+      "term_count": 13,
+      "matched_terms": [
+        "Next.js",
+        "React",
+        "PostgreSQL",
+        "S3",
+        "OpenSearch",
+        "Redis",
+        "Queue",
+        "OCR",
+        "OIDC",
+        "Office.js",
+        "OpenTelemetry",
+        "Kubernetes",
+        "Terraform"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-014",
+      "slug": "integrations",
+      "title": "외부 연동",
+      "expected_programs": [
+        "RP08",
+        "RP22",
+        "RP23",
+        "RP24",
+        "RP25"
+      ],
+      "matched_programs": [
+        "RP08",
+        "RP22",
+        "RP23",
+        "RP24",
+        "RP25"
+      ],
+      "term_count": 17,
+      "matched_terms": [
+        "Microsoft 365",
+        "Outlook",
+        "Gmail",
+        "Google Workspace",
+        "Word",
+        "Excel",
+        "PowerPoint",
+        "더존",
+        "WEHAGO",
+        "홈택스",
+        "은행",
+        "법인카드",
+        "Slack",
+        "Teams",
+        "전자서명",
+        "DART",
+        "법원"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-015",
+      "slug": "differentiation_korea",
+      "title": "한국형 로펌 특화",
+      "expected_programs": [
+        "RP20",
+        "RP23",
+        "RP24"
+      ],
+      "matched_programs": [
+        "RP20",
+        "RP23",
+        "RP24"
+      ],
+      "term_count": 12,
+      "matched_terms": [
+        "HWP",
+        "HWPX",
+        "국문 계약서",
+        "한국 법령",
+        "판례",
+        "등기",
+        "정관",
+        "의사록",
+        "LDD",
+        "RFI",
+        "CP",
+        "전자세금계산서"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-016",
+      "slug": "differentiation_management",
+      "title": "로펌 경영 특화",
+      "expected_programs": [
+        "RP12",
+        "RP13",
+        "RP14",
+        "RP15"
+      ],
+      "matched_programs": [
+        "RP12",
+        "RP13",
+        "RP14",
+        "RP15"
+      ],
+      "term_count": 9,
+      "matched_terms": [
+        "Matter P&L",
+        "Partner Settlement",
+        "WIP",
+        "Fixed Fee",
+        "Client Profitability",
+        "Origination Tracking",
+        "AR Risk",
+        "Success Fee",
+        "Disbursement Recovery"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-017",
+      "slug": "ai_ready_dms",
+      "title": "AI-ready DMS",
+      "expected_programs": [
+        "RP06",
+        "RP07",
+        "RP17",
+        "RP18"
+      ],
+      "matched_programs": [
+        "RP06",
+        "RP07",
+        "RP17",
+        "RP18"
+      ],
+      "term_count": 8,
+      "matched_terms": [
+        "문서버전 기반 AI",
+        "권한연동 AI",
+        "조항 단위 검색",
+        "협상경과 요약",
+        "마크업",
+        "실사이슈",
+        "고객보고서",
+        "Billing narrative"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    },
+    {
+      "id": "NARR-018",
+      "slug": "open_decisions",
+      "title": "착수 전 결정 필요사항",
+      "expected_programs": [
+        "RP00"
+      ],
+      "matched_programs": [
+        "RP00"
+      ],
+      "term_count": 14,
+      "matched_terms": [
+        "제품 우선 포지션",
+        "배포방식",
+        "회계 범위",
+        "전자세금계산서",
+        "DMS migration",
+        "이메일 정책",
+        "AI 모델",
+        "HWP",
+        "정산정책",
+        "인건비 배부",
+        "개인정보 보존",
+        "권한정책",
+        "선례관리",
+        "외부공유"
+      ],
+      "missing_terms": [],
+      "status": "covered",
+      "anchored_requirement": true
+    }
+  ]
+}

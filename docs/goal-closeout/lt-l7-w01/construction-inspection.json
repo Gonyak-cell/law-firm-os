@@ -1,0 +1,34 @@
+{
+  "work_package_id": "LT-L7-W01",
+  "inspected_at": "2026-06-18T14:25:08Z",
+  "verdict": "BLOCKED_L7_INVENTORY_MAPPING_ENTRY_AND_SOURCE_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "preflight_readiness_report_exists": false,
+    "inventory_fileserver_summary_exists": false,
+    "inventory_sharepoint_summary_exists": false,
+    "inventory_mailbox_summary_exists": false,
+    "inventory_matter_register_summary_exists": false,
+    "matter_id_filename_rule_exists": false,
+    "mapping_matter_client_owner_summary_exists": false,
+    "mapping_acl_summary_exists": false,
+    "exclusion_judgment_exists": false,
+    "gl_mig_01_package_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "production_accessed": false,
+    "staging_real_data_accessed": false,
+    "file_server_accessed": false,
+    "sharepoint_accessed": false,
+    "outlook_mailbox_accessed": false,
+    "legacy_matter_register_accessed": false,
+    "real_data_originals_committed": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

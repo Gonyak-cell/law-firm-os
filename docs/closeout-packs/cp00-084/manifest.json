@@ -1,0 +1,549 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-084",
+  "planned_pack_id": "CP00-084",
+  "requested_pack_id": "CP00-083",
+  "planned_risk_class": "A",
+  "planned_unit_count": 10,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-083 shifted to CP00-084 by live sequential cursor",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-084",
+    "planned_pack_id": "CP00-084",
+    "requested_pack_id": "CP00-083",
+    "title": "CP00-084 RP00.P07.M05.S01-RP00.P07.M05.S10 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP00.P07.M05.S01",
+      "last_unit_id": "RP00.P07.M05.S10",
+      "description": "RP00.P07.M05.S01-S10"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 10,
+    "correction_reason": "requested CP00-083 shifted to CP00-084 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P07.M05.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P07.M05.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M05.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP00.P07.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "failure_recovery"
+      }
+    ]
+  },
+  "status": "production_ready",
+  "production_ready": true,
+  "program_id": "RP00",
+  "phase_id": "RP00.P07",
+  "primary_subphase_id": "RP00.P07.M05.S10",
+  "source_micro_phase_id": "RP00.P07.M05",
+  "next_subphase": "RP00.P07.M05.S11",
+  "risk_class": "A",
+  "unit_count": 10,
+  "range_description": "RP00.P07.M05.S01-S10",
+  "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+  "included_units": [
+    {
+      "id": "RP00.P07.M05.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M05.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP00.P07.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-084",
+      "evidence_root": "docs/closeout-packs/cp00-084",
+      "production_ready_flag": "control_plane_failure_edge_recovery_permission_audit_failure_taxonomy_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-084/manifest.json",
+        "docs/closeout-packs/cp00-084/command-evidence.json",
+        "docs/closeout-packs/cp00-084/claude-review-result.json",
+        "docs/closeout-packs/cp00-084/adjudication.md",
+        "docs/closeout-packs/cp00-084/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-084/manifest.json",
+    "docs/closeout-packs/cp00-084/command-evidence.json",
+    "docs/closeout-packs/cp00-084/claude-review-result.json",
+    "docs/closeout-packs/cp00-084/adjudication.md",
+    "docs/closeout-packs/cp00-084/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_result_ref": "docs/closeout-packs/cp00-084/claude-review-result.json"
+  },
+  "implementation_summary": {
+    "surface": "ControlPlaneFailureEdgeRecoveryPermissionAuditFailureTaxonomy",
+    "upstream_pack": "CP00-083",
+    "upstream_required_next_subphase": "RP00.P07.M05.S01",
+    "result_decision": "failure_edge_recovery_permission_audit_failure_taxonomy_bound_metadata_only",
+    "handoff": "RP00.P07.M05.S11"
+  },
+  "boundary_summary": {
+    "metadata_only": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "no_runtime_permission_evaluation": true,
+    "no_permission_engine_execution": true,
+    "no_authz_evaluator_call": true,
+    "no_runtime_error_response_emission": true,
+    "no_audit_event_write": true,
+    "no_observability_event_write": true,
+    "no_ldip_implementation": true
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-084 failure edge recovery permission audit failure taxonomy pack"
+  }
+}

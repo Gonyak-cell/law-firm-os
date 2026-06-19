@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-419",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T02:06:01.771Z",
+  "finished_at": "2026-06-12T02:10:36.487Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":273514,\"duration_api_ms\":275543,\"ttft_ms\":2597,\"num_turns\":39,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-419 closes cleanly as a descriptor-only payments-core pack; the `production_ready=false` / descriptor-verified claim is fully supported by consistent pack bindings, descriptor-only enforcement in code + tests + validator + contract projections, correct authority boundary (Claude not final approver, human approval gates runtime), and valid review-hardening evidence. No P0/P1/P2 issues; one non-blocking P3 metadata nit in `changed-file-scope.json` (pack directory double-listed as \\\"unrelated\\\"). Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"7de33d19-4a22-4ae6-bf26-4cb8df916df7\",\"total_cost_usd\":1.74119325,\"usage\":{\"input_tokens\":40,\"cache_creation_input_tokens\":94649,\"cache_read_input_tokens\":1197026,\"output_tokens\":21990,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":94649,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":258,\"cache_read_input_tokens\":92998,\"cache_creation_input_tokens\":10046,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":10046},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1069,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011740000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":40,\"outputTokens\":21990,\"cacheReadInputTokens\":1197026,\"cacheCreationInputTokens\":94649,\"webSearchRequests\":0,\"costUSD\":1.74001925,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-419 is a descriptor-only payments-core pack covering RP13.P09.M06.S12-RP13.P09.M07.S01 (9 Synthetic Fixture Set rows + 1 Test And Golden Case Set row; 8 implementation + 2 claude_review = 10 units). Pack binding, deliverable/micro distributions, and the next-pack handoff (CP00-420 / RP13.P09.M07.S02) are consistent across manifest.json, review-baseline.json, closeout-pack-plan.json, registry.js (PAYMENTS_CORE_CP419_PACK_BINDING), and payments-core-contract.json. The createPaymentsCoreCp419* functions build frozen descriptor objects with no runtime dispatch, no DB/object-storage I/O, no audit/state writes, and no real-data loading; validators.js, model.test.js, and validate-rp13-payments-core-contract.mjs assert descriptor_only/runtime_execution=false on every row plus the no-write attestation (promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false). Authority boundary is correct: claude_is_final_approval=false and human_final_approval_required_for_runtime_opening=true; Hermes/Claude packets are deterministic review packet/receipt descriptors (H13/C13), not product runtime. production_ready is correctly false with status implemented_pending_review, so no enterprise-trust claim is asserted from local validation. Review-hardening evidence is valid: readiness auth-preflight passed with well-formed JSON, prompt is 2152 bytes (< 25600) with no embedded full diff/source, and tools are restricted to Read/Grep/Glob; there are no prior invalid review attempts to reject. Two read-only-review caveats, neither a defect: (1) command-evidence.json outcomes (npm test/build/validate, git diff --check) are self-reported and were not re-executed under this read-only review; (2) the post-review artifacts claude-review-result.json, adjudication.md, and construction-inspection.json listed in evidence_refs are expected to be generated in later hardening steps (finding_adjudication, construction_inspection) and are correctly absent at the review step. One P3 metadata inconsistency in changed-file-scope.json is noted below; it is non-blocking and does not affect the descriptor-only boundaries or the production_ready posture. No P0/P1/P2 issues found; the pack-level claim (descriptor verified, production_ready=false) is supported.\",\"findings\":[{\"id\":\"CP00-419-P3-01\",\"severity\":\"P3\",\"title\":\"changed-file-scope.json double-classifies the pack artifact directory and handoff doc as both implementation and unrelated\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-419/changed-file-scope.json\",\"line\":138,\"details\":\"docs/closeout-packs/cp00-419/ and docs/closeout-pack-plan/new-session-handoff.md appear in BOTH untracked_implementation_files (lines 131-132) and unrelated_dirty_files_preserved (lines 137-138). The pack's own artifact directory cannot logically be 'unrelated' to the pack. The authoritative manifest.json worktree_transition_policy.unrelated_dirty_files_preserved (lines 544-552) correctly excludes both, and active_untracked_implementation_files_omitted is [], so no in-scope implementation file was hidden from review. Impact is confined to reviewer-aid metadata accuracy and does not affect any runtime/no-write boundary or the production_ready posture.\",\"recommendation\":\"In the changed-file-scope generator, remove docs/closeout-packs/cp00-419/ (and the pack handoff doc, if treated as pack-scoped) from unrelated_dirty_files_preserved so the classification matches manifest.json. Non-blocking; may be corrected in a later generation pass.\",\"post_review_disposition\":\"Non-blocking metadata nit. Does not block pack or goal closeout; descriptor-only boundaries, no-write attestation, and authority boundary are unaffected.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"5da59709-4855-4147-b790-b07c72fc7b50\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5991,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "7de33d19-4a22-4ae6-bf26-4cb8df916df7",
+    "uuid": "5da59709-4855-4147-b790-b07c72fc7b50",
+    "total_cost_usd": 1.74119325,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

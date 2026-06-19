@@ -1,0 +1,59 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M05.S04",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Matter trace reference",
+  "entity": "HumanApproval",
+  "status": "production_ready",
+  "minimum_closeout_status": "production_ready",
+  "created_at": "2026-06-04T00:51:51Z",
+  "production_ready_at": "2026-06-04T01:02:55Z",
+  "scope": {
+    "implemented": [
+      "HUMAN_APPROVAL_MATTER_TRACE_POLICY",
+      "normalizeHumanApprovalMatterId",
+      "validateHumanApprovalMatterId",
+      "assertHumanApprovalMatterTrace",
+      "human_approval_matter_trace synthetic fixture",
+      "control-plane registry exposure"
+    ],
+    "field": "matter_id",
+    "target_entity": "Matter",
+    "required": false,
+    "nullable_for_firm_level_approvals": true,
+    "stable_prefix": "matter_",
+    "canonical_pattern": "^matter_[a-z0-9]+(?:_[a-z0-9]+)*$",
+    "cannot_synthesize_human_approval": true,
+    "lifecycle_deferred_to": "RP00.P01.M05.S05",
+    "next_subphase": "RP00.P01.M05.S05"
+  },
+  "non_goals": {
+    "does_not_implement_HumanApproval_lifecycle": true,
+    "does_not_implement_full_HumanApproval_model": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "does_not_create_ui": true
+  },
+  "data_safety": {
+    "synthetic_only": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "real_client_matter_document_billing_settlement_credential_or_secret_data": false
+  },
+  "acceptance": {
+    "implementation_complete": true,
+    "tests_passed": true,
+    "hermes_evidence_recorded": true,
+    "claude_review_completed": true,
+    "findings_adjudicated": true,
+    "construction_inspection_passed": true,
+    "production_ready": true
+  },
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m05-s04/packet.json",
+    "docs/goal-closeout/rp00-p01-m05-s04/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m05-s04/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m05-s04/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m05-s04/construction-inspection.json"
+  ]
+}

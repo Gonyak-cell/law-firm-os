@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.goal1-mutual-agreement.v0.1",
+  "goal_id": "goal1-foundation-slice",
+  "status": "agreed",
+  "agreed_parties": [
+    "user",
+    "codex",
+    "hermes",
+    "claude_code"
+  ],
+  "active_goal_objective": "Implement the Law Firm OS foundation slice in /Users/jws/Documents/Codex/Law Firm OS by creating the real product scaffold and completing RP00-RP03 core foundations enough that product contracts, domain/authz/audit package skeletons, tests, Hermes validation hooks, Claude Code review packets, and weighted-ledger 준공검사 references all validate locally with the relevant npm validation commands.",
+  "agreed_conclusions": [
+    {
+      "id": "goal1_scope",
+      "conclusion": "Goal 1 covers RP00-RP03 foundation only, not all 54,355 subphases."
+    },
+    {
+      "id": "implementation_before_claim",
+      "conclusion": "The goal is not complete until real scaffold, package skeletons, tests, Hermes hooks, Claude review packets, and weighted-ledger 준공검사 references validate locally."
+    },
+    {
+      "id": "claude_review_density",
+      "conclusion": "Claude Code review is frequent during Goal 1, with at least 42 review checkpoints across C00-C03."
+    },
+    {
+      "id": "hermes_boundary",
+      "conclusion": "Hermes validates evidence and blocked claims but does not own product code or silently mutate product state."
+    },
+    {
+      "id": "claude_boundary",
+      "conclusion": "Claude Code cross-validates architecture, security, domain correctness, missing tests, and go/no-go status but does not replace human approval."
+    },
+    {
+      "id": "internal_construction_inspection",
+      "conclusion": "준공검사 PASS means internal SaaS-grade product candidate, not market-validated SaaS."
+    },
+    {
+      "id": "market_validation_afterward",
+      "conclusion": "Market SaaS-grade recognition requires customer pilots, migration rehearsal, feedback loops, incident/load/security rehearsal, onboarding/support operations, and post-release defect loops."
+    }
+  ],
+  "required_evidence": [
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/core-domain-contract.json",
+    "contracts/permission-kernel-contract.json",
+    "contracts/audit-compliance-contract.json",
+    "contracts/goal1-claude-review-contract.json",
+    "contracts/goal1-mutual-agreement-contract.json",
+    "docs/goal1-foundation-claude-review-plan.md",
+    "docs/weighted-implementation-ledger.json",
+    "docs/claude-review-packets/goal1-c00-rp00.json",
+    "docs/claude-review-packets/goal1-c01-rp01.json",
+    "docs/claude-review-packets/goal1-c02-rp02.json",
+    "docs/claude-review-packets/goal1-c03-rp03.json",
+    "docs/claude-review-results/goal1-claude-review.json",
+    "hermes/project.json"
+  ],
+  "required_validation_commands": [
+    "npm test",
+    "npm run goal1:foundation:validate",
+    "npm run goal1:claude-review:run",
+    "npm run goal1:claude-review:result:validate",
+    "npm run goal1:agreement:validate",
+    "npm run goal1:claude-review:validate",
+    "npm run weighted:validate",
+    "npm run critical-rps:validate",
+    "npm run validate"
+  ],
+  "completion_guardrails": [
+    "Do not mark Goal 1 complete from planning artifacts alone.",
+    "Do not mark Goal 1 complete without local validation command evidence.",
+    "Do not treat Hermes or Claude Code as final product authority.",
+    "Do not treat internal 준공검사 PASS as market SaaS validation.",
+    "Keep the goal active until the implementation objective is actually satisfied."
+  ]
+}

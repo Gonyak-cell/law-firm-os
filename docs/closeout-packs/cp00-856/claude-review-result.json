@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-856",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-856/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-856/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4861e60c-f27b-4170-89ac-3efa10eacb7a",
+    "uuid": "3b69bf55-4a10-4a47-ad48-3d4f31296ec5",
+    "total_cost_usd": 2.5365100000000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6834,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-856 is a descriptor-only RP28 Marketplace UI permission/audit binding pack (Risk B, 40 units, RP28.P04.M03.S21-RP28.P04.M05.S16). Read-only inspection (Read/Grep/Glob; no Bash, no writes) confirms the evidence is internally consistent and descriptor-only boundaries hold. Implementation (registry.js/validators.js/model.js/states.js + contracts/marketplace-custom-ai-apps-contract.json + scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs) extends the CP855 chain to CP856 with deeply-frozen descriptors; every case-set row carries descriptor_only=true with all runtime/write/leak flags false, and validators fail-closed on any runtime open, permission/audit/product-state write, or real-data/secret/OAuth/prompt-completion leak. The coverage validator cross-checks the binding against the live plan/baseline: deliverable distribution {ui18, impl11, claude_review3, security_audit4, fixture2, test1, hermes1}=40 and micro-title {Primary2, Secondary22, Permission16}=40 match the baseline exactly. Contract JSON, model.test.js CP856 cases, README, and manifest all agree (latest_pack/latest_projection=CP00-856, descriptor MarketplaceCp856UiPermissionBindingDescriptor, validation.valid=true, no_write_attestation all false). Authority boundary is correct: Claude read-only and not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false), human final approval required, enterprise-trust claim closed outside this receipt, and Hermes used only for deterministic descriptor evidence (emits_runtime_receipt=false), not embedded in product runtime. No production_ready overclaim: the manifest is production_ready=false/runtime_ready=false/in_progress, and the descriptor-verified flag is appropriate for descriptor-only scope and remains gated behind this review plus the full validation suite. Command results in command-evidence.json (rp28:marketplace:validate, node --test = exit 0) are recorded evidence only; I did not re-execute them (read-only). The pending docs/closeout-packs/cp00-856/claude-review-result.json placeholder (0-byte stdout, blocks_goal_closeout=true) is the expected fail-closed pre-review state, not valid review evidence, and is superseded by this review. One non-blocking P3 latent-robustness note on createSections; no P0/P1/P2 issues. blocks_goal_closeout=false applies to this CP closeout goal only.",
+    "findings": [
+      {
+        "id": "CP856-P3-001",
+        "severity": "P3",
+        "title": "Latent: createSections row_count can desync from distinct row keys if two row titles normalize to the same key",
+        "file": "packages/marketplace/src/registry.js",
+        "line": 1129,
+        "details": "createSections sets section.row_count = titles.length but builds rows via Object.fromEntries keyed by marketplaceRowKey(title). If two titles in the same section normalized to the same key, Object.fromEntries would silently keep only the last entry, so Object.keys(rows).length would be < titles.length while row_count stays at titles.length. validateMarketplaceCp856UiPermissionBindingDescriptor only checks section.row_count === titles.length and per-title key existence, so such a collision would pass undetected. Not triggered by CP00-856: M03 (UI_STATE_ROWS, 2), M04 (UI_ROWS 20 + UI_STATE_ROWS 2, disjoint = 22), and M05 (UI_ROWS.slice(0,16)) row titles are all unique within each section, so distinct keys equal row_count. The independent binding-vs-plan/baseline cross-check in validateMarketplaceCp856UiPermissionBindingCoverage remains in force.",
+        "recommendation": "Optionally assert Object.keys(rows).length === titles.length (or detect duplicate normalized keys) inside createSections to fail closed on any future row-title collision. No change required for CP00-856.",
+        "post_review_disposition": "Non-blocking informational note. Latent robustness gap not present in CP00-856 data; does not affect descriptor-only verification, the no-write/no-leak boundaries, or any closeout gate."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

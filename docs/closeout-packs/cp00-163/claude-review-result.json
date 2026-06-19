@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-163",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "8a8064b9-deef-410c-b237-9bb86c267bb8",
+    "uuid": "e0b10e91-04c9-41c4-bc0e-e80d8d586bae",
+    "duration_ms": 389120,
+    "duration_api_ms": 391904,
+    "total_cost_usd": 1.50371875,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-163-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-163.master_data_synthetic_fixture_entry",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-163-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-163 adds descriptor-only Master Data synthetic fixture entry descriptors, contract v0.8 parity checks, tests, H04/C04 packets, and CP00-164 handoff. Claude found no P0/P1/P2 blockers. One P3 was fixed and one P3 was explicitly deferred as real-data/rendering hardening for later packs.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "notes": "CP00-163 builds synthetic fixture entry descriptors only; package code does not load real data, execute runtime permission checks, audit appends, API handlers, UI rendering, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "P3-01",
+        "severity": "P3",
+        "title": "Denied-state safe error code is a hardcoded literal instead of the canonical source constant",
+        "file": "packages/master-data/src/service.js",
+        "line": 1067,
+        "evidence": "createMasterDataSyntheticFixtureEntryDescriptor sets the denied scenario safe_error_code to the string literal \"MASTER_DATA_API_UNAUTHORIZED_OMISSION\". The canonical value already exists at MASTER_DATA_PERMISSION_AUDIT_BINDING.safe_error_copy.denied (registry.js:639), and that constant is already imported into service.js. The literal currently matches exactly, so the pack is correct today, but the value is duplicated rather than referenced. If CP162's safe_error_copy vocabulary is ever revised, this descriptor would silently drift from the binding it claims to bind to. The contract does not pin the literal (synthetic_fixture_entry uses denied_state: \"denied_state_safe_error_copy_only\"), so there is no contract drift and no gate failure.",
+        "recommended_action": "Reference MASTER_DATA_PERMISSION_AUDIT_BINDING.safe_error_copy.denied instead of the literal so the denied safe error code stays bound to its canonical source.",
+        "post_review_disposition": "fixed: denied-state safe error now references MASTER_DATA_API_REFERENCE_SURFACE.error_code_taxonomy.unauthorized_omission instead of a local literal."
+      },
+      {
+        "id": "P3-02",
+        "severity": "P3",
+        "title": "Leak guard validates prohibited-category label absence, not actual content, and trusts caller-supplied refs",
+        "file": "packages/master-data/src/service.js",
+        "line": 1112,
+        "evidence": "prohibited_output_absent checks only that the prohibited *category names* (e.g. \"raw_permission_rule\", \"audit_internal_payload\", \"real_client_data\") are not substrings of JSON.stringify(customerFacingFixture). It does not verify that real permission rules, audit payloads, or client data are absent. customer_facing_fixture is correctly minimal (only fixture_id, scenario, ui_state, safe_error_code, permission_ref, audit_hint_ref) and the internal-only fields (tenant_id, permission_audit_binding_fixture_id, ui_surface_state_id) are kept out of the renderable surface, so within this descriptor-only, synthetic-only pack there is no actual leak. However, the builder echoes caller-supplied request.permission_ref / request.audit_hint_ref / request.safe_error_code into the customer-facing surface without sanitization, and the label-substring guard would not detect real internals injected that way. Acceptable for the synthetic-only boundary; flagged as a defense-in-depth limitation, not a present leak.",
+        "recommended_action": "Keep as descriptor-only assurance for this pack; if real data ever flows through this builder, replace the label-substring check with an explicit allow-list of customer-facing keys/values.",
+        "post_review_disposition": "deferred: content-level leak guard hardening is non-blocking for this synthetic-only descriptor pack; later real-data/rendering packs must replace label-substring checks with explicit value allow-lists."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

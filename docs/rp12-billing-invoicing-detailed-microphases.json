@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP12",
+  "program_title": "Billing And Invoicing",
+  "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+  "ai_owner": "Codex",
+  "hermes_gate": "H12",
+  "claude_gate": "C12",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP12.P00.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Proforma, Invoice, TaxInvoice, write-down, write-off requirements and identify unapproved write-off, tax mismatch, and wrong client billing entity as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Billing And Invoicing contract shape for Proforma, Invoice, TaxInvoice, BillingLine, WriteDown, WriteOff, BillingApproval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns Proforma, Invoice, and TaxInvoice, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for proforma generation, partner review, and write-down approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Billing And Invoicing records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Billing And Invoicing behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Billing And Invoicing examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Billing And Invoicing planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H12 preflight",
+      "objective": "Define the fields Hermes records before Billing And Invoicing implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C12 design brief",
+      "objective": "Prepare Claude Code questions around unapproved write-off, tax mismatch, wrong client billing entity, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P00.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP12.P00 handoff",
+      "objective": "Hand off a contract-first Billing And Invoicing implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "contracts/billing-contract.json",
+        "packages/billing/README.md",
+        "contracts/billing-invoicing-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/billing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement Proforma model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for Proforma.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement Invoice model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for Invoice.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement TaxInvoice model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for TaxInvoice.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement BillingLine model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for BillingLine.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement WriteDown model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for WriteDown.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among Proforma, Invoice, TaxInvoice, BillingLine, WriteDown, WriteOff, BillingApproval and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Billing And Invoicing model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P01.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Billing And Invoicing model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/model.js",
+        "packages/billing/src/states.js",
+        "packages/billing/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for proforma generation, partner review, and write-down approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement proforma generation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for proforma generation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement partner review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for partner review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement write-down approval",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for write-down approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement invoice issuance",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for invoice issuance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement tax invoice export",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for tax invoice export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for unapproved write-off, tax mismatch, and wrong client billing entity.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Billing And Invoicing operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H12.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Billing And Invoicing outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P02.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Billing And Invoicing services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/service.js",
+        "packages/billing/src/policies.js",
+        "packages/billing/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Billing And Invoicing models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define proforma generation API",
+      "objective": "Lock request, response, permission, audit, and error shape for proforma generation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define partner review API",
+      "objective": "Lock request, response, permission, audit, and error shape for partner review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define write-down approval API",
+      "objective": "Lock request, response, permission, audit, and error shape for write-down approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define invoice issuance API",
+      "objective": "Lock request, response, permission, audit, and error shape for invoice issuance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define tax invoice export API",
+      "objective": "Lock request, response, permission, audit, and error shape for tax invoice export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Billing And Invoicing API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for unapproved write-off, tax mismatch, wrong client billing entity, invoice mutation after issue, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H12 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C12 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P03.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Billing And Invoicing public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/index.js",
+        "packages/billing/src/api-contract.js",
+        "packages/billing/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/billing/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify billing queue, proforma editor, invoice detail, and approval panel in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan billing queue",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for billing queue.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan proforma editor",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for proforma editor.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan invoice detail",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for invoice detail.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan approval panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for approval panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Billing And Invoicing outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Billing And Invoicing rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Billing And Invoicing context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Billing And Invoicing service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P04.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp12-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define proforma generated golden case",
+      "objective": "Create a synthetic golden case proving proforma generated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define write-down approved golden case",
+      "objective": "Create a synthetic golden case proving write-down approved.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define invoice issued golden case",
+      "objective": "Create a synthetic golden case proving invoice issued.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define tax invoice exported golden case",
+      "objective": "Create a synthetic golden case proving tax invoice exported.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define unapproved write-off failure fixture",
+      "objective": "Create a synthetic failing case that proves unapproved write-off is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define tax mismatch failure fixture",
+      "objective": "Create a synthetic failing case that proves tax mismatch is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define wrong client billing entity failure fixture",
+      "objective": "Create a synthetic failing case that proves wrong client billing entity is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Billing And Invoicing fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Billing And Invoicing appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P05.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Billing And Invoicing fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/fixtures.js",
+        "packages/billing/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/billing/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for proforma generation, partner review, write-down approval, and invoice issuance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Billing And Invoicing view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Billing And Invoicing mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Billing And Invoicing export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Billing And Invoicing where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Billing And Invoicing obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H12 audit evidence",
+      "objective": "Record which Billing And Invoicing decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P06.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Billing And Invoicing cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/src/security-contract.js",
+        "packages/billing/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define unapproved write-off failure",
+      "objective": "Fail closed or require review when unapproved write-off appears in Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define tax mismatch failure",
+      "objective": "Fail closed or require review when tax mismatch appears in Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define wrong client billing entity failure",
+      "objective": "Fail closed or require review when wrong client billing entity appears in Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define invoice mutation after issue failure",
+      "objective": "Fail closed or require review when invoice mutation after issue appears in Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Billing And Invoicing operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Billing And Invoicing operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Billing And Invoicing micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P07.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Billing And Invoicing ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "packages/billing/test/failure-cases.test.js",
+        "docs/rp12-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/billing/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H12 command matrix",
+      "objective": "Record exact product commands Hermes should run for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H12 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H12 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H12 no-real-data evidence",
+      "objective": "Record that Billing And Invoicing fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H12 blocked-claim evidence",
+      "objective": "Record unsafe Billing And Invoicing claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H12 Claude dependency",
+      "objective": "Mark C12 review mandatory before Billing And Invoicing closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H12 human approval note",
+      "objective": "Record what the human must approve for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H12 command availability",
+      "objective": "Ensure npm scripts required by H12 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H12 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Billing And Invoicing implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H12 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H12.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P08.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Billing And Invoicing behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp12-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M00",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP12 architecture review questions",
+      "objective": "Ask whether Billing And Invoicing module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M01",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP12 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M02",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP12 bypass review questions",
+      "objective": "Ask Claude to find unapproved write-off, tax mismatch, wrong client billing entity, invoice mutation after issue, and undefined bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M03",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP12 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Billing And Invoicing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M04",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP12 downstream readiness questions",
+      "objective": "Ask whether Billing And Invoicing is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M05",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP12 risk register",
+      "objective": "List unresolved Billing And Invoicing risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M06",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Billing And Invoicing findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M07",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Billing And Invoicing closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M08",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP12.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M09",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Billing And Invoicing can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP12.P09.M10",
+      "program_id": "RP12",
+      "program_title": "Billing And Invoicing",
+      "program_scope": "Proforma, Invoice, TaxInvoice, write-down, write-off",
+      "phase_id": "RP12.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP12 detailed plan",
+      "objective": "Confirm Billing And Invoicing is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H12",
+      "claude_gate": "C12",
+      "target_files": [
+        "docs/rp12-claude-cross-validation-brief.md",
+        "docs/rp12-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H12 evidence or blocked reason can be recorded.",
+        "Claude C12 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

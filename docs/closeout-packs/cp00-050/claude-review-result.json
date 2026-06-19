@@ -1,0 +1,129 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-050",
+  "subphase_id": "RP00.P02.M08.S02",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "e9f5b80b-acfc-4e9b-8e69-6c15d0ff7581",
+    "uuid": "11f4cdf6-390b-4d61-aefd-d1aa2efebfeb",
+    "duration_ms": 325680,
+    "duration_api_ms": 327954,
+    "total_cost_usd": 1.13092625,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-050-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_result_form": "json_result_body",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-1",
+          "title": "Partial negative-path test coverage for fail-closed normalization",
+          "file": "packages/control-plane/test/service.test.js",
+          "line_or_area": "Hermes Evidence Packet request normalization tests (createHermesEvidencePacketRequestInput + 5 tests)",
+          "issue": "The denied-path test exercises only a subset of guard branches (entrypoint, source micro-phase, contract status, closeout status, closeout ref, command_receipt_fields drift, one forbidden claim, one unknown claim). Untested branches include: missing required input field, non-object/array request, inputClaims supplied as an array, whitespace-padded string rejection (the `!== trim()` check), blocked_claim_refs non-array/blank entries, and drift in the other array-equality fields (hermes_evidence_packet_context_ids, required_evidence_refs, schema_expectation_fields, evidence_summary_fields, blocked_claim_fields, gate_outcome_fields, acceptance_gate_ids).",
+          "recommendation": "Add focused assert.throws cases for the remaining guard branches so the fail-closed contract is locked against future regressions; behavior is currently correct but under-pinned by tests."
+        },
+        {
+          "id": "P3-2",
+          "title": "Some declarative scope_policy flags are not cross-validated by the contract validator",
+          "file": "scripts/validate-rp00-control-plane-contract.mjs",
+          "line_or_area": "scope_policy assertion loop for control_plane_hermes_evidence_packet_request_normalization_definition",
+          "issue": "contract scope_policy declares does_not_mutate_entity_registry, does_not_replace_human_approval, does_not_replace_H00_or_C00, and a nested no_real_data, but the validator's scope_flag loop does not assert these (the human-approval guarantee is covered indirectly only via the policy module's doesNotReplaceHumanApproval check). These contract assertions could silently drift to false without failing validation.",
+          "recommendation": "Add the missing scope_policy flags to the validator's scope_flag assertion list for symmetric, fail-closed coverage of the declared boundary."
+        },
+        {
+          "id": "P3-3",
+          "title": "Closeout evidence artifacts for CP00-050 are outside the provided diff",
+          "file": "docs/closeout-packs/cp00-050/ (not present in diff)",
+          "line_or_area": "construction inspection record, Hermes evidence, adjudication, command evidence",
+          "issue": "The validator requires a construction-inspection record with control_plane_hermes_evidence_packet_request_normalization_verified === true (validate-rp00-control-plane-contract.mjs subphase_closeouts loop), and pack closeout requires Hermes evidence, adjudication, and command evidence under docs/closeout-packs/cp00-050. None of these artifacts are in the reviewed diff, so they cannot be verified here.",
+          "recommendation": "Before commit/closeout, confirm the cp00-050 evidence files exist with the required verified flag and that `npm run rp00:control-plane:validate` passes; this is the only remaining gate the code diff cannot self-evidence."
+        }
+      ]
+    },
+    "boundary_checks": [
+      {
+        "check": "No runtime route created",
+        "status": "PASS",
+        "evidence": "Normalized output sets runtime_route_created=false; policy/normalizer carry doesNotCreateRuntimeRoute=true; no route registration code added in service.js."
+      },
+      {
+        "check": "No service logic execution",
+        "status": "PASS",
+        "evidence": "Only request normalization is performed (normalizeControlPlaneHermesEvidencePacketRequest builds a frozen metadata object); policy doesNotExecuteServiceLogic=true and normalized service_logic_execution_permitted=false."
+      },
+      {
+        "check": "No Hermes validation/runtime/evidence creation",
+        "status": "PASS",
+        "evidence": "No Hermes calls; normalized hermes_runtime_execution_permitted/hermes_validation_execution_permitted/hermes_evidence_creation_permitted all false; forbidden claims include run_hermes_validation/execute_hermes_runtime/create_hermes_evidence and fail-closed mapping hermes_runtime_or_evidence_creation_claim."
+      },
+      {
+        "check": "No database/storage/product-state writes",
+        "status": "PASS",
+        "evidence": "Function performs in-memory transform only; database_write_permitted/storage_write_permitted/product_state_persistence_permitted=false; writes_product_state=false; only file reads occur in tests/validator."
+      },
+      {
+        "check": "No real client/matter/credential/secret data",
+        "status": "PASS",
+        "evidence": "All values synthetic (tenant.synthetic.lawfirm, user.synthetic.control-plane); fixture_integrity no_real_client_data/no_real_matter_data/no_credentials_or_secrets=true; forbidden claims include use_real_client_data/use_real_matter_data/use_credentials_or_secrets."
+      },
+      {
+        "check": "Human approval boundary preserved",
+        "status": "PASS",
+        "evidence": "replace_human_approval is a forbidden input claim and policy.doesNotReplaceHumanApproval=true (asserted by assertControlPlaneHermesEvidencePacketRequestNormalizationPolicy); normalization records no approvals."
+      },
+      {
+        "check": "Downstream tenant/matter/permission/audit prechecks deferred, not bypassed",
+        "status": "PASS",
+        "evidence": "Normalized output marks *_precheck_required=true with deferred_to S03/S04/S05/S06; bypass_* are forbidden claims; pass-through of tenant_id/actor_tenant_id without matching is intentional per staged design."
+      },
+      {
+        "check": "RP00.P02.M08 remains open",
+        "status": "PASS",
+        "evidence": "definition.scope_policy.does_not_complete_RP00_P02_M08=true; closeout_state_policy.source_micro_phase_completed=false; fixture completes_source_micro_phase=false; weighted boundary terminal=false; no M08 micro-phase closeout added."
+      },
+      {
+        "check": "Hand off to RP00.P02.M08.S03",
+        "status": "PASS",
+        "evidence": "next_subphase=RP00.P02.M08.S03 across contract definition, policy, normalizer, fixture, normalized output, and validator weighted/next-boundary checks."
+      },
+      {
+        "check": "Exactly one unit, production_ready, Risk class A",
+        "status": "PASS",
+        "evidence": "Single surface ControlPlaneHermesEvidencePacketRequestNormalization marked production_ready in current_subphase, subphase_closeouts, definition, policy, normalizer; new production_ready_requires flag added and gated by validator."
+      },
+      {
+        "check": "Deterministic, no real I/O side effects",
+        "status": "PASS",
+        "evidence": "No Date.now/random; output is a fixed frozen snapshot; validator live-normalizes the sample and byte-compares JSON to fixture.normalized_request, enforcing determinism."
+      }
+    ],
+    "recommendation": "Approve as the single Claude review for CP00-050. The diff is internally consistent and tightly cross-validated (contract definition, policy, normalizer, validators, fixture, and validation script are kept in lockstep with explicit length/order/identity checks), fail-closed on drift and unsafe/unknown claims, and respects every required boundary: no runtime route, no service-logic/Hermes execution, no evidence creation, no writes, synthetic-only data, preserved human-approval boundary, M08 kept open, and clean handoff to S03. No P0/P1/P2 found, so the unit may be marked production_ready. Address the three P3 items as non-blocking follow-ups, and (out of diff scope) confirm the cp00-050 evidence artifacts exist and `npm run rp00:control-plane:validate` passes before commit."
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":325680,\"duration_api_ms\":327954,\"ttft_ms\":298528,\"num_turns\":1,\"result\":\"{\\\"overall_verdict\\\":\\\"PASS_WITH_FINDINGS\\\",\\\"p0\\\":[],\\\"p1\\\":[],\\\"p2\\\":[],\\\"p3\\\":[{\\\"id\\\":\\\"P3-1\\\",\\\"title\\\":\\\"Partial negative-path test coverage for fail-closed normalization\\\",\\\"file\\\":\\\"packages/control-plane/test/service.test.js\\\",\\\"line_or_area\\\":\\\"Hermes Evidence Packet request normalization tests (createHermesEvidencePacketRequestInput + 5 tests)\\\",\\\"issue\\\":\\\"The denied-path test exercises only a subset of guard branches (entrypoint, source micro-phase, contract status, closeout status, closeout ref, command_receipt_fields drift, one forbidden claim, one unknown claim). Untested branches include: missing required input field, non-object/array request, inputClaims supplied as an array, whitespace-padded string rejection (the `!== trim()` check), blocked_claim_refs non-array/blank entries, and drift in the other array-equality fields (hermes_evidence_packet_context_ids, required_evidence_refs, schema_expectation_fields, evidence_summary_fields, blocked_claim_fields, gate_outcome_fields, acceptance_gate_ids).\\\",\\\"recommendation\\\":\\\"Add focused assert.throws cases for the remaining guard branches so the fail-closed contract is locked against future regressions; behavior is currently correct but under-pinned by tests.\\\"},{\\\"id\\\":\\\"P3-2\\\",\\\"title\\\":\\\"Some declarative scope_policy flags are not cross-validated by the contract validator\\\",\\\"file\\\":\\\"scripts/validate-rp00-control-plane-contract.mjs\\\",\\\"line_or_area\\\":\\\"scope_policy assertion loop for control_plane_hermes_evidence_packet_request_normalization_definition\\\",\\\"issue\\\":\\\"contract scope_policy declares does_not_mutate_entity_registry, does_not_replace_human_approval, does_not_replace_H00_or_C00, and a nested no_real_data, but the validator's scope_flag loop does not assert these (the human-approval guarantee is covered indirectly only via the policy module's doesNotReplaceHumanApproval check). These contract assertions could silently drift to false without failing validation.\\\",\\\"recommendation\\\":\\\"Add the missing scope_policy flags to the validator's scope_flag assertion list for symmetric, fail-closed coverage of the declared boundary.\\\"},{\\\"id\\\":\\\"P3-3\\\",\\\"title\\\":\\\"Closeout evidence artifacts for CP00-050 are outside the provided diff\\\",\\\"file\\\":\\\"docs/closeout-packs/cp00-050/ (not present in diff)\\\",\\\"line_or_area\\\":\\\"construction inspection record, Hermes evidence, adjudication, command evidence\\\",\\\"issue\\\":\\\"The validator requires a construction-inspection record with control_plane_hermes_evidence_packet_request_normalization_verified === true (validate-rp00-control-plane-contract.mjs subphase_closeouts loop), and pack closeout requires Hermes evidence, adjudication, and command evidence under docs/closeout-packs/cp00-050. None of these artifacts are in the reviewed diff, so they cannot be verified here.\\\",\\\"recommendation\\\":\\\"Before commit/closeout, confirm the cp00-050 evidence files exist with the required verified flag and that `npm run rp00:control-plane:validate` passes; this is the only remaining gate the code diff cannot self-evidence.\\\"}],\\\"boundary_checks\\\":[{\\\"check\\\":\\\"No runtime route created\\\",\\\"status\\\":\\\"PASS\\\",\\\"evidence\\\":\\\"Normalized output sets runtime_route_created=false; policy/normalizer carry doesNotCreateRuntimeRoute=true; no route registration code added in service.js.\\\"},{\\\"check\\\":\\\"No service logic execution\\\",\\\"status\\\":\\\"PASS\\\",\\\"evidence\\\":\\\"Only request normalization is performed (normalizeControlPlaneHermesEvidencePacketRequest builds a frozen metadata object); policy doesNotExecuteServiceLogic=true and normalized service_logic_execution_permitted=false.\\\"},{\\\"check\\\":\\\"No Hermes validation/runtime/evidence creation\\\",\\\"status\\\":\\\"PASS\\\",\\\"evidence\\\":\\\"No Hermes calls; normalized hermes_runtime_execution_permitted/hermes_validation_execution_permitted/hermes_evidence_creation_permitted all false; forbidden claims include run_hermes_validation/execute_hermes_runtime/create_hermes_evidence and fail-closed mapping hermes_runtime_or_evidence_creation_claim.\\\"},{\\\"check\\\":\\\"No database/storage/product-state writes\\\",\\\"status\\\":\\\"PASS\\\",\\\"evidence\\\":\\\"Function performs in-memory transform only; database_write_permitted/storage_write_permitted/product_state_persistence_permitted=false; writes_product_state=false; only file reads occur in tests/validator.\\\"},{\\\"check\\\":\\\"No real client/matter/credential/secret data\\\",\\\"status\\\":\\\"PASS\\\",\\\"evidence\\\":\\\"All values synthetic (tenant.synthetic.lawfirm, user.synthetic.control-plane); fixture_integrity no_real_client_data/no_real_matter_data/no_credentials_or_secrets=true; forbidden claims include use_real_client_data/use_real_matter_data/use_credentials_or_secrets.\\\"},{\\\"check\\\":\\\"Human approval boundary preserved\\\",\\\"status\\\":\\\"PASS\\\",\\\"evidence\\\":\\\"replace_human_approval is a forbidden input claim and pol"
+}

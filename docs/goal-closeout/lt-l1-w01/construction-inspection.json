@@ -1,0 +1,22 @@
+{
+  "work_package_id": "LT-L1-W01",
+  "inspected_at": "2026-06-18T14:44:26Z",
+  "verdict": "BLOCKED_WP_OPEN_OWNER_SCOPE_DECISION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "register_file_exists": true,
+    "required_header_columns_present": 8,
+    "decision_key_rules_present": true,
+    "human_decision_rows_synthesized": 0,
+    "t01_passed": true,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "human_scope_decision_synthesized": false,
+    "l1_phase_entry_claimed": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

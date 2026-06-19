@@ -1,0 +1,139 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-106",
+  "subphase_id": "RP01.P09.M07.S08",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H01",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "node --check packages/domain/src/review-outcome-routing.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/domain/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/domain/test/core-domain-foundation.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp01-core-domain-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/domain/test/*.test.js",
+      "exit_code": 0,
+      "summary": "57 tests passed"
+    },
+    {
+      "command": "npm run rp01:core-domain:validate",
+      "exit_code": 0,
+      "summary": "CP00-106, 24 entities, core_domain_cp106_review_outcome_routing_contract"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "regenerates plan cursor after CP00-106 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-106"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-106",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "all packs through CP00-106 passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full test suite passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    }
+  ],
+  "claude_review_command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-106-claude-review-output-valid.json",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-106 uses synthetic identifiers and static reference objects only.",
+    "CP00-106 implements a Risk B review outcome routing catalog boundary; it does not evaluate runtime permission, write audit ledger entries, create database rows, write product state, execute AI retrieval, execute export downloads, perform external sharing, mutate locks, execute retries, perform rollback or compensation, execute Claude review by catalog, grant human approval by catalog, mutate issue routing, or implement LDIP.",
+    "Claude reported no P0/P1/P2 findings. One P3 finding was fixed by adding kind-specific risk_register and severity_taxonomy blocked_claims and test assertions without running a second valid review."
+  ],
+  "final_validation_summary": {
+    "closeout_pack_plan_generate": "passed after CP00-106 evidence creation; queue regenerated from live latest pack",
+    "closeout_pack_plan_validate": "passed; 784 packs, 52497 units, queue starts after CP00-106",
+    "closeout_pack_validate_cp00_106": "passed",
+    "closeout_pack_validate_all": "passed through CP00-106",
+    "rp00_control_plane_validate": "passed: RP00.P09.M10.S01 production_ready",
+    "rp01_core_domain_validate": "passed: CP00-106, 24 entities, core_domain_cp106_review_outcome_routing_contract",
+    "domain_tests": "57 passed",
+    "npm_test": "975 passed",
+    "validate": "passed",
+    "spec_requirements_validate": "passed; 227 requirements",
+    "weighted_validate": "passed; 54355 Law Firm OS implementation subphases",
+    "fullplan_validate": "passed; 3300 micro phases, 30 release programs",
+    "goal_closeout_validate": "passed",
+    "build": "passed; Vite production build completed",
+    "git_diff_check": "passed",
+    "git_diff_cached_check": "passed"
+  }
+}

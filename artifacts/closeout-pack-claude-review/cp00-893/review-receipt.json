@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-893",
+  "normalized_at": "2026-06-17T13:25:19.942Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-893/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-893/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-893/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-893/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f01a093a-0569-4c2d-bc97-03206de65457",
+    "uuid": "206d74f4-a3be-41ae-a736-a60ce8403ed6",
+    "total_cost_usd": 2.8109694999999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9159,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-893 is a descriptor-only RP29.P08.M02.S18-RP29.P08.M10.S01 Hermes evidence sweep slice (150 units, risk C). Static read-only verification confirms the pack-level production_ready (descriptor-verified, flag commercial_readiness_hermes_evidence_sweep_descriptor_verified) claim is well supported. Registry binding (registry.js:405) sets CP00-893, risk C, 150 units, range, upstream CP00-892, next CP00-894, H29/C29. Section rows (registry.js:1947) slice COMMERCIAL_HERMES_EVIDENCE_ROWS (registry.js:1346, 22 rows) into M02=3/M03=22/M04=20/M05=22/M06=20/M07=22/M08=20/M09=20/M10=1 = 150, matching requirements (registry.js:1959) deliverable counts 64/8/71/7 and the live plan. The Hermes evidence row builder (registry.js:2117) sets every no-runtime/no-write/no-real-data/secret flag false, hermes_evidence_descriptor true, human_final_approval_required true; commercialRowKey (registry.js:15) yields exactly the keys the validator checks (closeout_handoff, regression_receipt, next_gate_readiness, hermes_command_matrix, operator_summary). The descriptor (registry.js:4058) wires authority_boundary claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human approval required, runtime opening deferred to CP00-894; Hermes packet emits_runtime_receipt=false; Claude packet read_only=true/promotes_final_approval=false; and spreads COMMERCIAL_NO_WRITE_ATTESTATION (registry.js:46). Validators (validators.js:2626 coverage, 2662 descriptor, 2724 contract) are comprehensive and consistent with the builder; no fs-write/network/exec calls exist in registry.js or validators.js. Tests (model.test.js:872-922) assert empty error arrays for coverage, descriptor (with explicit tail/primary/closeout boundary assertions), on-disk contract, and compatibility alias; planPack reads the live plan. The validate script enforces the full CP00-873->CP00-893 upstream/next chain plus alias, coverage, descriptor, and contract capability/gate checks. Contracts serialize CP00-893 faithfully: commercial-contract.json alias points to the canonical readiness contract with latest_pack_id CP00-893; commercial-readiness-contract.json sets current/latest CP00-893, next CP00-894, latest_projection CommercialCp893HermesEvidenceSweepDescriptor (authority boundary correct), all 5 new CP893 capabilities and 5 new safety gates present, no-leak guards present, and validation.valid=true. The live plan (closeout-pack-plan.json) shows live_state=CP00-892 (just closed) with packs[0]=CP00-893 (open, deviation_from_plan=false), regenerated 13:14:25 just before the review baseline 13:18:35. Claude remains a read-only non-final-approval reviewer and Hermes patterns are used only for deterministic control-plane review packet/receipt handling, not product runtime (hermes_runtime_embedded_in_product=false). Review-evidence hardening is satisfied: readiness auth-preflight passed (exit 0, 1456-byte valid JSON, non-zero stdout), tools limited to Read/Grep/Glob, schema present, no forbidden tools, prompt 2657<25600 bytes with no embedded full diff/source, no omitted untracked implementation files, and no prior invalid attempts. Construction-inspection and adjudication honestly report production_ready=false/PENDING_REVIEW as the expected pre-review state and explicitly defer Hermes/regression/validation-harness execution, runtime receipts, permission/audit writes, enterprise trust, and deployment to later human approval, so the pack does not over-claim runtime or enterprise trust. Unrelated dirty/untracked files (progress-control-room, workbook/*, docx, ldip) are correctly scoped out per changed-file-scope.json. One non-blocking P3: as a read-only reviewer I could not re-execute the full deterministic validation ladder; command-evidence.json records only the targeted subset (all exit 0) with the full ladder explicitly deferred to post-review normalization. No P0/P1/P2 issues.",
+    "findings": [
+      {
+        "id": "CP893-P3-01",
+        "severity": "P3",
+        "title": "Full deterministic validation ladder not re-executed within read-only review; only targeted command subset evidenced",
+        "file": "docs/closeout-packs/cp00-893/command-evidence.json",
+        "line": 36,
+        "details": "command-evidence.json records only three targeted commands (node --check on registry.js/validators.js/validate script; node --test on service.test.js+model.test.js; npm run rp29:commercial:validate), all exit_code 0. The full deterministic ladder expected before closeout (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is explicitly deferred per the note: 'full deterministic validation ladder remains required after review normalization, adjudication update, and queue regeneration.' As a read-only reviewer without Bash, I verified structure, row math (150 units), validator/builder/test wiring, contract serialization, plan binding, and no-write/no-real-data/authority boundaries statically, but could not independently re-run that ladder. This is consistent with the pack's pre-review state (construction-inspection verdict PENDING_REVIEW, production_ready=false) and is by-design, not a deliverable defect.",
+        "recommendation": "Keep production_ready promotion and commit gated on the full validation ladder completing green downstream after this review receipt is normalized and adjudicated. Downstream adjudication should attach the full ladder evidence before flipping production_ready/runtime gates; no change to the CP00-893 descriptor implementation is required.",
+        "post_review_disposition": "Non-blocking; covered by the explicitly deferred post-review validation ladder. Does not block this read-only review verdict. Verification boundary recorded to distinguish statically-verified structure from the not-re-executed ladder."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

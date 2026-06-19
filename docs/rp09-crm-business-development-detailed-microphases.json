@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP09",
+  "program_title": "CRM And Business Development",
+  "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+  "ai_owner": "Cursor/Codex",
+  "hermes_gate": "H09",
+  "claude_gate": "C09",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP09.P00.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Lead, Opportunity, Activity, Proposal, Campaign, Referral requirements and identify conflict check skipped, pre-matter data overreach, and proposal without review as explicit acceptance risks.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future CRM And Business Development contract shape for Lead, Opportunity, Activity, Proposal, Campaign, Referral, PipelineStage.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns Lead, Opportunity, and Activity, and which modules may only reference them.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for lead capture, opportunity qualification, and activity logging.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how CRM And Business Development records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before CRM And Business Development behavior can run.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that CRM And Business Development examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify CRM And Business Development planning and later implementation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H09 preflight",
+      "objective": "Define the fields Hermes records before CRM And Business Development implementation starts.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C09 design brief",
+      "objective": "Prepare Claude Code questions around conflict check skipped, pre-matter data overreach, proposal without review, and missing tests.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P00.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP09.P00 handoff",
+      "objective": "Hand off a contract-first CRM And Business Development implementation scope to AI.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "contracts/crm-contract.json",
+        "packages/crm/README.md",
+        "contracts/crm-business-development-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/crm.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement Lead model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for Lead.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement Opportunity model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for Opportunity.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement Activity model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for Activity.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement Proposal model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for Proposal.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement Campaign model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for Campaign.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among Lead, Opportunity, Activity, Proposal, Campaign, Referral, PipelineStage and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export CRM And Business Development model definitions through a stable package interface.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P01.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the CRM And Business Development model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/model.js",
+        "packages/crm/src/states.js",
+        "packages/crm/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for lead capture, opportunity qualification, and activity logging.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement lead capture",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for lead capture.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement opportunity qualification",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for opportunity qualification.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement activity logging",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for activity logging.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement proposal generation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for proposal generation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement matter conversion",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for matter conversion.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for conflict check skipped, pre-matter data overreach, and proposal without review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky CRM And Business Development operations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H09.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous CRM And Business Development outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P02.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm CRM And Business Development services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/service.js",
+        "packages/crm/src/policies.js",
+        "packages/crm/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose CRM And Business Development models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define lead capture API",
+      "objective": "Lock request, response, permission, audit, and error shape for lead capture.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define opportunity qualification API",
+      "objective": "Lock request, response, permission, audit, and error shape for opportunity qualification.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define activity logging API",
+      "objective": "Lock request, response, permission, audit, and error shape for activity logging.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define proposal generation API",
+      "objective": "Lock request, response, permission, audit, and error shape for proposal generation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define matter conversion API",
+      "objective": "Lock request, response, permission, audit, and error shape for matter conversion.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure CRM And Business Development API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for conflict check skipped, pre-matter data overreach, proposal without review, client duplicate, and review_required.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H09 evidence without making Hermes product authority.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C09 cross-validation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P03.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze CRM And Business Development public interface until a later RP explicitly extends it.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/index.js",
+        "packages/crm/src/api-contract.js",
+        "packages/crm/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/crm/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify pipeline board, lead profile, activity timeline, and proposal panel in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan pipeline board",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for pipeline board.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan lead profile",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for lead profile.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan activity timeline",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for activity timeline.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan proposal panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for proposal panel.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk CRM And Business Development outcomes as review queue items, not silent successes.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized CRM And Business Development rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep CRM And Business Development context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override CRM And Business Development service decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P04.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp09-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define lead created golden case",
+      "objective": "Create a synthetic golden case proving lead created.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define opportunity advanced golden case",
+      "objective": "Create a synthetic golden case proving opportunity advanced.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define proposal approved golden case",
+      "objective": "Create a synthetic golden case proving proposal approved.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define opportunity converted to matter golden case",
+      "objective": "Create a synthetic golden case proving opportunity converted to matter.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define conflict check skipped failure fixture",
+      "objective": "Create a synthetic failing case that proves conflict check skipped is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define pre-matter data overreach failure fixture",
+      "objective": "Create a synthetic failing case that proves pre-matter data overreach is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define proposal without review failure fixture",
+      "objective": "Create a synthetic failing case that proves proposal without review is blocked or reviewed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize CRM And Business Development fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If CRM And Business Development appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P05.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm CRM And Business Development fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/fixtures.js",
+        "packages/crm/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/crm/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for lead capture, opportunity qualification, activity logging, and proposal generation.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for CRM And Business Development view and search surfaces.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for CRM And Business Development mutations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for CRM And Business Development export, download, or external-share actions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for CRM And Business Development where applicable.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for CRM And Business Development obey security trimming.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H09 audit evidence",
+      "objective": "Record which CRM And Business Development decisions require downstream audit event persistence.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P06.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm CRM And Business Development cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/src/security-contract.js",
+        "packages/crm/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define conflict check skipped failure",
+      "objective": "Fail closed or require review when conflict check skipped appears in CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define pre-matter data overreach failure",
+      "objective": "Fail closed or require review when pre-matter data overreach appears in CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define proposal without review failure",
+      "objective": "Fail closed or require review when proposal without review appears in CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define client duplicate failure",
+      "objective": "Fail closed or require review when client duplicate appears in CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any CRM And Business Development operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed CRM And Business Development operations.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed CRM And Business Development micro phase is corrected before advancing.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P07.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous CRM And Business Development ambiguity fails closed or requires review.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "packages/crm/test/failure-cases.test.js",
+        "docs/rp09-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/crm/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H09 command matrix",
+      "objective": "Record exact product commands Hermes should run for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H09 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H09 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H09 no-real-data evidence",
+      "objective": "Record that CRM And Business Development fixtures and examples contain only synthetic data.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H09 blocked-claim evidence",
+      "objective": "Record unsafe CRM And Business Development claims rejected by validators or tests.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H09 Claude dependency",
+      "objective": "Mark C09 review mandatory before CRM And Business Development closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H09 human approval note",
+      "objective": "Record what the human must approve for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H09 command availability",
+      "objective": "Ensure npm scripts required by H09 exist before handoff.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H09 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during CRM And Business Development implementation closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H09 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H09.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P08.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates CRM And Business Development behavior without owning product code.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp09-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M00",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP09 architecture review questions",
+      "objective": "Ask whether CRM And Business Development module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M01",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP09 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M02",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP09 bypass review questions",
+      "objective": "Ask Claude to find conflict check skipped, pre-matter data overreach, proposal without review, client duplicate, and undefined bypasses.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M03",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP09 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for CRM And Business Development.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M04",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP09 downstream readiness questions",
+      "objective": "Ask whether CRM And Business Development is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M05",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP09 risk register",
+      "objective": "List unresolved CRM And Business Development risks and route them to future RP corrections.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M06",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for CRM And Business Development findings.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M07",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for CRM And Business Development closeout.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M08",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP09.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before CRM And Business Development can be considered ready.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP09.P09.M10",
+      "program_id": "RP09",
+      "program_title": "CRM And Business Development",
+      "program_scope": "Lead, Opportunity, Activity, Proposal, Campaign, Referral",
+      "phase_id": "RP09.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP09 detailed plan",
+      "objective": "Confirm CRM And Business Development is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Cursor/Codex",
+      "hermes_gate": "H09",
+      "claude_gate": "C09",
+      "target_files": [
+        "docs/rp09-claude-cross-validation-brief.md",
+        "docs/rp09-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H09 evidence or blocked reason can be recorded.",
+        "Claude C09 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

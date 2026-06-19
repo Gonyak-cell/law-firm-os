@@ -1,0 +1,94 @@
+{
+  "schema_version": "law-firm-os.goal1-claude-review-result.v0.1",
+  "status": "review_completed",
+  "started_at": "2026-06-03T07:51:37.236Z",
+  "finished_at": "2026-06-03T07:55:25.942Z",
+  "command": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-opus-4-8",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--max-budget-usd",
+    "2",
+    "--effort",
+    "max"
+  ],
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "I've completed a direct read of all referenced files (contracts, the three packages, their tests, the validator, `package.json`, and `hermes/project.json`) and verified the kernels' actual behavior rather than just packet existence. No shell commands were run. Here is the review.\n\n```json\n{\n  \"overall_verdict\": \"PASS_WITH_FINDINGS\",\n  \"blocks_goal1_closeout\": false,\n  \"per_gate\": {\n    \"C00\": {\n      \"verdict\": \"PASS\",\n      \"summary\": \"Product/harness boundaries hold. hermes/project.json marks the repo as product_codebase with harness_role=validation-only; autonomous_agent_policy forbids production access/write and every validation_command sets writes_product_state=false. Mutual-agreement contract keeps human approval non-delegable and blocks completion-from-planning. validate-goal1-foundation.mjs gates closeout on the real review result verdicts and live package files, not packet existence. No AI/Hermes/Claude production-mutation path found.\"\n    },\n    \"C01\": {\n      \"verdict\": \"PASS_WITH_FINDINGS\",\n      \"summary\": \"Tenant identity is consistent (every entity except Tenant requires tenant_id). Matter cannot be created without client_id + owner_user_id; createDocumentReference holds only a reference and forces dms_owned=true; assertSameTenant/assertMatterBelongsToClient reject cross-tenant links before permission logic, with a passing test. One P3: User.email is stored with no PII classification while Client/Matter carry confidentiality.\"\n    },\n    \"C02\": {\n      \"verdict\": \"PASS_WITH_FINDINGS\",\n      \"summary\": \"Evaluator order matches the contract decision_order: cross_tenant_deny → deny_rule → object_acl_deny → review/approval → object_acl_allow → allow → fail_closed_no_match. Cross-tenant fails closed with no admin exception; deny precedes all allows; review/approval override an allow ACL (tested); trimSearchResults derives counts from the post-trim allowed set. P3: abac and rbac are collapsed into one ordered allow step (contract-acknowledged deferral) and the ethical_wall_matter_id match path has no dedicated test.\"\n    },\n    \"C03\": {\n      \"verdict\": \"PASS_WITH_FINDINGS\",\n      \"summary\": \"Events are deep-frozen; corrections are appended (action=audit.correction.append) not mutated. verifyHashChain detects sequence breaks, previous_hash/event_hash mismatch, clock skew, hash-algorithm mismatch and orphaned corrections; chains and reads are tenant-scoped with tenant-scoped idempotency. canPurgeAuditEvent returns legal_hold_blocks_purge before any other check. P3s: missing vs duplicate sequence both collapse to reason 'sequence_gap' (contract enumerates them separately), and forbidden-payload/masking policy is enforced only structurally (no raw-body field) with no active content scan.\"\n    }\n  },\n  \"findings\": [\n    {\n      \"severity\": \"P3_NOTE\",\n      \"title\": \"User PII (email) carried without classification\",\n      \"file\": \"packages/domain/src/entities.js\",\n      \"line\": 19,\n      \"details\": \"createUser stores email in plaintext with no PII/confidentiality classification, while createClient and createMatter validate a confidentiality level. The C01 packet explicitly lists 'PII classification gaps' as a must-challenge risk.\",\n      \"recommendation\": \"Before downstream modules (DMS/Billing/AI) consume User identity, add a PII classification/handling marker for email (and future personal fields) or document the deferral in the core-domain contract.\"\n    },\n    {\n      \"severity\": \"P3_NOTE\",\n      \"title\": \"ABAC/RBAC collapsed into a single allow step; ethical-wall-by-matter path untested\",\n      \"file\": \"packages/authz/src/evaluate.js\",\n      \"line\": 18,\n      \"details\": \"decision_order in permission-kernel-contract.json lists abac and rbac as distinct steps, but evaluate.js represents both as one ordered allow-rule scan. The contract precedence_notes already flag this as 'must be separated before RP02 production_ready'. Separately, matches() supports ethical_wall_matter_id but the test suite only exercises ethical wall via a generic deny rule, not the ethical_wall_matter_id match.\",\n      \"recommendation\": \"Track the abac/rbac separation as a concrete RP02 correction subphase and add a test that denies via ethical_wall_matter_id matching resource.matter_id.\"\n    },\n    {\n      \"severity\": \"P3_NOTE\",\n      \"title\": \"Hash-chain gap reasons coarser than contract taxonomy\",\n      \"file\": \"packages/audit/src/append-only-ledger.js\",\n      \"line\": 42,\n      \"details\": \"audit-compliance-contract immutability.gap_detection enumerates missing_sequence_number and duplicate_sequence_number distinctly, but verifyHashChain reports both as reason 'sequence_gap'. Detection is correct; only the emitted reason code is less specific than the contract enumerates.\",\n      \"recommendation\": \"Distinguish missing vs duplicate sequence in the returned reason to match the contract's gap_detection taxonomy.\"\n    },\n    {\n      \"severity\": \"P3_NOTE\",\n      \"title\": \"Payload privacy policy enforced structurally, not by content scan\",\n      \"file\": \"packages/audit/src/events.js\",\n      \"line\": 11,\n      \"details\": \"createAuditEvent accepts only payload_digest/payload_classification and exposes no raw-body field, so forbidden values cannot be logged through this API. However, privacy_and_payload_policy.forbidden_payload_values and masking_required_for are not actively validated; a caller embedding PII inside evidence_refs or object fields would not be caught.\",\n      \"recommendation\": \"Add an explicit payload/evidence-shape guard and a fixture asserting forbidden values are rejected before RP03 production_ready.\"\n    }\n  ],\n  \"evidence_commands_run\": [\n    \"Read contracts/law-firm-os.product-contract.json, core-domain-contract.json, permission-kernel-contract.json, audit-compliance-contract.json, goal1-mutual-agreement-contract.json, goal1-claude-review-contract.json\",\n    \"Read packages/domain/src/{entities,invariants,index}.js + test/domain.test.js\",\n    \"Read packages/authz/src/{evaluate,index}.js + test/authz.test.js\",\n    \"Read packages/audit/src/{events,append-only-ledger,retention,index}.js + test/audit.test.js\",\n    \"Read package.json, hermes/project.json, scripts/validate-goal1-foundation.mjs\",\n    \"Read docs/claude-review-packets/goal1-c0{0,1,2,3}-rp0{0,1,2,3}.json\",\n    \"Glob apps/**/package.json, packages/*/package.json; Grep weighted-implementation-ledger.json for subphase/requirement/template counts\",\n    \"No Bash/shell commands executed (per review constraints)\"\n  ],\n  \"review_notes\": \"Read-only review of the actual referenced files, not packet presence. The four security-critical properties for this slice are genuinely implemented and covered by passing node:test assertions: deny-over-allow with object-ACL denies (authz.test.js), cross-tenant fail-closed even without an admin exception, append-only deep-frozen events with tamper/gap/clock-skew/orphan-correction detection, and legal-hold-blocks-purge ordered ahead of every other purge gate. Boundary controls (no AI/Hermes/Claude production mutation; human approval non-delegable; completion gated on real evidence) are intact. All findings are P3 and forward-looking; none block Goal 1 closeout. One non-finding observation on C00: validate-goal1-foundation.mjs asserts fixed planning-ledger magic numbers (54,355 subphases / 227 requirements, both confirmed present) as a closeout gate — this is artifact-shape checking rather than product verification, but it is paired with real package tests so it is not validation theater. Frontend stack note: product contract names Next.js/React as a candidate while apps/web is Vite-based — not a violation since the contract field is explicitly 'candidate'.\"\n}\n```\n",
+  "stderr": "",
+  "parse_error": null,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_goal1_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS",
+        "summary": "Product/harness boundaries hold. hermes/project.json marks the repo as product_codebase with harness_role=validation-only; autonomous_agent_policy forbids production access/write and every validation_command sets writes_product_state=false. Mutual-agreement contract keeps human approval non-delegable and blocks completion-from-planning. validate-goal1-foundation.mjs gates closeout on the real review result verdicts and live package files, not packet existence. No AI/Hermes/Claude production-mutation path found."
+      },
+      "C01": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Tenant identity is consistent (every entity except Tenant requires tenant_id). Matter cannot be created without client_id + owner_user_id; createDocumentReference holds only a reference and forces dms_owned=true; assertSameTenant/assertMatterBelongsToClient reject cross-tenant links before permission logic, with a passing test. One P3: User.email is stored with no PII classification while Client/Matter carry confidentiality."
+      },
+      "C02": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Evaluator order matches the contract decision_order: cross_tenant_deny → deny_rule → object_acl_deny → review/approval → object_acl_allow → allow → fail_closed_no_match. Cross-tenant fails closed with no admin exception; deny precedes all allows; review/approval override an allow ACL (tested); trimSearchResults derives counts from the post-trim allowed set. P3: abac and rbac are collapsed into one ordered allow step (contract-acknowledged deferral) and the ethical_wall_matter_id match path has no dedicated test."
+      },
+      "C03": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Events are deep-frozen; corrections are appended (action=audit.correction.append) not mutated. verifyHashChain detects sequence breaks, previous_hash/event_hash mismatch, clock skew, hash-algorithm mismatch and orphaned corrections; chains and reads are tenant-scoped with tenant-scoped idempotency. canPurgeAuditEvent returns legal_hold_blocks_purge before any other check. P3s: missing vs duplicate sequence both collapse to reason 'sequence_gap' (contract enumerates them separately), and forbidden-payload/masking policy is enforced only structurally (no raw-body field) with no active content scan."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "User PII (email) carried without classification",
+        "file": "packages/domain/src/entities.js",
+        "line": 19,
+        "details": "createUser stores email in plaintext with no PII/confidentiality classification, while createClient and createMatter validate a confidentiality level. The C01 packet explicitly lists 'PII classification gaps' as a must-challenge risk.",
+        "recommendation": "Before downstream modules (DMS/Billing/AI) consume User identity, add a PII classification/handling marker for email (and future personal fields) or document the deferral in the core-domain contract."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "ABAC/RBAC collapsed into a single allow step; ethical-wall-by-matter path untested",
+        "file": "packages/authz/src/evaluate.js",
+        "line": 18,
+        "details": "decision_order in permission-kernel-contract.json lists abac and rbac as distinct steps, but evaluate.js represents both as one ordered allow-rule scan. The contract precedence_notes already flag this as 'must be separated before RP02 production_ready'. Separately, matches() supports ethical_wall_matter_id but the test suite only exercises ethical wall via a generic deny rule, not the ethical_wall_matter_id match.",
+        "recommendation": "Track the abac/rbac separation as a concrete RP02 correction subphase and add a test that denies via ethical_wall_matter_id matching resource.matter_id."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Hash-chain gap reasons coarser than contract taxonomy",
+        "file": "packages/audit/src/append-only-ledger.js",
+        "line": 42,
+        "details": "audit-compliance-contract immutability.gap_detection enumerates missing_sequence_number and duplicate_sequence_number distinctly, but verifyHashChain reports both as reason 'sequence_gap'. Detection is correct; only the emitted reason code is less specific than the contract enumerates.",
+        "recommendation": "Distinguish missing vs duplicate sequence in the returned reason to match the contract's gap_detection taxonomy."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Payload privacy policy enforced structurally, not by content scan",
+        "file": "packages/audit/src/events.js",
+        "line": 11,
+        "details": "createAuditEvent accepts only payload_digest/payload_classification and exposes no raw-body field, so forbidden values cannot be logged through this API. However, privacy_and_payload_policy.forbidden_payload_values and masking_required_for are not actively validated; a caller embedding PII inside evidence_refs or object fields would not be caught.",
+        "recommendation": "Add an explicit payload/evidence-shape guard and a fixture asserting forbidden values are rejected before RP03 production_ready."
+      }
+    ],
+    "evidence_commands_run": [
+      "Read contracts/law-firm-os.product-contract.json, core-domain-contract.json, permission-kernel-contract.json, audit-compliance-contract.json, goal1-mutual-agreement-contract.json, goal1-claude-review-contract.json",
+      "Read packages/domain/src/{entities,invariants,index}.js + test/domain.test.js",
+      "Read packages/authz/src/{evaluate,index}.js + test/authz.test.js",
+      "Read packages/audit/src/{events,append-only-ledger,retention,index}.js + test/audit.test.js",
+      "Read package.json, hermes/project.json, scripts/validate-goal1-foundation.mjs",
+      "Read docs/claude-review-packets/goal1-c0{0,1,2,3}-rp0{0,1,2,3}.json",
+      "Glob apps/**/package.json, packages/*/package.json; Grep weighted-implementation-ledger.json for subphase/requirement/template counts",
+      "No Bash/shell commands executed (per review constraints)"
+    ],
+    "review_notes": "Read-only review of the actual referenced files, not packet presence. The four security-critical properties for this slice are genuinely implemented and covered by passing node:test assertions: deny-over-allow with object-ACL denies (authz.test.js), cross-tenant fail-closed even without an admin exception, append-only deep-frozen events with tamper/gap/clock-skew/orphan-correction detection, and legal-hold-blocks-purge ordered ahead of every other purge gate. Boundary controls (no AI/Hermes/Claude production mutation; human approval non-delegable; completion gated on real evidence) are intact. All findings are P3 and forward-looking; none block Goal 1 closeout. One non-finding observation on C00: validate-goal1-foundation.mjs asserts fixed planning-ledger magic numbers (54,355 subphases / 227 requirements, both confirmed present) as a closeout gate — this is artifact-shape checking rather than product verification, but it is paired with real package tests so it is not validation theater. Frontend stack note: product contract names Next.js/React as a candidate while apps/web is Vite-based — not a violation since the contract field is explicitly 'candidate'."
+  }
+}

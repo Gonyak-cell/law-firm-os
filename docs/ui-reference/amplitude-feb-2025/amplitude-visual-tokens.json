@@ -1,0 +1,5079 @@
+{
+  "schema_version": "matter.amplitude.visual-tokens.v1",
+  "generated_at": "2026-06-09T12:41:58.544Z",
+  "source_corpus": "Law Firm OS UI/Amplitude web Feb 2025",
+  "sample_screenshot_ids": [
+    0,
+    1,
+    4,
+    5,
+    8,
+    11,
+    14,
+    20,
+    41,
+    45,
+    69,
+    120,
+    148,
+    179,
+    196,
+    216,
+    249,
+    280,
+    297,
+    299,
+    303,
+    306,
+    312,
+    317
+  ],
+  "extraction_note": "Palette values are sampled from the Amplitude corpus and quantized to 8-point RGB buckets. The bottom Mobbin attribution band is excluded from sampling.",
+  "token_contract": {
+    "color": {
+      "canvas": {
+        "value": "#f5f7fa",
+        "source": "dominant app canvas and auth background samples"
+      },
+      "canvas_muted": {
+        "value": "#eef2f6",
+        "source": "sidebar and auth shell samples"
+      },
+      "surface": {
+        "value": "#ffffff",
+        "source": "panel, modal, table, and topbar samples"
+      },
+      "surface_subtle": {
+        "value": "#f8fafc",
+        "source": "table header, hover row, setup card samples"
+      },
+      "border": {
+        "value": "#d8dee8",
+        "source": "panel and table grid candidate samples"
+      },
+      "border_soft": {
+        "value": "#e7ebf1",
+        "source": "subtle dividers and input borders"
+      },
+      "text": {
+        "value": "#202428",
+        "source": "primary text candidates"
+      },
+      "text_muted": {
+        "value": "#64707d",
+        "source": "secondary labels and sidebar text"
+      },
+      "text_faint": {
+        "value": "#8a96a4",
+        "source": "placeholder and helper text"
+      },
+      "active_blue": {
+        "value": "#0b65e5",
+        "source": "primary CTA and selected navigation candidates"
+      },
+      "active_blue_hover": {
+        "value": "#0758cf",
+        "source": "observed darker primary action states"
+      },
+      "active_blue_soft": {
+        "value": "#e8f1ff",
+        "source": "selected rows, cards, tabs, and blue notices"
+      },
+      "teal": {
+        "value": "#00a88f",
+        "source": "invite/setup completion accents"
+      },
+      "success": {
+        "value": "#13a66b",
+        "source": "positive validation and setup states"
+      },
+      "warning": {
+        "value": "#f5a524",
+        "source": "warning badges and plan notices"
+      },
+      "danger": {
+        "value": "#d93025",
+        "source": "destructive modal and error states"
+      },
+      "dark_canvas": {
+        "value": "#14181d",
+        "source": "dark-mode screenshots 297-302"
+      },
+      "dark_sidebar": {
+        "value": "#181d23",
+        "source": "dark-mode navigation samples"
+      },
+      "dark_surface": {
+        "value": "#1f242b",
+        "source": "dark-mode panels"
+      },
+      "dark_border": {
+        "value": "#343b45",
+        "source": "dark-mode dividers"
+      }
+    },
+    "radius": {
+      "xs": "2px",
+      "sm": "4px",
+      "md": "6px",
+      "modal": "4px",
+      "pill": "999px"
+    },
+    "spacing": {
+      "unit": "4px",
+      "shell_topbar_height": "48px",
+      "sidebar_icon_rail_width": "56px",
+      "sidebar_width": "216px",
+      "content_padding_x": "20px",
+      "content_padding_y": "16px",
+      "panel_padding": "16px",
+      "compact_panel_padding": "12px",
+      "table_row_height": "34px",
+      "table_header_height": "32px",
+      "toolbar_height": "44px",
+      "input_height": "32px",
+      "button_height": "32px",
+      "modal_width_sm": "420px",
+      "modal_width_md": "560px",
+      "side_panel_width": "360px"
+    },
+    "shadow": {
+      "panel": "0 1px 2px rgba(15, 23, 42, 0.08)",
+      "floating": "0 16px 44px rgba(15, 23, 42, 0.24)",
+      "modal": "0 24px 70px rgba(15, 23, 42, 0.28)"
+    }
+  },
+  "extracted_samples": [
+    {
+      "screenshot_id": 0,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 0.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 18281
+        },
+        {
+          "color": "#ffffff",
+          "count": 11337
+        },
+        {
+          "color": "#c0e0ff",
+          "count": 1494
+        },
+        {
+          "color": "#f0d8e0",
+          "count": 843
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 480
+        },
+        {
+          "color": "#90d8e0",
+          "count": 341
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 333
+        },
+        {
+          "color": "#2060f0",
+          "count": 229
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 229
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 222
+        },
+        {
+          "color": "#585858",
+          "count": 205
+        },
+        {
+          "color": "#000000",
+          "count": 197
+        },
+        {
+          "color": "#90d8e8",
+          "count": 136
+        },
+        {
+          "color": "#f8d8e0",
+          "count": 107
+        },
+        {
+          "color": "#d0e8f0",
+          "count": 102
+        },
+        {
+          "color": "#f8ffff",
+          "count": 71
+        },
+        {
+          "color": "#000008",
+          "count": 68
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 54
+        },
+        {
+          "color": "#080808",
+          "count": 51
+        },
+        {
+          "color": "#f0ffff",
+          "count": 50
+        },
+        {
+          "color": "#585860",
+          "count": 44
+        },
+        {
+          "color": "#000808",
+          "count": 44
+        },
+        {
+          "color": "#f8f0ff",
+          "count": 32
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 28
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 18281
+          },
+          {
+            "color": "#ffffff",
+            "count": 11337
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 480
+          },
+          {
+            "color": "#f0f0f8",
+            "count": 333
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 229
+          },
+          {
+            "color": "#f0f8ff",
+            "count": 222
+          },
+          {
+            "color": "#f8ffff",
+            "count": 71
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 54
+          }
+        ],
+        "neutral_mid": [],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 205
+          },
+          {
+            "color": "#000000",
+            "count": 197
+          },
+          {
+            "color": "#000008",
+            "count": 68
+          },
+          {
+            "color": "#080808",
+            "count": 51
+          },
+          {
+            "color": "#585860",
+            "count": 44
+          },
+          {
+            "color": "#000808",
+            "count": 44
+          }
+        ],
+        "blue": [
+          {
+            "color": "#c0e0ff",
+            "count": 1494
+          },
+          {
+            "color": "#90d8e0",
+            "count": 341
+          },
+          {
+            "color": "#2060f0",
+            "count": 229
+          },
+          {
+            "color": "#90d8e8",
+            "count": 136
+          },
+          {
+            "color": "#d0e8f0",
+            "count": 102
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 28
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 1,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 1.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#686868",
+          "count": 14931
+        },
+        {
+          "color": "#606060",
+          "count": 8731
+        },
+        {
+          "color": "#ffffff",
+          "count": 7660
+        },
+        {
+          "color": "#585858",
+          "count": 514
+        },
+        {
+          "color": "#505868",
+          "count": 381
+        },
+        {
+          "color": "#505060",
+          "count": 306
+        },
+        {
+          "color": "#606868",
+          "count": 259
+        },
+        {
+          "color": "#2060f0",
+          "count": 237
+        },
+        {
+          "color": "#586068",
+          "count": 231
+        },
+        {
+          "color": "#385858",
+          "count": 207
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 128
+        },
+        {
+          "color": "#707070",
+          "count": 107
+        },
+        {
+          "color": "#606068",
+          "count": 106
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 85
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 82
+        },
+        {
+          "color": "#605858",
+          "count": 75
+        },
+        {
+          "color": "#102860",
+          "count": 74
+        },
+        {
+          "color": "#383838",
+          "count": 72
+        },
+        {
+          "color": "#202020",
+          "count": 66
+        },
+        {
+          "color": "#505050",
+          "count": 66
+        },
+        {
+          "color": "#4070e0",
+          "count": 63
+        },
+        {
+          "color": "#2068f8",
+          "count": 63
+        },
+        {
+          "color": "#586060",
+          "count": 60
+        },
+        {
+          "color": "#404040",
+          "count": 57
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 7660
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 128
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 85
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#686868",
+            "count": 14931
+          },
+          {
+            "color": "#606868",
+            "count": 259
+          },
+          {
+            "color": "#707070",
+            "count": 107
+          },
+          {
+            "color": "#606068",
+            "count": 106
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 82
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#606060",
+            "count": 8731
+          },
+          {
+            "color": "#585858",
+            "count": 514
+          },
+          {
+            "color": "#505060",
+            "count": 306
+          },
+          {
+            "color": "#586068",
+            "count": 231
+          },
+          {
+            "color": "#605858",
+            "count": 75
+          },
+          {
+            "color": "#383838",
+            "count": 72
+          },
+          {
+            "color": "#202020",
+            "count": 66
+          },
+          {
+            "color": "#505050",
+            "count": 66
+          }
+        ],
+        "blue": [
+          {
+            "color": "#505868",
+            "count": 381
+          },
+          {
+            "color": "#2060f0",
+            "count": 237
+          },
+          {
+            "color": "#385858",
+            "count": 207
+          },
+          {
+            "color": "#102860",
+            "count": 74
+          },
+          {
+            "color": "#4070e0",
+            "count": 63
+          },
+          {
+            "color": "#2068f8",
+            "count": 63
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 4,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 4.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 26526
+        },
+        {
+          "color": "#ffffff",
+          "count": 7604
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 389
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 290
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 178
+        },
+        {
+          "color": "#000000",
+          "count": 141
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 94
+        },
+        {
+          "color": "#e8e8f0",
+          "count": 89
+        },
+        {
+          "color": "#f8ffff",
+          "count": 46
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 30
+        },
+        {
+          "color": "#90d8e0",
+          "count": 28
+        },
+        {
+          "color": "#e8f8f8",
+          "count": 27
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 23
+        },
+        {
+          "color": "#d8f0f8",
+          "count": 18
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 16
+        },
+        {
+          "color": "#e0f8f8",
+          "count": 16
+        },
+        {
+          "color": "#fffff8",
+          "count": 14
+        },
+        {
+          "color": "#d8e0e8",
+          "count": 14
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 13
+        },
+        {
+          "color": "#c0e8f0",
+          "count": 12
+        },
+        {
+          "color": "#f0ffff",
+          "count": 11
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 11
+        },
+        {
+          "color": "#90d8e8",
+          "count": 11
+        },
+        {
+          "color": "#f0f8f0",
+          "count": 10
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 26526
+          },
+          {
+            "color": "#ffffff",
+            "count": 7604
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 389
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 290
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 178
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 94
+          },
+          {
+            "color": "#e8e8f0",
+            "count": 89
+          },
+          {
+            "color": "#f8ffff",
+            "count": 46
+          }
+        ],
+        "neutral_mid": [],
+        "neutral_dark": [
+          {
+            "color": "#000000",
+            "count": 141
+          }
+        ],
+        "blue": [
+          {
+            "color": "#90d8e0",
+            "count": 28
+          },
+          {
+            "color": "#d8f0f8",
+            "count": 18
+          },
+          {
+            "color": "#e0f8f8",
+            "count": 16
+          },
+          {
+            "color": "#c0e8f0",
+            "count": 12
+          },
+          {
+            "color": "#90d8e8",
+            "count": 11
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 5,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 5.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 27264
+        },
+        {
+          "color": "#ffffff",
+          "count": 6678
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 280
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 276
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 179
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 173
+        },
+        {
+          "color": "#2060f0",
+          "count": 172
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 119
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 113
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 103
+        },
+        {
+          "color": "#e0e8e8",
+          "count": 87
+        },
+        {
+          "color": "#b0d0ff",
+          "count": 46
+        },
+        {
+          "color": "#2060e8",
+          "count": 46
+        },
+        {
+          "color": "#2060c8",
+          "count": 44
+        },
+        {
+          "color": "#c0d8f8",
+          "count": 40
+        },
+        {
+          "color": "#f8ffff",
+          "count": 16
+        },
+        {
+          "color": "#b8b8b8",
+          "count": 14
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 13
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 13
+        },
+        {
+          "color": "#202020",
+          "count": 12
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 11
+        },
+        {
+          "color": "#e8e8f0",
+          "count": 10
+        },
+        {
+          "color": "#f0f8f0",
+          "count": 8
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 8
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 27264
+          },
+          {
+            "color": "#ffffff",
+            "count": 6678
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 280
+          },
+          {
+            "color": "#e0e0e8",
+            "count": 276
+          },
+          {
+            "color": "#e8f0f0",
+            "count": 179
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 173
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 119
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 113
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#b8b8b8",
+            "count": 14
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 13
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 8
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#202020",
+            "count": 12
+          }
+        ],
+        "blue": [
+          {
+            "color": "#2060f0",
+            "count": 172
+          },
+          {
+            "color": "#b0d0ff",
+            "count": 46
+          },
+          {
+            "color": "#2060e8",
+            "count": 46
+          },
+          {
+            "color": "#2060c8",
+            "count": 44
+          },
+          {
+            "color": "#c0d8f8",
+            "count": 40
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 8,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 8.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 26330
+        },
+        {
+          "color": "#ffffff",
+          "count": 7696
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 392
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 370
+        },
+        {
+          "color": "#2060f0",
+          "count": 303
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 147
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 102
+        },
+        {
+          "color": "#f0ffff",
+          "count": 67
+        },
+        {
+          "color": "#c0c8d0",
+          "count": 57
+        },
+        {
+          "color": "#f8ffff",
+          "count": 50
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 44
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 30
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 20
+        },
+        {
+          "color": "#202020",
+          "count": 14
+        },
+        {
+          "color": "#181818",
+          "count": 13
+        },
+        {
+          "color": "#686868",
+          "count": 12
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 11
+        },
+        {
+          "color": "#a0a0a0",
+          "count": 10
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 10
+        },
+        {
+          "color": "#606068",
+          "count": 9
+        },
+        {
+          "color": "#989898",
+          "count": 9
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 8
+        },
+        {
+          "color": "#f0f8f0",
+          "count": 8
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 8
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 26330
+          },
+          {
+            "color": "#ffffff",
+            "count": 7696
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 392
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 370
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 147
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 102
+          },
+          {
+            "color": "#f0ffff",
+            "count": 67
+          },
+          {
+            "color": "#f8ffff",
+            "count": 50
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#c0c8d0",
+            "count": 57
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 44
+          },
+          {
+            "color": "#686868",
+            "count": 12
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 11
+          },
+          {
+            "color": "#a0a0a0",
+            "count": 10
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 10
+          },
+          {
+            "color": "#606068",
+            "count": 9
+          },
+          {
+            "color": "#989898",
+            "count": 9
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#202020",
+            "count": 14
+          },
+          {
+            "color": "#181818",
+            "count": 13
+          }
+        ],
+        "blue": [
+          {
+            "color": "#2060f0",
+            "count": 303
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 11,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 11.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 35835
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 30
+        },
+        {
+          "color": "#2060f0",
+          "count": 20
+        },
+        {
+          "color": "#b8c0c0",
+          "count": 11
+        },
+        {
+          "color": "#282828",
+          "count": 10
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 6
+        },
+        {
+          "color": "#f0f8f0",
+          "count": 5
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 4
+        },
+        {
+          "color": "#7098f0",
+          "count": 4
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 4
+        },
+        {
+          "color": "#f8f8f0",
+          "count": 3
+        },
+        {
+          "color": "#d0e8ff",
+          "count": 3
+        },
+        {
+          "color": "#2060f8",
+          "count": 3
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 2
+        },
+        {
+          "color": "#2860e0",
+          "count": 2
+        },
+        {
+          "color": "#d8f0ff",
+          "count": 2
+        },
+        {
+          "color": "#f8f0f8",
+          "count": 2
+        },
+        {
+          "color": "#e0f0ff",
+          "count": 2
+        },
+        {
+          "color": "#3060d0",
+          "count": 2
+        },
+        {
+          "color": "#2058c8",
+          "count": 2
+        },
+        {
+          "color": "#88b0ff",
+          "count": 2
+        },
+        {
+          "color": "#c8e0ff",
+          "count": 2
+        },
+        {
+          "color": "#fff8f8",
+          "count": 1
+        },
+        {
+          "color": "#3068c8",
+          "count": 1
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 35835
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 30
+          },
+          {
+            "color": "#f0f8f0",
+            "count": 5
+          },
+          {
+            "color": "#f0f8ff",
+            "count": 4
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 4
+          },
+          {
+            "color": "#f8f8f0",
+            "count": 3
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 2
+          },
+          {
+            "color": "#f8f0f8",
+            "count": 2
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#b8c0c0",
+            "count": 11
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#282828",
+            "count": 10
+          }
+        ],
+        "blue": [
+          {
+            "color": "#2060f0",
+            "count": 20
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 6
+          },
+          {
+            "color": "#7098f0",
+            "count": 4
+          },
+          {
+            "color": "#d0e8ff",
+            "count": 3
+          },
+          {
+            "color": "#2060f8",
+            "count": 3
+          },
+          {
+            "color": "#2860e0",
+            "count": 2
+          },
+          {
+            "color": "#d8f0ff",
+            "count": 2
+          },
+          {
+            "color": "#e0f0ff",
+            "count": 2
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 14,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 14.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 21585
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 10209
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 670
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 341
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 330
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 281
+        },
+        {
+          "color": "#585858",
+          "count": 265
+        },
+        {
+          "color": "#f8ffff",
+          "count": 223
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 169
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 167
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 97
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 69
+        },
+        {
+          "color": "#fff8ff",
+          "count": 58
+        },
+        {
+          "color": "#2060f0",
+          "count": 54
+        },
+        {
+          "color": "#e8f0e8",
+          "count": 49
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 42
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 41
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 39
+        },
+        {
+          "color": "#f0ffff",
+          "count": 37
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 37
+        },
+        {
+          "color": "#d8e8f8",
+          "count": 34
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 31
+        },
+        {
+          "color": "#c0d8ff",
+          "count": 27
+        },
+        {
+          "color": "#e0f0f0",
+          "count": 26
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 21585
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 10209
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 670
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 341
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 330
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 281
+          },
+          {
+            "color": "#f8ffff",
+            "count": 223
+          },
+          {
+            "color": "#e8f0f0",
+            "count": 97
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d0d0d0",
+            "count": 39
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 31
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 265
+          }
+        ],
+        "blue": [
+          {
+            "color": "#d8e8ff",
+            "count": 169
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 167
+          },
+          {
+            "color": "#2060f0",
+            "count": 54
+          },
+          {
+            "color": "#d8e8f8",
+            "count": 34
+          },
+          {
+            "color": "#c0d8ff",
+            "count": 27
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 42
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 20,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 20.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 21420
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 8764
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 933
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 688
+        },
+        {
+          "color": "#2060f0",
+          "count": 480
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 378
+        },
+        {
+          "color": "#080808",
+          "count": 317
+        },
+        {
+          "color": "#585858",
+          "count": 257
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 225
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 201
+        },
+        {
+          "color": "#202830",
+          "count": 166
+        },
+        {
+          "color": "#f8ffff",
+          "count": 131
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 128
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 114
+        },
+        {
+          "color": "#202028",
+          "count": 114
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 100
+        },
+        {
+          "color": "#e8e8f0",
+          "count": 98
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 92
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 50
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 46
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 40
+        },
+        {
+          "color": "#202020",
+          "count": 39
+        },
+        {
+          "color": "#282828",
+          "count": 34
+        },
+        {
+          "color": "#e0f0ff",
+          "count": 27
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 21420
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 8764
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 933
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 378
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 225
+          },
+          {
+            "color": "#f0f0f8",
+            "count": 201
+          },
+          {
+            "color": "#f8ffff",
+            "count": 131
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 128
+          }
+        ],
+        "neutral_mid": [],
+        "neutral_dark": [
+          {
+            "color": "#080808",
+            "count": 317
+          },
+          {
+            "color": "#585858",
+            "count": 257
+          },
+          {
+            "color": "#202830",
+            "count": 166
+          },
+          {
+            "color": "#202028",
+            "count": 114
+          },
+          {
+            "color": "#202020",
+            "count": 39
+          },
+          {
+            "color": "#282828",
+            "count": 34
+          }
+        ],
+        "blue": [
+          {
+            "color": "#e8f8ff",
+            "count": 688
+          },
+          {
+            "color": "#2060f0",
+            "count": 480
+          },
+          {
+            "color": "#d8e8ff",
+            "count": 92
+          },
+          {
+            "color": "#e0f0ff",
+            "count": 27
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 46
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 41,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 41.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 24240
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 8016
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 719
+        },
+        {
+          "color": "#f8ffff",
+          "count": 283
+        },
+        {
+          "color": "#585858",
+          "count": 262
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 252
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 240
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 232
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 143
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 113
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 88
+        },
+        {
+          "color": "#2060f0",
+          "count": 61
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 50
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 48
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 48
+        },
+        {
+          "color": "#f0ffff",
+          "count": 48
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 35
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 33
+        },
+        {
+          "color": "#e8ffff",
+          "count": 31
+        },
+        {
+          "color": "#484848",
+          "count": 26
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 26
+        },
+        {
+          "color": "#e0f0f0",
+          "count": 25
+        },
+        {
+          "color": "#e0f0ff",
+          "count": 23
+        },
+        {
+          "color": "#707070",
+          "count": 22
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 24240
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 8016
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 719
+          },
+          {
+            "color": "#f8ffff",
+            "count": 283
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 252
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 240
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 232
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 143
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#c8c8c8",
+            "count": 50
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 48
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 35
+          },
+          {
+            "color": "#707070",
+            "count": 22
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 262
+          },
+          {
+            "color": "#484848",
+            "count": 26
+          }
+        ],
+        "blue": [
+          {
+            "color": "#e8f8ff",
+            "count": 113
+          },
+          {
+            "color": "#2060f0",
+            "count": 61
+          },
+          {
+            "color": "#e8ffff",
+            "count": 31
+          },
+          {
+            "color": "#e0f0ff",
+            "count": 23
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 48
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 45,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 45.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#686868",
+          "count": 18978
+        },
+        {
+          "color": "#606060",
+          "count": 8949
+        },
+        {
+          "color": "#ffffff",
+          "count": 4671
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 548
+        },
+        {
+          "color": "#606868",
+          "count": 338
+        },
+        {
+          "color": "#282828",
+          "count": 303
+        },
+        {
+          "color": "#585858",
+          "count": 294
+        },
+        {
+          "color": "#606068",
+          "count": 215
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 88
+        },
+        {
+          "color": "#505050",
+          "count": 77
+        },
+        {
+          "color": "#102860",
+          "count": 75
+        },
+        {
+          "color": "#707070",
+          "count": 75
+        },
+        {
+          "color": "#586060",
+          "count": 74
+        },
+        {
+          "color": "#606870",
+          "count": 70
+        },
+        {
+          "color": "#202020",
+          "count": 68
+        },
+        {
+          "color": "#181818",
+          "count": 63
+        },
+        {
+          "color": "#b8c0d0",
+          "count": 57
+        },
+        {
+          "color": "#b8c8d8",
+          "count": 57
+        },
+        {
+          "color": "#101010",
+          "count": 55
+        },
+        {
+          "color": "#303030",
+          "count": 52
+        },
+        {
+          "color": "#404040",
+          "count": 50
+        },
+        {
+          "color": "#383838",
+          "count": 50
+        },
+        {
+          "color": "#080808",
+          "count": 45
+        },
+        {
+          "color": "#484848",
+          "count": 43
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 4671
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 548
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 88
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#686868",
+            "count": 18978
+          },
+          {
+            "color": "#606868",
+            "count": 338
+          },
+          {
+            "color": "#606068",
+            "count": 215
+          },
+          {
+            "color": "#707070",
+            "count": 75
+          },
+          {
+            "color": "#606870",
+            "count": 70
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#606060",
+            "count": 8949
+          },
+          {
+            "color": "#282828",
+            "count": 303
+          },
+          {
+            "color": "#585858",
+            "count": 294
+          },
+          {
+            "color": "#505050",
+            "count": 77
+          },
+          {
+            "color": "#586060",
+            "count": 74
+          },
+          {
+            "color": "#202020",
+            "count": 68
+          },
+          {
+            "color": "#181818",
+            "count": 63
+          },
+          {
+            "color": "#101010",
+            "count": 55
+          }
+        ],
+        "blue": [
+          {
+            "color": "#102860",
+            "count": 75
+          },
+          {
+            "color": "#b8c0d0",
+            "count": 57
+          },
+          {
+            "color": "#b8c8d8",
+            "count": 57
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 69,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 69.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 22804
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 7963
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 1070
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 564
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 371
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 364
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 300
+        },
+        {
+          "color": "#f8ffff",
+          "count": 276
+        },
+        {
+          "color": "#585858",
+          "count": 268
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 239
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 198
+        },
+        {
+          "color": "#2060f0",
+          "count": 86
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 46
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 46
+        },
+        {
+          "color": "#f0ffff",
+          "count": 39
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 37
+        },
+        {
+          "color": "#181818",
+          "count": 35
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 34
+        },
+        {
+          "color": "#e8ffff",
+          "count": 32
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 29
+        },
+        {
+          "color": "#202020",
+          "count": 28
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 27
+        },
+        {
+          "color": "#e8f0f8",
+          "count": 27
+        },
+        {
+          "color": "#282828",
+          "count": 26
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 22804
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 7963
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 1070
+          },
+          {
+            "color": "#f0f8ff",
+            "count": 371
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 364
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 300
+          },
+          {
+            "color": "#f8ffff",
+            "count": 276
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 239
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d0d0d0",
+            "count": 46
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 34
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 29
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 268
+          },
+          {
+            "color": "#181818",
+            "count": 35
+          },
+          {
+            "color": "#202020",
+            "count": 28
+          },
+          {
+            "color": "#282828",
+            "count": 26
+          }
+        ],
+        "blue": [
+          {
+            "color": "#e8f8ff",
+            "count": 564
+          },
+          {
+            "color": "#2060f0",
+            "count": 86
+          },
+          {
+            "color": "#e8ffff",
+            "count": 32
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 46
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 120,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 120.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 21957
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 10971
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 884
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 262
+        },
+        {
+          "color": "#585858",
+          "count": 252
+        },
+        {
+          "color": "#f8ffff",
+          "count": 217
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 209
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 59
+        },
+        {
+          "color": "#e8ffff",
+          "count": 57
+        },
+        {
+          "color": "#2060f0",
+          "count": 56
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 54
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 47
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 46
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 41
+        },
+        {
+          "color": "#f0ffff",
+          "count": 40
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 28
+        },
+        {
+          "color": "#fff8ff",
+          "count": 27
+        },
+        {
+          "color": "#e0f0f0",
+          "count": 25
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 25
+        },
+        {
+          "color": "#fffff8",
+          "count": 24
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 22
+        },
+        {
+          "color": "#e0f8f8",
+          "count": 20
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 17
+        },
+        {
+          "color": "#fff8f8",
+          "count": 16
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 21957
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 10971
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 884
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 262
+          },
+          {
+            "color": "#f8ffff",
+            "count": 217
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 209
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 59
+          },
+          {
+            "color": "#f0f8ff",
+            "count": 47
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d8d8d8",
+            "count": 22
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 17
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 252
+          }
+        ],
+        "blue": [
+          {
+            "color": "#e8ffff",
+            "count": 57
+          },
+          {
+            "color": "#2060f0",
+            "count": 56
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 54
+          },
+          {
+            "color": "#e0f8f8",
+            "count": 20
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 46
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 148,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 148.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 23030
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 8021
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 962
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 614
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 396
+        },
+        {
+          "color": "#585858",
+          "count": 257
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 252
+        },
+        {
+          "color": "#f8ffff",
+          "count": 247
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 134
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 132
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 69
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 61
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 51
+        },
+        {
+          "color": "#f0ffff",
+          "count": 43
+        },
+        {
+          "color": "#fffff8",
+          "count": 41
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 35
+        },
+        {
+          "color": "#e0e0f8",
+          "count": 35
+        },
+        {
+          "color": "#606060",
+          "count": 32
+        },
+        {
+          "color": "#fff8ff",
+          "count": 31
+        },
+        {
+          "color": "#686868",
+          "count": 29
+        },
+        {
+          "color": "#f8d8e0",
+          "count": 29
+        },
+        {
+          "color": "#e0f0f0",
+          "count": 27
+        },
+        {
+          "color": "#90d8e0",
+          "count": 27
+        },
+        {
+          "color": "#e0f8f8",
+          "count": 25
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 23030
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 8021
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 962
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 614
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 396
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 252
+          },
+          {
+            "color": "#f8ffff",
+            "count": 247
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 132
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d8d8d8",
+            "count": 35
+          },
+          {
+            "color": "#686868",
+            "count": 29
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 257
+          },
+          {
+            "color": "#606060",
+            "count": 32
+          }
+        ],
+        "blue": [
+          {
+            "color": "#d8e8ff",
+            "count": 134
+          },
+          {
+            "color": "#e0e0f8",
+            "count": 35
+          },
+          {
+            "color": "#90d8e0",
+            "count": 27
+          },
+          {
+            "color": "#e0f8f8",
+            "count": 25
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 61
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 179,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 179.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 21067
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 11877
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 685
+        },
+        {
+          "color": "#f8ffff",
+          "count": 276
+        },
+        {
+          "color": "#585858",
+          "count": 252
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 106
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 93
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 91
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 88
+        },
+        {
+          "color": "#f0ffff",
+          "count": 72
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 64
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 43
+        },
+        {
+          "color": "#282828",
+          "count": 38
+        },
+        {
+          "color": "#b0b0b0",
+          "count": 37
+        },
+        {
+          "color": "#a8a8a8",
+          "count": 35
+        },
+        {
+          "color": "#181818",
+          "count": 34
+        },
+        {
+          "color": "#303030",
+          "count": 34
+        },
+        {
+          "color": "#101010",
+          "count": 34
+        },
+        {
+          "color": "#202020",
+          "count": 32
+        },
+        {
+          "color": "#e8ffff",
+          "count": 31
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 30
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 29
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 29
+        },
+        {
+          "color": "#d8e0e0",
+          "count": 25
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 21067
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 11877
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 685
+          },
+          {
+            "color": "#f8ffff",
+            "count": 276
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 93
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 91
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 88
+          },
+          {
+            "color": "#f0ffff",
+            "count": 72
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#b0b0b0",
+            "count": 37
+          },
+          {
+            "color": "#a8a8a8",
+            "count": 35
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 29
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 29
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 252
+          },
+          {
+            "color": "#282828",
+            "count": 38
+          },
+          {
+            "color": "#181818",
+            "count": 34
+          },
+          {
+            "color": "#303030",
+            "count": 34
+          },
+          {
+            "color": "#101010",
+            "count": 34
+          },
+          {
+            "color": "#202020",
+            "count": 32
+          }
+        ],
+        "blue": [
+          {
+            "color": "#d8e8ff",
+            "count": 106
+          },
+          {
+            "color": "#e8ffff",
+            "count": 31
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 43
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 196,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 196.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 22268
+        },
+        {
+          "color": "#ffffff",
+          "count": 9168
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 2097
+        },
+        {
+          "color": "#f8ffff",
+          "count": 295
+        },
+        {
+          "color": "#585858",
+          "count": 252
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 247
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 103
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 73
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 68
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 62
+        },
+        {
+          "color": "#88a8f8",
+          "count": 45
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 42
+        },
+        {
+          "color": "#80a8f0",
+          "count": 41
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 39
+        },
+        {
+          "color": "#303030",
+          "count": 33
+        },
+        {
+          "color": "#fffff8",
+          "count": 32
+        },
+        {
+          "color": "#f0ffff",
+          "count": 29
+        },
+        {
+          "color": "#e8ffff",
+          "count": 28
+        },
+        {
+          "color": "#181818",
+          "count": 26
+        },
+        {
+          "color": "#282828",
+          "count": 26
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 24
+        },
+        {
+          "color": "#202020",
+          "count": 23
+        },
+        {
+          "color": "#d8e8f8",
+          "count": 22
+        },
+        {
+          "color": "#e0f8f8",
+          "count": 20
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 22268
+          },
+          {
+            "color": "#ffffff",
+            "count": 9168
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 2097
+          },
+          {
+            "color": "#f8ffff",
+            "count": 295
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 247
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 103
+          },
+          {
+            "color": "#f0f0f8",
+            "count": 62
+          },
+          {
+            "color": "#e8f0f0",
+            "count": 42
+          }
+        ],
+        "neutral_mid": [],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 252
+          },
+          {
+            "color": "#303030",
+            "count": 33
+          },
+          {
+            "color": "#181818",
+            "count": 26
+          },
+          {
+            "color": "#282828",
+            "count": 26
+          },
+          {
+            "color": "#202020",
+            "count": 23
+          }
+        ],
+        "blue": [
+          {
+            "color": "#d8e8ff",
+            "count": 73
+          },
+          {
+            "color": "#88a8f8",
+            "count": 45
+          },
+          {
+            "color": "#80a8f0",
+            "count": 41
+          },
+          {
+            "color": "#e8ffff",
+            "count": 28
+          },
+          {
+            "color": "#d8e8f8",
+            "count": 22
+          },
+          {
+            "color": "#e0f8f8",
+            "count": 20
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 68
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 216,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 216.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 21583
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 9980
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 766
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 362
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 312
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 279
+        },
+        {
+          "color": "#f8ffff",
+          "count": 269
+        },
+        {
+          "color": "#585858",
+          "count": 268
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 188
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 153
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 148
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 101
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 68
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 48
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 44
+        },
+        {
+          "color": "#d8e8f8",
+          "count": 39
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 37
+        },
+        {
+          "color": "#f0ffff",
+          "count": 33
+        },
+        {
+          "color": "#303030",
+          "count": 31
+        },
+        {
+          "color": "#f8f8f0",
+          "count": 28
+        },
+        {
+          "color": "#e8e8f0",
+          "count": 26
+        },
+        {
+          "color": "#e0f0f0",
+          "count": 25
+        },
+        {
+          "color": "#e0f0ff",
+          "count": 25
+        },
+        {
+          "color": "#787878",
+          "count": 25
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 21583
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 9980
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 766
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 362
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 312
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 279
+          },
+          {
+            "color": "#f8ffff",
+            "count": 269
+          },
+          {
+            "color": "#e8f0f0",
+            "count": 148
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d8d8d8",
+            "count": 44
+          },
+          {
+            "color": "#787878",
+            "count": 25
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 268
+          },
+          {
+            "color": "#303030",
+            "count": 31
+          }
+        ],
+        "blue": [
+          {
+            "color": "#d8e8ff",
+            "count": 188
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 153
+          },
+          {
+            "color": "#d8e8f8",
+            "count": 39
+          },
+          {
+            "color": "#e0f0ff",
+            "count": 25
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 48
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 249,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 249.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#ffffff",
+          "count": 18844
+        },
+        {
+          "color": "#f0f8f8",
+          "count": 14597
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 556
+        },
+        {
+          "color": "#585858",
+          "count": 254
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 178
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 176
+        },
+        {
+          "color": "#f8ffff",
+          "count": 165
+        },
+        {
+          "color": "#d8e8ff",
+          "count": 96
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 70
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 59
+        },
+        {
+          "color": "#f0ffff",
+          "count": 54
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 44
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 32
+        },
+        {
+          "color": "#d8e8f8",
+          "count": 29
+        },
+        {
+          "color": "#181818",
+          "count": 27
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 26
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 25
+        },
+        {
+          "color": "#101010",
+          "count": 25
+        },
+        {
+          "color": "#2060f0",
+          "count": 23
+        },
+        {
+          "color": "#202020",
+          "count": 21
+        },
+        {
+          "color": "#686868",
+          "count": 16
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 16
+        },
+        {
+          "color": "#707070",
+          "count": 16
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 15
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 18844
+          },
+          {
+            "color": "#f0f8f8",
+            "count": 14597
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 556
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 178
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 176
+          },
+          {
+            "color": "#f8ffff",
+            "count": 165
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 70
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 59
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#686868",
+            "count": 16
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 16
+          },
+          {
+            "color": "#707070",
+            "count": 16
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 15
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 254
+          },
+          {
+            "color": "#181818",
+            "count": 27
+          },
+          {
+            "color": "#101010",
+            "count": 25
+          },
+          {
+            "color": "#202020",
+            "count": 21
+          }
+        ],
+        "blue": [
+          {
+            "color": "#d8e8ff",
+            "count": 96
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 32
+          },
+          {
+            "color": "#d8e8f8",
+            "count": 29
+          },
+          {
+            "color": "#2060f0",
+            "count": 23
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 280,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 280.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 16748
+        },
+        {
+          "color": "#ffffff",
+          "count": 12688
+        },
+        {
+          "color": "#2060f0",
+          "count": 3321
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 886
+        },
+        {
+          "color": "#585858",
+          "count": 263
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 191
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 131
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 102
+        },
+        {
+          "color": "#f8ffff",
+          "count": 98
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 81
+        },
+        {
+          "color": "#2860c8",
+          "count": 79
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 78
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 75
+        },
+        {
+          "color": "#e0f8f0",
+          "count": 45
+        },
+        {
+          "color": "#888890",
+          "count": 35
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 32
+        },
+        {
+          "color": "#101010",
+          "count": 29
+        },
+        {
+          "color": "#e0f0f0",
+          "count": 26
+        },
+        {
+          "color": "#f0ffff",
+          "count": 24
+        },
+        {
+          "color": "#202020",
+          "count": 24
+        },
+        {
+          "color": "#080808",
+          "count": 23
+        },
+        {
+          "color": "#1860f0",
+          "count": 22
+        },
+        {
+          "color": "#181818",
+          "count": 22
+        },
+        {
+          "color": "#e0f8f8",
+          "count": 21
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 16748
+          },
+          {
+            "color": "#ffffff",
+            "count": 12688
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 886
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 191
+          },
+          {
+            "color": "#e0e0e8",
+            "count": 131
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 102
+          },
+          {
+            "color": "#f8ffff",
+            "count": 98
+          },
+          {
+            "color": "#f0f0f8",
+            "count": 81
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#888890",
+            "count": 35
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 263
+          },
+          {
+            "color": "#101010",
+            "count": 29
+          },
+          {
+            "color": "#202020",
+            "count": 24
+          },
+          {
+            "color": "#080808",
+            "count": 23
+          },
+          {
+            "color": "#181818",
+            "count": 22
+          }
+        ],
+        "blue": [
+          {
+            "color": "#2060f0",
+            "count": 3321
+          },
+          {
+            "color": "#2860c8",
+            "count": 79
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 75
+          },
+          {
+            "color": "#1860f0",
+            "count": 22
+          },
+          {
+            "color": "#e0f8f8",
+            "count": 21
+          }
+        ],
+        "green": [
+          {
+            "color": "#e0f8f0",
+            "count": 45
+          }
+        ],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 297,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 297.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#686868",
+          "count": 15030
+        },
+        {
+          "color": "#606060",
+          "count": 9647
+        },
+        {
+          "color": "#ffffff",
+          "count": 7107
+        },
+        {
+          "color": "#383840",
+          "count": 480
+        },
+        {
+          "color": "#202020",
+          "count": 446
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 253
+        },
+        {
+          "color": "#586068",
+          "count": 250
+        },
+        {
+          "color": "#202828",
+          "count": 175
+        },
+        {
+          "color": "#585858",
+          "count": 166
+        },
+        {
+          "color": "#586060",
+          "count": 125
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 98
+        },
+        {
+          "color": "#606068",
+          "count": 96
+        },
+        {
+          "color": "#606868",
+          "count": 93
+        },
+        {
+          "color": "#282828",
+          "count": 88
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 84
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 77
+        },
+        {
+          "color": "#303030",
+          "count": 75
+        },
+        {
+          "color": "#181818",
+          "count": 71
+        },
+        {
+          "color": "#383838",
+          "count": 71
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 70
+        },
+        {
+          "color": "#101010",
+          "count": 67
+        },
+        {
+          "color": "#202028",
+          "count": 66
+        },
+        {
+          "color": "#e8f0f0",
+          "count": 63
+        },
+        {
+          "color": "#707070",
+          "count": 62
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 7107
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 253
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 98
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 84
+          },
+          {
+            "color": "#e8f0f0",
+            "count": 63
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#686868",
+            "count": 15030
+          },
+          {
+            "color": "#606068",
+            "count": 96
+          },
+          {
+            "color": "#606868",
+            "count": 93
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 77
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 70
+          },
+          {
+            "color": "#707070",
+            "count": 62
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#606060",
+            "count": 9647
+          },
+          {
+            "color": "#383840",
+            "count": 480
+          },
+          {
+            "color": "#202020",
+            "count": 446
+          },
+          {
+            "color": "#586068",
+            "count": 250
+          },
+          {
+            "color": "#202828",
+            "count": 175
+          },
+          {
+            "color": "#585858",
+            "count": 166
+          },
+          {
+            "color": "#586060",
+            "count": 125
+          },
+          {
+            "color": "#282828",
+            "count": 88
+          }
+        ],
+        "blue": [],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 299,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 299.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#202020",
+          "count": 18272
+        },
+        {
+          "color": "#282828",
+          "count": 13729
+        },
+        {
+          "color": "#202828",
+          "count": 460
+        },
+        {
+          "color": "#303030",
+          "count": 397
+        },
+        {
+          "color": "#ffffff",
+          "count": 254
+        },
+        {
+          "color": "#181818",
+          "count": 176
+        },
+        {
+          "color": "#102858",
+          "count": 175
+        },
+        {
+          "color": "#183878",
+          "count": 172
+        },
+        {
+          "color": "#383838",
+          "count": 147
+        },
+        {
+          "color": "#202028",
+          "count": 117
+        },
+        {
+          "color": "#283030",
+          "count": 97
+        },
+        {
+          "color": "#303838",
+          "count": 80
+        },
+        {
+          "color": "#b0b0b0",
+          "count": 71
+        },
+        {
+          "color": "#101010",
+          "count": 63
+        },
+        {
+          "color": "#203040",
+          "count": 53
+        },
+        {
+          "color": "#182020",
+          "count": 40
+        },
+        {
+          "color": "#107070",
+          "count": 40
+        },
+        {
+          "color": "#282830",
+          "count": 39
+        },
+        {
+          "color": "#c0c0c0",
+          "count": 39
+        },
+        {
+          "color": "#b8b8b8",
+          "count": 35
+        },
+        {
+          "color": "#202018",
+          "count": 33
+        },
+        {
+          "color": "#a0a0a0",
+          "count": 31
+        },
+        {
+          "color": "#505050",
+          "count": 30
+        },
+        {
+          "color": "#182028",
+          "count": 27
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#ffffff",
+            "count": 254
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#b0b0b0",
+            "count": 71
+          },
+          {
+            "color": "#c0c0c0",
+            "count": 39
+          },
+          {
+            "color": "#b8b8b8",
+            "count": 35
+          },
+          {
+            "color": "#a0a0a0",
+            "count": 31
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#202020",
+            "count": 18272
+          },
+          {
+            "color": "#282828",
+            "count": 13729
+          },
+          {
+            "color": "#202828",
+            "count": 460
+          },
+          {
+            "color": "#303030",
+            "count": 397
+          },
+          {
+            "color": "#181818",
+            "count": 176
+          },
+          {
+            "color": "#383838",
+            "count": 147
+          },
+          {
+            "color": "#202028",
+            "count": 117
+          },
+          {
+            "color": "#283030",
+            "count": 97
+          }
+        ],
+        "blue": [
+          {
+            "color": "#102858",
+            "count": 175
+          },
+          {
+            "color": "#183878",
+            "count": 172
+          },
+          {
+            "color": "#203040",
+            "count": 53
+          },
+          {
+            "color": "#107070",
+            "count": 40
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 303,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 303.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#e0e0e8",
+          "count": 26246
+        },
+        {
+          "color": "#ffffff",
+          "count": 7101
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 682
+        },
+        {
+          "color": "#d8d8e0",
+          "count": 387
+        },
+        {
+          "color": "#505050",
+          "count": 242
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 199
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 197
+        },
+        {
+          "color": "#f8ffff",
+          "count": 138
+        },
+        {
+          "color": "#d0d8d8",
+          "count": 117
+        },
+        {
+          "color": "#d8e0e0",
+          "count": 85
+        },
+        {
+          "color": "#c8d0d0",
+          "count": 53
+        },
+        {
+          "color": "#b8d8f8",
+          "count": 45
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 40
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 18
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 18
+        },
+        {
+          "color": "#c0c0c0",
+          "count": 14
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 14
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 11
+        },
+        {
+          "color": "#b0b0b0",
+          "count": 11
+        },
+        {
+          "color": "#202020",
+          "count": 10
+        },
+        {
+          "color": "#888890",
+          "count": 10
+        },
+        {
+          "color": "#101010",
+          "count": 10
+        },
+        {
+          "color": "#e0e8e8",
+          "count": 9
+        },
+        {
+          "color": "#b8b8b8",
+          "count": 9
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#e0e0e8",
+            "count": 26246
+          },
+          {
+            "color": "#ffffff",
+            "count": 7101
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 682
+          },
+          {
+            "color": "#d8d8e0",
+            "count": 387
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 199
+          },
+          {
+            "color": "#f8ffff",
+            "count": 138
+          },
+          {
+            "color": "#d8e0e0",
+            "count": 85
+          },
+          {
+            "color": "#f8f8ff",
+            "count": 40
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d8d8d8",
+            "count": 197
+          },
+          {
+            "color": "#d0d8d8",
+            "count": 117
+          },
+          {
+            "color": "#c8d0d0",
+            "count": 53
+          },
+          {
+            "color": "#c0c0c0",
+            "count": 14
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 14
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 11
+          },
+          {
+            "color": "#b0b0b0",
+            "count": 11
+          },
+          {
+            "color": "#888890",
+            "count": 10
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#505050",
+            "count": 242
+          },
+          {
+            "color": "#202020",
+            "count": 10
+          },
+          {
+            "color": "#101010",
+            "count": 10
+          }
+        ],
+        "blue": [
+          {
+            "color": "#b8d8f8",
+            "count": 45
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 306,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 306.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 29708
+        },
+        {
+          "color": "#ffffff",
+          "count": 5112
+        },
+        {
+          "color": "#e0e0e8",
+          "count": 195
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 170
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 163
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 138
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 75
+        },
+        {
+          "color": "#c8c8c8",
+          "count": 66
+        },
+        {
+          "color": "#f8ffff",
+          "count": 34
+        },
+        {
+          "color": "#f0ffff",
+          "count": 16
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 12
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 11
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 10
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 9
+        },
+        {
+          "color": "#181818",
+          "count": 8
+        },
+        {
+          "color": "#505050",
+          "count": 8
+        },
+        {
+          "color": "#fffff8",
+          "count": 8
+        },
+        {
+          "color": "#2060f0",
+          "count": 7
+        },
+        {
+          "color": "#b8b8b8",
+          "count": 7
+        },
+        {
+          "color": "#f8f0f8",
+          "count": 6
+        },
+        {
+          "color": "#e8ffff",
+          "count": 6
+        },
+        {
+          "color": "#707070",
+          "count": 6
+        },
+        {
+          "color": "#585858",
+          "count": 6
+        },
+        {
+          "color": "#2060e8",
+          "count": 5
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 29708
+          },
+          {
+            "color": "#ffffff",
+            "count": 5112
+          },
+          {
+            "color": "#e0e0e8",
+            "count": 195
+          },
+          {
+            "color": "#e0e0e0",
+            "count": 170
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 163
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 138
+          },
+          {
+            "color": "#f8ffff",
+            "count": 34
+          },
+          {
+            "color": "#f0ffff",
+            "count": 16
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d0d0d0",
+            "count": 75
+          },
+          {
+            "color": "#c8c8c8",
+            "count": 66
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 11
+          },
+          {
+            "color": "#b8b8b8",
+            "count": 7
+          },
+          {
+            "color": "#707070",
+            "count": 6
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#181818",
+            "count": 8
+          },
+          {
+            "color": "#505050",
+            "count": 8
+          },
+          {
+            "color": "#585858",
+            "count": 6
+          }
+        ],
+        "blue": [
+          {
+            "color": "#e8f8ff",
+            "count": 12
+          },
+          {
+            "color": "#2060f0",
+            "count": 7
+          },
+          {
+            "color": "#e8ffff",
+            "count": 6
+          },
+          {
+            "color": "#2060e8",
+            "count": 5
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 312,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 312.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 31376
+        },
+        {
+          "color": "#ffffff",
+          "count": 3600
+        },
+        {
+          "color": "#585858",
+          "count": 240
+        },
+        {
+          "color": "#2060f0",
+          "count": 174
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 101
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 81
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 71
+        },
+        {
+          "color": "#2060f8",
+          "count": 32
+        },
+        {
+          "color": "#f8ffff",
+          "count": 29
+        },
+        {
+          "color": "#2060e8",
+          "count": 15
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 11
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 11
+        },
+        {
+          "color": "#f0f8f0",
+          "count": 10
+        },
+        {
+          "color": "#f0ffff",
+          "count": 8
+        },
+        {
+          "color": "#b8b8b8",
+          "count": 8
+        },
+        {
+          "color": "#e8f8ff",
+          "count": 7
+        },
+        {
+          "color": "#2060e0",
+          "count": 7
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 6
+        },
+        {
+          "color": "#f8f0f8",
+          "count": 5
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 5
+        },
+        {
+          "color": "#2068f0",
+          "count": 5
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 4
+        },
+        {
+          "color": "#e8ffff",
+          "count": 4
+        },
+        {
+          "color": "#181818",
+          "count": 4
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 31376
+          },
+          {
+            "color": "#ffffff",
+            "count": 3600
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 101
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 81
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 71
+          },
+          {
+            "color": "#f8ffff",
+            "count": 29
+          },
+          {
+            "color": "#f0f8f0",
+            "count": 10
+          },
+          {
+            "color": "#f0ffff",
+            "count": 8
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d8d8d8",
+            "count": 11
+          },
+          {
+            "color": "#d0d0d0",
+            "count": 11
+          },
+          {
+            "color": "#b8b8b8",
+            "count": 8
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#585858",
+            "count": 240
+          },
+          {
+            "color": "#181818",
+            "count": 4
+          }
+        ],
+        "blue": [
+          {
+            "color": "#2060f0",
+            "count": 174
+          },
+          {
+            "color": "#2060f8",
+            "count": 32
+          },
+          {
+            "color": "#2060e8",
+            "count": 15
+          },
+          {
+            "color": "#e8f8ff",
+            "count": 7
+          },
+          {
+            "color": "#2060e0",
+            "count": 7
+          },
+          {
+            "color": "#2068f0",
+            "count": 5
+          },
+          {
+            "color": "#e8ffff",
+            "count": 4
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    },
+    {
+      "screenshot_id": 317,
+      "file": "Law Firm OS UI/Amplitude web Feb 2025/Amplitude web Feb 2025 317.png",
+      "width": 1920,
+      "height": 1320,
+      "palette": [
+        {
+          "color": "#f0f8f8",
+          "count": 27627
+        },
+        {
+          "color": "#ffffff",
+          "count": 6768
+        },
+        {
+          "color": "#505858",
+          "count": 240
+        },
+        {
+          "color": "#f8f8f8",
+          "count": 237
+        },
+        {
+          "color": "#000000",
+          "count": 129
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 114
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 111
+        },
+        {
+          "color": "#f8ffff",
+          "count": 44
+        },
+        {
+          "color": "#90d8e0",
+          "count": 28
+        },
+        {
+          "color": "#101010",
+          "count": 24
+        },
+        {
+          "color": "#181818",
+          "count": 22
+        },
+        {
+          "color": "#202020",
+          "count": 21
+        },
+        {
+          "color": "#f0f0f8",
+          "count": 20
+        },
+        {
+          "color": "#e8f8f8",
+          "count": 18
+        },
+        {
+          "color": "#f8f8ff",
+          "count": 17
+        },
+        {
+          "color": "#c0e8f0",
+          "count": 15
+        },
+        {
+          "color": "#e0f8f8",
+          "count": 14
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 14
+        },
+        {
+          "color": "#f0f8ff",
+          "count": 13
+        },
+        {
+          "color": "#d8f0f8",
+          "count": 13
+        },
+        {
+          "color": "#282828",
+          "count": 13
+        },
+        {
+          "color": "#d8d8d8",
+          "count": 13
+        },
+        {
+          "color": "#f0ffff",
+          "count": 12
+        },
+        {
+          "color": "#080808",
+          "count": 12
+        }
+      ],
+      "buckets": {
+        "neutral_light": [
+          {
+            "color": "#f0f8f8",
+            "count": 27627
+          },
+          {
+            "color": "#ffffff",
+            "count": 6768
+          },
+          {
+            "color": "#f8f8f8",
+            "count": 237
+          },
+          {
+            "color": "#f0f0f0",
+            "count": 114
+          },
+          {
+            "color": "#e8e8e8",
+            "count": 111
+          },
+          {
+            "color": "#f8ffff",
+            "count": 44
+          },
+          {
+            "color": "#f0f0f8",
+            "count": 20
+          },
+          {
+            "color": "#e8f8f8",
+            "count": 18
+          }
+        ],
+        "neutral_mid": [
+          {
+            "color": "#d0d0d0",
+            "count": 14
+          },
+          {
+            "color": "#d8d8d8",
+            "count": 13
+          }
+        ],
+        "neutral_dark": [
+          {
+            "color": "#505858",
+            "count": 240
+          },
+          {
+            "color": "#000000",
+            "count": 129
+          },
+          {
+            "color": "#101010",
+            "count": 24
+          },
+          {
+            "color": "#181818",
+            "count": 22
+          },
+          {
+            "color": "#202020",
+            "count": 21
+          },
+          {
+            "color": "#282828",
+            "count": 13
+          },
+          {
+            "color": "#080808",
+            "count": 12
+          }
+        ],
+        "blue": [
+          {
+            "color": "#90d8e0",
+            "count": 28
+          },
+          {
+            "color": "#c0e8f0",
+            "count": 15
+          },
+          {
+            "color": "#e0f8f8",
+            "count": 14
+          },
+          {
+            "color": "#d8f0f8",
+            "count": 13
+          }
+        ],
+        "green": [],
+        "red_or_pink": [],
+        "purple": [],
+        "yellow_or_orange": []
+      }
+    }
+  ],
+  "semantic_samples": [
+    {
+      "screenshot_id": 0,
+      "shell_topbar": "#f3f4fb",
+      "shell_sidebar": "#92d9e3",
+      "page_canvas": "#f2f3f9",
+      "panel_surface": "#f3f4fb",
+      "panel_border_candidate": "#f3f5f8",
+      "primary_action_candidate": "#225fee",
+      "modal_overlay_candidate": "#f3f5f9",
+      "modal_surface_candidate": "#f5f7fa",
+      "dark_theme_candidate": "#f3f4fb"
+    },
+    {
+      "screenshot_id": 1,
+      "shell_topbar": "#626262",
+      "shell_sidebar": "#626262",
+      "page_canvas": "#f4f6f8",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#666666",
+      "modal_overlay_candidate": "#636566",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 4,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#fefefe",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 5,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 8,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 11,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#f3f5f7",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#f3f5f7",
+      "dark_theme_candidate": "#f3f5f7"
+    },
+    {
+      "screenshot_id": 14,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#464646",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#ebf5ff",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#f2f2f2"
+    },
+    {
+      "screenshot_id": 20,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f5",
+      "panel_surface": "#212222",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#ffffff",
+      "modal_surface_candidate": "#959499",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 41,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#b2b2b2",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 45,
+      "shell_topbar": "#626262",
+      "shell_sidebar": "#626262",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#666666",
+      "primary_action_candidate": "#666666",
+      "modal_overlay_candidate": "#626262",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 69,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#b2b2b2",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 120,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#f3f5f7",
+      "dark_theme_candidate": "#f2f4f5"
+    },
+    {
+      "screenshot_id": 148,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#fefefe",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#ffffff",
+      "modal_surface_candidate": "#fefefe",
+      "dark_theme_candidate": "#fefefe"
+    },
+    {
+      "screenshot_id": 179,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#ffffff",
+      "modal_surface_candidate": "#f3f5f7",
+      "dark_theme_candidate": "#f3f5f7"
+    },
+    {
+      "screenshot_id": 196,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f5f7fb",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#fefffd",
+      "modal_surface_candidate": "#f3f5f7",
+      "dark_theme_candidate": "#f3f5f7"
+    },
+    {
+      "screenshot_id": 216,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#343434",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#ebf5ff",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 249,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#f3f5f7",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#9d9ca2",
+      "modal_surface_candidate": "#f3f5f7",
+      "dark_theme_candidate": "#f3f5f7"
+    },
+    {
+      "screenshot_id": 280,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#ffffff",
+      "modal_overlay_candidate": "#ffffff",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 297,
+      "shell_topbar": "#626262",
+      "shell_sidebar": "#626262",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#1e2022",
+      "panel_border_candidate": "#656565",
+      "primary_action_candidate": "#666666",
+      "modal_overlay_candidate": "#616567",
+      "modal_surface_candidate": "#5d6165",
+      "dark_theme_candidate": "#1e2022"
+    },
+    {
+      "screenshot_id": 299,
+      "shell_topbar": "#242627",
+      "shell_sidebar": "#242627",
+      "page_canvas": "#1e1e1e",
+      "panel_surface": "#d5d5d5",
+      "panel_border_candidate": "#1f1f1f",
+      "primary_action_candidate": "#1e1e1e",
+      "modal_overlay_candidate": "#102954",
+      "modal_surface_candidate": "#1e1e1e",
+      "dark_theme_candidate": "#1d211f"
+    },
+    {
+      "screenshot_id": 303,
+      "shell_topbar": "#dee0e4",
+      "shell_sidebar": "#dee0e4",
+      "page_canvas": "#ffffff",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#bed3f3",
+      "primary_action_candidate": "#dee0e4",
+      "modal_overlay_candidate": "#dee0e4",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#feffff"
+    },
+    {
+      "screenshot_id": 306,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#ffffff",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#ffffff"
+    },
+    {
+      "screenshot_id": 312,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#f5f6f7",
+      "dark_theme_candidate": "#f3f5f7"
+    },
+    {
+      "screenshot_id": 317,
+      "shell_topbar": "#f3f5f7",
+      "shell_sidebar": "#f3f5f7",
+      "page_canvas": "#f3f5f7",
+      "panel_surface": "#f3f5f7",
+      "panel_border_candidate": "#ffffff",
+      "primary_action_candidate": "#f3f5f7",
+      "modal_overlay_candidate": "#f3f5f7",
+      "modal_surface_candidate": "#ffffff",
+      "dark_theme_candidate": "#f3f5f7"
+    }
+  ]
+}

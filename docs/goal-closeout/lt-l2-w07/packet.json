@@ -1,0 +1,38 @@
+{
+  "work_package_id": "LT-L2-W07",
+  "title": "Runtime integration test system aligned to RTG-005",
+  "created_at": "2026-06-18T13:12:58Z",
+  "status": "blocked_pending_runtime_integration_harness_and_predecessors",
+  "phase": "L2",
+  "gate_binding": [
+    "G2",
+    "L2-EXIT"
+  ],
+  "terminal_tuw": "LT-L2-W07-T08",
+  "artifacts": [
+    "docs/launch/l2/runtime-integration-test-system-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l2-w07/packet.json",
+    "docs/goal-closeout/lt-l2-w07/command-evidence.json",
+    "docs/goal-closeout/lt-l2-w07/claude-review-result.json",
+    "docs/goal-closeout/lt-l2-w07/adjudication.md",
+    "docs/goal-closeout/lt-l2-w07/construction-inspection.json"
+  ],
+  "current_status": {
+    "runtime_integration_directory_exists": false,
+    "runtime_integration_file_count": 0,
+    "runner_script_exists": false,
+    "launch_integration_script_exists": false,
+    "rtg005_responsibility_map_exists": false,
+    "prohibition_nongoal_test_map_exists": false,
+    "runtime_ready_pack_count": 0,
+    "g2_satisfied": false,
+    "l2_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

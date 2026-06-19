@@ -1,0 +1,37 @@
+{
+  "subphase_id": "RP00.P02.M03.S14",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Review-required routing",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T11:18:25Z",
+  "control_plane_hermes_validation_review_required_routing_verified": true,
+  "verified_behaviors": [
+    "Consumes RP00.P02.M03.S13 Hermes Validation Validation error mapping results only after validating the S13 result shape, hermes_validation entrypoint, S13 marker, allow_metadata_only decision, validation_error_mapping_applied flag, validation_error_mapping_receipt, audit_event_ref, and validation_error_mapping_ref.",
+    "Emits a frozen metadata-only review-required routing receipt with tenant, actor, object, permission decision, audit event, validation error mapping, review-required routing ref, review-required routing scope, working behavior, review_required_metadata_only effect, and next-subphase fields.",
+    "Records no runtime Claude review invocation, review queue write, review assignment write, review notification, or human approval record write while preserving a synthetic metadata-only review-required routing receipt.",
+    "Carries S02 through S13, M00, permission, audit, TEN-001 through TEN-008, validation context, and acceptance gate references.",
+    "Rejects unsafe review-required routing, runtime Claude review invocation, review queue write, review assignment write, review notification, human approval write, runtime error mapping, exception translation, error-store, persistence-store, database, storage, product-state, unknown, runtime, AuthZ, Hermes execution, Hermes evidence, audit write, idempotency-store write, lock-store write, UI, tenant lifecycle mutation, requirement trace bypass, real-data, review-bypass, and product-write claims fail-closed.",
+    "Does not execute service logic, create runtime routes, append audit ledgers, write audit events, mutate tenant lifecycle state, run Hermes validation, create Hermes evidence, evaluate runtime permissions, call AuthZ, use real data, persist idempotency records, acquire locks, persist lock records, write persistence records, map runtime errors, translate runtime exceptions, write error records, invoke Claude runtime review, write review queues, assign reviewers, send review notifications, write human approval records, write databases, write storage, persist product state, create UI, or write product state.",
+    "Does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S15.",
+    "RP00 validator cross-checks the S14 terminal flag and successor against docs/weighted-implementation-ledger.json and live-executes positive and negative S14 precheck paths."
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s14/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s14/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s14/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s14/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s14/construction-inspection.json"
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p0_status": "none",
+    "p1_count": 0,
+    "p1_status": "none",
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 2,
+    "p3_status": "deferred_with_explicit_boundary"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S14 is production_ready as a non-terminal review-required routing boundary and explicitly hands off to RP00.P02.M03.S15 Approval-required routing."
+}

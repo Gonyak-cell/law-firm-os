@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M07.S09",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only",
+    "session_id": "28522b59-f7aa-49cc-b455-71658257267d",
+    "uuid": "280b863a-a9df-48b7-bfcc-54b99252d3bb",
+    "total_cost_usd": 0.911861,
+    "duration_ms": 282514,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s09-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "improperly_completes_S10": false,
+    "improperly_completes_S11": false,
+    "defines_new_enum_values": false,
+    "findings": [
+      {
+        "id": "P2-1",
+        "severity": "P2",
+        "title": "Validator optional-field symbol needed live confirmation",
+        "status": "fixed",
+        "disposition": "rg confirmed expectedStateEnumRegistryOptionalFields is defined in scripts/validate-rp00-control-plane-contract.mjs and syntax validation passes."
+      },
+      {
+        "id": "P2-2",
+        "severity": "P2",
+        "title": "Closeout evidence was not present in the review diff",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "Evidence files are now recorded under docs/goal-closeout/rp00-p01-m07-s09 and final validation is rerun after materialization."
+      },
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "Omitted versus null matter_id asymmetry under Matter context",
+        "status": "fixed",
+        "disposition": "validateControlPlaneStateEnumRegistryOptionalFields now rejects missing matter_id when a Matter trace context is supplied, and tests plus RP00 validation cover the negative case."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "status hardcoded production_ready in source constant",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The source constant status matches established closeout policy and the contract/model status consistency check."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "title": "Cross-subphase test coupling on global nextSubphase",
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "The existing global nextSubphase assertion pattern is retained for S09; any test factoring belongs to a later dedicated test-maintenance slice."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude approved the S09 optional-field-registry slice with no P0/P1, no S10/S11 overreach, and no new enum value definition. Two P2 verification items were resolved by live validator confirmation and closeout evidence materialization."
+}

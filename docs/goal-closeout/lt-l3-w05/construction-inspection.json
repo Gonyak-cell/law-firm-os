@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L3-W05",
+  "inspected_at": "2026-06-18T14:49:34Z",
+  "verdict": "BLOCKED_RPO_RTO_APPROVAL_AND_RESTORE_REHEARSAL_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "candidate_target_rows": 4,
+    "restore_procedure_steps": 12,
+    "index_resync_steps": 6,
+    "responsibility_boundary_rows": 4,
+    "approved_rpo_rto_cited": false,
+    "restore_rehearsal_evidence_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "rpo_rto_approval_synthesized": false,
+    "restore_rehearsal_synthesized": false,
+    "production_data_authority_claimed": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

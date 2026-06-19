@@ -1,0 +1,119 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-128",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "386a8223-893c-4a41-81dc-eb98d915b801",
+    "uuid": "db633712-12b2-4022-9b66-f1306c423114",
+    "total_cost_usd": 0.98330675,
+    "duration_ms": 288135,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Redundant full-catalog rebuilds in per-case lookup and aggregate builders",
+        "file": "packages/authz/src/failure-taxonomy-evidence-harness.js",
+        "evidence": "runPermissionKernelCp128FailureTaxonomyEvidenceHarnessCase rebuilds the entire 150-row catalog and performs a linear .find on every call; createPermissionKernelCp128FailureTaxonomyEvidenceHarness maps all 150 case_ids back through that function (150 rebuilds + 150 finds), and the manifest/validate paths each re-invoke the harness. ~O(n^2) work per harness build.",
+        "recommendation": "Optional: build the catalog once and index case results by case_id before mapping. Non-blocking; negligible at n=150, test/validation-only, and consistent with the established CP119-CP127 pattern."
+      },
+      {
+        "severity": "P3",
+        "title": "CP127 inheritance correctness is verified only at runtime, not statically in this diff",
+        "file": "packages/authz/src/failure-taxonomy-evidence-harness.js",
+        "evidence": "createPermissionKernelCp128FailureTaxonomyEvidenceHarness depends on CP127 case ids (synthetic_fixture_opening.missing_tenant_failure, permission_audit_test_evidence.claude_edge_case_prompt/hermes_failure_evidence) and nested shapes (synthetic_fixture_boundary.missing_tenant_denied, claude_edge_case_prompt.executes_claude_review, hermes_failure_evidence.reference_only). None of CP127's source is in this diff, so the optional-chained reads would silently yield false/undefined on any shape drift.",
+        "recommendation": "No change needed. The inherited assertions (count===10, missing_tenant_denied, claude no-execution, hermes reference_only) are enforced by validatePermissionKernelCp128Coverage and the contract validator, so drift fails closed rather than passing. Noted only as a static-review limitation."
+      }
+    ],
+    "blocks_pack_closeout": false,
+    "recommendation": "Approve CP00-128 and proceed to closeout; hand off to CP00-129 / RP02.P08.M03.S22.",
+    "rationale": "Coverage is exact: 150 rows over 9 micro-phases (RP02.P07.M06 18, M07 22, M08 22, M09 20, M10 11, RP02.P08.M00 8, M01 8, M02 20, M03 21), first unit RP02.P07.M06.S05, last RP02.P08.M03.S21 contiguous with CP127's terminal RP02.P07.M06.S04, unique unit ids, and deliverable counts summing to 150 (failure_recovery 54, security_audit 9, implementation 24, hermes_evidence 44, fixture 4, test 10, claude_review 5) — all enforced by both validatePermissionKernelCp128Coverage and the contract validator and exercised by the tests. The pack inherits CP127 (result_count 10, missing-tenant denial, Claude no-execution, Hermes reference-only) and preserves synthetic-only/metadata-only behavior. Failure-taxonomy and fixture rows fail closed (evaluator_invoked false, decision null, fail_closed true, denial flags set, fixtures not persisted/no real data); test/golden rows are deterministic and non-persistent; Hermes evidence rows are reference/preview-only with writes_hermes_runtime and emitted_to_audit_ledger false; Claude prompt/dependency markers set executes_claude_review false; human approval/escalation markers set grants_human_approval false and approval_reference_only true; closeout handoff sets commits_pack and marks_production_ready false. freezeNoWriteResult forces all 20 no-write flags false on every result (verified by the validator's per-case loop), the listed hidden_source_fields are surfaced only as names (no values; unauthorized_count_exposed and hidden_field_names_exposed false), command anchors and replay commands are inert strings, and the new module/index re-export add no UI/API routes, policy mutation, audit/product/DB writes, idempotency, locks, retry/rollback/compensation, export/share, AI/analytics, LDIP, or HRX split (hrx_embedded_boundary preserved). The contract bump (v0.22, Risk C, flag permission_kernel_failure_taxonomy_evidence_harness_verified) and exactly-one-pack-review binding are consistent; this read-only review is that single required review. Only two non-blocking P3 observations."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 288135,
+    "duration_api_ms": 290236,
+    "ttft_ms": 268433,
+    "num_turns": 1,
+    "result": "I reviewed the staged CP00-128 diff in full (contract JSON, new harness module, index re-export, tests, and the validator extension), traced the coverage math, and checked every boundary attestation against the stated scope.\n\n```json\n{\n  \"overall_verdict\": \"PASS\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 2 },\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"Redundant full-catalog rebuilds in per-case lookup and aggregate builders\",\n      \"file\": \"packages/authz/src/failure-taxonomy-evidence-harness.js\",\n      \"evidence\": \"runPermissionKernelCp128FailureTaxonomyEvidenceHarnessCase rebuilds the entire 150-row catalog and performs a linear .find on every call; createPermissionKernelCp128FailureTaxonomyEvidenceHarness maps all 150 case_ids back through that function (150 rebuilds + 150 finds), and the manifest/validate paths each re-invoke the harness. ~O(n^2) work per harness build.\",\n      \"recommendation\": \"Optional: build the catalog once and index case results by case_id before mapping. Non-blocking; negligible at n=150, test/validation-only, and consistent with the established CP119-CP127 pattern.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"title\": \"CP127 inheritance correctness is verified only at runtime, not statically in this diff\",\n      \"file\": \"packages/authz/src/failure-taxonomy-evidence-harness.js\",\n      \"evidence\": \"createPermissionKernelCp128FailureTaxonomyEvidenceHarness depends on CP127 case ids (synthetic_fixture_opening.missing_tenant_failure, permission_audit_test_evidence.claude_edge_case_prompt/hermes_failure_evidence) and nested shapes (synthetic_fixture_boundary.missing_tenant_denied, claude_edge_case_prompt.executes_claude_review, hermes_failure_evidence.reference_only). None of CP127's source is in this diff, so the optional-chained reads would silently yield false/undefined on any shape drift.\",\n      \"recommendation\": \"No change needed. The inherited assertions (count===10, missing_tenant_denied, claude no-execution, hermes reference_only) are enforced by validatePermissionKernelCp128Coverage and the contract validator, so drift fails closed rather than passing. Noted only as a static-review limitation.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve CP00-128 and proceed to closeout; hand off to CP00-129 / RP02.P08.M03.S22.\",\n  \"rationale\": \"Coverage is exact: 150 rows over 9 micro-phases (RP02.P07.M06 18, M07 22, M08 22, M09 20, M10 11, RP02.P08.M00 8, M01 8, M02 20, M03 21), first unit RP02.P07.M06.S05, last RP02.P08.M03.S21 contiguous with CP127's terminal RP02.P07.M06.S04, unique unit ids, and deliverable counts summing to 150 (failure_recovery 54, security_audit 9, implementation 24, hermes_evidence 44, fixture 4, test 10, claude_review 5) — all enforced by both validatePermissionKernelCp128Coverage and the contract validator and exercised by the tests. The pack inherits CP127 (result_count 10, missing-tenant denial, Claude no-execution, Hermes reference-only) and preserves synthetic-only/metadata-only behavior. Failure-taxonomy and fixture rows fail closed (evaluator_invoked false, decision null, fail_closed true, denial flags set, fixtures not persisted/no real data); test/golden rows are deterministic and non-persistent; Hermes evidence rows are reference/preview-only with writes_hermes_runtime and emitted_to_audit_ledger false; Claude prompt/dependency markers set executes_claude_review false; human approval/escalation markers set grants_human_approval false and approval_reference_only true; closeout handoff sets commits_pack and marks_production_ready false. freezeNoWriteResult forces all 20 no-write flags false on every result (verified by the validator's per-case loop), the listed hidden_source_fields are surfaced only as names (no values; unauthorized_count_exposed and hidden_field_names_exposed false), command anchors and replay commands are inert strings, and the new module/index re-export add no UI/API routes, policy mutation, audit/product/DB writes, idempotency, locks, retry/rollback/compensation, export/share, AI/analytics, LDIP, or HRX split (hrx_embedded_boundary preserved). The contract bump (v0.22, Risk C, flag permission_kernel_failure_taxonomy_evidence_harness_verified) and exactly-one-pack-review binding are consistent; this read-only review is that single required review. Only two non-blocking P3 observations.\"\n}\n```\n\nVerdict: **PASS** — no P0/P1/P2 issues; the two P3 notes are informational and do not block closeout.",
+    "stop_reason": "end_turn",
+    "session_id": "386a8223-893c-4a41-81dc-eb98d915b801",
+    "total_cost_usd": 0.98330675,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 41711,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 27757,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 41711,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 27757,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 41711,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 41711
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 27054,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.027154,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 27757,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 41711,
+        "webSearchRequests": 0,
+        "costUSD": 0.95615275,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "db633712-12b2-4022-9b66-f1306c423114"
+  }
+}

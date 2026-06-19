@@ -1,0 +1,174 @@
+{
+  "wp_id": "LT-L1-W07",
+  "tuw_id": "LT-L1-W07-T01",
+  "title": "Launch budget draft",
+  "phase": "L1",
+  "status": "draft_completed_pending_l1_w06_quotes",
+  "checked_at": "2026-06-18",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "completion_claim": false,
+  "artifacts": [
+    "docs/launch/launch-budget.md"
+  ],
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "status": "review_waived_by_user",
+    "valid_review_evidence": false,
+    "review_waiver_is_valid_review_evidence": false,
+    "note": "User instructed that full Claude review is skipped from this point forward."
+  },
+  "dependency_note": {
+    "l1_w06_status": "pending_human_hosting_stack_decision",
+    "external_quotes": "pending",
+    "effect": "Budget is a quote collection draft only; approval remains LT-L1-W07-T02."
+  },
+  "budget_facts": {
+    "implementation_layer_pack_count": 987,
+    "historical_cp_review_unit_usd": 3,
+    "historical_cp_review_benchmark_usd": 2961,
+    "budgeted_numeric_subtotal_usd": 0,
+    "quote_pending_lines": 9
+  },
+  "acceptance_checks": [
+    {
+      "requirement": "launch budget draft exists",
+      "command": "ls docs/launch/launch-budget.md",
+      "expected": "exit 0",
+      "actual": "docs/launch/launch-budget.md",
+      "status": "pass"
+    },
+    {
+      "requirement": "required budget categories present",
+      "command": "node - <<'NODE' ... check required category rows ... NODE",
+      "expected": "all categories present",
+      "actual": "{\"missing\":[],\"count\":10}",
+      "status": "pass"
+    },
+    {
+      "requirement": "review operations formula uses CP benchmark",
+      "command": "node - <<'NODE' ... check 987 x 3 = 2961 formula ... NODE",
+      "expected": "formula present",
+      "actual": "{\"pack_count\":true,\"unit\":true,\"benchmark\":true,\"zero\":true,\"waiver\":true}",
+      "status": "pass"
+    },
+    {
+      "requirement": "no blank budget amounts and totals present",
+      "command": "node - <<'NODE' ... check table amount/status cells and totals ... NODE",
+      "expected": "no blanks, totals present",
+      "actual": "{\"budget_rows\":10,\"blank_rows\":0,\"totals\":true}",
+      "status": "pass"
+    }
+  ],
+  "notes": [
+    "No vendor quote or owner approval was synthesized.",
+    "Full Claude review budget is zero going forward because the user waived full Claude review execution."
+  ],
+  "work_package_id": "LT-L1-W07",
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L1-W07-T01",
+      "title": "출시 예산서 집계 작성",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "draft_completed_pending_l1_w06_quotes",
+      "objective": "§5 L1-7의 9개 비목이 단일 예산서로 집계되어 승인 가능한 상태가 된다(외부 견적 입수 포함 — hybrid).",
+      "deliverables": [
+        "docs/launch/launch-budget.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-7",
+        "docs/launch/hosting-stack-decision.md (W06 산출물 — 비용 산정 입력)"
+      ],
+      "acceptance_criteria": [
+        "docs/launch/launch-budget.md가 존재하고 9개 비목(호스팅 / DB / WORM 스토리지 / 모니터링 / M365 라이선스 / 외부 AI API / 침투테스트 / 원격 저장소 / 교육 / 리뷰 운영비 — §5 L1-7 열거 기준) 전부가 행으로 존재한다.",
+        "각 행에 금액이 기재되어 있거나 '견적 대기(시한 명기)'로 표기되어 있다(공란 0건).",
+        "리뷰 운영비 행이 CP ~$3/pack 선례 단가 기반 추정 산식을 포함한다.",
+        "합계 행이 존재하고 비목 합산과 일치한다."
+      ],
+      "verification_contract": {
+        "method": "1) ls docs/launch/launch-budget.md exit 0 2) grep -c \"호스팅\\|라이선스\\|침투테스트\\|교육\\|운영비\" docs/launch/launch-budget.md ≥5 3) 공란·합계 일치 수동 대사",
+        "evidence": "명령 출력+대사 결과를 docs/goal-closeout/lt-l1-w07/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w07/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-7",
+        "docs/launch/hosting-stack-decision.md (W06 산출물 — 비용 산정 입력)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W07-T02",
+      "title": "예산 승인 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "draft_completed_pending_l1_w06_quotes",
+      "objective": "예산서가 인간 승인으로 확정되어 L1 산출물 '예산서'가 성립한다.",
+      "deliverables": [
+        "launch-decision-register L1-7 행(승인 총액 포함)"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-7",
+        "docs/launch/launch-budget.md (T01 산출물)"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 L1-7 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "승인 총액이 명시되고 예산서 경로가 역참조되어 있다.",
+        "견적 대기 항목이 잔존하는 경우 해당 비목이 시한부 deferral로 행에 표기되어 있다.",
+        "L1-7 행에 승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"L1-7\" docs/launch/launch-decision-register.md exit 0 2) 총액·역참조 확인 3) 대기 항목 deferral 표기·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w07/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w07/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-7",
+        "docs/launch/launch-budget.md (T01 산출물)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 2,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

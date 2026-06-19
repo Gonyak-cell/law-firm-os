@@ -1,0 +1,59 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-638",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5dc1f04e-3008-4301-ba09-c1f20d7ae8b6",
+    "uuid": "2c000ce0-f2e9-4a70-acff-767941628caa",
+    "total_cost_usd": 2.7054325000000006,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-638/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-638/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-638 is a descriptor-only RP20 (Data Room & VDR) P07 failure-recovery continuation (Risk B, 40 units, RP20.P07.M04.S09-RP20.P07.M06.S04). Read-only inspection via Read/Grep/Glob confirms the implementation supports a descriptor_verified production_ready promotion, subject to the required human final approval which remains open. Verified: (1) pack binding (registry.js:532) matches baseline exactly incl. next pack CP00-639 / RP20.P07.M06.S05 and gates H20/C20; (2) section rows (registry.js:1486) M04 tail 14 + M05 full 22 + M06 head 4 = 40, matching the micro_title_distribution; (3) deliverable counts (registry.js:1498) {failure_recovery:21,implementation:4,hermes_evidence:4,fixture:2,test:4,security_audit:3,claude_review:2} match the baseline and were independently re-derived from the title->type mapping (service.js:218) as correct; (4) all required public exports exist across registry/service/validators and are imported by tests; (5) descriptor-only/no-write/no-real-data boundaries are enforced by the CP610->...->CP638 freeze chain and exhaustively asserted by validators.js:4119-4188, including authority-boundary assertions (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true); (6) Hermes and Claude packets are deterministic review-packet/receipt artifacts only (emits_hermes_runtime_receipt=false, read_only, allowed tools Read/Grep/Glob) and not product runtime; (7) contract projections (contract:6405, contract:39222) match package code and are deep-equaled by tests (model.test.js:1656) and the rp20 validator script; (8) command-evidence.json records all commands exit 0 with no_real_data=true and writes_product_state=false. The pre-review evidence chain is honest: manifest/construction-inspection/adjudication/claude-review-result all report production_ready=false / pending and correctly gate promotion on this C20 review with no overclaim. No prior valid or invalid pack-level review evidence exists (no review-receipt.json/raw-output.json yet), so CP178+ hardening rejection criteria (auth failure, 0-byte stdout, malformed/fenced JSON, tool-call-shaped output, missing fields) do not trigger; the unrelated c-ldip-01 invalid attempt belongs to the LDIP workstream and is correctly classed as unrelated dirty. Claude remains a read-only independent reviewer and not the final approver, and the enterprise trust claim is closed outside this receipt. No P0/P1/P2 findings; one P3 traceability note. Recommend PASS_WITH_FINDINGS; promotion remains contingent on human final approval per the authority boundary.",
+    "findings": [
+      {
+        "id": "CP638-P3-01",
+        "severity": "P3",
+        "title": "Expected validation command npm run rp05:matter-core:validate absent from recorded command-evidence",
+        "file": "docs/closeout-packs/cp00-638/command-evidence.json",
+        "line": 14,
+        "details": "The review prompt's generic 'validation commands expected before closeout' list includes `npm run rp05:matter-core:validate`, but command-evidence.json does not record that command. rp05:matter-core:validate is a real npm script (package.json:56) that validates the RP05 Matter Core contract, a sibling program out of scope for this RP20 Data Room & VDR pack. The pack instead recorded its in-scope program validator `npm run rp20:data-room-vdr-core:validate` (exit 0) plus the umbrella `npm run validate` (exit 0), along with closeout-pack-plan/closeout-pack/weighted/spec:requirements/fullplan/goal:closeout/rp00:control-plane validators, npm test, and git diff --check, all exit 0. The expected-list entry appears to be boilerplate from the review harness template rather than a genuine requirement for an RP20 pack. This is a traceability/evidence-completeness nit only; it does not affect correctness, descriptor-only boundaries, or the production_ready determination.",
+        "recommendation": "Either record `npm run rp05:matter-core:validate` in command-evidence.json for full alignment with the expected-command checklist, or adjust the review-harness expected-command template so it lists the program-relevant validator (rp20:data-room-vdr-core:validate) instead of the sibling rp05 validator for RP20 packs. No code or descriptor change required.",
+        "post_review_disposition": "non_blocking_informational; mitigated by umbrella `npm run validate` passing and rp05 being out of this pack's scope; does not block pack or goal closeout; human approver may optionally require the command be recorded"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "user_waiver": null
+}

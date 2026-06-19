@@ -1,0 +1,1819 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-574",
+  "planned_pack_id": "CP00-574",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "ai_legal_workflows_core_p07_contract_implementation_slice_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "runtime_ready": false,
+  "program_id": "RP18",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "delivery_counts": {
+    "failure_recovery": 22,
+    "security_audit": 4,
+    "implementation": 3,
+    "hermes_evidence": 4,
+    "fixture": 2,
+    "test": 4,
+    "claude_review": 1
+  },
+  "micro_phase_row_counts": {
+    "RP18.P07.M02": 20,
+    "RP18.P07.M03": 20
+  },
+  "primary_subphase_id": "RP18.P07.M03.S20",
+  "next_subphase": "RP18.P07.M03.S21",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-574",
+    "planned_pack_id": "CP00-574",
+    "title": "CP00-574 RP18.P07.M02.S03-RP18.P07.M03.S20 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP18.P07.M02.S03",
+      "last_unit_id": "RP18.P07.M03.S20",
+      "description": "RP18.P07.M02.S03-RP18.P07.M03.S20"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP18.P07.M02.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP18.P07.M02.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S12",
+        "title": "Retry exhaustion failure",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S13",
+        "title": "Rollback expectation",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M02.S14",
+        "title": "Compensation expectation",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP18.P07.M02.S15",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP18.P07.M02.S16",
+        "title": "Failure fixture",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP18.P07.M02.S17",
+        "title": "Failure unit test",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP18.P07.M02.S18",
+        "title": "Failure integration smoke",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP18.P07.M02.S19",
+        "title": "Audit failure hint",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP18.P07.M02.S20",
+        "title": "Hermes failure evidence",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP18.P07.M02.S21",
+        "title": "Claude edge-case prompt",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP18.P07.M02.S22",
+        "title": "Human escalation note",
+        "source_micro_phase_id": "RP18.P07.M02",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP18.P07.M03.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP18.P07.M03.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S12",
+        "title": "Retry exhaustion failure",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S13",
+        "title": "Rollback expectation",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP18.P07.M03.S14",
+        "title": "Compensation expectation",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP18.P07.M03.S15",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP18.P07.M03.S16",
+        "title": "Failure fixture",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP18.P07.M03.S17",
+        "title": "Failure unit test",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP18.P07.M03.S18",
+        "title": "Failure integration smoke",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP18.P07.M03.S19",
+        "title": "Audit failure hint",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP18.P07.M03.S20",
+        "title": "Hermes failure evidence",
+        "source_micro_phase_id": "RP18.P07.M03",
+        "program_id": "RP18",
+        "phase_id": "RP18.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP18.P07.M02.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S12",
+      "title": "Retry exhaustion failure",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S13",
+      "title": "Rollback expectation",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S14",
+      "title": "Compensation expectation",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S15",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S16",
+      "title": "Failure fixture",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S17",
+      "title": "Failure unit test",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S18",
+      "title": "Failure integration smoke",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S19",
+      "title": "Audit failure hint",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S20",
+      "title": "Hermes failure evidence",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S21",
+      "title": "Claude edge-case prompt",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M02.S22",
+      "title": "Human escalation note",
+      "source_micro_phase_id": "RP18.P07.M02",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S12",
+      "title": "Retry exhaustion failure",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S13",
+      "title": "Rollback expectation",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S14",
+      "title": "Compensation expectation",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S15",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S16",
+      "title": "Failure fixture",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S17",
+      "title": "Failure unit test",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S18",
+      "title": "Failure integration smoke",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S19",
+      "title": "Audit failure hint",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP18.P07.M03.S20",
+      "title": "Hermes failure evidence",
+      "source_micro_phase_id": "RP18.P07.M03",
+      "program_id": "RP18",
+      "phase_id": "RP18.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-legal-workflows-core-contract.json",
+        "packages/ai-legal-workflows/README.md",
+        "packages/ai-legal-workflows/src/index.js",
+        "packages/ai-legal-workflows/src/registry.js",
+        "packages/ai-legal-workflows/src/service.js",
+        "packages/ai-legal-workflows/src/validators.js",
+        "packages/ai-legal-workflows/test/model.test.js",
+        "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-574/manifest.json",
+        "docs/closeout-packs/cp00-574/command-evidence.json",
+        "docs/closeout-packs/cp00-574/claude-review-result.json",
+        "docs/closeout-packs/cp00-574/adjudication.md",
+        "docs/closeout-packs/cp00-574/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-574 implements descriptor-only coverage of the RP18.P07 contract implementation slice: the M02 Type And Shape Definition tail (the twenty remaining rows) and the M03 Primary Implementation Slice head (the first twenty rows) as two descriptor-only sections over 40 planned rows with Hermes evidence (H18), Claude review packet (C18), and CP00-575 handoff, without opening AI legal workflows, precedent, clause markup, or DD extraction runtime or any other closed runtime surface.",
+    "source_refs": [
+      "contracts/ai-legal-workflows-core-contract.json",
+      "packages/ai-legal-workflows/README.md",
+      "packages/ai-legal-workflows/src/index.js",
+      "packages/ai-legal-workflows/src/registry.js",
+      "packages/ai-legal-workflows/src/service.js",
+      "packages/ai-legal-workflows/src/validators.js",
+      "packages/ai-legal-workflows/test/model.test.js",
+      "scripts/validate-rp18-ai-legal-workflows-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_ai_legal_workflows_runtime": true,
+    "no_precedent_runtime": true,
+    "no_clause_markup_runtime": true,
+    "no_dd_extraction_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_api_handler_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_unauthorized_count_leak": true,
+    "no_permission_bypass_detected": true,
+    "no_leak_detected": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_lock_token_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-574/manifest.json",
+    "docs/closeout-packs/cp00-574/command-evidence.json",
+    "docs/closeout-packs/cp00-574/claude-review-result.json",
+    "docs/closeout-packs/cp00-574/adjudication.md",
+    "docs/closeout-packs/cp00-574/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-574/manifest.json",
+    "docs/closeout-packs/cp00-574/command-evidence.json",
+    "docs/closeout-packs/cp00-574/claude-review-result.json",
+    "docs/closeout-packs/cp00-574/adjudication.md",
+    "docs/closeout-packs/cp00-574/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "\"workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "scripts/progress-control-room-data.mjs",
+      "tools/progress-control-room/index.html",
+      "workbook/matter-post-cp-launch-plan.md",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-574/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-574/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "aa368f93-d2ba-4d2c-b734-96d5ae533178",
+      "uuid": "02a15e72-3746-445f-b7af-4914b2d54e97",
+      "total_cost_usd": 2.1182632500000005,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-574 is a descriptor-only RP18.P07 contract-implementation-slice pack (40 units, RP18.P07.M02.S03-RP18.P07.M03.S20, risk B). Independent read-only inspection (Read/Grep/Glob) confirms the pack-level claim is honest and fully supported: production_ready and runtime_ready are explicitly false (manifest.json:6,9; command-evidence.json), implementation_layer is \"descriptor\", and the only positive claim is the \"..._descriptor_verified\" flag. The implementation is pure frozen-data construction: freezeCp574Result (service.js:2917) sets every dispatch/write/persist/storage/audit/lock flag to false with no_real_data:true and synthetic_only:true, and validateAiLegalWorkflowsCoreCp574* (validators.js:4243,4278) independently enforce descriptor_only, runtime_execution:false, customer_safe_errors_only, raw_payload_included:false, no Claude promotion, and no enterprise-trust claim. Pack binding (registry.js:392-407), deliverable distribution {failure_recovery:22,security_audit:4,implementation:3,hermes_evidence:4,fixture:2,test:4,claude_review:1}=40 (hand-verified against baseline units), micro-title split 20/20, all seven required exports, the contract projection (deepEqual at validate-rp18...mjs:1289-1295), README (#cp00-574), manifest, plan, and next-pack-queue are mutually consistent. Source files contain no fs/network/db/runtime operations and import only internal descriptors. Claude is correctly scoped as a read-only, non-final-approver reviewer; human final approval is required and enterprise trust is not claimed from local validation. Hermes patterns appear only as deterministic evidence-packet/receipt descriptor strings (emits_hermes_runtime_receipt:false; manifest no_hermes_runtime_receipt:true). Review-hardening forbidden_review_evidence (registry.js:705) covers failed auth, zero-byte, malformed/fenced JSON, tool-call-shaped output, disabled tools, and missing references; the readiness auth-preflight returned valid JSON (1444B stdout, exit 0). Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, review-receipt.json) are correctly absent pending this review step, consistent with the documented hardening sequence. Unrelated dirty files are correctly excluded from active_pack_implementation_refs. One non-blocking P3 nit on the \"production_ready_candidate\" field name; no P0/P1/P2 issues. The pack may proceed to post-review closeout, with enterprise trust remaining gated on human final approval.",
+      "findings": [
+        {
+          "id": "C-574-01",
+          "severity": "P3",
+          "title": "Hermes packet field 'production_ready_candidate' name could be misread as a runtime-readiness claim",
+          "file": "packages/ai-legal-workflows/src/validators.js",
+          "line": 4351,
+          "details": "createAiLegalWorkflowsCoreCp574HermesEvidencePacket sets production_ready_candidate = coverage.valid && slice.valid (validators.js:4351) and the validator script asserts it is true (validate-rp18-ai-legal-workflows-core-contract.mjs:1297). The value reflects only descriptor coverage + descriptor-slice validation, not runtime/production readiness. Read in isolation (e.g. by a downstream automated gate or human scanning the Hermes packet), the name could be mistaken for an assertion that the pack is production/runtime ready. In context it is NOT misleading: manifest.json sets production_ready:false and runtime_ready:false (lines 6,9), command-evidence.json sets production_ready:false, the pack binding's production_ready_flag is explicitly the descriptor-verification flag 'ai_legal_workflows_core_p07_contract_implementation_slice_descriptor_verified', and the no-write attestation sets claims_enterprise_trust_from_local_validation:false. No overclaiming occurs and the standing 'never weaken production_ready gates' directive is honored.",
+          "recommendation": "Optional, non-blocking: consider renaming the field to something like descriptor_validation_passed to remove any ambiguity for readers consuming the Hermes evidence packet in isolation. This is a program-wide pattern inherited from CP551+, so any rename should be applied consistently rather than only for CP00-574.",
+          "post_review_disposition": "Accepted as-is; non-blocking nit. The authoritative production_ready and runtime_ready flags are explicitly false and consistent across manifest, command-evidence, and contract, so the descriptor-scoped candidate flag does not constitute a production or enterprise-trust claim. Does not block pack or goal closeout."
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 1,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 1
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-574 ai legal workflows core p07 contract implementation slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-574/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-574/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-574/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-574/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "production_ready_at": "2026-06-12T22:11:53.569Z"
+}

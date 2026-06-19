@@ -1,0 +1,147 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-070",
+  "subphase_id": "RP00.P06.M03.S13",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack-plan.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/generate-closeout-pack-plan.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    }
+  ],
+  "preliminary_expected_failure": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "reason": "Before CP00-070 evidence files existed, RP00 validator correctly reported missing manifest, command evidence, Claude review result, adjudication, and construction inspection artifacts for the CP00-070 included units."
+  },
+  "preliminary_targeted_test_failure": {
+    "command": "node --test packages/control-plane/test/service.test.js",
+    "exit_code": 1,
+    "reason": "Initial CP00-070 drift assertion expected only the assembler-level message; the upstream CP00-069 validator correctly failed closed earlier. The assertion was narrowed to accept both fail-closed paths and the suite then passed."
+  },
+  "claude_review_command": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"You are a read-only code reviewer with no tools. Never emit a tool call. Return only valid JSON matching the requested schema.\" --json-schema \"$(tr -d '\\n' < /tmp/cp00-070-review-schema.json)\" --output-format json < /tmp/cp00-070-review-prompt-valid.txt > /tmp/cp00-070-claude-review-output-valid.json",
+    "exit_code": 0,
+    "output_ref": "/tmp/cp00-070-claude-review-output-valid.json",
+    "exactly_one_pack_level_review_run": true,
+    "exactly_one_valid_pack_level_review_run": true
+  },
+  "invalid_claude_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-070-review-prompt.txt > /tmp/cp00-070-claude-review-output.json",
+      "exit_code": 1,
+      "output_ref": "/tmp/cp00-070-claude-review-output.json",
+      "reason": "The model's tool call could not be parsed (retry also failed).",
+      "session_id": "80eab8e5-aa05-4f7d-b7e4-00f883bc3d98",
+      "uuid": "2ec368b0-afbc-4ea9-a44f-1babe6fb5fe7"
+    },
+    {
+      "command": "claude -p --bare --model claude-opus-4-8 --effort max ... < /tmp/cp00-070-review-prompt-valid.txt > /tmp/cp00-070-claude-review-output-valid.json",
+      "exit_code": 1,
+      "output_ref": null,
+      "reason": "Bare mode could not use local Claude login state; command returned Not logged in and was not accepted as a pack-level review."
+    },
+    {
+      "command": "claude -p --bare --strict-mcp-config --mcp-config {} ...",
+      "exit_code": 1,
+      "output_ref": null,
+      "reason": "CLI configuration was invalid because mcpServers was omitted; command did not reach a valid review state."
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-070 is metadata-only and writes no product state.",
+    "Exactly one valid pack-level Claude Opus 4.8 max read-only review was accepted for this pack.",
+    "Claude returned P0=0, P1=0, P2=0, P3=3.",
+    "Final commands are rerun after these pack evidence files are written so the evidence refs are live."
+  ],
+  "plan_regeneration": {
+    "command": "npm run closeout-pack-plan:generate",
+    "exit_code": 0,
+    "reason": "Run after CP00-070 evidence creation to move next queue to CP00-071 without recording it as a validation-only command."
+  }
+}

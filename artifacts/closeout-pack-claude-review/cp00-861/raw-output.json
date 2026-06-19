@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-861",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T05:57:21.987Z",
+  "finished_at": "2026-06-17T06:05:24.286Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":481572,\"duration_api_ms\":482907,\"ttft_ms\":8960,\"num_turns\":55,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-861's descriptor-only permission decision matrix implementation is complete, internally consistent, and respects all no-write/no-real-data/read-only/control-plane boundaries; no P0/P1/P2 issues. The single P3 is an honest provenance note that I verified structure statically and did not (cannot) execute the full validation suite, which runs post-review. This does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ef4d4d7d-5b23-484d-bd0d-474ea678ab44\",\"total_cost_usd\":2.67283725,\"usage\":{\"input_tokens\":64,\"cache_creation_input_tokens\":118109,\"cache_read_input_tokens\":2325124,\"output_tokens\":30820,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":118109,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":228,\"cache_read_input_tokens\":112665,\"cache_creation_input_tokens\":5863,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5863},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1174,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001274,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":64,\"outputTokens\":30820,\"cacheReadInputTokens\":2325124,\"cacheCreationInputTokens\":118109,\"webSearchRequests\":0,\"costUSD\":2.67156325,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-861 extends the descriptor-only RP28 Marketplace permission decision matrix across RP28.P06.M00.S07-RP28.P06.M07.S06 (150 units, risk C). The implementation is complete and internally consistent: registry.js adds CP861 binding (chains CP860->CP862), requirements (deliverable counts 56/35/28/7/24 and micro-title counts both reconcile to 150), an 8-section/150-row case set, and Hermes/Claude/closeout/descriptor builders that hold the descriptor-only, no-runtime, no-product-write, no-real-data boundaries. validators.js adds thorough coverage and descriptor/contract validators that read the LIVE plan (non-circular) and enforce the authority boundary (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human approval required for runtime opening). The contract JSON, validate script (chains CP845..CP861), and model.test.js (3 CP861 tests asserting empty errors, no writes, row_count 150, contract currency) are all consistent. createRow emits 20+ no-write/no-real-data attestations and the validator rejects any runtime/secret/real-data/product-write. Review hardening is satisfied: auth preflight passed (exit 0, valid JSON), tools limited to Read/Grep/Glob, no forbidden tools, no omitted active files. Claude remains read-only and non-approver; Hermes is used only for deterministic control-plane evidence (emits_runtime_receipt=false, not embedded in product runtime). The manifest is status=in_progress / production_ready=false / runtime_ready=false, which is the correct pre-review posture; the pending construction-inspection, adjudication, and claude-review-result states are expected and will be normalized by this receipt. The pack makes no runtime or enterprise-trust claim, so blocks_goal_closeout (this CP closeout goal) is false. No P0/P1/P2 issues found. One P3 informational note: this read-only review verified structure statically and did not execute the full validation suite, which runs post-review.\",\"findings\":[{\"id\":\"CP861-P3-01\",\"severity\":\"P3\",\"title\":\"Full post-review validation suite verified by structure only, not executed within this read-only review\",\"file\":\"docs/closeout-packs/cp00-861/command-evidence.json\",\"line\":19,\"details\":\"command-evidence.json records only the initial gate commands passing (rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0) and notes that the full validation suite is required after review, adjudication, and queue regeneration before commit. As a read-only reviewer (Read/Grep/Glob, no Bash), I verified the CP861 implementation, contract projection, validators, tests, manifest, and review artifacts statically and confirmed they are internally consistent and support the descriptor-verified production_ready claim; I did not execute npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, or git diff --check. This is the expected closeout flow, not a defect in the pack.\",\"recommendation\":\"Before flipping production_ready and committing, run the full validation suite listed in the baseline (closeout-pack-plan/closeout-pack/test/validate/spec:requirements/weighted/fullplan/goal:closeout/rp00:control-plane validate plus git diff --check) after this review receipt is normalized, adjudication is updated, and the queue is regenerated; require all to pass.\",\"post_review_disposition\":\"tracked_for_post_review_full_validation\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"b80af765-709f-45b5-afa7-33224338a825\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5658,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ef4d4d7d-5b23-484d-bd0d-474ea678ab44",
+    "uuid": "b80af765-709f-45b5-afa7-33224338a825",
+    "total_cost_usd": 2.67283725,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

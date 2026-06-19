@@ -1,0 +1,1723 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-187",
+  "planned_pack_id": "CP00-187",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "matter_core_permission_substrate_workflow_binding_verified",
+  "program_id": "RP05",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "primary_subphase_id": "RP05.P06.M05.S15",
+  "next_subphase": "RP05.P06.M05.S16",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-187",
+    "planned_pack_id": "CP00-187",
+    "title": "CP00-187 RP05.P06.M03.S20-RP05.P06.M05.S15 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP05.P06.M03.S20",
+      "last_unit_id": "RP05.P06.M05.S15",
+      "description": "RP05.P06.M03.S20-RP05.P06.M05.S15"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP05.P06.M03.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP05.P06.M03",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M03.S21",
+        "title": "Cross-tenant test",
+        "source_micro_phase_id": "RP05.P06.M03",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M03.S22",
+        "title": "Leak prevention test",
+        "source_micro_phase_id": "RP05.P06.M03",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M04.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M04.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M04.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M04.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M04.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M04.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M04.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP05.P06.M04.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M04.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M04.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M04.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M04.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M04.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M04.S21",
+        "title": "Cross-tenant test",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M04.S22",
+        "title": "Leak prevention test",
+        "source_micro_phase_id": "RP05.P06.M04",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP05.P06.M05.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M05.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP05.P06.M05.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P06.M05.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M05.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M05.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP05.P06.M05.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP05.P06.M05.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP05.P06.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP05.P06.M03.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP05.P06.M03",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M03.S21",
+      "title": "Cross-tenant test",
+      "source_micro_phase_id": "RP05.P06.M03",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M03.S22",
+      "title": "Leak prevention test",
+      "source_micro_phase_id": "RP05.P06.M03",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S21",
+      "title": "Cross-tenant test",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M04.S22",
+      "title": "Leak prevention test",
+      "source_micro_phase_id": "RP05.P06.M04",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    },
+    {
+      "id": "RP05.P06.M05.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP05.P06.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/src/index.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-187/manifest.json",
+        "docs/closeout-packs/cp00-187/command-evidence.json",
+        "docs/closeout-packs/cp00-187/claude-review-result.json",
+        "docs/closeout-packs/cp00-187/adjudication.md",
+        "docs/closeout-packs/cp00-187/construction-inspection.json"
+      ],
+      "production_ready": true
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-187/manifest.json",
+    "docs/closeout-packs/cp00-187/command-evidence.json",
+    "docs/closeout-packs/cp00-187/claude-review-result.json",
+    "docs/closeout-packs/cp00-187/adjudication.md",
+    "docs/closeout-packs/cp00-187/construction-inspection.json"
+  ],
+  "implementation_summary": {
+    "title": "Matter Core permission substrate workflow binding descriptor pack",
+    "descriptor": "MatterCorePermissionSubstrateWorkflowBindingDescriptor",
+    "source_substrate_pack_id": "CP00-186",
+    "binding_mode": "descriptor_only_permission_substrate_workflow_binding",
+    "descriptor_only": true,
+    "no_real_data": true,
+    "no_runtime_permission_evaluation": true,
+    "no_audit_event_write": true,
+    "no_review_or_approval_dispatch": true,
+    "no_live_dom_rendering": true,
+    "no_loop_engine": true,
+    "covered_units": 40,
+    "final_validation_precondition_satisfied": true
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "dirty_files_outside_active_pack_preserved": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-187/review-receipt.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-187/raw-output.json",
+    "hardened_sequence_required": [
+      "baseline",
+      "readiness",
+      "read_only_claude_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "adjudication",
+      "construction_inspection",
+      "final_closeout_validation"
+    ]
+  },
+  "commit_policy": {
+    "required": true,
+    "commit_message_prefix": "Close CP00-187",
+    "status": "ready_to_commit"
+  }
+}

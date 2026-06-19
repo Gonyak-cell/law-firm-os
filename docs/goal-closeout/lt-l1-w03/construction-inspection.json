@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L1-W03",
+  "inspected_at": "2026-06-18T14:44:26Z",
+  "verdict": "BLOCKED_EXTERNAL_LEGAL_REVIEW_AND_RATIFICATION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "retention_section_present": true,
+    "legal_hold_section_present": true,
+    "candidate_destruction_section_present": true,
+    "ai_prompt_output_retention_section_present": true,
+    "external_legal_review_result_artifact_id_present": false,
+    "human_policy_ratification_synthesized": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "legal_review_result_synthesized": false,
+    "policy_ratification_synthesized": false,
+    "launch_register_mutated_without_approval": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

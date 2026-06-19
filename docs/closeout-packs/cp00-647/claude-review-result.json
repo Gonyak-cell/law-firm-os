@@ -1,0 +1,69 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-647",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e8bb2af5-d1fa-47d9-96d3-f29b958b6744",
+    "uuid": "3ea80abe-aec8-4f7e-b307-7ccc0f26d874",
+    "total_cost_usd": 2.0048895,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-647/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-647/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-647 is a descriptor-only RP21 Admin Console slice (Test/Golden Case Set M07.S07-S22, Hermes Evidence Packet M08, Claude Review Packet M09.S01-S02; 40 units, risk B). Read-only inspection (Read/Grep/Glob) confirms the pack-level claim is supported and correctly scoped: manifest reports production_ready=false, runtime_ready=false, status=in_progress, and production_ready_flag=admin_console_test_evidence_review_packet_descriptor_verified (a descriptor-verification flag, not a runtime/enterprise-trust claim). Distribution matches the baseline exactly: deliverables {implementation:16, ui:6, claude_review:2, failure_recovery:4, test:8, contract:2, security_audit:2} and micro-phase rows M07=16/M08=22/M09=2, consistent across review-baseline, manifest plan_binding_snapshot, registry ADMIN_CONSOLE_CP647_REQUIREMENTS, and the generated contract. The M07 split is clean (CP646 covered S01-S06 prechecks; CP647 picks up S07 happy-path onward, 22 rows total, no gap/overlap). Boundary enforcement is real, not just asserted: validateAdminConsoleCp647TestEvidenceReviewPacketDescriptor (validators.js) checks every row for descriptor_only=true / runtime_execution=false / raw_payload_included=false, requires all 33 false-flags (writes_product_state, executes_*_runtime, evaluates_runtime_permission, emits/persists_audit_event, executes_golden_case_runtime, emits_hermes_runtime_receipt, exposes/persists_review_payload, leak_detected, permission_bypass_detected, etc.), the no-leak guards (incl. deny_over_allow_permission_baseline and no_real_tenant_matter_document_or_billing_data), promotes_claude_to_final_approval=false, runtime_case_execution_opened=false, hermes_runtime_receipt_emitted=false, review_payload_persisted=false, and the CP00-648/RP21.P02.M09.S03 handoff; model.test.js exercises these and the validator script asserts valid=true plus contract deep-equality and runtime_opened=false. Authority boundary is respected: Claude is read-only/non-final-approver (claude_final_approval_claimed=false everywhere, human_final_approval_required=true), Hermes is descriptor-only (hermes_runtime_opened=false, runtime_receipt_emitted=false, not embedded in product runtime). No-write/no-real-data holds (synthetic_only=true, no_real_data=true). Review-hardening pipeline is clean: readiness auth preflight passed with well-formed JSON, claude-review-result has empty valid_review_receipts and invalid_review_attempts (no auth failure, 0-byte, malformed, fenced, or tool-call-shaped output passed off as valid). Plan live_state, next-pack-queue (live_latest=CP00-647, next=CP00-648@RP21.P02.M09.S03), and contract current/historical bindings agree. Two non-blocking P3 advisories noted below; no P0/P1/P2. The expected human final-approval / enterprise-trust authority lies outside this receipt and the pack does not claim it, so goal-closeout is not blocked by that boundary.",
+    "findings": [
+      {
+        "id": "CP647-P3-01",
+        "severity": "P3",
+        "title": "source_descriptor_ref pack_id/production_ready_flag are hardcoded and could drift from a non-default source_descriptor",
+        "file": "packages/admin/src/service.js",
+        "line": 718,
+        "details": "In createAdminConsoleCp647TestEvidenceReviewPacketDescriptor, source_descriptor_ref.descriptor is read dynamically from the passed-in sourceDescriptor, but pack_id and production_ready_flag are hardcoded to ADMIN_CONSOLE_CP646_PACK_BINDING. If a caller ever passed input.source_descriptor that is not the CP646 descriptor, the ref would become internally inconsistent (descriptor name from one pack, pack_id from CP646). Every in-repo call site (validate-rp21-admin-console-contract.mjs, createAdminConsoleCoreContractProjection, model.test.js) passes the CP646 descriptor or uses the default, so the generated contract and all validations are correct today; the CP646 descriptor uses the same hardcoding pattern, so behavior is consistent across packs.",
+        "recommendation": "Optionally derive source_descriptor_ref.pack_id/production_ready_flag from sourceDescriptor.pack_binding, or assert the source descriptor matches the upstream pack, so the ref cannot silently drift. Non-blocking; no action required for CP00-647 closeout.",
+        "post_review_disposition": "Advisory only. Latent and unreachable via any current call path; does not affect descriptor outputs, validation results, or boundary enforcement. No fix required for closeout."
+      },
+      {
+        "id": "CP647-P3-02",
+        "severity": "P3",
+        "title": "Final closeout still requires the full validation matrix and exactly one valid pack-level review receipt",
+        "file": "docs/closeout-packs/cp00-647/command-evidence.json",
+        "line": 14,
+        "details": "command-evidence.json records node --check syntax checks on the six implementation files plus `npm run rp21:admin-console:validate` (all exit 0). The broader closeout matrix (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded, and claude-review-result.json shows exactly_one_valid_pack_level_claude_review_run=false with status=pending_review. manifest/command-evidence/construction-inspection all correctly remain in_progress/PENDING_REVIEW with production_ready=false, so this is the expected pre-review state rather than a defect. As a read-only reviewer I cannot execute these commands.",
+        "recommendation": "Before flipping status to closed, run the full validation matrix and normalize this review into a single valid hardened receipt (exactly_one_valid_pack_level_claude_review_run must become true). Keep production_ready=false until the descriptor-verification gate is satisfied; do not weaken any gate.",
+        "post_review_disposition": "Expected for an in_progress descriptor pack; the closeout harness runs the full matrix and persists the receipt after this verdict. Non-blocking for the descriptor review itself; setting it as a blocker would deadlock the review-then-close sequence."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "user_waiver": null
+}

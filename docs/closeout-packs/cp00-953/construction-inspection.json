@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-953",
+  "subphase_id": "RP30.P06.M07.S02",
+  "production_ready": true,
+  "runtime_ready": false,
+  "status": null,
+  "boundary": null,
+  "verdict": "PASS",
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1,
+    "reported_p0": 0,
+    "reported_p1": 0,
+    "reported_p2": 0,
+    "reported_p3": 1,
+    "p2_status": "fixed_or_deferred"
+  },
+  "hrx_sensitive_guard_m07_tail_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-953 is descriptor-only production-ready; HRX runtime opening, SensitiveGuard runtime, PayrollRestriction runtime, policy execution, decision emission, record writes, permission bypass, payroll runtime, runtime receipts, separate HRX product claims, enterprise trust, production deployment, real sensitive HR/payroll data, credentials, secrets, and final human approval remain deferred to CP00-954/RP30.P06.M07.S12 or later human-approved packs.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-953/review-receipt.json",
+  "invalid_review_attempts": []
+}

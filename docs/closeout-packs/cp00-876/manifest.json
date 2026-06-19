@@ -1,0 +1,557 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-876",
+  "planned_pack_id": "CP00-876",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "opens_runtime": false,
+    "writes_product_state": false,
+    "uses_real_client_data": false,
+    "summary": "CP00-876 closes the RP29 service-tail rows for approval-required routing, blocked-claim output, rollback behavior, retry behavior, happy/denied/review tests, integration smoke, service-entrypoint contract, and request normalization across RP29.P02.M03.S15-RP29.P02.M04.S02. It addresses the CP00-875 non-blocking P3 by adding explicit unsafe_deploy and customer_plan_mismatch service-matrix, validator, and test coverage while keeping approval, rollback, retry, secondary workflow, CI/CD, deployment, persistence, permission decisions, audit writes, runtime receipts, real client data, credentials, and secrets closed.",
+    "source_refs": [
+      "packages/commercial/README.md",
+      "packages/commercial/src/registry.js",
+      "packages/commercial/src/validators.js",
+      "packages/commercial/src/model.js",
+      "packages/commercial/src/states.js",
+      "packages/commercial/src/policies.js",
+      "packages/commercial/src/service.js",
+      "packages/commercial/test/model.test.js",
+      "packages/commercial/test/service.test.js",
+      "contracts/commercial-readiness-contract.json",
+      "contracts/commercial-contract.json",
+      "scripts/validate-rp29-commercial-readiness-contract.mjs",
+      "package.json",
+      "packages/commercial/src/index.js",
+      "packages/commercial/package.json"
+    ]
+  },
+  "program_id": "RP29",
+  "risk_class": "A",
+  "planned_risk_class": "A",
+  "unit_count": 10,
+  "planned_unit_count": 10,
+  "primary_subphase_id": "RP29.P02.M03.S15",
+  "next_subphase": "RP29.P02.M04.S03",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "production_ready_flag": "commercial_readiness_service_tail_descriptor_verified",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-876",
+    "planned_pack_id": "CP00-876",
+    "title": "CP00-876 RP29.P02.M03.S15-RP29.P02.M04.S02 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP29.P02.M03.S15",
+      "last_unit_id": "RP29.P02.M04.S02",
+      "description": "RP29.P02.M03.S15-RP29.P02.M04.S02"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP29.P02.M03.S15",
+        "title": "Approval-required routing",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP29.P02.M03.S16",
+        "title": "Blocked-claim output",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P02.M03.S17",
+        "title": "Rollback behavior",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP29.P02.M03.S18",
+        "title": "Retry behavior",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP29.P02.M03.S19",
+        "title": "Unit test: happy path",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP29.P02.M03.S20",
+        "title": "Unit test: denied path",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP29.P02.M03.S21",
+        "title": "Unit test: review path",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP29.P02.M03.S22",
+        "title": "Integration smoke case",
+        "source_micro_phase_id": "RP29.P02.M03",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP29.P02.M04.S01",
+        "title": "Service entrypoint contract",
+        "source_micro_phase_id": "RP29.P02.M04",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "contract"
+      },
+      {
+        "id": "RP29.P02.M04.S02",
+        "title": "Request normalization",
+        "source_micro_phase_id": "RP29.P02.M04",
+        "program_id": "RP29",
+        "phase_id": "RP29.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP29.P02.M03.S15",
+      "title": "Approval-required routing",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S16",
+      "title": "Blocked-claim output",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S17",
+      "title": "Rollback behavior",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S18",
+      "title": "Retry behavior",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S19",
+      "title": "Unit test: happy path",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S20",
+      "title": "Unit test: denied path",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S21",
+      "title": "Unit test: review path",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M03.S22",
+      "title": "Integration smoke case",
+      "source_micro_phase_id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M04.S01",
+      "title": "Service entrypoint contract",
+      "source_micro_phase_id": "RP29.P02.M04",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "contract",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    },
+    {
+      "id": "RP29.P02.M04.S02",
+      "title": "Request normalization",
+      "source_micro_phase_id": "RP29.P02.M04",
+      "program_id": "RP29",
+      "phase_id": "RP29.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/commercial/README.md",
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/service.js",
+        "packages/commercial/test/model.test.js",
+        "packages/commercial/test/service.test.js",
+        "contracts/commercial-readiness-contract.json",
+        "contracts/commercial-contract.json",
+        "scripts/validate-rp29-commercial-readiness-contract.mjs",
+        "package.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/package.json"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-876/manifest.json",
+    "docs/closeout-packs/cp00-876/command-evidence.json",
+    "docs/closeout-packs/cp00-876/claude-review-result.json",
+    "docs/closeout-packs/cp00-876/adjudication.md",
+    "docs/closeout-packs/cp00-876/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": []
+  },
+  "pack_level_claude_review": {
+    "status": "review_completed",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-876/review-receipt.json",
+    "inherited_previous_valid_review_receipts_not_counted": [
+      "artifacts/closeout-pack-claude-review/cp00-875/review-receipt.json"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-876/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "exactly_one_valid_pack_review_completed": true,
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "1dbf5278-14d6-47ab-a532-0dccb928236b",
+      "uuid": "be3360d2-08a6-4502-a295-8dc9eab4ac5f",
+      "total_cost_usd": 2.2145649999999995,
+      "permission_denials": []
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "commit_after_production_ready": true
+  }
+}

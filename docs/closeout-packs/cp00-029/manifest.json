@@ -1,0 +1,188 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-029",
+  "title": "Control-plane Test And Golden Case Set service entrypoint contract pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-06T15:49:06Z",
+  "completed_at": "2026-06-06T15:49:06Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "A",
+  "risk_reason": "Opens the Test And Golden Case Set microphase by defining the S01 service entrypoint contract and no-write golden metadata boundary after the terminal Synthetic Fixture Set lock rule, so this is a one-unit Risk A control-plane boundary pack.",
+  "primary_subphase_id": "RP00.P02.M07.S01",
+  "production_ready_flag": "control_plane_test_and_golden_case_set_service_entrypoint_contract_verified",
+  "unit_count": 1,
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "live_closeout_snapshot": {
+    "snapshot_at": "2026-06-06T15:49:06Z",
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "contract_subphase_closeouts": 151,
+    "closeout_pack_dirs": 29,
+    "remaining_by_closeout_dir_proxy": 55133,
+    "remaining_by_goal_closeout_dir_proxy": 55133,
+    "remaining_by_contract_subphase_closeout_proxy": 55105,
+    "validation_policy": "monotonic_after_snapshot_not_exact_equality",
+    "proxy_note": "This is a live evidence and contract proxy, not a claim that every weighted Law Firm OS plus HRX unit has a one-to-one directory."
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10,
+        "examples": [
+          "permission",
+          "audit",
+          "payments",
+          "settlement",
+          "DLP",
+          "AI",
+          "external_sharing"
+        ]
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40,
+        "examples": [
+          "core_workflows",
+          "APIs",
+          "state_transitions",
+          "failure_recovery"
+        ]
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150,
+        "examples": [
+          "fixtures",
+          "exports",
+          "README",
+          "repeated_validators",
+          "UI_planning"
+        ]
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-029/manifest.json",
+    "docs/closeout-packs/cp00-029/command-evidence.json",
+    "docs/closeout-packs/cp00-029/claude-review-result.json",
+    "docs/closeout-packs/cp00-029/adjudication.md",
+    "docs/closeout-packs/cp00-029/construction-inspection.json"
+  ],
+  "gate_policy": {
+    "implementation": "required",
+    "tests": "required",
+    "hermes_evidence": "required",
+    "claude_review": "exactly_one_pack_level_claude_opus_4_8_max_read_only_review_required",
+    "finding_adjudication": "required",
+    "construction_inspection": "required",
+    "included_units_production_ready": "required",
+    "commit": "required"
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "ignored_untracked_items": [
+      ".DS_Store",
+      "Law Firm OS UI/"
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP00.P02.M07.S01",
+      "title": "Service entrypoint contract",
+      "source_micro_phase_id": "RP00.P02.M07",
+      "micro_title": "Test And Golden Case Set",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "current_pack_transition_change",
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-028/manifest.json",
+        "docs/closeout-packs/cp00-028/command-evidence.json",
+        "docs/closeout-packs/cp00-028/claude-review-result.json",
+        "docs/closeout-packs/cp00-028/adjudication.md",
+        "docs/closeout-packs/cp00-028/construction-inspection.json"
+      ],
+      "prerequisite_evidence_refs": [
+        "docs/closeout-packs/cp00-001/manifest.json",
+        "docs/closeout-packs/cp00-002/manifest.json",
+        "docs/closeout-packs/cp00-003/manifest.json",
+        "docs/closeout-packs/cp00-004/manifest.json",
+        "docs/closeout-packs/cp00-005/manifest.json",
+        "docs/closeout-packs/cp00-006/manifest.json",
+        "docs/closeout-packs/cp00-007/manifest.json",
+        "docs/closeout-packs/cp00-008/manifest.json",
+        "docs/closeout-packs/cp00-009/manifest.json",
+        "docs/closeout-packs/cp00-010/manifest.json",
+        "docs/closeout-packs/cp00-011/manifest.json",
+        "docs/closeout-packs/cp00-012/manifest.json",
+        "docs/closeout-packs/cp00-013/manifest.json",
+        "docs/closeout-packs/cp00-014/manifest.json",
+        "docs/closeout-packs/cp00-015/manifest.json",
+        "docs/closeout-packs/cp00-016/manifest.json",
+        "docs/closeout-packs/cp00-017/manifest.json",
+        "docs/closeout-packs/cp00-018/manifest.json",
+        "docs/closeout-packs/cp00-019/manifest.json",
+        "docs/closeout-packs/cp00-020/manifest.json",
+        "docs/closeout-packs/cp00-021/manifest.json",
+        "docs/closeout-packs/cp00-022/manifest.json",
+        "docs/closeout-packs/cp00-023/manifest.json",
+        "docs/closeout-packs/cp00-024/manifest.json",
+        "docs/closeout-packs/cp00-025/manifest.json",
+        "docs/closeout-packs/cp00-026/manifest.json",
+        "docs/closeout-packs/cp00-027/manifest.json",
+        "docs/closeout-packs/cp00-028/manifest.json"
+      ],
+      "production_ready_flag": "control_plane_test_and_golden_case_set_service_entrypoint_contract_verified",
+      "source_micro_phase_completed": false,
+      "next_subphase": "RP00.P02.M07.S02"
+    }
+  ],
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "valid_review_ref": "docs/closeout-packs/cp00-029/claude-review-result.json",
+    "invalid_review_attempts_not_counted": 2,
+    "valid_review_raw_verdict": "request_changes",
+    "adjudicated_unresolved_p0_p1_p2": 0
+  },
+  "closeout_state_policy": {
+    "production_ready_flag": "control_plane_test_and_golden_case_set_service_entrypoint_contract_verified",
+    "closeout_pack_ref": "CP00-029",
+    "evidence_root": "docs/closeout-packs/cp00-029",
+    "source_micro_phase_completed": false,
+    "next_subphase": "RP00.P02.M07.S02"
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-029 test and golden case set service entrypoint pack",
+    "stage_only_related_files": true
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-L7-W03",
+  "inspected_at": "2026-06-18T14:29:38Z",
+  "verdict": "BLOCKED_FULL_BACKFILL_DELTA_AND_G8_PACKAGE_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "delta_sync_runbook_exists": false,
+    "cutover_freeze_final_delta_design_exists": false,
+    "backfill_preflight_checklist_exists": false,
+    "backfill_execution_summary_exists": false,
+    "backfill_verification_report_exists": false,
+    "delta_sync_operation_record_exists": false,
+    "gl_mig_03_package_exists": false,
+    "production_backfill_executed": false,
+    "delta_sync_operated": false,
+    "rollback_ready_verified": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "production_accessed": false,
+    "staging_real_data_accessed": false,
+    "production_data_written": false,
+    "m365_admin_operation_performed": false,
+    "file_server_accessed": false,
+    "sharepoint_accessed": false,
+    "outlook_mailbox_accessed": false,
+    "legacy_matter_register_accessed": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

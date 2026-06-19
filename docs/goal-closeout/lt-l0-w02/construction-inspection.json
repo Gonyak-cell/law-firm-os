@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L0-W02",
+  "inspected_at": "2026-06-18T14:35:02Z",
+  "verdict": "BLOCKED_RUNTIME_GAP_REPORT_HUMAN_APPROVAL_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "implementation_layer_ledger_exists": true,
+    "implementation_layer_ledger_validated": true,
+    "runtime_gap_report_exists": true,
+    "runtime_gap_matrix_cells": 35,
+    "l2_l4_rebaseline_mapping_rows": 13,
+    "human_approval_recorded": false,
+    "g2_closed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "human_approval_synthesized": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

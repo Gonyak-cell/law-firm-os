@@ -1,0 +1,105 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-065",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "cat prompt and /tmp/cp00-065-review.diff | claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "output_ref": "/tmp/cp00-065-claude-review-valid-output.json",
+    "session_id": "7bf01c81-bd63-4863-8efb-21aaf1437aca",
+    "uuid": "6e377912-1b2b-4acf-8075-fe43416c5db7",
+    "total_cost_usd": 2.238605,
+    "duration_ms": 286876,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 1
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": [],
+    "residual_risks": [],
+    "overall_summary": "CP00-065 'Synthetic Fixture Permission And Audit Binding' boundary suite is internally consistent across the contract definition, policy (CONTROL_PLANE_SYNTHETIC_FIXTURE_PERMISSION_AUDIT_BINDING_POLICY), module, assembler, validators, synthetic fixture, unit tests, and the RP00 contract validation script. It correctly binds Risk A units RP00.P05.M05.S01-S10, sets requested_pack_id=CP00-064 with a live-cursor correction to CP00-065, and intentionally leaves S11 for the next pack (source_micro_phase_completed=false, phase_completed=false, next_subphase=RP00.P05.M05.S11) exactly as the scope facts require. The assembler validates upstream CP00-064 pack identity and next_subphase=RP00.P05.M05.S01, fails closed to a 'blocked' decision with a coherent denied triplet when the upstream handoff is not bound, and rejects forbidden/unknown boundary claims; the result remains metadata-only with all runtime/write/permission-engine/audit-write flags false and no_real_data=true. Policy↔result field sets, acceptance gates, evidence refs (cp00-064), result_summary, construction_inspection, and README/test text markers all align with the validation script's expectations. Evidence files under docs/closeout-packs/cp00-065 are legitimately absent because this review precedes evidence creation. No P0/P1/P2/P3 issues identified."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 286876,
+    "duration_api_ms": 290792,
+    "ttft_ms": 281178,
+    "num_turns": 1,
+    "result": "{\"verdict\":\"pass\",\"summary\":\"CP00-065 'Synthetic Fixture Permission And Audit Binding' boundary suite is internally consistent across the contract definition, policy (CONTROL_PLANE_SYNTHETIC_FIXTURE_PERMISSION_AUDIT_BINDING_POLICY), module, assembler, validators, synthetic fixture, unit tests, and the RP00 contract validation script. It correctly binds Risk A units RP00.P05.M05.S01-S10, sets requested_pack_id=CP00-064 with a live-cursor correction to CP00-065, and intentionally leaves S11 for the next pack (source_micro_phase_completed=false, phase_completed=false, next_subphase=RP00.P05.M05.S11) exactly as the scope facts require. The assembler validates upstream CP00-064 pack identity and next_subphase=RP00.P05.M05.S01, fails closed to a 'blocked' decision with a coherent denied triplet when the upstream handoff is not bound, and rejects forbidden/unknown boundary claims; the result remains metadata-only with all runtime/write/permission-engine/audit-write flags false and no_real_data=true. Policy↔result field sets, acceptance gates, evidence refs (cp00-064), result_summary, construction_inspection, and README/test text markers all align with the validation script's expectations. Evidence files under docs/closeout-packs/cp00-065 are legitimately absent because this review precedes evidence creation. No P0/P1/P2/P3 issues identified.\",\"findings\":[],\"p0_count\":0,\"p1_count\":0,\"p2_count\":0,\"p3_count\":0}",
+    "stop_reason": "end_turn",
+    "session_id": "7bf01c81-bd63-4863-8efb-21aaf1437aca",
+    "total_cost_usd": 2.238605,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 215756,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 29076,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 215756,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 29076,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 215756,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 215756
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 161601,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.161696,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 29076,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 215756,
+        "webSearchRequests": 0,
+        "costUSD": 2.076909,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "6e377912-1b2b-4acf-8075-fe43416c5db7"
+  }
+}

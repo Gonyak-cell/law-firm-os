@@ -1,0 +1,70 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-059",
+  "subphase_id": "RP00.P04.M04.S11",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "e138e792-0e6a-43cc-aaaa-4095aaee149b",
+    "uuid": "46b331c9-01fc-4ac7-b790-762d68e0cfb8",
+    "duration_ms": 94977,
+    "duration_api_ms": 97428,
+    "total_cost_usd": 0.8395377500000001,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-059-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "format_noncompliant_no_actionable_findings_returned",
+    "raw_review_result_form": "claude_cli_json_wrapper_with_format_noncompliant_function_call_text",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "CP00-059-P3-01",
+          "severity": "P3",
+          "title": "Claude review output format was noncompliant",
+          "location": "/tmp/cp00-059-claude-review-output.json",
+          "description": "Claude CLI completed successfully with zero permission denials but returned function-call planning text instead of the requested strict verdict JSON. The raw result is preserved; no actionable P0/P1/P2 finding was returned.",
+          "impact": "Evidence quality issue only; CP00-059 closeout is additionally gated by focused tests, RP00 validation, closeout-pack validation, and final product validators.",
+          "recommendation": "Do not run a second Claude review for this pack; preserve the one-review policy and adjudicate the format defect as nonblocking.",
+          "blocks_closeout": false,
+          "status": "deferred_with_explicit_boundary",
+          "defer_reason": "One-review policy preserved; final local/Hermes validators independently enforce CP00-059 boundaries."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "plan_binding": "pass - CP00-059 Risk B 26-unit plan binding is enforced across contract, policy, module, fixture, README, tests, and validator checks.",
+      "source_micro_phase_completion": "pass - RP00.P04.M02, M03, and M04 are marked completed while RP00.P04 remains open to M05.",
+      "tenant_fail_closed": "pass - same-tenant synthetic metadata is required and cross-tenant matter metadata returns blocked refs without production-completion flags.",
+      "no_runtime_ui_render": "pass - runtime_ui_render_permitted=false and render claims are rejected.",
+      "no_external_asset_fetch": "pass - external_asset_fetch_permitted=false and asset/fetch claims are rejected.",
+      "no_review_queue_or_assignment_write": "pass - review_queue_write, assignment, and notification flags are false and unsafe claims are rejected.",
+      "no_permission_engine_authz_security_trimming": "pass - permission engine, AuthZ evaluator, and security trimming execution are forbidden in this metadata-only pack.",
+      "no_runtime_route_or_service_logic": "pass - runtime_route_created=false and service_logic_execution_permitted=false.",
+      "no_database_storage_idempotency_lock_audit_product_write": "pass - all persistence/write flags are false.",
+      "upstream_evidence_binding": "pass - CP00-058 evidence refs are required by policy and request."
+    },
+    "notes": [
+      "Claude CLI execution succeeded with zero permission denials and exactly one pack-level invocation, but the result text did not return the requested verdict/findings object.",
+      "The incomplete review format is preserved as evidence and adjudicated as nonblocking because it returned no actionable P0/P1/P2 findings, and local focused validation plus RP00 validator coverage independently bind the pack.",
+      "No additional Claude review was run for CP00-059 to preserve the one-review policy."
+    ],
+    "raw_result_excerpt": "Let me read my memory index and explore the key files in parallel.\n\n<function_calls>\n<invoke name=\"Read\">\n<parameter name=\"file_path\">/Users/jws/.claude/projects/-Users-jws-Documents-Codex-Law-Firm-OS/memory/MEMORY.md</parameter>\n</invoke>\n<invoke name=\"Bash\">\n<parameter name=\"command\">cd \"/Users/jws/Documents/Codex/Law Firm OS\" && ls -la docs/closeout-packs/ 2>/dev/null | tail -20 && echo \"---CP00-059---\" && ls -la docs/closeout-packs/cp00-059/ 2>/dev/null && echo \"---CP00-058---\" && ls -la docs/closeout-packs/cp00-058/ 2>/dev/null</parameter>\n</invoke>\n</function_calls>"
+  }
+}

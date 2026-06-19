@@ -1,0 +1,114 @@
+{
+  "subphase_id": "RP00.P02.M02.S02",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": false,
+    "permission_mode": "dontAsk",
+    "session_id": "2ff0a0a3-d414-41c4-a386-84f060256467",
+    "uuid": "89bda695-4014-4852-ad2e-087932bfeca7",
+    "total_cost_usd": 0.3239755,
+    "duration_ms": 138160,
+    "duration_api_ms": 139450,
+    "num_turns": 1,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "raw_result_path": "codex_exec_output:claude-rp00-p02-m02-s02-session-2ff0a0a",
+    "reviewed_input": "Provided RP00.P02.M02.S02 implementation summary plus validation summary; Claude tools were disabled with --tools \"\"."
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0_or_p1": true,
+    "findings": [
+      {
+        "severity": "P1",
+        "title": "Confirm production_ready is gated by the failing rp00 validator and is not independently asserted true for S02",
+        "file": "contracts/control-plane-contract.json",
+        "line": null,
+        "description": "Claude noted S02 must not be treated as closed while the five evidence artifacts are absent and rp00:control-plane:validate is failing.",
+        "recommendation": "Verify production_ready is gated by evidence artifacts and rp00 validation before final closeout.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "The RP00 validator failed before evidence on the five missing S02 evidence files, then this evidence set is written and npm run rp00:control-plane:validate is re-run green before commit. No external commit occurs until the validator gate passes."
+      },
+      {
+        "severity": "P2",
+        "title": "Verify all eight forbidden operations fail closed",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude asked for explicit coverage of writes, execution, runtime route creation, handoff drafting, human approval bypass, tenant boundary bypass, Hermes bypass, and Claude review bypass.",
+        "recommendation": "Add explicit negative tests and validator checks for every forbidden flag.",
+        "status": "fixed",
+        "disposition": "Added exact forbiddenInputClaims assertion, explicit negative test cases for all eight forbidden flags, and RP00 validator negative cases for all eight flags."
+      },
+      {
+        "severity": "P2",
+        "title": "Verify the frozen normalized output freezes nested arrays",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude noted shallow Object.freeze would not protect handoff_context_ids or acceptance_gate_ids.",
+        "recommendation": "Confirm nested arrays are frozen and mutation is rejected.",
+        "status": "fixed",
+        "disposition": "The normalizer freezes both canonical arrays. Tests now assert Object.isFrozen and push mutation throws for handoff_context_ids and acceptance_gate_ids; the RP00 validator also checks both arrays are frozen."
+      },
+      {
+        "severity": "P2",
+        "title": "Verify entrypoint and precheck-source identity are exact-match",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude asked to ensure M01 plan_authoring or wrong-subphase M00 marker cannot cross-wire into S02.",
+        "recommendation": "Use strict equality and negative tests for M01 entrypoint and wrong precheck markers.",
+        "status": "fixed",
+        "disposition": "The normalizer checks exact ai_implementation_handoff entrypoint through M00 S03 result assertion. Tests and RP00 validator now reject plan_authoring, wrong request_normalization_ref, and wrong tenant_boundary_precheck_subphase_id."
+      },
+      {
+        "severity": "P2",
+        "title": "Verify S02 completion gates require all five evidence artifacts plus a green rp00 validator",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": null,
+        "description": "Claude asked to confirm closeout cannot proceed with partial evidence.",
+        "recommendation": "Confirm packet, command evidence, Claude review, adjudication, construction inspection, and rp00 validation all gate closeout.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "The RP00 validator requires packet.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json for the current S02 closeout and requires H00 command evidence including rp00:control-plane:validate and spec:requirements:validate."
+      },
+      {
+        "severity": "P3",
+        "title": "Make precheck-scope reliance explicit",
+        "file": "contracts/control-plane-contract.json",
+        "line": null,
+        "description": "Claude noted S02 relies on phase-level M00 S03 while module-level precheck is deferred to S03.",
+        "recommendation": "Keep deferral metadata explicit.",
+        "status": "fixed",
+        "disposition": "Policy, contract definition, fixture, tests, and construction inspection explicitly record M00 S03 dependency plus S03/S04/S05/S06 precheck deferrals."
+      },
+      {
+        "severity": "P3",
+        "title": "no_real_data and writes_product_state are structural declarations at this layer",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude noted S02 is not runtime payload content inspection.",
+        "recommendation": "Record boundary for downstream runtime layers.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "S02 remains a metadata-only no-runtime normalizer. Later runtime or payload-bearing subphases must enforce content-level checks if real payloads appear."
+      },
+      {
+        "severity": "P3",
+        "title": "S01 canonical-ID coupling should retain a drift guard",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "description": "Claude noted S02 copies context and gate IDs from S01.",
+        "recommendation": "Keep pinned S01 refs and parity fixture.",
+        "status": "fixed",
+        "disposition": "S02 keeps service_entrypoint_contract_ref RP00.P02.M02.S01 and fixture/test/validator parity checks against canonical S01 arrays."
+      }
+    ],
+    "summary": "Claude returned PASS_WITH_FINDINGS from a read-only tools-disabled review. The closeout blockers were evidence absence and explicit verification items. P1 is resolved by the evidence-gated RP00 validator. P2 items were fixed with explicit negative tests, frozen nested array checks, wrong-marker rejection, and closeout evidence requirements.",
+    "residual_risk": "Low after post-review fixes and final validation. S02 remains metadata-only, no-write, no-runtime, no-service-execution, no implementation handoff drafting, no Hermes or Claude bypass, and no human approval bypass."
+  },
+  "production_ready": true
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-367",
+  "normalized_at": "2026-06-11T19:49:19.650Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-367/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-367/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-367/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-367/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5b6e1e23-702c-4353-a518-7aa5fc4e307e",
+    "uuid": "ae85e43e-8351-48a9-b666-ab277bdd9ca4",
+    "total_cost_usd": 1.8955617500000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5056,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-367 is a descriptor-only RP12 (Billing And Invoicing) closeout pack covering 150 planned units (RP12.P01.M06.S05-RP12.P02.M02.S22): it closes the P01 model-foundation phase (M06 tail, M07-M10) and opens the P02 foundation (M00 Scope Inventory, M01 Contract Draft, M02 Type And Shape Definition) as eight descriptor-only sections. Read/Grep/Glob inspection confirms the pack-level posture is correct and not over-claimed: command-evidence.json and manifest.json both set production_ready:false with status implemented_pending_review, and all 24 recorded evidence commands (node --check/--test, rp05-rp12 core validators, closeout/plan/spec/weighted/fullplan/goal/control-plane validation, npm test/validate/build, git diff --check) report exit_code 0. No-write/no-real-data boundaries hold: a grep of packages/billing/src found no fetch, child_process, fs writes, process.env, or db/http client usage, and every result is frozen with writes_product_state:false, no_real_data:true, and all dispatch/persist/execute/leak flags false, mirrored in the contract and manifest. Claude remains a read-only reviewer (tools limited to Read/Grep/Glob, read_only:true, forbidden_tools_present:false) and is not promoted to final approver (claude_is_final_approval:false, promotes_claude_to_final_approval:false, human_final_approval_required_for_runtime_opening:true). Hermes patterns appear only as deterministic descriptor packet/receipt strings (emits_hermes_runtime_receipt:false, hermes_runtime_embedded_in_product:false). Review-hardening is satisfied: readiness auth preflight passed with valid non-empty JSON (1444 bytes, exit 0, no stderr), no malformed/fenced/tool-call-shaped output, and invalid_attempts_preserved is empty. Coverage/distribution counts (deliverable, micro-title, phase) all sum to 150 and match the registry requirements and baseline, validated by node --test and rp12:billing-core:validate; index.js re-exports all CP367 public functions via export *, and README documents the CP00-367 section consistently. Unrelated dirty files are correctly classified as preserved and not treated as pack scope. No P0/P1/P2/P3 findings; the production_ready gate is not weakened. As an independent read-only reviewer I do not provide final enterprise-trust approval, which remains a human responsibility.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-299",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T01:15:38.286Z",
+  "finished_at": "2026-06-11T01:21:14.427Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":335542,\"duration_api_ms\":336850,\"ttft_ms\":3250,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-299 does not block pack or goal closeout.\\n\\nCP00-299 is a sound descriptor-only RP09 (CRM) bootstrap pack. All substantive checks passed: coverage math is self-consistent and validator-enforced, the contract JSON deep-equals the generated descriptor, tests and the validator are wired into `npm test`/`rp09:crm-core:validate` with all gates at exit 0, no-write/no-real-data/no-runtime boundaries are present and enforced, and the manifest correctly reports `production_ready: false` (pending review) with Claude held as read-only/non-final-approver and Hermes used only as a deterministic descriptor.\\n\\nThe single finding is **P3 (cosmetic)**: `packages/crm/src/validators.js:210` says \\\"twenty-one descriptor sections\\\" where the pack defines twenty (README and tests both say/assert 20). It's prose-only, not embedded in the contract, and drives no logic — recommend a one-word text fix at closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"eb7507a9-aa49-45cf-906f-84c37d378add\",\"total_cost_usd\":2.4252075,\"usage\":{\"input_tokens\":1915,\"cache_creation_input_tokens\":115906,\"cache_read_input_tokens\":2005754,\"output_tokens\":27483,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115906,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":413,\"cache_read_input_tokens\":149208,\"cache_creation_input_tokens\":6191,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6191},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1168,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001268,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1915,\"outputTokens\":27483,\"cacheReadInputTokens\":2005754,\"cacheCreationInputTokens\":115906,\"webSearchRequests\":0,\"costUSD\":2.4239395,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-299 is a descriptor-only RP09 (CRM And Business Development) bootstrap pack adding packages/crm, contracts/crm-core-contract.json, and the rp09:crm-core:validate gate; 150 units, risk class C, range RP09.P00.M00.S01-RP09.P01.M08.S05. Read-only inspection (Read/Grep/Glob) confirms the production-readiness posture is supported and not overclaimed: the manifest and command-evidence both report production_ready=false / implemented_pending_review, and the Hermes production_ready_candidate=true is correctly derived from coverage.valid && foundation.valid. Coverage is internally consistent and self-enforcing — phase counts (P00=52, P01=98=150), twenty descriptor sections, deliverable distribution (impl 104/contract 3/security_audit 6/ui 19/fixture 3/test 9/hermes 3/claude 3=150), and per-section row titles all match the plan pack and the SCOPE*/MODEL* arrays, enforced by validateCrmCoreCp299Coverage and validateCrmCoreCp299ScopeContractFoundationDescriptor. The contract JSON mirrors the generated descriptor (validator asserts deepEqual on descriptor, pack binding, requirements, and no-write attestation; historical_pack_bindings ends at CP00-299). Tests are wired into npm test (package.json:10) and the validator into rp09:crm-core:validate (package.json:62); command-evidence shows every gate at exit 0. No-write/no-real-data/no-runtime attestations are present and enforced; authority boundaries hold (Claude is read-only and non-final-approver; no enterprise trust claimed from local validation); Hermes is used only as a deterministic descriptor (emits_hermes_runtime_receipt=false), not product runtime. Review-hardening readiness shows a passed auth preflight, prompt within size limit (2488/25600 bytes), no full diff/source in prompt, and read-only tools only. One P3 cosmetic finding: a Claude-review question string says \\\"twenty-one\\\" sections where the pack defines twenty (no logic impact, not embedded in contract). No P0/P1/P2 issues; does not block pack or goal closeout.\",\"findings\":[{\"id\":\"CP00-299-P3-01\",\"severity\":\"P3\",\"title\":\"Claude review packet question text says 'twenty-one' descriptor sections but the pack defines twenty\",\"file\":\"packages/crm/src/validators.js\",\"line\":210,\"details\":\"In createCrmCoreCp299ClaudeReviewPacket the second review question begins 'Do the twenty-one descriptor sections (P00 M00-M10 scope foundation cycle and P01 M00-M08 model foundation cycle ...)'. The pack actually defines twenty sections: P00 M00-M10 = 11 micro-phases and P01 M00-M08 = 9 micro-phases = 20. This is confirmed by CRM_CORE_CP299_REQUIREMENTS.required_section_rows (20 keys), the case set section_count=20, the assertions in packages/crm/test/model.test.js (caseSet.section_count===20 and required_section_rows length===20), and packages/crm/README.md which correctly states 'twenty descriptor-only sections'. The wording lives only in a human-readable question string and is not embedded in contracts/crm-core-contract.json, so no validator, gate, or coverage computation depends on it. Cosmetic descriptor-text inconsistency only.\",\"recommendation\":\"Change 'twenty-one descriptor sections' to 'twenty descriptor sections' in packages/crm/src/validators.js:210 to match the actual section count and the README wording. No code or contract changes are required.\",\"post_review_disposition\":\"non_blocking_cosmetic_descriptor_text_correction\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"9d2866d3-f28f-48d2-be98-30a07fcbec3d\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6030,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "eb7507a9-aa49-45cf-906f-84c37d378add",
+    "uuid": "9d2866d3-f28f-48d2-be98-30a07fcbec3d",
+    "total_cost_usd": 2.4252075,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

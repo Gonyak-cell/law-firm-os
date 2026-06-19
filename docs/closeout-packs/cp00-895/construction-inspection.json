@@ -1,0 +1,46 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-895",
+  "subphase_id": "RP29.P09.M09.S04",
+  "verdict": "PASS",
+  "production_ready": true,
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2,
+    "p2_status": "fixed_or_deferred"
+  },
+  "commercial_readiness_review_packet_tail_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-895 is descriptor-only production-ready; review execution, workflow execution, runtime receipts, permission/audit writes, enterprise trust, and production deployment remain deferred to CP00-896/RP29.P09.M09.S14 and later human approval.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-895/review-receipt.json",
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "cp895-invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-895/invalid-attempt-01-raw-output.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-895/invalid-attempt-01-review-receipt.json",
+      "review_execution": {
+        "source": "claude_cli",
+        "runner": "scripts/run-closeout-pack-claude-review.mjs",
+        "model": "claude-opus-4-8",
+        "effort": "max",
+        "read_only": true,
+        "permission_mode": "dontAsk",
+        "tools": "Read,Grep,Glob",
+        "output_format": "json",
+        "json_schema": true,
+        "status": 1,
+        "signal": null,
+        "session_id": "dba02191-9c9a-49d2-85bd-5d3e920b9bfa",
+        "uuid": "ef875f10-9458-4f03-88cc-3da01b3fae2a",
+        "total_cost_usd": 1.9411777499999996,
+        "permission_denials": []
+      }
+    }
+  ]
+}

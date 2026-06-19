@@ -1,0 +1,198 @@
+{
+  "subphase_id": "RP00.P02.M03.S17",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Rollback behavior",
+  "created_at": "2026-06-05T12:49:45Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m03-s17-claude-review.json",
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 353816,
+  "duration_api_ms": 354843,
+  "session_id": "1452b103-f011-4652-aa9a-d8f98087739f",
+  "uuid": "33dfc7ed-7fa1-4b85-be76-ce9421f29350",
+  "total_cost_usd": 2.52953975,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 44,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_evidence": "GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude reported GO for S17 with no P0/P1 findings. Two P2 operational closeout findings are resolved by evidence creation and executable validation gates. Two P3 notes are informational and require no code change.",
+  "findings": [
+    {
+      "id": "CLAUDE-S17-P2-001",
+      "severity": "P2",
+      "title": "Closeout evidence not in diff",
+      "status": "resolved_by_evidence_creation",
+      "summary": "Claude noted that S17 closeout files were not yet present and that production_ready parity requires packet, command evidence, Claude review result, adjudication, and construction inspection.",
+      "resolution": "Added the S17 closeout evidence set under docs/goal-closeout/rp00-p02-m03-s17 and set the construction inspection verification flag."
+    },
+    {
+      "id": "CLAUDE-S17-P2-002",
+      "severity": "P2",
+      "title": "Executable gates not run in read-only review",
+      "status": "resolved_by_local_validation",
+      "summary": "Claude did not run Bash by design and requested in-repo test and validation gates before closeout.",
+      "resolution": "Ran parser checks, node tests, npm test, product contract validation, requirements validation, weighted ledger validation, full plan validation, goal closeout validation, git diff whitespace check, and RP00 control-plane validation."
+    },
+    {
+      "id": "CLAUDE-S17-P3-001",
+      "severity": "P3",
+      "title": "Validator reuse coupling for S18",
+      "status": "informational_no_code_change",
+      "summary": "Claude noted that S17 revalidates S16 shape by overriding working_product_behavior_ref and next_subphase and that future S18 copies must keep override lists in sync.",
+      "resolution": "No S17 action. This is a forward-looking warning for the next subphase."
+    },
+    {
+      "id": "CLAUDE-S17-P3-002",
+      "severity": "P3",
+      "title": "Incident traceability satisfied by strategy metadata",
+      "status": "informational_no_code_change",
+      "summary": "Claude noted that incidentTraceabilityRequired is satisfied by strategy definition while incident trace and observability writes remain forbidden.",
+      "resolution": "No code change. This is intentional for S17 and is documented by the strategy reason and no-write flags."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T12:49:45Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "1452b103-f011-4652-aa9a-d8f98087739f",
+    "uuid": "33dfc7ed-7fa1-4b85-be76-ce9421f29350",
+    "duration_ms": 353816,
+    "duration_api_ms": 354843,
+    "total_cost_usd": 2.52953975,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s17-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline prompt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s17-claude-review.json",
+    "duration_ms": 353816,
+    "duration_api_ms": 354843,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "33dfc7ed-7fa1-4b85-be76-ce9421f29350",
+    "session_id": "1452b103-f011-4652-aa9a-d8f98087739f"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "GO",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "Closeout evidence not in diff",
+        "location": "docs/goal-closeout/rp00-p02-m03-s17",
+        "status": "resolved_by_evidence_creation",
+        "summary": "S17 evidence files are required before production_ready."
+      },
+      {
+        "severity": "P2",
+        "title": "Executable gates not run",
+        "location": "local validation",
+        "status": "resolved_by_local_validation",
+        "summary": "Read-only Claude review did not run Bash; local gates were executed separately."
+      },
+      {
+        "severity": "P3",
+        "title": "Validator reuse coupling for S18",
+        "location": "packages/control-plane/src/validators.js",
+        "status": "informational_no_code_change",
+        "summary": "Future S18 copied nesting patterns must keep override lists synchronized."
+      },
+      {
+        "severity": "P3",
+        "title": "Incident traceability satisfied by strategy metadata",
+        "location": "packages/control-plane/src/policies.js",
+        "status": "informational_no_code_change",
+        "summary": "S17 intentionally records incident traceability as metadata while forbidding incident trace and observability writes."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S18 Retry behavior as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S17 metadata-only rollback behavior boundary, S16 dependency, recovery strategy refs, incident traceability metadata, no-write flags, validators, fixture parity, and S18 successor behavior.",
+      "There were no P0 or P1 findings."
+    ],
+    "summary": "Claude reported GO with no blocking findings. S17 is ready for closeout after evidence and final gate validation."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 2,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s17-claude-review.json",
+    "summary": "Claude returned GO with no P0/P1 findings; P2 closeout items are resolved by evidence and executable gates."
+  },
+  "overall_verdict": "PASS"
+}

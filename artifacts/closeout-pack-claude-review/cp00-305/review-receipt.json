@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-305",
+  "normalized_at": "2026-06-11T02:28:16.085Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-305/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-305/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-305/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-305/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "246236ae-b28c-41d5-a4fb-781068710889",
+    "uuid": "38fe9343-7565-4f40-8359-81a2ed3eaf8c",
+    "total_cost_usd": 2.0145312499999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6577,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-305 is a descriptor-only RP09 CRM \"UI binding slice\" pack (Risk A, 10 units RP09.P04.M05.S06-S15, micro M05 \"Permission And Audit Binding\") that faithfully follows the validated per-pack template established across CP00-299..CP00-304. Source inspection (Read/Grep/Glob) confirms identical CP00-305 values threaded through pack binding, requirements, the service.js factories, the crm-core-contract.json projection, validators, tests, the rp09 validate script, README, manifest, and command-evidence. The deliverable distribution (claude_review:1, ui:4, security_audit:2, implementation:3) and micro_title distribution (\"Permission And Audit Binding\":10) match the manifest/baseline. All no-write/no-real-data/no-runtime boundaries are asserted and validator-enforced, including deny-over-allow and per-row no-leak guards on permission decisions, audit hints, and validation errors. The authority boundary is correct: Claude is a read-only reviewer (allowed tools Read/Grep/Glob), claude_is_final_approval=false, enterprise trust is not claimed from local validation, and human approval is required to open runtime. The pack does not prematurely claim production_ready (manifest production_ready=false, status implemented_pending_review, review status pending); the only \"production_ready\" signal is the Hermes \"production_ready_candidate\" flag, which is appropriate at this stage. Hermes patterns are used only for the deterministic review packet/receipt, not product runtime (emits_hermes_runtime_receipt=false). All six prior-pack drift allow-lists include CP305, the readiness auth preflight passed with valid non-empty JSON (1436 bytes), and recorded command-evidence shows every implementation, contract, plan, and repo-wide validation command exiting 0. No P0/P1/P2 issues found. One cosmetic P3: the generated changed-file-scope.json over-lists the pack's own evidence dir and the stray new-session-handoff.md as \"unrelated_dirty_files_preserved\", but the authoritative manifest worktree policy scopes them correctly and no active untracked file is wrongly omitted, so there is no scope leak. This is an independent read-only review and not a final approval; human final approval remains required for any enterprise trust claim.",
+    "findings": [
+      {
+        "id": "CP00-305-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json over-lists pack-owned and stray docs under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-305/changed-file-scope.json",
+        "line": 100,
+        "details": "The generated review-scope file lists the pack's own evidence directory 'docs/closeout-packs/cp00-305/' and the pre-existing stray 'docs/closeout-pack-plan/new-session-handoff.md' inside unrelated_dirty_files_preserved, and additionally lists new-session-handoff.md under untracked_implementation_files. Labeling the pack's own output dir 'unrelated' is semantically imprecise (it is the active pack evidence dir). This is a quirk of how the scope generator buckets untracked files (active_pack_implementation_refs only enumerates tracked source files). The authoritative manifest worktree_transition_policy.unrelated_dirty_files_preserved correctly lists only the truly-unrelated files (the v2.0 .docx and the c-ldip review-results JSON), and active_untracked_implementation_files_omitted / active_pack_required_untracked_files are empty, so there is no actual scope leak, no commit-scope risk, and no boundary violation.",
+        "recommendation": "Optional: refine the changed-file-scope generator so the active pack's own docs/closeout-packs/<pack>/ evidence dir is classified as active pack scope rather than 'unrelated', and reconcile the dual listing of new-session-handoff.md. No change to pack implementation or commit scope is required; non-blocking.",
+        "post_review_disposition": "informational_non_blocking_no_remediation_required_before_closeout"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

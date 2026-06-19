@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-739",
+  "normalized_at": "2026-06-15T09:33:25.508Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-739/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-739/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-739/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-739/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "3ec28a26-17e0-495a-9bfc-364cb5787e63",
+    "uuid": "14efe6f2-cc9e-4547-bdd8-e158164d49cc",
+    "total_cost_usd": 1.98788375,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9100,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-739 (RP24.P05.M06.S01-S10, risk A, 10 units, micro \"Synthetic Fixture Set\") is a clean, descriptor-only continuation of the CP722-CP738 Korean Legal Depth pattern, and its production_ready claim — the descriptor-verified flag korean_legal_p05_synthetic_fixture_foundation_descriptor_verified, NOT a runtime/enterprise-trust claim — is supported. Verified by direct read-only source inspection: (1) Implementation wiring is consistent across registry.js (KOREAN_LEGAL_CP739_PACK_BINDING L298, REQUIREMENTS L2737), service.js (case set/descriptor/hermes/claude/handoff L88-89,146-148), validators.js (coverage+descriptor L61-63), index.js (export * wildcard re-export covers CP739), README CP00-739 (L73-75), and the regenerated contract projection where current_pack/latest_pack/latest_projection = CP00-739 (contracts/korean-legal-depth-contract.json L49-80, projections.cp739 L23697). (2) Deliverable distribution matches the prompt exactly: fixture 6 (S01-S06), claude_review 1 (S07), implementation 3 (S08-S10) = 10, and micro_title_distribution {\"Synthetic Fixture Set\":10}; KOREAN_LEGAL_CP739_REQUIREMENTS.deliverable_counts mirrors this (registry L2738-2742). (3) Tests model.test.js L43-45 cover binding/coverage, runtime-closed authority boundary (runtime_opening_pack_id=CP00-740, hwpx/court/litigation/corporate closed, hermes emits_runtime_receipt=false, claude read_only=true, handoff to next pack), and the contract projection (latest_pack CP00-739, cp722-cp738 historical, validation.valid=true). (4) Boundaries hold everywhere: NO_WRITE_ATTESTATION (descriptor_only, no_real_data, synthetic_only, writes_product_state=false) applied via freezeResult; createCaseSet rows enforce descriptor_only=true/runtime_execution=false and set raw_payload_included/legal_source_payload_included/external_credential_included/real_client_data_included/fixture_payload_included=false; HWPX/court-filing/litigation/corporate/clause runtime all closed. A repo scan found no secrets/PII in packages/korean-legal, and no no-leak guard field is ever set to true and no \"valid\":false / runtime_opened:true / production_ready:true / runtime_ready:true appears anywhere in the regenerated contract. (5) Hermes pattern is used only for deterministic descriptor evidence packets (emits_runtime_receipt=false, receipt_shape descriptor_only_korean_legal_no_write), not product runtime; hermes_runtime_embedded_in_product=false. (6) Claude stays read-only and non-final (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true); manifest/command-evidence/contract show no production_ready=true, no runtime opened, no enterprise-trust claim. (7) Manifest honestly reports production_ready=false, runtime_ready=false, status in_progress; construction-inspection.json, claude-review-result.json, and adjudication.md are PENDING/not_started by design because they await this receipt (the same pre-review state CP00-738 passed through). (8) changed-file-scope.json correctly isolates pack implementation refs from unrelated dirty UI/matter/ldip files. Readiness auth-preflight passed (readiness-report.json: exit 0, 1434-byte stdout, no errors), and validation-report.json confirms prompt size ok, read_tools mode, no forbidden tools, schema present. No P0/P1/P2 issues. Two non-blocking P3 transparency notes follow. Provenance note: this is a read-only, no-Bash review, so the validation-ladder PASS/FAIL outcomes are taken from command-evidence.json (all required gates exit_code 0) and corroborated through source and artifact cross-checks, not re-executed by me.",
+    "findings": [
+      {
+        "id": "CP00-739-P3-001",
+        "severity": "P3",
+        "title": "Validation outcomes are evidence-reported, not re-executed in this read-only review",
+        "file": "docs/closeout-packs/cp00-739/command-evidence.json",
+        "line": 22,
+        "details": "command-evidence.json records all required gates (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) plus build, node --check, and node --test as exit_code 0. As a read-only reviewer without Bash, I did not re-execute these; I corroborated them by direct source inspection (registry/service/validators/index/test/README wiring) and artifact cross-checks (contract has no \"valid\":false and no no-leak guard set true; projections.cp739 present; latest_pack=CP00-739). This is consistent with the defined read-tools/no-Bash review mode and is not a defect.",
+        "recommendation": "Final human/orchestrator approval retains authority to confirm CI re-execution before any future enterprise-trust or runtime claim; no action needed for this descriptor-only CP closeout.",
+        "post_review_disposition": "informational; consistent with defined read-only review mode; non-blocking"
+      },
+      {
+        "id": "CP00-739-P3-002",
+        "severity": "P3",
+        "title": "Live plan/queue control-plane files are dirty and classified unrelated though they reflect CP00-739 generation",
+        "file": "artifacts/closeout-pack-claude-review/cp00-739/changed-file-scope.json",
+        "line": 181,
+        "details": "docs/closeout-pack-plan/closeout-pack-plan.json and next-pack-queue.json appear under unrelated_dirty_files_preserved, yet they reflect CP00-739's own regeneration (closeout-pack-plan.json marks CP00-739 pack_number 739 with generated_at 2026-06-15T09:28:31.736Z; next-pack-queue.json live_latest_pack_id=CP00-739, live_next_unit_id=RP24.P05.M06.S11, preview CP00-740). That generated_at matches the closeout-pack-plan:generate step window in command-evidence.json (09:28:30.684-09:28:31.767). The pack remains self-contained because manifest.plan_binding_snapshot embeds the CP00-739 plan binding (manifest L409-532), so coverage validation does not depend on the dirty plan file. This is the established control-plane separation, not a scope error.",
+        "recommendation": "Confirm the closeout (or paired control-plane) commit captures the intended plan/queue state so the live cursor advancing to CP00-740 / RP24.P05.M06.S11 is persisted as expected.",
+        "post_review_disposition": "informational/by-design; non-blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

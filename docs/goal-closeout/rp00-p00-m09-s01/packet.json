@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P00.M09.S01",
+  "source_micro_phase_id": "RP00.P00.M09",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Inventory the C00 Claude design brief question categories and evidence inputs for Product Constitution And AI Control Plane before implementation handoff.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m09-s01/packet.json",
+    "docs/goal-closeout/rp00-p00-m09-s01/command-evidence.json",
+    "hermes/project.json",
+    "package.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P00.M09.S01 in implemented state.",
+    "Adds c00_design_brief_scope_inventory with question categories for architecture scope drift, security boundaries, AI writes without review, validation theater, missing tests, blocked claims, and go/no-go decisions.",
+    "Records required review packet sections, evidence inputs, severity policy, go/no-go policy, and metadata-only scope boundaries.",
+    "Extends the RP00 validator and README with the C00 design brief scope inventory."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not approve generated output, AI write behavior, H00 replacement, human-approval replacement, M09 completion, or RP00 completion.",
+    "Does not replace the actual C00 review; it defines the scope that the actual review must cover."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P00.M09.S02"
+  },
+  "claude_questions": [
+    "Does c00_design_brief_scope_inventory bind to RP00.P00.M09.S01 and define C00 design brief scope only?",
+    "Are the review question categories sufficient for architecture scope drift, security and permission boundaries, AI write without review, validation theater, missing tests, blocked claims, and go/no-go decisions?",
+    "Do the required packet sections, evidence inputs, severity policy, and P0/P1/P2 disposition policy preserve actual C00 review authority without replacing H00 or human approval?",
+    "Does the implementation avoid claims of production mutation, real-data import, generation output approval, H00 or human replacement, M09 completion, or RP00 completion?"
+  ],
+  "risk_focus": [
+    "Scope drift from design brief inventory into actual approval authority.",
+    "Missing security or missing-test questions in the C00 review packet.",
+    "Validation theater where a C00 packet exists but P0/P1/P2 disposition is not clear.",
+    "Confusing this scope inventory with the M09.S02 acceptance gate definition."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-272",
+  "normalized_at": "2026-06-10T20:09:25.625Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-272/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-272/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-272/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-272/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "faf06ae2-847f-495d-9368-19f5205b9db3",
+    "uuid": "971a83bd-626e-41fa-a266-73c2b615dc70",
+    "total_cost_usd": 2.1914267499999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8146,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-272 is a clean, descriptor-only foundation pack that bootstraps the RP08 (Email And Office Native DMS) program. The pack-level production-ready posture is supported and honestly stated: the manifest and command-evidence record production_ready=false with status \"implemented_pending_review\"/\"implementation_and_plan_gates_passed_pending_final_closeout\", while the Hermes evidence packet reports only production_ready_candidate=true gated on coverage.valid && foundation.valid. Coverage reconciles exactly across every artifact: 150 RP08 units (RP08.P00.M00.S01 -> RP08.P01.M02.S08) in the live closeout-pack-plan, review-baseline, manifest plan_binding_snapshot, registry pack binding, and the serialized contract; deliverable distribution sums to 150 (implementation 108, contract 8, security_audit 16, hermes_evidence 7, claude_review 3, ui 8) and the micro-phase/micro-title distributions match the validator's expectations. The cursor chain is consistent (CP00-271 next_subphase RP08.P00.M00.S01 -> CP00-272 -> CP00-273 first RP08.P01.M02.S09). Implementation (registry.js/service.js/validators.js/index.js) is fully Object.freeze descriptor data with explicit no-write attestations; contracts/email-dms-core-contract.json is a faithful projection that the validator/test deep-equal against the in-code objects, and package.json wires both the rp08:email-dms-core:validate script and the test glob. No-write/no-real-data boundaries hold throughout: no email/Office-native/sync/filing runtime, no permission evaluation, no audit/state/object-storage writes, no command runtime, and no Hermes runtime receipt (Hermes patterns are used only as deterministic descriptor review-packet/receipt shapes, not product runtime). The authority boundary is preserved everywhere: claude_is_final_approval=false, enterprise trust not claimed from local validation, and human approval required before any runtime opening. CP178+ review-hardening is satisfied: the auth preflight passed with valid non-empty JSON (exit 0), the prompt excludes full diff/source with read_tools_used inspection (summary-only prohibited and not used), the schema is present, and tools are restricted to Read/Grep/Glob. The referenced raw-output.json and review-receipt.json are absent because they are produced by THIS read_only_claude_run step of the hardened sequence (correct, not a defect), and the untracked c-ldip-01-invalid-attempt-01.json belongs to a separate LDIP review chain and is correctly out of scope. One P3 cosmetic finding: changed-file-scope.json redundantly lists active pack directories under unrelated_dirty_files_preserved; the authoritative active_pack_implementation_refs and the manifest worktree policy are correct, so there is no scope leakage. Note for transparency: at 150 units the pack sits exactly at the risk-class-C ceiling (40-150), which is within policy. No P0/P1/P2 issues; the pack is ready for post-review closeout subject to the normal human/final-approval gate.",
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists active pack directories under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-272/changed-file-scope.json",
+        "line": 84,
+        "details": "The unrelated_dirty_files_preserved array (lines 84-90) includes packages/email-dms/ and docs/closeout-packs/cp00-272/, which are core to CP00-272 and are also (correctly) enumerated as active pack files via active_pack_implementation_refs (lines 5-16) and untracked_implementation_files (lines 76-82). The duplication stems from git reporting untracked content at directory granularity (git status shows '?? packages/email-dms/' rather than individual files), and the scope generator copying every untracked git row into unrelated_dirty_files_preserved while separately resolving the active implementation files. There is no actual scope leakage: active_pack_implementation_refs lists the precise pack files, and the authoritative manifest worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json lines 6283-6286) correctly lists ONLY the unrelated .docx and the separate-chain docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json. So this is a presentational/tooling inconsistency, not a substantive misclassification.",
+        "recommendation": "Have the changed-file-scope generator exclude any path already resolved into active_pack_implementation_refs from unrelated_dirty_files_preserved so the artifact matches the manifest's worktree_transition_policy. Non-blocking; no pack content change required.",
+        "post_review_disposition": "Non-blocking informational nit. No change required for CP00-272 closeout; active_pack_implementation_refs and the manifest worktree policy are authoritative and correct. Recommend tightening the scope generator in a future review-tooling pass."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

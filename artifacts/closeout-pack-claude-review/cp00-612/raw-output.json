@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-612",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T05:34:56.491Z",
+  "finished_at": "2026-06-13T05:40:05.575Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":308374,\"duration_api_ms\":309006,\"ttft_ms\":2662,\"num_turns\":34,\"result\":\"Review complete. **Verdict: PASS** — no findings.\\n\\nCP00-612 is a clean descriptor-only RP20 Data Room/VDR continuation (40 units, risk B). I verified the 40-unit/3-section coverage and deliverable distribution against the registry, the live plan, and the validator; confirmed the contract projections match the registry constants the tests assert against; confirmed all no-write/no-real-data/permission-audit boundaries hold; and confirmed the authority boundary (Claude read-only and non-approving, human approval gated, production_ready exposed only as a candidate). Review-hardening preconditions (auth preflight exit 0, prompt size, Read/Grep/Glob-only) are satisfied, and the pending adjudication/inspection artifacts are the correct pre-review state.\\n\\nThe only caveat noted in the verdict: as a read-only reviewer I can't execute the validation command matrix, so final closeout still depends on those commands passing at exit 0 plus human approval.\",\"stop_reason\":\"end_turn\",\"session_id\":\"b4a94e66-671b-4575-aa94-70775cdda422\",\"total_cost_usd\":2.160941,\"usage\":{\"input_tokens\":69,\"cache_creation_input_tokens\":145136,\"cache_read_input_tokens\":1207308,\"output_tokens\":25946,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":145136,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":360,\"cache_read_input_tokens\":138017,\"cache_creation_input_tokens\":7938,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7938},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1097,\"outputTokens\":19,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011920000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":69,\"outputTokens\":25946,\"cacheReadInputTokens\":1207308,\"cacheCreationInputTokens\":145136,\"webSearchRequests\":0,\"costUSD\":2.1597489999999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-612 is a clean, internally consistent descriptor-only continuation of the RP20 Data Room And VDR P01 queue (RP20.P01.M04.S07–RP20.P01.M06.S04, risk B, 40 units). Read-only inspection of registry.js/service.js/validators.js, the contract projections, the test suite, README, package.json wiring, and the live closeout-pack-plan confirms the pack-level production_ready claim is supported.\\n\\nVerified: (1) Section rows produce exactly 40 units across 3 micro-sections (M04=14 Secondary Workflow Slice, M05=22 Permission And Audit Binding, M06=4 Synthetic Fixture Set); per-row deliverable-type mapping was manually recomputed and equals the plan's per-unit types and the validator's expected counts {implementation:22, ui:6, fixture:2, test:6, hermes_evidence:2, claude_review:2} = 40. (2) The M04 boundary against CP611 (S01–S06 in CP611, S07–S20 in CP612) is clean and non-overlapping. (3) contracts/data-room-vdr-core-contract.json cp612_pack_binding, cp612_requirements, cp612_no_write_attestation, and the cp612 descriptor projection match the registry constants the model.test.js deep-equals assert against. (4) No-write/no-real-data boundaries are comprehensive: freezeCp612Result and the no-write attestation set all data-room/vdr/rfi/cp/closing-binder/access-analytics runtime, permission-decision, audit-trace, object-storage, fixture, and real-data flags to false; CP612 validators additionally assert writes_permission_decision/appends_audit_trace/loads_real_fixture_data are false. (5) Authority boundary holds: claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true; validators only ever return production_ready_candidate, never a final ready claim, preserving the production_ready gate. (6) Hermes usage is deterministic descriptor packet/receipt shaping only (emits_hermes_runtime_receipt=false), not product runtime. (7) Review hardening is satisfied: readiness auth preflight passed (exit 0, 1434-byte stdout), prompt is 2236 B (<25600) with no embedded diff/source, tools limited to Read/Grep/Glob, no forbidden tools.\\n\\nThe pending evidence files (command-evidence.json commands:[], adjudication.md pending, construction-inspection.json PENDING_REVIEW, manifest production_ready:false/status:in_progress) are the correct pre-adjudication state for the read_only_claude_run_raw_capture step; they are populated downstream in the hardening sequence (normalize → receipt_validate → finding_adjudication → construction_inspection → final_closeout_validation → commit). Unrelated dirty files (progress-control-room, workbook/*, LDIP integration JSON) are correctly out of pack scope and were not treated as part of CP00-612.\\n\\nLimitation: as a read-only reviewer I cannot execute the closeout validation command matrix (npm test, npm run validate, etc.); source inspection indicates these would pass, but final pack closeout remains contingent on that matrix completing at exit 0 plus human final approval — Claude is an independent reviewer, not the final approver. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ada66c24-f53e-4dee-826a-71fba5dd6f43\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5771,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "b4a94e66-671b-4575-aa94-70775cdda422",
+    "uuid": "ada66c24-f53e-4dee-826a-71fba5dd6f43",
+    "total_cost_usd": 2.160941,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

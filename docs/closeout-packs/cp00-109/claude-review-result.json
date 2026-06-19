@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-109",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-109-claude-review-output-valid.json",
+    "session_id": "7fc67ca5-2475-4459-a33e-5f89ca0c24a8",
+    "uuid": "3ecf2e4f-96c9-4768-9f3d-2253ab1331fc",
+    "duration_ms": 238713,
+    "total_cost_usd": 0.70599925,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Negative-path precheck branches (matter-trace drift, non-synthetic) are unexercised by tests/validator",
+        "file": "packages/authz/test/authz.test.js",
+        "evidence": "createPermissionKernelCp109ServicePrecheck produces reason 'matter_trace_precheck_failed' (same-tenant, differing matter ids) and 'non_synthetic_request_blocked' (synthetic:false), but authz.test.js and validatePermissionKernelCp109Coverage only assert the pass case and the cross-tenant block ('tenant_boundary_precheck_failed'). The contract declares 'matter_trace_blocks_before_permission_precheck' as a failure boundary, yet no test proves that branch blocks before permission evaluation.",
+        "recommendation": "Add assertions that a same-tenant/cross-matter request returns status 'blocked_before_permission_evaluation' with reason 'matter_trace_precheck_failed', and that synthetic:false blocks, to fully exercise the declared failure boundary. Non-blocking for this reference-only Risk C scaffold; close before CP00-110 wires real evaluation."
+      },
+      {
+        "severity": "P3",
+        "title": "Validator self-asserts the 150-unit distribution without cross-checking the referenced generated plan",
+        "file": "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "The contract validator and validatePermissionKernelCp109Coverage verify internal counts/ranges/uniqueness, per-deliverable distribution, the 15-flag no_write_attestation, precheck behavior, handoff, and contract JSON alignment, but never read or compare against docs/closeout-pack-plan/closeout-pack-plan.json named in plan_ref. The 150-unit (71 model + 79 service) per-micro-phase distribution is therefore self-asserted; plan drift would not be detected by this gate.",
+        "recommendation": "Consider cross-checking the catalog unit range and per-micro-phase counts against the authoritative generated plan to catch drift. Consistent with the CP00-108 foundation pattern, so non-blocking for CP00-109."
+      }
+    ],
+    "recommendation": "approve",
+    "rationale": "CP00-109 is a synthetic, catalog-only model/service scaffold over RP02.P01.M06.S01-RP02.P02.M04.S06. The catalog totals 150 units (71 permission_model + 79 permission_service); first unit RP02.P01.M06.S01, last RP02.P02.M04.S06, 10 micro-phases, with unique ids and a per-deliverable distribution (impl 77, ui 23, contract 5, security_audit 10, test 17, fixture 3, hermes_evidence 3, claude_review 6, failure_recovery 6) asserted consistently in build logic, validatePermissionKernelCp109Coverage, authz.test.js, and the contract validator (all green per evidence: 12 node:test, npm test 984, rp02 validate). The 15-flag no_write_attestation (no permission-policy mutation, no audit writes, no product-state writes, no idempotency persistence, no lock acquisition, no rollback/retry execution, no AI retrieval/export/external share, no human-approval grant, no Claude-review execution, no LDIP) is stamped on every catalog row and double-verified in both the source contract and contracts/permission-kernel-contract.json. createPermissionKernelCp109ServicePrecheck is a pure, metadata-only function returning reference-only statuses with explicit writes_product_state/writes_audit_event/mutates_permission_policy=false, and fails closed on explicit cross-tenant (and cross-matter) drift before permission evaluation. Idempotency/lock/rollback/retry are catalog references only. Handoff is fixed to CP00-110 / RP02.P02.M04.S07 with ldip_implemented=false. The two P3 notes (untested matter-drift/non-synthetic precheck branches; absence of an external plan cross-check) are non-blocking forward observations. The production_ready flag 'permission_kernel_model_service_catalog_verified' is adequately gated for this Risk C catalog/metadata-precheck scope.",
+    "notes": [
+      "No P0/P1/P2 findings were reported by the valid CP00-109 pack-level Claude review.",
+      "P3 finding about unexercised negative precheck branches was fixed by adding matter-drift and non-synthetic checks in tests and validator.",
+      "P3 finding about plan cross-checking was fixed by comparing CP00-109 generated unit ids to docs/closeout-pack-plan/closeout-pack-plan.json.",
+      "No second valid Claude review was run."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [],
+    "p3_fixed_or_documented": [
+      {
+        "title": "Negative-path precheck branches (matter-trace drift, non-synthetic) are unexercised by tests/validator",
+        "disposition": "fixed_by_post_review_test_and_validator_hardening",
+        "evidence_refs": [
+          "packages/authz/test/authz.test.js",
+          "scripts/validate-rp02-permission-kernel-contract.mjs"
+        ]
+      },
+      {
+        "title": "Validator self-asserts the 150-unit distribution without cross-checking the referenced generated plan",
+        "disposition": "fixed_by_post_review_plan_cross_check",
+        "evidence_refs": [
+          "scripts/validate-rp02-permission-kernel-contract.mjs",
+          "docs/closeout-pack-plan/closeout-pack-plan.json"
+        ]
+      }
+    ],
+    "no_second_valid_review_run": true
+  }
+}

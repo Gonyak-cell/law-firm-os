@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-376",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T20:55:30.078Z",
+  "finished_at": "2026-06-11T21:00:57.946Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":326670,\"duration_api_ms\":327346,\"ttft_ms\":5384,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-376 is sound and not blocked.\\n\\n**What I confirmed (read-only, no Bash/edits):**\\n- Range/risk/unit-count and deliverable + micro-title distribution agree across plan, baseline, manifest, contract, and code constants (10 units, risk A, `{test:1,hermes_evidence:1,claude_review:1,implementation:3,ui:4}`).\\n- All 7 declared exports exist as pure frozen descriptor builders; `index.js` propagates them via `export *`; zero runtime/write/IO patterns in `packages/billing/src`.\\n- `model.test.js:696-724` deep-equals the contract's CP376 descriptor/requirements/attestation against code, asserts descriptor-only rows, `claude_is_final_approval=false`, and the CP00-377 handoff.\\n- Boundaries hold: `production_ready=false`/`runtime_ready=false` (no over-claim, gates not weakened), `promotes_claude_to_final_approval=false`, `claims_enterprise_trust_from_local_validation=false`, Hermes used only for the H12 `_no_write` evidence receipt.\\n- CP178+ hardening satisfied: auth preflight passed with valid JSON, prompt within size limit, no forbidden tools, `read_tools_used`.\\n\\n**Findings:** 1 × P3 (non-blocking) — `changed-file-scope.json` lists the pack's own `cp00-376/` artifact dir and `new-session-handoff.md` in both `untracked_implementation_files` and `unrelated_dirty_files_preserved`; cosmetic generator nuance, no impact on scope or gating.\\n\\nNo P0/P1/P2. Pack closeout and goal closeout are not blocked; final enterprise-trust approval remains a human step downstream.\",\"stop_reason\":\"end_turn\",\"session_id\":\"fe85e0fc-2879-4363-b91b-eb1a5765e8f2\",\"total_cost_usd\":2.0437565,\"usage\":{\"input_tokens\":46,\"cache_creation_input_tokens\":110250,\"cache_read_input_tokens\":1396020,\"output_tokens\":15688,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":110250,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":653,\"cache_read_input_tokens\":113784,\"cache_creation_input_tokens\":7637,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7637},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1085,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00119,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":23296,\"cacheReadInputTokens\":1507028,\"cacheCreationInputTokens\":113026,\"webSearchRequests\":0,\"costUSD\":2.0425665,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-376 (RP12.P04.M05.S17–RP12.P04.M06.S04, risk A, 10 units) is a descriptor-only billing-core pack covering the M05 Permission And Audit Binding tail (6 rows) and M06 Synthetic Fixture Set head (4 rows). Independent read-only inspection confirms the pack-level claim is fully supported: (1) range/risk/unit-count and deliverable+micro-title distribution agree across the plan (closeout-pack-plan.json), baseline, manifest, contract, and code constants; (2) all 7 declared public exports exist and are implemented as pure frozen descriptor builders (service.js:1610/1643, validators.js:2451/2486/2542/2563/2586) re-exported via index.js `export *`; (3) packages/billing/src contains zero runtime/write/IO patterns (no fs/fetch/child_process/process.env/SQL/db); (4) model.test.js:696-724 deep-equals the contract's p04_permission_fixture_slice_descriptor, cp376_requirements, and cp376_no_write_attestation against code constants and asserts descriptor-only rows, claude_is_final_approval=false, production_ready_candidate=true, and the CP00-377 handoff (next RP12.P04.M06.S05); (5) the RP12 validator covers CP00-376. Boundaries hold: manifest production_ready=false and runtime_ready=false (no over-claim and no weakening of production_ready gates), no_write_attestation sets promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false, and Hermes is used only for the deterministic H12 descriptor-only `_no_write` evidence receipt (emits_hermes_runtime_receipt=false), not product runtime. CP178+ hardening is satisfied: readiness auth_preflight passed (exit 0, 1436-byte valid JSON), validation-report confirms prompt within size limit / no forbidden tools / read_tools_used, and forbidden_review_evidence/invalid_review_blockers are enumerated. Claude remains a read-only independent reviewer and not the final approver; enterprise trust closure requires human approval (downstream). The 3 post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly still absent at this mid-sequence review stage. One non-blocking P3 cosmetic observation about scope-file classification is noted. No P0/P1/P2 issues; pack and goal closeout are not blocked.\",\"findings\":[{\"id\":\"CP00-376-OBS-01\",\"severity\":\"P3\",\"title\":\"changed-file-scope labels pack-owned doc artifacts as both implementation and unrelated-preserved\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-376/changed-file-scope.json\",\"line\":130,\"details\":\"`docs/closeout-pack-plan/new-session-handoff.md` and the `docs/closeout-packs/cp00-376/` directory appear simultaneously in `untracked_implementation_files` (line 130-133) and `unrelated_dirty_files_preserved` (line 135-145). The cp00-376/ directory holds this pack's own manifest.json and command-evidence.json, so classifying it as 'unrelated' is inaccurate. The manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json:547-555) omits both paths, so the two generated artifacts disagree on classification. Impact is purely cosmetic: both lists are non-destructive (preserve/track), the review scope is correctly driven by active_pack_implementation_refs, and no billing source, test, contract, or production_ready gating is affected.\",\"recommendation\":\"For scope clarity, exclude pack-owned artifact paths (docs/closeout-packs/cp00-376/) from unrelated_dirty_files_preserved in the scope generator, or document that unrelated_dirty_files_preserved is a non-destructive catch-all that may overlap with untracked_implementation_files. No code or runtime change required.\",\"post_review_disposition\":\"Non-blocking observation. Does not affect descriptor-only scope, exports, tests, Hermes/local validation evidence, no-write/no-real-data boundaries, or the read-only reviewer authority boundary. Safe to close CP00-376; optionally tidy in the scope-file generator.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"3e2bd79b-ec20-4dbf-937e-5987588033fa\"}\n",
+  "stderr": "",
+  "stdout_bytes": 7110,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "fe85e0fc-2879-4363-b91b-eb1a5765e8f2",
+    "uuid": "3e2bd79b-ec20-4dbf-937e-5987588033fa",
+    "total_cost_usd": 2.0437565,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

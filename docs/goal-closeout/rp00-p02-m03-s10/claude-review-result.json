@@ -1,0 +1,115 @@
+{
+  "subphase_id": "RP00.P02.M03.S10",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Idempotency key handling",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T09:25:50Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "ab859ed3-0244-4404-b735-0dd44ae0227b",
+    "uuid": "818232a5-4a95-4c7c-85d7-e15d7dad3e8f",
+    "duration_ms": 408746,
+    "duration_api_ms": 409387,
+    "total_cost_usd": 2.930379,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s10-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline heredoc",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s10-claude-review.json",
+    "duration_ms": 408746,
+    "duration_api_ms": 409387,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "818232a5-4a95-4c7c-85d7-e15d7dad3e8f",
+    "session_id": "ab859ed3-0244-4404-b735-0dd44ae0227b"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Unused forward-looking test helper",
+        "location": "packages/control-plane/test/service.test.js:6045",
+        "status": "informational_no_action_required",
+        "summary": "createHermesValidationIdempotencyKeyHandlingResult is defined for S11 forward scaffolding and does not block S10."
+      },
+      {
+        "severity": "P3",
+        "title": "Redundant idempotency length cap",
+        "location": "packages/control-plane/src/service.js:2454",
+        "status": "informational_no_action_required",
+        "summary": "The explicit 128-character length check is redundant with the regex cap but harmless defense-in-depth."
+      }
+    ],
+    "required_followups": [
+      "Create docs/goal-closeout/rp00-p02-m03-s10 closeout evidence so npm run rp00:control-plane:validate passes; this is the normal post-review closeout step, not a code defect."
+    ],
+    "review_notes": [
+      "Scope is confined to S10 with no edits to S01-S09 logic, other entrypoints, routes, or UI.",
+      "S02-S09, M00, permission/audit, TEN-001 through TEN-008, validation contexts, and acceptance gates are carried and pinned by the result validator.",
+      "Missing, invalid, wrong-source S09 input and every forbidden or unknown non-false idempotency claim throw fail-closed.",
+      "All hazard flags are hard false; result and receipt are frozen and metadata-only.",
+      "Policy, service, validators, tests, fixture, README, contract, and RP00 validator align; fixture parity is full deepEqual."
+    ],
+    "summary": "RP00.P02.M03.S10 is a clean, additive, metadata-only Hermes Validation Idempotency key handling implementation. Claude reported PASS / GO with no P0/P1/P2 findings and two informational P3 findings that do not block closeout. The only required follow-up is normal S10 closeout evidence creation."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s10-claude-review.json",
+    "summary": "Claude returned PASS / GO with no P0/P1/P2 findings; only P3 informational notes about a forward-looking helper and redundant length check plus the normal S10 closeout evidence follow-up."
+  },
+  "overall_verdict": "PASS"
+}

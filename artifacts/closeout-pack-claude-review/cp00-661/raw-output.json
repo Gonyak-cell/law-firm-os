@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-661",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T06:10:01.767Z",
+  "finished_at": "2026-06-14T06:15:00.739Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":298168,\"duration_api_ms\":298333,\"ttft_ms\":3772,\"num_turns\":44,\"result\":\"Review complete. **Verdict: PASS** — CP00-661 closeout is supported; no findings at any severity.\\n\\nThe pack is the next link in the established Admin Console descriptor-only series (CP645→661). It correctly defers its `production_ready` claim to this review (manifest/command-evidence/inspection/adjudication all in pending state), and every descriptor-only, no-real-data, no-write, authority-boundary, and Hermes-non-runtime guarantee is enforced in source, validated by `validators.js`, and asserted by tests. Counts reconcile to 150 across all artifacts, continuity (CP660→661→662) holds, and the review harness hardening checks (prompt size, read-only tools, no 0-byte/malformed stdout, auth preflight) all pass.\\n\\n`blocks_pack_closeout=false` and `blocks_goal_closeout=false`. One provenance caveat recorded: the `command-evidence.json` exit codes are builder-asserted and were not re-run under the read-only constraint, but the underlying source those commands exercise was directly verified.\",\"stop_reason\":\"end_turn\",\"session_id\":\"cbfb7485-3239-49cd-8883-b226759635c0\",\"total_cost_usd\":2.07157575,\"usage\":{\"input_tokens\":48,\"cache_creation_input_tokens\":126513,\"cache_read_input_tokens\":1596639,\"output_tokens\":19240,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":126513,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":353,\"cache_read_input_tokens\":106109,\"cache_creation_input_tokens\":5603,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5603},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1205,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00131,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":19240,\"cacheReadInputTokens\":1596639,\"cacheCreationInputTokens\":126513,\"webSearchRequests\":0,\"costUSD\":2.0702657500000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-661 (Admin Console failure recovery Hermes evidence bridge descriptor slice; risk C; 150 units; RP21.P07.M06.S09-RP21.P08.M04.S19) passes independent read-only review. Counts are internally consistent and all sum to 150 across the prompt, registry requirements, baseline included_units, validators, and tests (deliverable 51+24+48+4+10+8+5; phase P07:89/P08:61; micro-phase and micro-title distributions). The slice is strictly descriptor-only and runtime-closed: freezeCp661Result forces ~35 hazard flags to false and freezes, no writeFileSync/fetch/child_process/spawn exists in packages/admin/src, and validateAdminConsoleCp661FailureRecoveryHermesEvidenceBridgeDescriptor enforces 31 false-flags plus contract/runtime-boundary closure (executes_failure_recovery_runtime, emits_hermes_runtime_receipt, executes_hermes_command_runtime, persists_review_packet, exposes_blocked_claim_detail/unauthorized_count all false). No-real-data/no-write attestations are substantive and pack-bound (no_real_data:true, writes_product_state:false, claims_enterprise_trust_from_local_validation:false). Authority boundary is intact: promotes_claude_to_final_approval:false is set in the attestation, contract, and validator-checked; the Claude packet is read_only:true; Claude is not final approver. Hermes is used only for deterministic evidence packet/receipt labeling (runtime_receipt_emitted:false, hermes_runtime_opened:false). Critically, the pack makes no premature production_ready claim: manifest production_ready:false/runtime_ready:false/in_progress, command-evidence gate_outcome pre_review_passed_pending_hardened_claude_review, construction-inspection PENDING_REVIEW, adjudication pending - all correctly defer the descriptor_verified flag to this review, which supports closeout. Review-harness hardening passes (prompt 2717B<25600, read-tools-only, no forbidden tools, summary-only prohibited and unused, auth preflight exit 0 with 1428B valid-JSON non-empty stdout, schema present, no omitted active untracked impl files). Continuity is preserved (CP660->661/S09, 661->662/S20; current_pack CP00-661 with prior packs historical and deep-equality enforced by validate-rp21-admin-console-contract.mjs). Provenance: source and evidence artifacts were directly re-read via Read/Grep/Glob; the command exit codes in command-evidence.json (npm test, npm run validate, etc.) are builder-asserted and were not re-executed under the read-only constraint, though the source they exercise was verified. blocks_goal_closeout is false: per the authority boundary the human/enterprise-trust approval is outside this receipt and the pack claims neither runtime nor enterprise trust. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"04b9ccad-3c24-407a-82fd-b5c166ae9308\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5398,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "cbfb7485-3239-49cd-8883-b226759635c0",
+    "uuid": "04b9ccad-3c24-407a-82fd-b5c166ae9308",
+    "total_cost_usd": 2.07157575,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

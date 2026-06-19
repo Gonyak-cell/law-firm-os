@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-946",
+  "normalized_at": "2026-06-18T04:08:01.339Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-946/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-946/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-946/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-946/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "962437ed-4be1-406c-8f61-067f56d4adaf",
+    "uuid": "66fef088-3cdb-4845-a0df-812ff612c7ef",
+    "total_cost_usd": 2.58477825,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8923,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-946 is a clean, descriptor-only RP30 P06 pack bridging SensitiveGuard tail rows (RP30.P06.M01.S08-S13) into PayrollRestriction foundation rows (RP30.P06.M02.S01-S04). The pack-level claim is narrow and honest: manifest.json declares production_ready=false, runtime_ready=false, implementation_layer=descriptor, descriptor_only=true, with the only positive flag being hrx_sensitive_guard_payroll_restriction_bridge_descriptor_verified. That claim is fully supported by static inspection: (1) the registry binding (registry.js:916-931) and requirements (registry.js:3551-3605) match the upstream plan (closeout-pack-plan.json:36), the manifest plan_binding_snapshot, the review baseline, and the source microphases (M01=SensitiveGuard x6, M02=PayrollRestriction x4 = 10 implementation units); (2) the generated descriptor (registry.js:10831-10910) and domain rows (createHrxDomainRows registry.js:3656-3969) hold every runtime/record-write/decision-emission/real-data/permission-bypass/payroll-calculation flag false and keep sensitive_hr_guard_required/h30_review_only/c30_read_only/human_final_approval_required true, with entity_name mapping correctly to SensitiveGuard/PayrollRestriction and HRX_NO_WRITE_ATTESTATION spread in; (3) the coverage/descriptor/contract validators (validators.js:8527-8726) enforce all of these, and the validate script (validate-rp30-hrx-people-contract.mjs) chains CP897->CP946 bindings and exits non-zero on error; (4) the committed contract artifact hrx-people-contract.json is consistent (current_pack/latest_pack/latest_projection CP00-946; CP946 capabilities and safety gates present at top level; validation.valid true); (5) tests (model.test.js:2424-2514) assert binding, distribution counts, descriptor closure, and validate the real contract file. The authority boundary is respected: Claude remains a read-only independent reviewer and not final approver, Hermes is used only as a deterministic control-plane review packet (emits_runtime_receipt=false, deterministic_only=true) and not embedded product runtime, and the pack asserts neither runtime nor enterprise trust, so blocks_goal_closeout is false. The PENDING state of adjudication.md, construction-inspection.json, command-evidence.json (hermes_gate pending), and claude-review-result.json is the expected pre-review state, not a defect. Provenance note: as a read-only reviewer I did NOT re-execute the validation ladder; test/validation-green status is taken from command-evidence.json exit codes (5 HRX-scoped commands, all 0) plus my static reading of internally consistent code and artifacts. No P0/P1/P2 issues found; two P3 notes (stale manifest commit message; validation ladder not yet captured).",
+    "findings": [
+      {
+        "id": "CP946-P3-01",
+        "severity": "P3",
+        "title": "Manifest commit_policy.message references CP00-945 instead of CP00-946",
+        "file": "docs/closeout-packs/cp00-946/manifest.json",
+        "line": 467,
+        "details": "The CP00-946 manifest's commit_policy.message is \"Close CP00-945 HRX permission sensitive guard bridge pack\" - a stale carry-over from the previous pack. Every prior manifest names its own pack (cp00-944/manifest.json -> \"Close CP00-944 ...\", cp00-945/manifest.json -> \"Close CP00-945 ...\"), so the convention is that commit_policy.message describes the current pack's closeout commit; CP00-946 deviates. Impact is low: validate-closeout-pack.mjs:250 only checks commit_policy.required===true and never validates .message, and a grep of scripts/ shows no tool reads commit_policy.message, so it does not break the validation ladder. Recent git history (every \"Close CP00-XXX\" commit matches its pack) indicates the actual closeout commit message is constructed independently of this field, so the stale value is effectively inert. Flagged for artifact accuracy/audit-trail hygiene.",
+        "recommendation": "Update commit_policy.message in docs/closeout-packs/cp00-946/manifest.json to \"Close CP00-946 HRX sensitive guard payroll restriction bridge pack\" (matching the per-pack convention) before the closeout commit, so the manifest does not duplicate the CP00-945 commit title and remains accurate to the pack it closes.",
+        "post_review_disposition": "Non-blocking; inert metadata not consumed by any validator or commit script. Correct at/before the closeout commit, else defer with rationale."
+      },
+      {
+        "id": "CP946-P3-02",
+        "severity": "P3",
+        "title": "Broader closeout validation ladder not yet captured in command-evidence.json",
+        "file": "docs/closeout-packs/cp00-946/command-evidence.json",
+        "line": 9,
+        "details": "command-evidence.json records only 5 HRX-scoped commands (node --check x3, node --test packages/hrx/test/*.test.js, npm run rp30:hrx:validate), all exit_code 0, with status 'pending_final_validation', gate_outcome 'pending_final_validation', and hermes_gate 'pending'. The 10 closeout validation commands listed in the review prompt (npm run closeout-pack-plan:validate, npm run closeout-pack:validate, npm test, npm run validate, npm run spec:requirements:validate, npm run weighted:validate, npm run fullplan:validate, npm run goal:closeout:validate, npm run rp00:control-plane:validate, git diff --check) are not yet evidenced here. This is the expected pre-closeout state, and as a read-only reviewer I cannot execute them; the descriptor-only claim itself is independently supported by the consistent registry/validators/contract/tests inspected. Flagged only for provenance transparency.",
+        "recommendation": "The pack closeout runner should execute and capture the full validation ladder (including git diff --check) with exit 0 and run the Hermes gate before flipping manifest/included_units status from in_progress to production_ready and writing the single valid review receipt; ensure command-evidence/Hermes gate reflect the completed ladder rather than 'pending'.",
+        "post_review_disposition": "Non-blocking; expected pre-closeout state. Deferred to the pack closeout runner at final validation."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

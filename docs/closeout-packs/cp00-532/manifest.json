@@ -1,0 +1,1808 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-532",
+  "planned_pack_id": "CP00-532",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "ai_governance_core_p05_implementation_workflow_slice_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "runtime_ready": false,
+  "program_id": "RP17",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "delivery_counts": {
+    "test": 6,
+    "hermes_evidence": 2,
+    "implementation": 13,
+    "fixture": 13,
+    "claude_review": 2,
+    "security_audit": 4
+  },
+  "micro_phase_row_counts": {
+    "RP17.P05.M02": 6,
+    "RP17.P05.M03": 22,
+    "RP17.P05.M04": 12
+  },
+  "primary_subphase_id": "RP17.P05.M04.S12",
+  "next_subphase": "RP17.P05.M04.S13",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-532",
+    "planned_pack_id": "CP00-532",
+    "title": "CP00-532 RP17.P05.M02.S15-RP17.P05.M04.S12 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP17.P05.M02.S15",
+      "last_unit_id": "RP17.P05.M04.S12",
+      "description": "RP17.P05.M02.S15-RP17.P05.M04.S12"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP17.P05.M02.S15",
+        "title": "Golden test",
+        "source_micro_phase_id": "RP17.P05.M02",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP17.P05.M02.S16",
+        "title": "Failure test",
+        "source_micro_phase_id": "RP17.P05.M02",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP17.P05.M02.S17",
+        "title": "Hermes fixture evidence",
+        "source_micro_phase_id": "RP17.P05.M02",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP17.P05.M02.S18",
+        "title": "Claude missing-test prompt",
+        "source_micro_phase_id": "RP17.P05.M02",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP17.P05.M02.S19",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP17.P05.M02",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M02.S20",
+        "title": "No-real-data check",
+        "source_micro_phase_id": "RP17.P05.M02",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S01",
+        "title": "Base tenant fixture",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S02",
+        "title": "Base user fixture",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S03",
+        "title": "Base matter fixture",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S04",
+        "title": "Base document fixture",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S05",
+        "title": "Primary golden case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S06",
+        "title": "Secondary golden case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S07",
+        "title": "Review-required case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP17.P05.M03.S08",
+        "title": "Denied case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S09",
+        "title": "Cross-tenant case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S10",
+        "title": "Missing context case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S11",
+        "title": "Audit hint case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP17.P05.M03.S12",
+        "title": "Security trimming case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP17.P05.M03.S13",
+        "title": "AI retrieval or analytics case",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S14",
+        "title": "Fixture manifest",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M03.S15",
+        "title": "Golden test",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP17.P05.M03.S16",
+        "title": "Failure test",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP17.P05.M03.S17",
+        "title": "Hermes fixture evidence",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP17.P05.M03.S18",
+        "title": "Claude missing-test prompt",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP17.P05.M03.S19",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S20",
+        "title": "No-real-data check",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S21",
+        "title": "Stable ID check",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M03.S22",
+        "title": "Replay command",
+        "source_micro_phase_id": "RP17.P05.M03",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M04.S01",
+        "title": "Base tenant fixture",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M04.S02",
+        "title": "Base user fixture",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M04.S03",
+        "title": "Base matter fixture",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M04.S04",
+        "title": "Base document fixture",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M04.S05",
+        "title": "Primary golden case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M04.S06",
+        "title": "Secondary golden case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP17.P05.M04.S07",
+        "title": "Review-required case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP17.P05.M04.S08",
+        "title": "Denied case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M04.S09",
+        "title": "Cross-tenant case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M04.S10",
+        "title": "Missing context case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP17.P05.M04.S11",
+        "title": "Audit hint case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP17.P05.M04.S12",
+        "title": "Security trimming case",
+        "source_micro_phase_id": "RP17.P05.M04",
+        "program_id": "RP17",
+        "phase_id": "RP17.P05",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP17.P05.M02.S15",
+      "title": "Golden test",
+      "source_micro_phase_id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M02.S16",
+      "title": "Failure test",
+      "source_micro_phase_id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M02.S17",
+      "title": "Hermes fixture evidence",
+      "source_micro_phase_id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M02.S18",
+      "title": "Claude missing-test prompt",
+      "source_micro_phase_id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M02.S19",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M02.S20",
+      "title": "No-real-data check",
+      "source_micro_phase_id": "RP17.P05.M02",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S01",
+      "title": "Base tenant fixture",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S02",
+      "title": "Base user fixture",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S03",
+      "title": "Base matter fixture",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S04",
+      "title": "Base document fixture",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S05",
+      "title": "Primary golden case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S06",
+      "title": "Secondary golden case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S07",
+      "title": "Review-required case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S08",
+      "title": "Denied case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S09",
+      "title": "Cross-tenant case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S10",
+      "title": "Missing context case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S11",
+      "title": "Audit hint case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S12",
+      "title": "Security trimming case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S13",
+      "title": "AI retrieval or analytics case",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S14",
+      "title": "Fixture manifest",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S15",
+      "title": "Golden test",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S16",
+      "title": "Failure test",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S17",
+      "title": "Hermes fixture evidence",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S18",
+      "title": "Claude missing-test prompt",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S19",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S20",
+      "title": "No-real-data check",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S21",
+      "title": "Stable ID check",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M03.S22",
+      "title": "Replay command",
+      "source_micro_phase_id": "RP17.P05.M03",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S01",
+      "title": "Base tenant fixture",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S02",
+      "title": "Base user fixture",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S03",
+      "title": "Base matter fixture",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S04",
+      "title": "Base document fixture",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S05",
+      "title": "Primary golden case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S06",
+      "title": "Secondary golden case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "fixture",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S07",
+      "title": "Review-required case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S08",
+      "title": "Denied case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S09",
+      "title": "Cross-tenant case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S10",
+      "title": "Missing context case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S11",
+      "title": "Audit hint case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP17.P05.M04.S12",
+      "title": "Security trimming case",
+      "source_micro_phase_id": "RP17.P05.M04",
+      "program_id": "RP17",
+      "phase_id": "RP17.P05",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/ai-governance-core-contract.json",
+        "packages/ai-governance/README.md",
+        "packages/ai-governance/src/index.js",
+        "packages/ai-governance/src/registry.js",
+        "packages/ai-governance/src/service.js",
+        "packages/ai-governance/src/validators.js",
+        "packages/ai-governance/test/model.test.js",
+        "scripts/validate-rp17-ai-governance-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-532/manifest.json",
+        "docs/closeout-packs/cp00-532/command-evidence.json",
+        "docs/closeout-packs/cp00-532/claude-review-result.json",
+        "docs/closeout-packs/cp00-532/adjudication.md",
+        "docs/closeout-packs/cp00-532/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-532 implements descriptor-only coverage of the RP17.P05 implementation workflow slice: the M02 Type And Shape Definition tail (the six remaining rows), the full M03 Primary Implementation Slice cycle (twenty-two rows), and the M04 Secondary Workflow Slice head (the first twelve rows) as three descriptor-only sections over 40 planned rows with Hermes evidence (H17), Claude review packet (C17), and CP00-533 handoff, without opening AI governance, model policy, retrieval scope, or citation runtime or any other closed runtime surface.",
+    "source_refs": [
+      "contracts/ai-governance-core-contract.json",
+      "packages/ai-governance/README.md",
+      "packages/ai-governance/src/index.js",
+      "packages/ai-governance/src/registry.js",
+      "packages/ai-governance/src/service.js",
+      "packages/ai-governance/src/validators.js",
+      "packages/ai-governance/test/model.test.js",
+      "scripts/validate-rp17-ai-governance-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_ai_governance_runtime": true,
+    "no_model_policy_runtime": true,
+    "no_retrieval_scope_runtime": true,
+    "no_citation_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_api_handler_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_unauthorized_count_leak": true,
+    "no_permission_bypass_detected": true,
+    "no_leak_detected": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_lock_token_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-532/manifest.json",
+    "docs/closeout-packs/cp00-532/command-evidence.json",
+    "docs/closeout-packs/cp00-532/claude-review-result.json",
+    "docs/closeout-packs/cp00-532/adjudication.md",
+    "docs/closeout-packs/cp00-532/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-532/manifest.json",
+    "docs/closeout-packs/cp00-532/command-evidence.json",
+    "docs/closeout-packs/cp00-532/claude-review-result.json",
+    "docs/closeout-packs/cp00-532/adjudication.md",
+    "docs/closeout-packs/cp00-532/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "\"workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "scripts/progress-control-room-data.mjs",
+      "tools/progress-control-room/index.html",
+      "workbook/matter-post-cp-launch-plan.md",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-532/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-532/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "72153d35-2abd-49a3-b983-ed70dd95a0cd",
+      "uuid": "2ab1b350-4900-425d-bec6-dc35738bf402",
+      "total_cost_usd": 2.0687552499999997,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-532 (Risk B, 40 units, RP17.P05.M02.S15-RP17.P05.M04.S12) is a clean descriptor-only AI governance p05 implementation/workflow slice pack that passes independent read-only review with no findings. Verified internal consistency across registry.js (CP532 pack binding + no-write attestation with intact CP514->CP532 spread chain carrying promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false + requirements), service.js (freezeCp532Result, case set, descriptor), validators.js (coverage, slice validation, Hermes/Claude packets, handoff), contracts/ai-governance-core-contract.json (current_pack, cp532_requirements, cp532_no_write_attestation, and full p05_implementation_workflow_slice_descriptor projection, all deep-equal-validated by the validator script), test/model.test.js (3 CP532 tests covering coverage, descriptor-only rows, and authority boundaries), the closeout-pack-plan.json pack entry, the manifest, and the README #cp00-532 entry. Deliverable distribution {test:6,hermes_evidence:2,implementation:13,fixture:13,claude_review:2,security_audit:4} and micro-title distribution {Type And Shape Definition:6,Primary Implementation Slice:22,Secondary Workflow Slice:12} match the baseline, registry, manifest, and plan exactly and sum to 40. All 7 required public exports are present and re-exported via index.js. Boundaries hold: no real data (synthetic_only/no_real_data true), no writes (every no-write flag false; no fs/network/child_process/eval in package source), Claude restricted to read-only non-approver, and Hermes used only for deterministic descriptor projection (emits_hermes_runtime_receipt=false, receipt_shape descriptor-only no-write). The pack-level production_ready claim is correctly false (manifest runtime_ready=false, status implemented_pending_review); production_ready_candidate=true is legitimately gated on coverage+slice validity and does not overclaim enterprise trust or final approval. command-evidence.json records all 27 validation commands at exit_code 0, the H17 Hermes gate passed, and the readiness auth-preflight passed with valid JSON, non-zero stdout, and no auth failure (no forbidden review-evidence conditions present; no invalid attempts preserved). The two unrelated dirty files (scripts/progress-control-room-data.mjs, tools/progress-control-room/index.html) and other untracked workbook/LDIP files are correctly classified outside active pack scope. No P0/P1/P2/P3 issues identified; pack is ready for human-gated closeout.",
+      "findings": [],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 0,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 0
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-532 ai governance core p05 implementation workflow slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-532/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-532/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-532/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-532/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "production_ready_at": "2026-06-12T17:14:13.374Z"
+}

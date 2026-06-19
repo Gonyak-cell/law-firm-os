@@ -1,0 +1,213 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L0-W04",
+  "title": "risk control reality audit",
+  "phase": "L0",
+  "gate": "G3, L0-EXIT",
+  "status": "blocked_pending_human_acceptance",
+  "recorded_at": "2026-06-18T10:22:41Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:22:41Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L0-W04-T01",
+      "title": "Audit permission-boundary controls for RISK-002, RISK-003, and RISK-006",
+      "status": "passed_with_referrals",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/risk-control-existence-audit.md",
+        "docs/launch/risk-control-reality-matrix.md",
+        "docs/goal-closeout/lt-l0-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "controls_audited": 3,
+        "judgments_recorded": 3,
+        "absent_controls_referred_to_l2_5": 1,
+        "partial_controls_referred_to_l2_5": 2
+      },
+      "commands": [
+        {
+          "command": "rg -n \"createUser|createMatter|MatterMember|CONFIDENTIALITY_LEVELS\" packages/domain/src/entities.js",
+          "exit_code": 0,
+          "output": "1:export const CONFIDENTIALITY_LEVELS = [\"public\", \"internal\", \"confidential\", \"restricted\"]; 30:export function createUser(input) { 204:export function createMatterMember(input) {",
+          "purpose": "Verify domain user and matter-member code exists while employee runtime export is absent by summary count"
+        },
+        {
+          "command": "rg -n \"user_employee_separation_preserved|employee_api_runtime_opened|real_employee_candidate_payroll_document_data_allowed|user_account_conflated\" packages/hrx/src/registry.js packages/hrx/src/validators.js",
+          "exit_code": 0,
+          "output": "matches present; summary counts: separation_preserved_flags=11, employee_runtime_opened_false_flags=4, real_hr_data_allowed_false_flags=88, validator_separation_checks=12, validator_real_hr_data_checks=88",
+          "purpose": "Verify HRX separation and no-real-HR-data guardrail evidence exists"
+        },
+        {
+          "command": "rg -n \"permission sync|reconciliation|SharePoint|Graph|storage_decision_resolved|privilege_classification_decision_resolved\" contracts/email-dms-m365-runtime-contract.json docs/matter-pack-integration/m365 packages/email-dms/src/service.js",
+          "exit_code": 0,
+          "output": "contracts/email-dms-m365-runtime-contract.json:15:\"storage_decision_resolved\": false; contracts/email-dms-m365-runtime-contract.json:17:\"privilege_classification_decision_resolved\": false; SharePoint/Graph write surfaces listed but not opened",
+          "purpose": "Verify M365 storage/privilege decisions remain unresolved and sync checker is not implemented"
+        },
+        {
+          "command": "rg -n \"portal_projection|projection|redaction|evaluates_runtime_permission|writes_permission_decision|permission_bypass_detected|human_final_approval_required_for_runtime_opening\" packages/client-portal/src/service.js",
+          "exit_code": 0,
+          "output": "summary counts: evaluates_runtime_permission_false=27, writes_permission_decision_false=27, permission_bypass_detected_false=27, human_final_approval_required=27",
+          "purpose": "Verify client portal package exists but runtime permission decision writing is not open"
+        }
+      ],
+      "notes": [
+        "RISK-002 and RISK-006 are partial, not full runtime controls.",
+        "RISK-003 is absent as an executable permission sync/reconciliation job and is referred to L2-5/L3."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W04-T02",
+      "title": "Audit AI, HR, and Vault controls for RISK-001, RISK-005, and RISK-007",
+      "status": "passed_with_referrals",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/risk-control-existence-audit.md",
+        "docs/launch/risk-control-reality-matrix.md",
+        "docs/goal-closeout/lt-l0-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "controls_audited": 3,
+        "disable_switch_judgment_recorded": true,
+        "absent_controls_referred_to_l2_5": 1,
+        "partial_controls_referred_to_l2_5": 2
+      },
+      "commands": [
+        {
+          "command": "rg -n \"approval_required|source|human|disable|dark|final|write-back|grounded|auto-final|auto final|lawyer|review\" packages/ai-governance packages/ai-legal-workflows workbook/matter_dev_docs/07_AI_자동화_모델라우팅_검증정책.md",
+          "exit_code": 0,
+          "output": "policy/source/approval matches present; summary counts: policy_source_required_rows=9, policy_writeback_approval_rows=14, policy_disable_switch_mentions=1, governance_human_final_approval_required=37, legal_human_final_approval_required=32, governance_runtime_true_flags=0, legal_runtime_true_flags=0",
+          "purpose": "Verify AI approval/source/disable policy evidence exists while runtime true-write flags are absent"
+        },
+        {
+          "command": "find packages -maxdepth 2 -type d -iname '*vault*' -o -iname '*obsidian*'",
+          "exit_code": 0,
+          "output": "",
+          "purpose": "Verify no Obsidian/Vault package directory exists"
+        },
+        {
+          "command": "rg -n \"export-only|controlled import|approval sync|Vault|Obsidian|obsidian\" packages docs workbook/matter_dev_docs/09_Obsidian_Matter_Vault_Spec.md",
+          "exit_code": 0,
+          "output": "Vault spec and requirement candidate matches present; summary counts: package_dir_exists=false, vault_spec_exists=true, requirement_candidate_rows=9, approval_writeback_candidate_mentions=2",
+          "purpose": "Verify Obsidian is planning/spec evidence, not executable package evidence"
+        }
+      ],
+      "notes": [
+        "RISK-001 and RISK-007 are partial because policy/descriptor guardrails exist but runtime enforcement is not open.",
+        "RISK-005 is absent as executable Obsidian export/import/sync code."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W04-T03",
+      "title": "Audit non-bypassable audit control for RISK-010",
+      "status": "passed_with_referrals",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/risk-control-existence-audit.md",
+        "docs/launch/risk-control-reality-matrix.md",
+        "docs/goal-closeout/lt-l0-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "verify_hash_chain_exists": true,
+        "append_writer_exists": true,
+        "persistence_judgment": "in_memory",
+        "api_audit_ledger_refs": 0,
+        "api_audit_append_refs": 0,
+        "l2_1_referral_exists": true
+      },
+      "commands": [
+        {
+          "command": "rg -n \"verifyHashChain|append\\(|correction\\(|createAuditLedger|hash\" packages/audit/src/append-only-ledger.js",
+          "exit_code": 0,
+          "output": "createAuditLedger, append, correction, verifyHashChain, hash checks present in packages/audit/src/append-only-ledger.js",
+          "purpose": "Verify audit hash-chain and append functions exist"
+        },
+        {
+          "command": "sed -n '1,90p' packages/audit/src/append-only-ledger.js",
+          "exit_code": 0,
+          "output": "createAuditLedger stores const events = []; verifyHashChain validates sequence, previous hash, clock skew, sha256 hash, and correction linkage",
+          "purpose": "Verify persistence is in-memory and hash-chain logic is explicit"
+        },
+        {
+          "command": "sed -n '1,140p' apps/api/src/server.js",
+          "exit_code": 0,
+          "output": "API routes are GET-only, local-only, synthetic-only, and permission-gated; no createAuditLedger import or append call is present",
+          "purpose": "Verify API route audit append wiring is absent in the measured server file"
+        }
+      ],
+      "notes": [
+        "RISK-010 is partial because append/verify code exists, but durable non-bypassable route wiring is absent.",
+        "Durable audit schema/store is referred to L2-1."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W04-T04",
+      "title": "Assemble the seven-row Critical risk control reality matrix and G3 first-pass evidence",
+      "status": "blocked_pending_human_acceptance",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/risk-control-reality-matrix.md",
+        "docs/launch/risk-control-existence-audit.md",
+        "docs/goal-closeout/lt-l0-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "matrix_rows": 7,
+        "blank_judgment_cells": 0,
+        "referral_rows": 7,
+        "boundary_phrase_present": true,
+        "approval_status": "pending_human_acceptance"
+      },
+      "commands": [
+        {
+          "command": "grep -c '^| RISK-' docs/launch/risk-control-reality-matrix.md",
+          "exit_code": 0,
+          "output": "7",
+          "purpose": "Verify matrix has seven Critical risk rows"
+        },
+        {
+          "command": "grep -c '^| L2REF-L0-W04-' docs/launch/risk-control-reality-matrix.md",
+          "exit_code": 0,
+          "output": "7",
+          "purpose": "Verify every partial/absent row has a referral row"
+        },
+        {
+          "command": "node - <<'NODE'\nconst fs = require('fs');\nconst doc = fs.readFileSync('docs/launch/risk-control-reality-matrix.md', 'utf8');\nconst matrix = doc.split('\\n').filter((line) => line.startsWith('| RISK-'));\nconst referrals = doc.split('\\n').filter((line) => line.startsWith('| L2REF-L0-W04-'));\nconst blankJudgments = matrix.filter((line) => {\n  const cells = line.split('|').map((v) => v.trim());\n  return !cells[3];\n});\nconst risks = matrix.map((line) => line.split('|')[1].trim()).sort();\nconst referredRisks = referrals.map((line) => line.split('|')[2].trim()).sort();\nconst same = JSON.stringify(risks) === JSON.stringify(referredRisks);\nconsole.log(JSON.stringify({ matrix_rows: matrix.length, referral_rows: referrals.length, blank_judgments: blankJudgments.length, referrals_match_matrix: same, risks, referredRisks }, null, 2));\nif (matrix.length !== 7 || referrals.length !== 7 || blankJudgments.length !== 0 || !same) process.exit(1);\nNODE",
+          "exit_code": 0,
+          "output": "{\"matrix_rows\":7,\"referral_rows\":7,\"blank_judgments\":0,\"referrals_match_matrix\":true,\"risks\":[\"RISK-001\",\"RISK-002\",\"RISK-003\",\"RISK-005\",\"RISK-006\",\"RISK-007\",\"RISK-010\"],\"referredRisks\":[\"RISK-001\",\"RISK-002\",\"RISK-003\",\"RISK-005\",\"RISK-006\",\"RISK-007\",\"RISK-010\"]}",
+          "purpose": "Verify the matrix risks and referral risks are in one-to-one correspondence"
+        },
+        {
+          "command": "grep -n '우회 불가 검증은 L5 소관\\|pending_human_acceptance\\|review_waived_by_user' docs/launch/risk-control-reality-matrix.md docs/launch/risk-control-existence-audit.md docs/goal-closeout/lt-l0-w04/command-evidence.json",
+          "exit_code": 0,
+          "output": "boundary phrase, pending human acceptance, and review waiver markers present",
+          "purpose": "Verify boundary, approval status, and review-waiver policy are recorded"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "Human acceptance is not synthesized; the approval record remains pending.",
+        "No risk is marked production-ready by this L0 audit."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not assert that any Critical risk control is non-bypassable in production.",
+    "This record does not open runtime writes, real data, M365 Graph writes, AI write-back, Obsidian sync, portal runtime, or HR runtime.",
+    "This record does not count the user review waiver as a valid Claude review receipt.",
+    "This record does not synthesize Launch owner or G3 approver acceptance."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-898",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T14:47:11.470Z",
+  "finished_at": "2026-06-17T14:50:38.441Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":206430,\"duration_api_ms\":208497,\"ttft_ms\":4153,\"num_turns\":36,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-898's descriptor-only continuation claim is fully supported, all boundaries hold, and only one non-blocking P3 (carry-over provenance nit) was found. Does not block pack or goal closeout; the full deterministic validation ladder remains a pre-commit precondition the pack already self-gates.\",\"stop_reason\":\"end_turn\",\"session_id\":\"3c2c5d6d-280c-455f-ab8c-5e6c5c95685a\",\"total_cost_usd\":1.7071480000000003,\"usage\":{\"input_tokens\":30,\"cache_creation_input_tokens\":121526,\"cache_read_input_tokens\":1096863,\"output_tokens\":15912,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":121526,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":129,\"cache_read_input_tokens\":116976,\"cache_creation_input_tokens\":5069,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5069},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1129,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001229,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":30,\"outputTokens\":15912,\"cacheReadInputTokens\":1096863,\"cacheCreationInputTokens\":121526,\"webSearchRequests\":0,\"costUSD\":1.7059190000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-898 is a descriptor-only RP30 People HR Evidence (embedded HRX) contract baseline continuation: 10 units, risk A, RP30.P00.M06.S01-RP30.P00.M09.S01, distribution {scope:3, admission:3, non-goal:3, decision:1}. The pack-level claim under review is production_ready_flag=hrx_contract_acceptance_baseline_continuation_descriptor_verified with production_ready=false and runtime_ready=false; that claim is fully supported. Evidence is internally consistent across the live plan, manifest, baseline, contract projection, registry/validators, and tests: the live closeout-pack-plan.json lists CP00-898 as the first planned pack with matching range/risk/unit_count and the same included units, and unit/deliverable/micro-title distributions match HRX_CP898_REQUIREMENTS. All 15 mandatory artifacts exist; every referenced validation npm script (closeout-pack-plan/closeout-pack/test/validate/spec:requirements/weighted/fullplan/goal:closeout/rp00:control-plane plus rp30/hrx ledger validators) is defined, and packages/hrx/test/*.test.js is included in `npm test`. command-evidence records initial targeted validations at exit 0 with the full deterministic ladder correctly deferred to after review (commit_policy=blocked_until_review_and_full_validation). No-write/no-real-data/no-runtime boundaries are enforced in code: packages/hrx and the validate script are pure deepFrozen descriptor generators and read-only validators with no writeFile/network/child_process/exec/process.env, and per-row plus top-level attestations (descriptor_only=true; runtime_execution/payroll/HR-AI-judgment/permission-write/audit-write/product-state-write/runtime-receipt/real-employee-candidate-payroll-client-data/credential = false) are present; no PII or secrets found. Authority boundary holds: Claude is read-only (claude_packet.promotes_claude_to_final_approval=false), human final approval is required for runtime opening (deferred to CP00-899), local validation does not claim enterprise trust, and Hermes patterns are used only for deterministic review/evidence packets (emits_runtime_receipt=false), not product runtime. Review-hardening checks pass: auth preflight succeeded (exit 0, 1432-byte valid JSON stdout, no stderr), and the request is claude-opus-4-8/max/read-only with Read,Grep,Glob only and a 2429-byte prompt under the size limit. One non-blocking P3 provenance nit carried over from CP897: the contract's generated_by names a validate-only script while the actual projection generator (createHrxPeopleContractProjection) is unwired. No P0/P1/P2 findings. blocks_goal_closeout is false per scope (pack claims neither runtime nor enterprise trust); final human/enterprise-trust approval remains outside this receipt.\",\"findings\":[{\"id\":\"CP898-P3-01\",\"severity\":\"P3\",\"title\":\"Contract generated_by names a validate-only script; projection generator is unwired\",\"file\":\"contracts/hrx-people-contract.json\",\"line\":3,\"details\":\"The committed contract sets generated_by=\\\"scripts/validate-rp30-hrx-people-contract.mjs\\\", but that script only resolves the contract path (scripts/validate-rp30-hrx-people-contract.mjs:17) and readJson()s it for validation (line 19); it performs no filesystem write. The canonical projection generator createHrxPeopleContractProjection() (packages/hrx/src/registry.js:510), whose output the JSON mirrors, is exported but not imported by any emitting script (grep finds only its definition), so contracts/hrx-people-contract.json is effectively a hand-maintained static artifact with a cosmetic provenance label. This is identical to CP897-P3-01 and is purely a documentation/maintainability inaccuracy: it does not violate the descriptor-only, no-write, no-real-data, or no-runtime boundaries, and the file still validates cleanly against the validators.\",\"recommendation\":\"Either add a generator script that emits the contract from createHrxPeopleContractProjection() and point generated_by at it, or change generated_by to indicate the file is hand-maintained and validated by scripts/validate-rp30-hrx-people-contract.mjs. Non-blocking.\",\"post_review_disposition\":\"Non-blocking P3; no effect on descriptor-only boundary, no-write/no-real-data posture, or production-ready gating. Safe to proceed to closeout once the full deterministic validation ladder passes.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"bff513c0-c32a-4a7a-879e-8c53073d3620\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6342,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "3c2c5d6d-280c-455f-ab8c-5e6c5c95685a",
+    "uuid": "bff513c0-c32a-4a7a-879e-8c53073d3620",
+    "total_cost_usd": 1.7071480000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

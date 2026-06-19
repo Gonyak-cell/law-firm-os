@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-207",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T02:43:05.329Z",
+  "finished_at": "2026-06-10T02:49:29.532Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":383560,\"duration_api_ms\":383601,\"ttft_ms\":4568,\"num_turns\":40,\"result\":\"CP00-207 review verdict submitted: **PASS_WITH_FINDINGS** (no P0/P1/P2; one P3 reviewer-limitation note). The descriptor-only/synthetic, no-write/no-leak, authority-boundary, and Hermes-control-plane boundaries are all supported; the single P3 records that command-execution evidence remains empty/pending by design and is deferred to the post-review final-closeout step — non-blocking for this read-only verdict.\",\"stop_reason\":\"end_turn\",\"session_id\":\"9babebea-518e-4c70-9c3a-1c6bdae8e672\",\"total_cost_usd\":2.75087875,\"usage\":{\"input_tokens\":38,\"cache_creation_input_tokens\":145878,\"cache_read_input_tokens\":1799840,\"output_tokens\":23538,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":145878,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":200,\"cache_read_input_tokens\":66904,\"cache_creation_input_tokens\":3710,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3710},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1071,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001171,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1925,\"outputTokens\":32162,\"cacheReadInputTokens\":1959403,\"cacheCreationInputTokens\":153013,\"webSearchRequests\":0,\"costUSD\":2.7497077500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-207 is a descriptor-only synthetic-fixture-workflow closeout pack (RP06.P02.M06.S06-S15, risk A, 10 units). Independent read-only inspection via Read/Grep/Glob of the 8 active implementation refs in changed-file-scope.json confirms the pack's production-readiness boundary is honestly supported: (1) Descriptor-only/synthetic-only enforcement — freezeCp207Result() in packages/dms/src/service.js injects synthetic_only:true, no_real_data:true and ~50 runtime/dispatch/expose flags=false; createDmsCoreCp207SyntheticFixtureWorkflow* builders are pure Object.freeze constructions with no fs/network/DB I/O; all identifiers are synthetic transforms (e.g. dms-core-cp198-synthetic-audit). (2) No-write/no-leak — DMS_CORE_CP207_NO_WRITE_ATTESTATION spreads CP198->CP206 and adds CP207 false flags; idempotency/lock/state/persistence/validation/permission/audit/raw-payload material is excluded; validateDmsCoreCp207SyntheticFixtureWorkflowDescriptor() in validators.js exhaustively asserts every descriptor-only/no-leak flag, the contract projection match, and the handoff target. (3) Authority boundary holds — claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true; the Claude review packet is read_only:true with allowed_tools Read/Grep/Glob; runtime opening is correctly deferred to CP00-208. (4) Hermes confined to control plane — createDmsCoreCp207HermesEvidencePacket() yields a production_ready_candidate (coverage.valid && workflow.valid), an evidence-packet/receipt descriptor, not product runtime; receipt_shape is descriptor_only_synthetic_fixture_workflow_no_write. (5) Contract (contracts/dms-core-contract.json), README, test/model.test.js, and validate-rp06 script all mirror the service projection. The pack makes NO production_ready=true claim (manifest/command-evidence/inspection are pending by design at this read_only_claude_run_raw_capture step). Review evidence is valid: auth_preflight passed (exit 0, well-formed JSON), prompt non-summary-only, no forbidden tools, no auth-failure/0-byte/malformed/fenced/tool-call-shaped output. No P0/P1/P2. One P3 reviewer-limitation finding recorded. This verdict is an independent read-only review input only — not final approval, production sign-off, or an enterprise-trust claim.\",\"findings\":[{\"id\":\"CP207-R1\",\"severity\":\"P3\",\"title\":\"Local validation command-execution evidence not yet recorded (gated to post-review final closeout)\",\"file\":\"docs/closeout-packs/cp00-207/command-evidence.json\",\"line\":9,\"details\":\"command-evidence.json records commands:[] with status:\\\"pending\\\" and gate_outcome:\\\"pending\\\" (the Hermes H06 gate is likewise pending), and the manifest/construction-inspection still carry production_ready:false with empty tests_and_validation.commands. This is the expected state at the read_only_claude_run_raw_capture step, since the Claude review is itself the gating input that unblocks downstream adjudication/inspection/final_closeout_validation. As a read-only reviewer constrained to Read/Grep/Glob, I cannot execute the 11 declared validation commands, so local/Hermes validation-pass was verified statically (test/model.test.js CP207 assertions, validateDmsCoreCp207Coverage/validateDmsCoreCp207SyntheticFixtureWorkflowDescriptor logic, and the contract projection match) rather than executionally.\",\"recommendation\":\"At the post-review final_closeout_validation step, execute the 11 declared validation commands, populate command-evidence.json with the executed receipts, and confirm all are green before commit/closeout.\",\"post_review_disposition\":\"deferred_to_final_closeout_validation_step — by design and non-blocking for the read-only review verdict\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"41b3d1c7-638e-4dcd-9f01-abb85ac65732\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5848,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "9babebea-518e-4c70-9c3a-1c6bdae8e672",
+    "uuid": "41b3d1c7-638e-4dcd-9f01-abb85ac65732",
+    "total_cost_usd": 2.75087875,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

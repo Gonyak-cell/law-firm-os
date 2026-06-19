@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.kpi-baseline-data.v0.1",
+  "status": "blocked_not_collected",
+  "work_package_id": "LT-L9-W02",
+  "prepared_at": "2026-06-18T12:21:08Z",
+  "boundary": {
+    "post_launch_data_collected": false,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "weeks": [
+    "week_1_pending",
+    "week_2_pending",
+    "week_3_pending",
+    "week_4_pending"
+  ],
+  "metrics": [
+    {
+      "id": "matter_status_visibility",
+      "source": "PRD section 7",
+      "values": [
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected"
+      ]
+    },
+    {
+      "id": "filing_usage",
+      "source": "PRD section 7",
+      "values": [
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected"
+      ]
+    },
+    {
+      "id": "document_consistency",
+      "source": "PRD section 7",
+      "values": [
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected"
+      ]
+    },
+    {
+      "id": "ai_reliability",
+      "source": "PRD section 7",
+      "values": [
+        "not_applicable_wave1_ai_off",
+        "not_applicable_wave1_ai_off",
+        "not_applicable_wave1_ai_off",
+        "not_applicable_wave1_ai_off"
+      ]
+    },
+    {
+      "id": "security",
+      "source": "PRD section 7",
+      "values": [
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected"
+      ]
+    },
+    {
+      "id": "hr_stability",
+      "source": "PRD section 7",
+      "values": [
+        "not_applicable_wave1_hr_real_data_off",
+        "not_applicable_wave1_hr_real_data_off",
+        "not_applicable_wave1_hr_real_data_off",
+        "not_applicable_wave1_hr_real_data_off"
+      ]
+    },
+    {
+      "id": "knowledge_conversion",
+      "source": "PRD section 7",
+      "values": [
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected",
+        "blocked_not_collected"
+      ]
+    }
+  ]
+}

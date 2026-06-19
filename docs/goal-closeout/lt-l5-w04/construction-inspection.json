@@ -1,0 +1,29 @@
+{
+  "work_package_id": "LT-L5-W04",
+  "inspected_at": "2026-06-18T14:20:08Z",
+  "verdict": "BLOCKED_EXTERNAL_PENTEST_AND_PIPA_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "signed_roe_exists": false,
+    "external_pentest_report_exists": false,
+    "pentest_adjudication_exists": false,
+    "pipa_review_exists": false,
+    "evidence_map_exists": false,
+    "security_acceptance_run_all_exists": false,
+    "residual_p0_p1_zero_verified": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "staging_accessed": false,
+    "production_accessed": false,
+    "real_matter_or_hr_sensitive_data_accessed": false,
+    "external_vendor_result_synthesized": false,
+    "legal_review_synthesized": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

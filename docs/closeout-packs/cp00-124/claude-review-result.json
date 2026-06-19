@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-124",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-124-claude-review-output-valid.json",
+    "session_id": "83f875a9-20a1-4fd9-9d41-229d6900a790",
+    "uuid": "c794db1c-0eea-4bd7-bc07-1f0c9dd04fb4",
+    "duration_ms": 198774,
+    "duration_api_ms": 201263,
+    "total_cost_usd": 0.7745304999999999,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "Canonical 150-unit plan authority (closeout-pack-plan.json) is not part of this diff",
+        "file": "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "The pack's 150-unit range RP02.P06.M06.S09-RP02.P07.M03.S10 is asserted internally (PERMISSION_KERNEL_CP124_PACK_BINDING, contract JSON, manifest) and cross-checked by requirePlanPackUnitMatch(cp124PlanPack, createPermissionKernelCp124CoveredUnitIds(), \"CP00-124\"), but docs/closeout-pack-plan/closeout-pack-plan.json is not included in the staged diff, so the plan-side unit binding cannot be independently confirmed from the diff alone.",
+        "recommendation": "Informational only; non-blocking. The runtime validator already fails closed if the plan lacks a matching CP00-124 entry (required=true). No code change needed — just confirm the plan file contains the CP00-124 row with the same range at closeout."
+      }
+    ],
+    "recommendation": "approve",
+    "rationale": "The diff is purely additive synthetic, metadata-only scaffolding consistent with the CP119–CP123 pattern and adds no forbidden runtime behavior. Unit accounting is correct and internally enforced: 89 permission-matrix terminal units (RP02.P06.M06–M10) + 61 failure-taxonomy opening units (RP02.P07.M00–M03) = 150, first unit RP02.P06.M06.S09, last unit RP02.P07.M03.S10, 9 micro-phases, with deliverable/area/domain counts all matching validatePermissionKernelCp124Coverage and the .mjs contract assertions. CP123 inheritance is exercised (createPermissionKernelCp123PermissionAuditTerminalBoundary + cross_tenant_test, asserting boundary_case_count 10 and reason 'cross_tenant_deny'). Permission-matrix guardrails are preserved: cross-tenant audit_hint.object_id redacted to 'redacted_cross_tenant_object', search/leak trimming returns only d_cp124_document with rendered_fields limited to id/type/matter and hidden_fields_rendered false (no unauthorized counts; omitted_result_policy = do_not_count_or_render_unauthorized_results), review/approval routes resolve to review_required_routing/approval_required_routing without executes_claude_review or grants_human_approval, export/download and external share resolve without execution, AI retrieval returns blocked_ai_retrieval_boundary, audit hints are preview_only with emitted_to_audit_ledger false, and matrix/fixture rows carry persisted:false. Failure-taxonomy cases fail closed across every required code (missing tenant/actor/Matter/resource, unknown action, cross-tenant, permission denied, ambiguous rule, stale reference, lock conflict, retry exhaustion, rollback, compensation, blocked-claim receipt, fixture/test/smoke, audit failure hint, Hermes failure evidence) with fail_closed true and retry/rollback/lock/compensation all flagged executed:false. All outputs flow through freezeNoWriteResult and a coverage loop asserting no policy mutation, no audit/product/database writes, no idempotency persistence, no lock/retry/rollback/compensation execution, no export/share/AI/analytics execution, and no LDIP — and the functions are pure (no I/O, network, fs, or DB), so the no-write attestation matches actual behavior rather than masking it. No runtime UI/API route is registered (only an index.js re-export, README docs, and contract metadata), and handoff is fixed to CP00-125 / RP02.P07.M03.S11 with hrx_embedded_boundary intact (no HRX split). The single P3 is an informational note that the external plan file is not in-diff; it is enforced at runtime and does not block closeout."
+  }
+}

@@ -1,0 +1,380 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L0-W02",
+  "title": "Implementation-layer ledger and runtime gap report",
+  "phase": "L0",
+  "gate": "G1, G2, L0-EXIT",
+  "status": "blocked_pending_human_approval",
+  "recorded_at": "2026-06-18T09:52:34Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "dependency_note": "LT-L0-W01 machine evidence is complete and G1 remains blocked only on manual human acceptance; LT-L0-W02-T01 is an independent read-only ledger regeneration entry point.",
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "review_waiver_is_valid_review_evidence": false,
+    "valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L0-W02-T01",
+      "title": "Regenerate and validate implementation-layer ledger",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/closeout-pack-plan/implementation-layer-ledger.json",
+        "docs/closeout-pack-plan/implementation-layer-ledger.md",
+        "docs/goal-closeout/lt-l0-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "generator_exit_code": "passed",
+        "validator_exit_code": "passed",
+        "runtime_ready_pack_count_recorded": "passed",
+        "layer_distribution_recorded": "passed"
+      },
+      "commands": [
+        {
+          "command": "node scripts/generate-implementation-layer-ledger.mjs",
+          "exit_code": 0,
+          "output": "Generated docs/closeout-pack-plan/implementation-layer-ledger.json with 987 packs.",
+          "purpose": "Regenerate implementation-layer ledger after CP closeout completion"
+        },
+        {
+          "command": "node scripts/validate-implementation-layer-ledger.mjs",
+          "exit_code": 0,
+          "output": "Implementation layer ledger validation passed. packs: 987",
+          "purpose": "Validate regenerated implementation-layer ledger"
+        },
+        {
+          "command": "node - <<'NODE' ... summarize implementation-layer ledger distribution ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "pack_count": 987,
+            "runtime_ready_packs": 0,
+            "layer_counts": {
+              "descriptor": 987
+            },
+            "layer_source_counts": {
+              "undeclared_legacy": 169,
+              "derived_descriptor": 158,
+              "declared": 660
+            },
+            "declared_before_boundary_count": 0,
+            "first_pack": "CP00-001",
+            "last_pack": "CP00-987",
+            "program_distribution": {
+              "RP00": 94,
+              "RP01": 13,
+              "RP02": 27,
+              "RP03": 21,
+              "RP04": 21,
+              "RP05": 21,
+              "RP06": 37,
+              "RP07": 37,
+              "RP08": 27,
+              "RP09": 22,
+              "RP10": 21,
+              "RP11": 22,
+              "RP12": 28,
+              "RP13": 34,
+              "RP14": 27,
+              "RP15": 27,
+              "RP16": 34,
+              "RP17": 37,
+              "RP18": 32,
+              "RP19": 27,
+              "RP20": 35,
+              "RP21": 21,
+              "RP22": 28,
+              "RP23": 28,
+              "RP24": 34,
+              "RP25": 32,
+              "RP26": 32,
+              "RP27": 25,
+              "RP28": 28,
+              "RP29": 24,
+              "RP30": 91
+            }
+          },
+          "purpose": "Record regenerated ledger runtime readiness and layer distribution"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "All 987 closeout packs are classified as descriptor in the implementation-layer ledger.",
+        "No runtime_ready pack is claimed by this regeneration.",
+        "Closed CP evidence was read but not rewritten."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W02-T02",
+      "title": "Measure Wave 1 candidate feature execution surfaces",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/runtime-gap-report.md",
+        "docs/goal-closeout/lt-l0-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "seven_feature_rows_present": "passed",
+        "route_write_persistence_auth_measurements_present": "passed",
+        "measurement_commands_present": "passed",
+        "api_route_count_matches_server": "passed",
+        "api_binding_127001_recorded": "passed"
+      },
+      "measurements": {
+        "api_routes": [
+          "/api/health",
+          "/master-data/records",
+          "/master-data/relationships",
+          "/master-data/client-groups/:id"
+        ],
+        "total_api_route_count": 4,
+        "data_route_count": 3,
+        "host_127001_mentions": 2,
+        "live_runtime_true_write_flags_in_checked_files": 0,
+        "wave1_surface": [
+          {
+            "feature": "authentication",
+            "api_route_count": 0,
+            "write_path_count": 0,
+            "persistence": "none_descriptor_only",
+            "auth_present": "no_runtime_authn_route",
+            "audit_persistence": "none"
+          },
+          {
+            "feature": "authorization",
+            "api_route_count": 3,
+            "write_path_count": 0,
+            "persistence": "none_evaluation_only",
+            "auth_present": "permission_context_header_required_for_data_routes",
+            "audit_persistence": "none"
+          },
+          {
+            "feature": "audit",
+            "api_route_count": 0,
+            "write_path_count": 2,
+            "persistence": "in_memory_only",
+            "auth_present": "no_api_route",
+            "audit_persistence": "in_memory_only"
+          },
+          {
+            "feature": "matter",
+            "api_route_count": 0,
+            "write_path_count": 0,
+            "persistence": "none_synthetic_fixture_descriptor",
+            "auth_present": "only_indirect_master_data_permission_gate",
+            "audit_persistence": "none"
+          },
+          {
+            "feature": "documents",
+            "api_route_count": 0,
+            "write_path_count": 0,
+            "persistence": "none_descriptor_only_no_object_storage_runtime",
+            "auth_present": "no_dedicated_route",
+            "audit_persistence": "none"
+          },
+          {
+            "feature": "outlook_filing",
+            "api_route_count": 0,
+            "write_path_count": 0,
+            "persistence": "none_descriptor_only",
+            "auth_present": "no_dedicated_route",
+            "audit_persistence": "none"
+          },
+          {
+            "feature": "work_queue",
+            "api_route_count": 0,
+            "write_path_count": 0,
+            "persistence": "none_no_runtime_queue_route",
+            "auth_present": "no_dedicated_route",
+            "audit_persistence": "none"
+          }
+        ]
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... parse docs/launch/runtime-gap-report.md feature rows, required command sections, and 127.0.0.1 binding ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "feature_rows": 7,
+            "missing_measurements": [],
+            "missing_command_sections": [],
+            "has_127001_binding": true
+          },
+          "purpose": "Validate runtime-gap report T02 measurement table shape"
+        },
+        {
+          "command": "node - <<'NODE' ... measure Wave 1 runtime surface JSON from current source files ... NODE",
+          "exit_code": 0,
+          "output": "API routes 4, data routes 3, 127.0.0.1 mentions 2, live runtime true write flags 0, Wave 1 feature rows 7",
+          "purpose": "Compute Wave 1 feature runtime surface measurements"
+        },
+        {
+          "command": "grep -n \"127.0.0.1\" apps/api/src/server.js",
+          "exit_code": 0,
+          "output": "server binds 127.0.0.1 at HOST and comment documents local-only binding",
+          "purpose": "Verify API bind address measurement"
+        },
+        {
+          "command": "rg -n \"^    (append|correction)\\(\" packages/audit/src/append-only-ledger.js | wc -l | tr -d ' '",
+          "exit_code": 0,
+          "output": "2",
+          "purpose": "Count audit in-memory write methods"
+        },
+        {
+          "command": "rg -n \"writes_product_state: true|creates_database_rows: true|updates_database_rows: true|deletes_database_rows: true|writes_object_storage: true|stores_idp_secret: true|dispatches_sso_runtime: true|executes_api_handler: true|dispatches_filing_runtime: true|persists_workflow_attempt: true\" packages/enterprise packages/authz packages/matter packages/dms packages/email-dms apps/api/src || true",
+          "exit_code": 0,
+          "output": "No runtime true-write flags in measured runtime files; one true flag appears only in packages/enterprise/test/model.test.js when the broader command includes tests.",
+          "purpose": "Confirm measured Wave 1 runtime files do not open product-state write paths"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The runtime gap report records measurement commands for every Wave 1 row.",
+        "The current API server is master-data only; no dedicated authentication, matter, DMS/document, Outlook filing, or Work Queue API route is open.",
+        "Authorization is present as a fail-closed permission gate over the three data routes, not as a standalone persisted permission API.",
+        "Audit has two in-memory write methods and no durable audit persistence in the measured surface."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W02-T03",
+      "title": "Write feature-level runtime_ready gap matrix",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/runtime-gap-report.md",
+        "docs/goal-closeout/lt-l0-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "matrix_cell_count_35": "passed",
+        "judgment_vocab_only": "passed",
+        "partial_and_absent_cells_have_gap_and_evidence": "passed",
+        "summary_absent_count_matches_matrix": "passed"
+      },
+      "matrix_summary": {
+        "matrix_rows": 35,
+        "counts": {
+          "충족": 2,
+          "부분": 19,
+          "부재": 14
+        },
+        "missing_gap_or_evidence": []
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... parse RTG matrix rows and count judgment cells ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "matrix_rows": 35,
+            "counts": {
+              "충족": 2,
+              "부분": 19,
+              "부재": 14
+            },
+            "missing_gap_or_evidence": []
+          },
+          "purpose": "Verify 7 feature by 5 RTG matrix and partial/absent evidence fields"
+        },
+        {
+          "command": "grep -o '| 충족 |' docs/launch/runtime-gap-report.md | wc -l; grep -o '| 부분 |' docs/launch/runtime-gap-report.md | wc -l; grep -o '| 부재 |' docs/launch/runtime-gap-report.md | wc -l",
+          "exit_code": 0,
+          "output": "충족=2 부분=19 부재=14",
+          "purpose": "Grep-count matrix judgment cells"
+        },
+        {
+          "command": "node scripts/validate-implementation-layer-ledger.mjs",
+          "exit_code": 0,
+          "output": "Implementation layer ledger validation passed. packs: 987",
+          "purpose": "Confirm runtime gap matrix still rests on valid implementation-layer ledger"
+        }
+      ],
+      "notes": [
+        "The 14 absent cells are the primary L2/L4 rebaseline input for missing runtime capability.",
+        "The 19 partial cells require runtime admission, durable evidence, or dedicated routes before they can become satisfied.",
+        "The two satisfied cells are limited to authorization RTG-002 and RTG-004 based on fail-closed local API behavior."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W02-T04",
+      "title": "Issue runtime gap report rebaseline input and route for approval",
+      "status": "blocked_pending_human_approval",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/runtime-gap-report.md",
+        "docs/goal-closeout/lt-l0-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "approval_record_section_present": "passed",
+        "approval_status": "pending_human_approval",
+        "l2_l4_rebaseline_mapping_rows": "passed",
+        "g2_evidence_path_registered": "passed",
+        "wp_closed": false
+      },
+      "commands": [
+        {
+          "command": "grep -n \"Approval Record\\|Approver role\\|Record date\\|pending_human_approval\" docs/launch/runtime-gap-report.md",
+          "exit_code": 0,
+          "output": "Approval record exists with approver role, record date, and pending_human_approval status.",
+          "purpose": "Verify approval record exists without synthesizing approval"
+        },
+        {
+          "command": "grep -c '^| LT-L[24]-W' docs/launch/runtime-gap-report.md",
+          "exit_code": 0,
+          "output": "13",
+          "purpose": "Verify L2 seven WP plus L4 six WP rebaseline mapping row count"
+        },
+        {
+          "command": "ls docs/launch/runtime-gap-report.md",
+          "exit_code": 0,
+          "output": "docs/launch/runtime-gap-report.md",
+          "purpose": "Verify registered G2 evidence path resolves"
+        },
+        {
+          "command": "node - <<'NODE' ... verify all LT-L2-W01-W07 and LT-L4-W01-W06 mapping rows have no empty cells ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "mapping_rows": 13,
+            "missing": [],
+            "empty_mapping_rows": [],
+            "approval_pending": true
+          },
+          "purpose": "Verify rebaseline input completeness and pending approval boundary"
+        }
+      ],
+      "blocking_condition": {
+        "id": "LT-L0-W02-T04-HUMAN-APPROVAL",
+        "severity": "P1",
+        "reason": "LT-L0-W02-T04 requires a human approval record for the runtime gap report and L2/L4 rebaseline input. Codex must not synthesize this approval.",
+        "required_to_unblock": [
+          "A designated Launch owner / runtime rebaseline approver changes the Approval Record in docs/launch/runtime-gap-report.md from pending_human_approval to an approved decision.",
+          "After approval, rerun the T04 row-count and G2 evidence path checks and update this TUW status from blocked_pending_human_approval to passed."
+        ]
+      },
+      "notes": [
+        "The rebaseline input package is issued and complete for review.",
+        "L2 and L4 remain provisional until human approval is recorded.",
+        "No approval, deferral, or G2 closeout was synthesized."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L0-W02.",
+    "This record does not synthesize runtime gap report approval.",
+    "This record does not claim L2 or L4 rebaseline approval.",
+    "This record does not claim G2 is closed.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

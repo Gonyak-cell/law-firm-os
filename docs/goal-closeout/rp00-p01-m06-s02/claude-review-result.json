@@ -1,0 +1,144 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M06.S02",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Primary entity identifier",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T04:29:17Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "failed_tooling_attempts_not_counted_as_completed_review": 0,
+    "completed_diff_based_reviews_counted": 1
+  },
+  "tooling_attempts": [
+    {
+      "tool_name": "mcp__claude_ai_Figma__whoami",
+      "tool_use_id": "toolu_01R88yfNbYJofDkXa1NkwpRJ",
+      "result": "permission_denied",
+      "adjudication": "errant external identity-check attempt; no output used for review and no repo or product-state write occurred"
+    }
+  ],
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "pasted_git_diff_and_validation_summary",
+    "session_id": "3477715a-aeb2-410d-b49a-bfd6917ef098",
+    "uuid": "24cd4854-f1d4-445d-8bc2-765c15d6ea59",
+    "duration_ms": 293551,
+    "duration_api_ms": 0,
+    "terminal_reason": "completed",
+    "total_cost_usd": 1.69210025
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "3477715a-aeb2-410d-b49a-bfd6917ef098",
+    "uuid": "24cd4854-f1d4-445d-8bc2-765c15d6ea59",
+    "duration_ms": 293551,
+    "duration_api_ms": 0,
+    "total_cost_usd": 1.69210025,
+    "permission_denials": [
+      {
+        "tool_name": "mcp__claude_ai_Figma__whoami",
+        "tool_use_id": "toolu_01R88yfNbYJofDkXa1NkwpRJ",
+        "tool_input": {}
+      }
+    ],
+    "permission_denials_adjudicated": true,
+    "permission_denials_denied_only": true,
+    "no_tool_output_used_for_review": true,
+    "write_tools_granted": false,
+    "no_repo_or_product_state_write_from_denied_tool": true,
+    "permission_denial_disposition": "denied errant external identity-check attempt; substantive review proceeded from provided diff and validation summary only"
+  },
+  "review_summary_text": "Claude returned PASS_WITH_FINDINGS with no blocking P0/P1/P2 findings. It confirmed S02 implements only fixture_set_id primary identifier policy, preserves no-real-data/no-write boundaries, keeps tenant scope deferred to RP00.P01.M06.S03, and does not close RP00.P01 or RP00. It recorded three P3 notes: additive fixture_set_id on the S01 layout fixture record for cross-linking, a request to confirm disposition-status validation after evidence lands, and a note that non-reusable uniqueness is declared rather than runtime-enforced, which is appropriate for this single synthetic fixture set slice.",
+  "verdict": "PASS_WITH_FINDINGS",
+  "go_no_go": "go_after_adjudication",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "FS-S02-001",
+        "severity": "P3_NOTE",
+        "title": "S02 stamps fixture_set_id onto the S01 layout fixture sub-record",
+        "details": "Claude noted the fixture_set_id field is added to the existing layout fixture record as additive cross-linking required by layout_record_identifier_matches and matches_layout_record.",
+        "recommendation": "Track as slice-isolation note; no code change required because S01 remains layout-only in substance and keeps next_subphase RP00.P01.M06.S02.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_required_cross_linking_for_identifier_parity"
+      },
+      {
+        "id": "FS-S02-002",
+        "severity": "P3_NOTE",
+        "title": "Confirm disposition-status validator interaction after evidence lands",
+        "details": "Claude could not independently execute the suite and recommended confirming RP00 validator stays green after closeout evidence is created.",
+        "recommendation": "Run final validation matrix after evidence creation.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "final_validation_rerun_required_and_recorded"
+      },
+      {
+        "id": "FS-S02-003",
+        "severity": "P3_NOTE",
+        "title": "Non-reusable uniqueness is declared, not runtime-enforced",
+        "details": "Claude noted uniquenessPolicy declares stability/non-reuse without a runtime uniqueness registry.",
+        "recommendation": "No action needed at this slice granularity because this subphase has one synthetic fixture set and executable scope is canonical form enforcement.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_appropriate_for_single_synthetic_fixture_set_identifier_slice"
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "P3": [
+      {
+        "id": "FS-S02-001",
+        "title": "S02 stamps fixture_set_id onto the S01 layout fixture sub-record",
+        "status": "not_applicable_after_adjudication"
+      },
+      {
+        "id": "FS-S02-002",
+        "title": "Confirm disposition-status validator interaction after evidence lands",
+        "status": "fixed_by_closeout_evidence"
+      },
+      {
+        "id": "FS-S02-003",
+        "title": "Non-reusable uniqueness is declared, not runtime-enforced",
+        "status": "not_applicable_after_adjudication"
+      }
+    ]
+  },
+  "criteria_checks": {
+    "primary_identifier_policy_bound": "PASS",
+    "stable_prefix_enforced": "PASS",
+    "canonical_pattern_enforced": "PASS",
+    "identifier_normalization_executable": "PASS",
+    "noncanonical_identifier_rejected": "PASS",
+    "synthetic_fixture_identifier_validates": "PASS",
+    "layout_record_identifier_matches": "PASS",
+    "tenant_scope_deferred_to_next_subphase": "PASS",
+    "no_real_data": "PASS",
+    "no_product_state_writes": "PASS",
+    "evidence_sufficiency_after_closeout_files": "PASS_AFTER_FINAL_VALIDATION"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ]
+}

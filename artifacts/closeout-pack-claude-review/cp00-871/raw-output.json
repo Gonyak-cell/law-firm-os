@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-871",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T08:23:56.370Z",
+  "finished_at": "2026-06-17T08:28:35.043Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":277951,\"duration_api_ms\":278909,\"ttft_ms\":4669,\"num_turns\":46,\"result\":\"Review complete. **PASS** with zero findings.\\n\\nCP00-871 is a clean descriptor-only fixture-transition bridge. Implementation, validators, descriptor, contract JSON, and tests are mutually consistent; all no-write/no-real-data/no-runtime boundaries are hard-enforced; the read-only/non-final-approver authority boundary holds; and the review packet passes CP178+ hardening. Nothing blocks pack closeout or this CP's goal closeout, and no production_ready gates were weakened (the pack itself remains production_ready=false pending this very receipt, and claims no runtime or enterprise trust).\",\"stop_reason\":\"end_turn\",\"session_id\":\"20146b03-2837-4df7-af0c-ba88ebac54fc\",\"total_cost_usd\":1.69306575,\"usage\":{\"input_tokens\":4755,\"cache_creation_input_tokens\":94849,\"cache_read_input_tokens\":1138281,\"output_tokens\":20244,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":94849,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":210,\"cache_read_input_tokens\":91286,\"cache_creation_input_tokens\":4030,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4030},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1139,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001244,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":4755,\"outputTokens\":20244,\"cacheReadInputTokens\":1138281,\"cacheCreationInputTokens\":94849,\"webSearchRequests\":0,\"costUSD\":1.6918217500000001,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-871 is a descriptor-only RP28 Marketplace pack bridging the P09 permission/audit review-receipt tail (RP28.P09.M05.S21-S22) into the synthetic fixture-set head (RP28.P09.M06.S01-S08); it does not claim production_ready=true, runtime_ready, or enterprise trust. Verified by direct source inspection (Read/Grep/Glob): (1) MARKETPLACE_CP871_PACK_BINDING (registry.js:496) carries correct upstream CP00-870, next CP00-872 / RP28.P09.M06.S09, and a descriptor-only production_ready_flag; (2) deliverable distribution {hermes_evidence:1, implementation:3, claude_review:2, security_audit:2, test:1, ui:1}, phase/micro counts (RP28.P09:10; M05:2, M06:8), and unit titles all match the manifest, requirements, and the CLAUDE_REVIEW_ROWS slices that drive validateMarketplaceCp871ClaudeReviewFixtureTransitionCoverage; (3) validateMarketplaceCp871ClaudeReviewFixtureTransitionDescriptor (validators.js:3277) and MARKETPLACE_NO_WRITE_ATTESTATION hard-reject runtime execution, app submission/install, permission-decision/audit-event/product-state writes, connector secrets, OAuth tokens, prompt/completion payloads, and real client data; the contract JSON latest_pack/latest_projection/no_write_attestation agree; (4) authority boundary holds everywhere - Claude read_only, claude_is_final_approval=false, promotes_claude_to_final_approval=false, human final approval required for runtime opening at CP00-872; Hermes packet is control-plane only (emits_runtime_receipt=false, writes_product_state=false), not embedded in product runtime; (5) model.test.js:1017-1050 cover binding/coverage, runtime-closed descriptor, and contract projection currency; (6) CP178+ hardening satisfied - auth preflight passed, prompt 2470B<25600B with no embedded source/diff, read-only tools only, review schema present, summary-only correctly disallowed. Provenance: command-evidence.json shows the 3-command pre-review local matrix at exit 0 (agent-reported; not re-run under read-only role), with the full deterministic suite running post-review per the established CP870 pattern; pending adjudication/inspection/claude-review-result are expected pre-review placeholders. Unrelated dirty files (progress-control-room, workbook/*, etc.) are correctly excluded by changed-file-scope and not attributed to this pack. No P0/P1/P2/P3 findings; PASS. The receipt does not confer final human/enterprise-trust approval, which remains an external boundary outside this CP closeout goal.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"fc81e7e4-1efc-4c62-9b51-6f874db225a9\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4739,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "20146b03-2837-4df7-af0c-ba88ebac54fc",
+    "uuid": "fc81e7e4-1efc-4c62-9b51-6f874db225a9",
+    "total_cost_usd": 1.69306575,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

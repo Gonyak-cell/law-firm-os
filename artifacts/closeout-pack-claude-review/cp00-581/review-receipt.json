@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-581",
+  "normalized_at": "2026-06-12T23:03:34.369Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-581/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-581/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-581/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-581/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "cadf6b6a-24c5-4788-bd22-aa8d0e45a191",
+    "uuid": "f7ae68c1-1498-4238-8173-75dd0cd90c77",
+    "total_cost_usd": 2.22672375,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5228,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-581 is a clean descriptor-only RP18 closeout pack (P08 closeout / P09 foundation) covering exactly 150 units RP18.P08.M09.S03-RP18.P09.M06.S06, risk class C. The pack-level production_ready claim is correctly false (runtime_ready false, implementation_layer descriptor); the \"ai_legal_workflows_core_p08_closeout_p09_foundation_descriptor_verified\" flag and the Hermes production_ready_candidate are gated on substantive coverage+slice validation, so there is no enterprise-trust overclaim. Independent grep of review-baseline.json confirms the deliverable distribution exactly (implementation 80, hermes_evidence 20, claude_review 20, test 9, security_audit 14, ui 7 = 150), matching the prompt, the CP581 registry requirements, the manifest delivery_counts, and the contract. All 7 required public exports exist and the validators perform real count/title/boundary checks (pack id, risk, unit count, first/last unit, duplicate ids, RP18-only, per-deliverable/phase/micro counts, per-row descriptor_only/no-runtime/customer-safe/no-raw-payload guards, attestation flags, authority boundary, handoff). model.test.js and the contract validator carry comprehensive CP581 assertions, and command-evidence.json records every required validation command (npm test, validate, closeout-pack[-plan]:validate, weighted/fullplan/spec/goal/rp00 validates, git diff --check) at exit_code 0. The no-write/no-real-data boundaries hold: the attestation chain never flips a safety flag to true, manifest guards (claude_not_final_approver, enterprise_trust_not_claimed_from_local_validation, no_hermes_runtime_receipt, no_state_transition_write, no-leak guards) are all true, and no_real_data is true. Review hardening is satisfied: the readiness auth preflight passed with valid non-empty JSON (ok:true, exit_code 0), the prompt excludes full diff/source with source_inspection_mode read_tools_used, summary-only review is prohibited and not used, request tools are limited to Read/Grep/Glob with forbidden_tools_present false, and forbidden_review_evidence enumerates failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output and missing-field/approval/trust blockers per CP178+. Claude is bound as a read-only independent reviewer and not final approver, with human final approval and adjudication/construction-inspection still pending downstream (status implemented_pending_review). Hermes patterns appear only as deterministic evidence-packet/receipt descriptors (emits_hermes_runtime_receipt false), not product runtime. Unrelated dirty files (UI-workstream progress-control-room and matter workbook docs) are correctly segregated under unrelated_dirty_files_preserved and not treated as pack scope. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

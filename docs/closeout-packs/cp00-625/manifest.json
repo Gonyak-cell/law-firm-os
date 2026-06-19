@@ -1,0 +1,602 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-625",
+  "planned_pack_id": "CP00-625",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "program_id": "RP20",
+  "risk_class": "A",
+  "planned_risk_class": "A",
+  "unit_count": 10,
+  "planned_unit_count": 10,
+  "primary_subphase_id": "RP20.P05.M02.S20",
+  "next_subphase": "RP20.P05.M03.S01",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-625",
+    "planned_pack_id": "CP00-625",
+    "title": "CP00-625 RP20.P05.M02.S11-RP20.P05.M02.S20 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP20.P05.M02.S11",
+      "last_unit_id": "RP20.P05.M02.S20",
+      "description": "RP20.P05.M02.S11-RP20.P05.M02.S20"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP20.P05.M02.S11",
+        "title": "Audit hint case",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP20.P05.M02.S12",
+        "title": "Security trimming case",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP20.P05.M02.S13",
+        "title": "AI retrieval or analytics case",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP20.P05.M02.S14",
+        "title": "Fixture manifest",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP20.P05.M02.S15",
+        "title": "Golden test",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP20.P05.M02.S16",
+        "title": "Failure test",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP20.P05.M02.S17",
+        "title": "Hermes fixture evidence",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP20.P05.M02.S18",
+        "title": "Claude missing-test prompt",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP20.P05.M02.S19",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP20.P05.M02.S20",
+        "title": "No-real-data check",
+        "source_micro_phase_id": "RP20.P05.M02",
+        "program_id": "RP20",
+        "phase_id": "RP20.P05",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "deviation_from_plan": false,
+  "included_units": [
+    {
+      "id": "RP20.P05.M02.S11",
+      "title": "Audit hint case",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S12",
+      "title": "Security trimming case",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S13",
+      "title": "AI retrieval or analytics case",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S14",
+      "title": "Fixture manifest",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S15",
+      "title": "Golden test",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S16",
+      "title": "Failure test",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S17",
+      "title": "Hermes fixture evidence",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S18",
+      "title": "Claude missing-test prompt",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S19",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    },
+    {
+      "id": "RP20.P05.M02.S20",
+      "title": "No-real-data check",
+      "source_micro_phase_id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "phase_id": "RP20.P05",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-625/manifest.json",
+        "docs/closeout-packs/cp00-625/command-evidence.json",
+        "docs/closeout-packs/cp00-625/claude-review-result.json",
+        "docs/closeout-packs/cp00-625/adjudication.md",
+        "docs/closeout-packs/cp00-625/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/data-room-vdr-core-contract.json",
+        "packages/data-room/README.md",
+        "packages/data-room/src/registry.js",
+        "packages/data-room/src/service.js",
+        "packages/data-room/src/validators.js",
+        "packages/data-room/test/model.test.js",
+        "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+        "docs/closeout-packs/cp00-625/"
+      ]
+    }
+  ],
+  "delivery_counts": {
+    "security_audit": 2,
+    "implementation": 3,
+    "fixture": 1,
+    "test": 3,
+    "hermes_evidence": 1
+  },
+  "micro_phase_row_counts": {
+    "RP20.P05.M02": 10
+  },
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "runtime_opened": false,
+    "summary": "CP00-625 covers the RP20 Data Room And VDR P05 fixture type-and-shape tail over 10 planned units, preserving no-write, no-real-data, audit/security trimming, AI retrieval, fixture manifest, fixture test, Hermes fixture evidence, review authority, and handoff boundaries without opening Data Room or VDR runtime behavior.",
+    "source_refs": [
+      "contracts/data-room-vdr-core-contract.json",
+      "packages/data-room/README.md",
+      "packages/data-room/src/registry.js",
+      "packages/data-room/src/service.js",
+      "packages/data-room/src/validators.js",
+      "packages/data-room/test/model.test.js",
+      "scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+      "docs/closeout-packs/cp00-625/manifest.json",
+      "docs/closeout-packs/cp00-625/command-evidence.json",
+      "docs/closeout-packs/cp00-625/claude-review-result.json",
+      "docs/closeout-packs/cp00-625/adjudication.md",
+      "docs/closeout-packs/cp00-625/construction-inspection.json",
+      "docs/closeout-packs/cp00-625/",
+      "artifacts/closeout-pack-claude-review/cp00-625/review-baseline.json",
+      "artifacts/closeout-pack-claude-review/cp00-625/readiness-report.json",
+      "artifacts/closeout-pack-claude-review/cp00-625/raw-output.json",
+      "artifacts/closeout-pack-claude-review/cp00-625/review-receipt.json"
+    ]
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-625/manifest.json",
+    "docs/closeout-packs/cp00-625/command-evidence.json",
+    "docs/closeout-packs/cp00-625/claude-review-result.json",
+    "docs/closeout-packs/cp00-625/adjudication.md",
+    "docs/closeout-packs/cp00-625/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-625/manifest.json",
+    "docs/closeout-packs/cp00-625/command-evidence.json",
+    "docs/closeout-packs/cp00-625/claude-review-result.json",
+    "docs/closeout-packs/cp00-625/adjudication.md",
+    "docs/closeout-packs/cp00-625/construction-inspection.json"
+  ],
+  "production_ready_flag": "data_room_vdr_core_p05_fixture_type_shape_tail_descriptor_verified",
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [
+      "docs/closeout-packs/cp00-625/"
+    ],
+    "unrelated_dirty_files_preserved": [
+      "scripts/progress-control-room-data.mjs",
+      "tools/progress-control-room/index.html",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/launch-tuw/",
+      "workbook/matter-post-cp-launch-plan.md",
+      "workbook/matter_dev_docs/matter_개발문서_통합본.md",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-625/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-625/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "acd409a3-8abd-462c-917d-eef5c203a000",
+      "uuid": "fae8da16-62e5-4346-b414-e282c4f0435b",
+      "total_cost_usd": 2.06045875,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "Read-only review of CP00-625 (RP20.P05.M02.S11-RP20.P05.M02.S20, Risk A, 10 units, micro \"Type And Shape Definition\"). The pack is a coherent descriptor-only fixture type-and-shape tail. Verified via Read/Grep/Glob: (1) Implementation is internally consistent across contract projection, registry, service, validators, tests, validator script, README, next-pack-queue, and closeout plan. The CP00-625 contract section (cp625_pack_binding, cp625_requirements, cp625_no_write_attestation, cp625_p05_fixture_type_shape_tail_descriptor) is a projection of code output that both packages/data-room/test/model.test.js:953 and scripts/validate-rp20-data-room-vdr-core-contract.mjs:347 assert with deepEqual. (2) All 9 required public exports exist and are wired (registry/service/validators). (3) Deliverable distribution {security_audit:2, implementation:3, fixture:1, test:3, hermes_evidence:1}=10 is correct; title-set classification confirms \"Audit hint case\"/\"Security trimming case\"->security_audit, \"Claude missing-test prompt\"->test (in TEST_TITLES, not CLAUDE_TITLES), and the three implementation rows. Micro-title distribution {\"Type And Shape Definition\":10} matches. (4) No-write/no-real-data boundaries are enforced in code (freezeCp625Result + no_write_attestation, synthetic_only/no_real_data/uses_real_deal_data) and asserted by validateDataRoomVdrCoreCp625P05FixtureTypeShapeTailDescriptor plus model.test.js. (5) Authority boundary correct: claude_is_final_approval=false, local_validation_claims_enterprise_trust=false (asserted), human_final_approval_required_for_runtime_opening=true, runtime opens only at CP00-626; allowed_claude_tools limited to Read/Grep/Glob. (6) Hermes packet is descriptor-only with emits_hermes_runtime_receipt=false - used solely for deterministic review packet/receipt handling, not product runtime. (7) Readiness auth preflight passed (exit 0, 1436-byte valid JSON); no forbidden review evidence (auth failure, 0-byte, malformed/fenced JSON, tool-call-shaped output, missing fields). Pack manifest/command-evidence/adjudication/construction-inspection correctly remain in pending pre-closeout state with production_ready=false and runtime_ready=false; nothing over-claims runtime readiness or enterprise trust. Unrelated dirty files (progress-control-room, workbook/*, matter docs) are correctly out of pack scope. The pack-level descriptor-verified claim is supported; no defects found.",
+      "findings": [],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 0,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 0
+      }
+    }
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-625/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-625/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-625/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-625/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "commit_policy": {
+    "required": true,
+    "commit_after_production_ready": true
+  }
+}

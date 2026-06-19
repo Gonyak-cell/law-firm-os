@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-169",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "7c63ac35-abcf-4630-a0c0-12147b3036f6",
+    "uuid": "a5f05d7a-bb4b-43f4-a812-a0cfe708c906",
+    "duration_ms": 174215,
+    "duration_api_ms": 176047,
+    "total_cost_usd": 0.776345,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-169-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-169.master_data_permission_audit_workflow_failure_taxonomy",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-169-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-169 cleanly advances the RP04 master-data contract to v0.14 and current_pack to CP00-169 (Risk C, 150 units, RP04.P06.M06.S06-RP04.P07.M03.S20). Deliverable distribution (38+27+17+4+14+44+4+2) and micro-phase distribution (15+22+20+20+11+11+11+20+20) both sum to 150. Share and AI retrieval decision bindings are descriptor-only (dispatches_approval_route:false, executes_ai_retrieval:false) and do not widen authority. The P07 failure taxonomy covers tenant/actor/matter/resource/action/cross-tenant/permission/ambiguous-rule/stale/lock/retry/rollback/compensation plus receipt/fixture/test/smoke/hint/evidence descriptors, all with internal blocked_claim kept in internal_failure_evidence only. Customer-facing summaries exclude every prohibited output and internal reference field, enforced by serialized substring and key-absence checks. Hermes/Claude packets and the closeout handoff are descriptor-only and correctly point CP00-169 -> CP00-170 / RP04.P07.M03.S21. No P0/P1/P2 issues; one cosmetic P3. The single P3 fallback-label issue was addressed by explicitly mapping evidence and handoff continuation descriptors to the permission_fixture source reference and adding regression assertions.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_c_scope_preserved": true,
+      "handoff_valid": true,
+      "notes": "CP00-169 builds frozen workflow/failure taxonomy descriptors only; package code does not load real data, execute runtime permission checks, audit appends, route dispatch, API handlers, UI rendering, AI retrieval, analytics, Hermes, Claude, retry, or rollback."
+    },
+    "findings": [
+      {
+        "id": "CP00-169-C04-F001",
+        "severity": "P3",
+        "file": "packages/master-data/src/service.js",
+        "line": 2168,
+        "title": "Source-test fallback mislabels non-test continuation descriptors",
+        "description": "defaultCp169SourceTestKey has no entries for the continuation descriptors hermes_evidence_packet, claude_review_packet, and closeout_handoff, so they fall through to the `?? \"denied_test\"` default. This attaches a semantically meaningless `source_test_key: \"denied_test\"` and a denied-test fixture descriptor to evidence/handoff rows. It is cosmetic only: it does not affect any leak guard, coverage count, no-write/no-effect flag, or gate result, and the strings involved are not sensitive.",
+        "recommendation": "Either add explicit mappings (or a null/`reference_only` source key) for hermes_evidence_packet, claude_review_packet, and closeout_handoff, or skip source-fixture attachment for non-test continuation descriptors so the source_test_key reflects their actual nature.",
+        "post_review_disposition": "addressed: evidence/handoff continuation descriptors now map explicitly to permission_fixture instead of falling through to denied_test, with regression assertions in packages/master-data/test/model.test.js."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-650",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T17:23:54.033Z",
+  "finished_at": "2026-06-13T17:27:31.591Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":216961,\"duration_api_ms\":218465,\"ttft_ms\":3089,\"num_turns\":37,\"result\":\"Review complete. **Verdict: PASS** — no blocking findings.\\n\\nCP00-650 is a clean, descriptor-only RP21 Admin Console UI implementation slice. The pack-level claim is supported: implementation enforces descriptor-only boundaries in both the builder (`freezeCp650Result`) and the independent validator, the no-write/no-real-data attestation is comprehensive, Claude remains a read-only reviewer (not final approver), Hermes is confined to deterministic evidence, and local validation/tests pass per command-evidence. The pack correctly does not claim runtime or enterprise trust, so `blocks_goal_closeout=false` and the human enterprise-trust approval boundary stays outside this receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ca90990a-fa00-4cce-9c9f-e700d03dd0de\",\"total_cost_usd\":1.95975375,\"usage\":{\"input_tokens\":98,\"cache_creation_input_tokens\":141593,\"cache_read_input_tokens\":1240719,\"output_tokens\":18108,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":141593,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":242,\"cache_read_input_tokens\":136264,\"cache_creation_input_tokens\":6063,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6063},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1148,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001248,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":98,\"outputTokens\":18108,\"cacheReadInputTokens\":1240719,\"cacheCreationInputTokens\":141593,\"webSearchRequests\":0,\"costUSD\":1.95850575,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-650 (RP21 Admin Console UI implementation slice, Risk B, 40 units, RP21.P04.M02.S08-RP21.P04.M04.S17) passes hardened read-only review. The pack is descriptor-only and does not claim runtime or enterprise trust: manifest declares production_ready=false, runtime_ready=false, status=in_progress, and the production_ready_flag (admin_console_ui_implementation_slice_descriptor_verified) is a descriptor-verification label, not a runtime claim. Verification: (1) The 40 included units match the prompt's deliverable_distribution exactly (ui:18, implementation:10, claude_review:3, security_audit:4, fixture:2, test:2, hermes_evidence:1) and micro_title_distribution (Type And Shape Definition:1, Primary Implementation Slice:22, Secondary Workflow Slice:17); validateAdminConsoleCp650Coverage enforces these against the plan/manifest snapshot. (2) Descriptor-only boundaries are double-enforced: freezeCp650Result stamps all 35 runtime/mutation/audit/leak flags false, and validateAdminConsoleCp650UiImplementationSliceDescriptor independently re-checks every flag plus per-row descriptor_only=true/runtime_execution=false/raw_payload_included=false; creation and validation share adminConsoleRowKey so row keys align. (3) No-write/no-real-data holds: ADMIN_CONSOLE_CP650_NO_WRITE_ATTESTATION sets no_real_data, synthetic_only, writes_product_state=false, and claims_enterprise_trust_from_local_validation=false; command-evidence attests synthetic/descriptor-only. (4) Claude stays a read-only independent reviewer (read_only=true, promotes_claude_to_final_approval=false, blocks_pack_on_p0_p1_p2=true) and is not final approver. (5) Hermes is used only for a deterministic evidence packet (runtime_receipt_emitted=false, hermes_runtime_opened=false), not product runtime. (6) Contract regenerated with current_pack=CP00-650, generated_from_pack_id=CP00-650, runtime_opened=false, prior CP645-649 historical; closeout handoff targets CP00-651/RP21.P04.M04.S18. (7) command-evidence shows node --check (x5), node --test, and npm run rp21:admin-console:validate all exit 0. The pending state of claude-review-result.json, construction-inspection.json, and adjudication.md is the expected pre-review condition this run populates. No P0/P1/P2/P3 findings. blocks_goal_closeout=false because the pack asserts no runtime/enterprise-trust claim and has no unresolved blocking findings; human final approval for enterprise trust correctly remains outside this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"4754baff-3889-4d97-b791-6bf369d99fee\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4832,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ca90990a-fa00-4cce-9c9f-e700d03dd0de",
+    "uuid": "4754baff-3889-4d97-b791-6bf369d99fee",
+    "total_cost_usd": 1.95975375,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

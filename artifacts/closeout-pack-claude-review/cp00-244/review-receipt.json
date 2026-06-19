@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-244",
+  "normalized_at": "2026-06-10T13:58:55.653Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-244/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-244/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-244/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-244/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4ec8a10e-d6f3-48e2-ac26-1856ee4e47dd",
+    "uuid": "bc7d48d3-d65d-4124-8625-880bc99880c5",
+    "total_cost_usd": 2.1003775,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7183,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-244 (RP07 search-core, risk A, 10 units, RP07.P02.M06.S06-RP07.P02.M06.S15, \"Synthetic Fixture Set\" middle rows) is a sound descriptor-only pack and passes independent read-only review. Identity and scope are consistent across the registry binding (SEARCH_CORE_CP244_PACK_BINDING), manifest, contract current_pack + appended historical_pack_bindings tail, validator script, and model tests. Deliverable distribution {security_audit:1, implementation:5, ui:3, claude_review:1} and micro-title {Synthetic Fixture Set:10} match the 10 manifest units exactly and are enforced by validateSearchCoreCp244Coverage. Descriptor-only and no-write/no-real-data boundaries are enforced redundantly: freezeCp244Result forces all dispatch/write/persist/lock/audit/receipt flags false; validateSearchCoreCp244ServiceFixtureMidDescriptor asserts per-row descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false, plus targeted no-leak checks for audit hint/body, state-transition writes, idempotency persistence, lock acquisition, db-row creation, validation-error detail, and review/approval route dispatch; and the contract projection is held to deep-equality with the freshly generated descriptor. Authority boundary is correctly preserved (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true, promotes_claude_to_final_approval=false); Hermes appears only as a deterministic packet/receipt-shape descriptor (emits_hermes_runtime_receipt=false), not product runtime. production_ready is correctly false with status implemented_pending_review, so no premature enterprise-trust claim is made. Command-evidence records all expected validation commands at exit 0, readiness auth-preflight passed, and the review was conducted with read-only Read/Grep/Glob against a 2150-byte prompt containing no embedded diff/source. No P0/P1/P2 issues found; two non-blocking P3 notes are reported.",
+    "findings": [
+      {
+        "id": "CP00-244-P3-01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts not yet generated at review time",
+        "file": "docs/closeout-packs/cp00-244/manifest.json",
+        "line": 483,
+        "details": "The manifest's required_pack_artifacts and per-unit evidence_refs reference docs/closeout-packs/cp00-244/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in that directory. This is consistent with the declared hardening_sequence, in which these artifacts are produced by steps that run AFTER the read-only Claude run (normalize -> receipt_validate -> finding_adjudication -> construction_inspection). The manifest correctly reflects this with status implemented_pending_review, production_ready=false, and pack_level_claude_review.status=pending with empty valid_review_receipts.",
+        "recommendation": "Ensure the remaining sequence steps generate this review's normalized result (claude-review-result.json), the adjudication, and the construction inspection, and that npm run closeout-pack:validate confirms their presence before the commit/closeout step.",
+        "post_review_disposition": "Expected in-progress state at the review step; non-blocking. Downstream closeout-pack:validate gate enforces artifact presence before commit."
+      },
+      {
+        "id": "CP00-244-P3-02",
+        "severity": "P3",
+        "title": "changed-file-scope classifies the pack's own evidence dir as unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-244/changed-file-scope.json",
+        "line": 100,
+        "details": "docs/closeout-packs/cp00-244/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files and unrelated_dirty_files_preserved. The cp00-244/ directory is the active pack's own evidence directory (related to this pack), so also tagging it unrelated_dirty_files_preserved is cosmetically inconsistent. The manifest's worktree_transition_policy.unrelated_dirty_files_preserved lists only the unrelated .docx and the c-ldip-01 file, so there is no boundary, real-data, or scope-integrity impact; the seven tracked modified files still align with active_pack_implementation_refs.",
+        "recommendation": "Tighten the scope generator so the active pack's own evidence directory is not simultaneously tagged unrelated_dirty_files_preserved, to keep the changed-file-scope labeling unambiguous.",
+        "post_review_disposition": "Cosmetic metadata labeling only; non-blocking; does not affect scope integrity, boundaries, or the production_ready determination."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

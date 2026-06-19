@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-L3-W01",
+  "inspected_at": "2026-06-18T14:49:34Z",
+  "verdict": "BLOCKED_HUMAN_LICENSE_SIGNATURE_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "ui_reference_image_count": 90,
+    "license_report_img_rows": 90,
+    "mobbin_rows": 86,
+    "font_ofl_files_present": true,
+    "human_signature_present": false,
+    "remote_privacy_confirmation_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "public_push_authorized": false,
+    "human_signature_synthesized": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

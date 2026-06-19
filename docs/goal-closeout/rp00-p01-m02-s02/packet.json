@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M02.S02",
+  "source_micro_phase_id": "RP00.P01.M02",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Implement the AIControlRule primary entity identifier policy so rule_id values are canonical, stable, auditable, rejected when noncanonical, and bounded before the tenant scope field slice.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m02-s02/packet.json",
+    "docs/goal-closeout/rp00-p01-m02-s02/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M02.S02 in implemented state.",
+    "Adds AI_CONTROL_RULE_IDENTIFIER_POLICY with canonical air_ lowercase snake-case identifier rules and next boundary RP00.P01.M02.S03.",
+    "Adds normalizeAIControlRuleId and validateAIControlRuleId exports.",
+    "Binds AI_CONTROL_RULE_MODEL.identifierPolicy and validateAIControlRule to the primary identifier policy.",
+    "Updates createAIControlRule to store canonical rule_id values returned by the identifier normalizer.",
+    "Extends the synthetic fixture with ai_control_rule_identifier evidence matching the synthetic AIControlRule record.",
+    "Extends the RP00 validator and README with machine checks for the S02 primary identifier slice."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not complete RP00.P01.M02.S03 tenant scope field.",
+    "Does not implement HermesGate, ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M02.S03."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M02.S03"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M02.S02 implement only the AIControlRule primary entity identifier slice, with tenant scope field deferred to RP00.P01.M02.S03?",
+    "Does the identifier policy enforce the air_ stable prefix, lowercase snake-case canonical pattern, and rejection of blank, missing-prefix, uppercase, hyphenated, double-underscore, path-like, URL-like, and stored-whitespace forms?",
+    "Do normalizeAIControlRuleId, validateAIControlRuleId, validateAIControlRule, and createAIControlRule consistently preserve canonical identifiers without weakening fail-closed AI authority rules from S01?",
+    "Does the synthetic fixture avoid real data and prove the AIControlRule identifier value matches the AIControlRule record?",
+    "Does the validator enforce S02 exports, fixture validation, noncanonical rejection, next boundary RP00.P01.M02.S03, and no-write H00 evidence before production_ready?"
+  ],
+  "risk_focus": [
+    "Claiming tenant scope field completion from the primary identifier slice.",
+    "Accepting noncanonical identifiers that would weaken audit, references, or blocked-claim correlation.",
+    "Weakening existing AIControlRule forbidden hard-stops while adding identifier normalization.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

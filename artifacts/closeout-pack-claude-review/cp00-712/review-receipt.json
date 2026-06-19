@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-712",
+  "normalized_at": "2026-06-15T04:24:06.714Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-712/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-712/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-712/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-712/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "fd6084b1-60a2-4ba9-abb2-de8c393949e8",
+    "uuid": "39e5593e-6b41-4d0a-950f-b4f8144e1805",
+    "total_cost_usd": 2.66629675,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6126,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-712 is a descriptor-only RP23 External Integrations II finance-integrations pack (P06 Claude-review/closeout tail + P07 scope/contract/type/impl/workflow/permission head, 150 units, RP23.P06.M09.S03-RP23.P07.M05.S04, risk C). Independent read-only verification supports the pending production_ready determination: (1) the CP712 binding (registry.js:307) matches the baseline, contract current_pack/latest_pack, manifest, and README; (2) I recomputed the deliverable distribution from included_units and it equals implementation 23 / security_audit 19 / ui 8 / claude_review 5 / test 16 / failure_recovery 64 / hermes_evidence 10 / fixture 5 = 150, matching the prompt; (3) descriptor/case-set generation is descriptor-only with a comprehensive no-write attestation, and validators (validators.js:8) reject sensitive payloads, runtime opening, cross-tenant access, audit-body exposure, and real data while requiring human-final-approval and forbidding any Claude-final-approval or enterprise-trust claim; (4) Hermes is confined to deterministic evidence packets (emits_runtime_receipt=false, writes_product_state=false) and is not embedded in product runtime; (5) tests cover CP712 binding/coverage, runtime-closed descriptor, and contract projection (model.test.js:52-54); (6) the contract latest_projection is CP712 with validation.valid=true. The pack is honest about its state (manifest/inspection/adjudication report production_ready=false, runtime_ready=false, status pending_review), the queue confirms CP00-712 as live latest with CP00-713 next, and CP178+ review-evidence hardening holds (readiness auth preflight passed with valid non-empty JSON; no auth failure, malformed JSON, or tool-call-shaped output; no prior invalid review attempts). Claude remains a read-only, non-final reviewer. blocks_goal_closeout=false because the pack claims neither runtime nor enterprise trust. No P0/P1/P2 issues found; one P3 documents that recorded validation commands were not re-executed in this read-only pass.",
+    "findings": [
+      {
+        "id": "CP712-P3-01",
+        "severity": "P3",
+        "title": "Validation/test results taken from recorded evidence; not re-executed in read-only review",
+        "file": "docs/closeout-packs/cp00-712/command-evidence.json",
+        "line": null,
+        "details": "This hardened review is read-only (Read/Grep/Glob; no Bash), so the 24 commands recorded in command-evidence.json (npm test, npm run validate, closeout-pack-plan:validate, closeout-pack:validate, spec:requirements/weighted/fullplan/goal:closeout/rp00:control-plane validate, node --test, git diff --check) could not be re-run here. All are recorded with exit_code 0, and readiness-report.json shows the auth preflight passed with valid non-empty JSON (1434 bytes). I independently corroborated these claims by static inspection: the CP712 binding matches the baseline; the deliverable distribution recomputed from included_units equals the prompt's distribution (sum 150); validators enforce descriptor_only/no-sensitive-payload/no-runtime/deny-over-allow/no-cross-tenant/no-audit-body/synthetic-only/human-final-approval; and contracts/external-integrations-ii-contract.json reports latest_projection=CP712 with validation.valid=true. Residual risk is limited to the command exit codes themselves not being re-executed in this pass.",
+        "recommendation": "Rely on the deterministic control-plane (CI) re-execution of the recorded validation commands as the binding pass/fail signal; no pack change is required.",
+        "post_review_disposition": "accepted_known_review_limitation_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

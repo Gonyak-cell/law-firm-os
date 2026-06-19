@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M07.S10",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only",
+    "session_id": "3ee76851-ca50-4fd3-bab8-6059e4b7aa86",
+    "uuid": "5c99a08f-2d72-40df-8012-bf0eed99a0bb",
+    "total_cost_usd": 0.7784975,
+    "duration_ms": 210627,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s10-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "improperly_completes_S11": false,
+    "defines_new_enum_values": false,
+    "findings": [
+      {
+        "id": "P2-1",
+        "severity": "P2",
+        "title": "Evidence-gating is declarative only in S10 transition guards",
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "S10 intentionally enforces only lifecycle adjacency; required-evidence enforcement is explicitly deferred to RP00.P01.M07.S11 validation helper, and the transition evidence keys are recorded for that future helper."
+      },
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "blocked is modeled as terminal and non-recoverable",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "Terminal blocked behavior matches sibling HermesGate and HumanApproval transition maps and is retained for this registry artifact lifecycle."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "Out-of-diff lifecycle/status dependencies are pinned by tests and validator",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The existing status-value and terminal-status sources remain pinned by model tests and RP00 validator checks."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "title": "Fixture consistency labels were absent from fixture JSON",
+        "status": "fixed",
+        "disposition": "The synthetic fixture now includes valid_closeout_transition, invalid_skip_transition, invalid_terminal_transition, and synthetic_only fields, with tests and validator coverage."
+      },
+      {
+        "id": "P3-4",
+        "severity": "P3",
+        "title": "Confirm no stale global nextSubphase S10 assertion remains",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "A targeted rg check confirmed no stale CONTROL_PLANE_DOMAIN_MODEL_REGISTRY.nextSubphase expectation for RP00.P01.M07.S10 remains; the only remaining S10 assertion is S09 optional registry nextSubphase."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude approved the S10 state-transition-map slice with no P0/P1, no S11 overreach, no new enum values, and synthetic-only no-write behavior. The only P2 is an explicit S11-boundary defer for evidence-gating enforcement."
+}

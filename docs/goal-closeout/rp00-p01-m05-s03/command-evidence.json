@@ -1,0 +1,143 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P01.M05.S03",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Tenant scope field",
+  "entity": "HumanApproval",
+  "status": "passed",
+  "recorded_at": "2026-06-03T21:37:39Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "cannot_synthesize_human_approval": true,
+  "commands": [
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "Validator syntax check"
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json",
+      "exit_code": 0,
+      "purpose": "Control-plane contract JSON parse check"
+    },
+    {
+      "command": "jq empty packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "purpose": "Synthetic fixture JSON parse check"
+    },
+    {
+      "command": "node --test packages/control-plane/test/*.test.js",
+      "exit_code": 0,
+      "purpose": "Focused control-plane model tests",
+      "test_count": 32,
+      "pass_count": 32
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Hermes H00 control-plane contract validation"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "227 requirement ledger validation",
+      "requirement_count": 227
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "Law Firm OS product contract validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "Weighted implementation ledger validation",
+      "implementation_subphase_count": 54355
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "Full microphase plan validation",
+      "micro_phase_count": 3300,
+      "release_program_count": 30
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "Global goal closeout protocol validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "Full repo test suite",
+      "test_count": 55,
+      "pass_count": 55
+    }
+  ],
+  "post_claude_finding_validation": [
+    {
+      "command": "node --test packages/control-plane/test/*.test.js",
+      "exit_code": 0,
+      "purpose": "Validate P3 stored-whitespace hardening after the single Claude review",
+      "test_count": 32,
+      "pass_count": 32
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Resolve P2 validator-confirmation finding after the single Claude review"
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "Validate contract validator syntax after adjudication"
+    }
+  ],
+  "final_validation_rerun": {
+    "recorded_at": "2026-06-04T00:16:19Z",
+    "commands": [
+      {
+        "command": "npm run rp00:control-plane:validate",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run spec:requirements:validate",
+        "exit_code": 0,
+        "requirement_count": 227
+      },
+      {
+        "command": "npm run validate",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run weighted:validate",
+        "exit_code": 0,
+        "implementation_subphase_count": 54355
+      },
+      {
+        "command": "npm run fullplan:validate",
+        "exit_code": 0,
+        "micro_phase_count": 3300
+      },
+      {
+        "command": "npm run goal:closeout:validate",
+        "exit_code": 0
+      },
+      {
+        "command": "npm test",
+        "exit_code": 0,
+        "test_count": 55,
+        "pass_count": 55
+      }
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "S03 implements only HumanApproval tenant scope and does not synthesize human approval decisions.",
+    "Matter trace remains deferred to RP00.P01.M05.S04; lifecycle remains deferred to RP00.P01.M05.S05.",
+    "Exactly one completed Claude Code review is recorded for this subphase; post-review fixes are validated locally without a Claude rerun.",
+    "The current subphase is promoted to production_ready after actual Claude C00 review, adjudication, construction inspection, final validation, and commit preparation."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-847",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-16T16:01:33.192Z",
+  "finished_at": "2026-06-16T16:07:15.941Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":342030,\"duration_api_ms\":342137,\"ttft_ms\":7384,\"num_turns\":34,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** (does not block pack closeout or this CP's goal closeout).\\n\\n- **P0/P1/P2: 0.** One **P3** (`CP847-P3-01`): the full closeout validation suite is still pending — `command-evidence.json` records only the two preliminary commands at exit 0 with `status: pending_full_validation`. This is expected sequencing (the review gate runs before the suite), not a code defect; the orchestrator must still run the full suite at exit 0 before promoting `production_ready` and committing.\\n- **Substance verified by static inspection:** descriptor-only implementation with frozen data, `implemented_model_names` correctly grown to the 5-entity set incl. AppPermission, coverage distribution matches the live plan and `MARKETPLACE_CP847_REQUIREMENTS`, validators fail-closed on runtime/secret/real-data, contract projection `validation.valid=true`, authority boundary intact (Claude read-only/non-final, Hermes `emits_runtime_receipt=false`), and the pending review placeholder is correctly not counted as valid evidence.\\n- The prior CP846-P3-02 nit (manifest missing `app_update_review_executed`) does **not** recur in CP00-847.\\n\\nCaveat on provenance: I did not execute anything (read-only tools only); the two exit-0 command results are agent-reported and were not independently re-run.\",\"stop_reason\":\"end_turn\",\"session_id\":\"104957a6-9de7-4a47-ba8c-7ec6ed779bde\",\"total_cost_usd\":2.139427,\"usage\":{\"input_tokens\":34,\"cache_creation_input_tokens\":129198,\"cache_read_input_tokens\":1294299,\"output_tokens\":27335,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":129198,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":507,\"cache_read_input_tokens\":123207,\"cache_creation_input_tokens\":6446,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6446},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1145,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001245,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":34,\"outputTokens\":27335,\"cacheReadInputTokens\":1294299,\"cacheCreationInputTokens\":129198,\"webSearchRequests\":0,\"costUSD\":2.138182,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-847 read-only review: PASS_WITH_FINDINGS. Descriptor-only RP28 Marketplace bridge (ReviewGate tail + AppPermission slice + relationship-map head), no runtime opened, no real data/secrets, boundaries and authority limits intact, coverage matches the live plan, contract projection consistent. production_ready honestly not yet asserted. One P3: full validation suite still pending (expected sequencing). No P0/P1/P2.\",\"findings\":[{\"id\":\"CP847-P3-01\",\"severity\":\"P3\",\"title\":\"Full closeout validation suite not executed within read-only review scope\",\"file\":\"docs/closeout-packs/cp00-847/command-evidence.json\",\"line\":5,\"details\":\"command-evidence.json records only two preliminary commands (npm run rp28:marketplace:validate and node --test packages/marketplace/test/*.test.js), both exit_code 0, with status 'pending_full_validation' and gate_outcome 'pending_valid_review_and_full_validation'. The broader closeout suite expected before promotion (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet evidenced. As a read-only reviewer (Read/Grep/Glob, no Bash) I verified code/contract/test/plan consistency by static inspection only and cannot execute these commands; their passing remains a prerequisite for production_ready. The two recorded exit-0 results are agent-reported and were not re-run here.\",\"recommendation\":\"Orchestrator must run and capture the full validation command suite at exit 0 before flipping production_ready=true and committing. This static review confirms structural soundness but does not substitute for executing the suite.\",\"post_review_disposition\":\"Expected workflow sequencing, not a code defect; production_ready is correctly still false and gate_outcome already records pending_full_validation. Does not block this review gate.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"59d0436d-98d6-4991-99ee-55bba50bdadf\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4945,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "104957a6-9de7-4a47-ba8c-7ec6ed779bde",
+    "uuid": "59d0436d-98d6-4991-99ee-55bba50bdadf",
+    "total_cost_usd": 2.139427,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

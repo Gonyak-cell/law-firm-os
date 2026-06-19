@@ -1,0 +1,42 @@
+{
+  "work_package_id": "LT-L7-W03",
+  "title": "Full backfill and delta strategy",
+  "created_at": "2026-06-18T14:29:38Z",
+  "status": "blocked_pending_gl_mig_02_delta_freeze_design_production_backfill_preflight_execution_verification_and_g8_package",
+  "phase": "L7",
+  "gate_binding": [
+    "G8",
+    "L7-EXIT"
+  ],
+  "terminal_tuw": "LT-L7-W03-T07",
+  "artifacts": [
+    "docs/launch/l7/full-backfill-delta-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l7-w03/packet.json",
+    "docs/goal-closeout/lt-l7-w03/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l7-w03/adjudication.md",
+    "docs/goal-closeout/lt-l7-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "delta_sync_runbook_exists": false,
+    "cutover_freeze_final_delta_design_exists": false,
+    "backfill_preflight_checklist_exists": false,
+    "backfill_execution_summary_exists": false,
+    "backfill_verification_report_exists": false,
+    "delta_sync_operation_record_exists": false,
+    "gl_mig_03_package_exists": false,
+    "production_backfill_executed": false,
+    "delta_sync_operated": false,
+    "rollback_ready_verified": false,
+    "real_data_accessed": false,
+    "g8_satisfied": false,
+    "l7_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

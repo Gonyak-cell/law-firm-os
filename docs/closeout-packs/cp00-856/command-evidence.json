@@ -1,0 +1,113 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-856",
+  "subphase_id": "RP28.P04.M03.S21",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, secret, connector secret, OAuth token, prompt, completion, permission decision detail, audit event body, tenant install payload, app submission payload, install receipt payload, custom AI app runtime payload, fixture runtime payload, test runtime payload, Hermes runtime receipt, rollback/retry runtime payload, integration smoke runtime payload, API runtime payload, UI runtime payload, state snapshot runtime payload, unauthorized count payload, or product-state write data used; CP00-856 uses descriptor-only RP28 Marketplace And Custom AI Apps UI permission/audit binding evidence.",
+    "CP856-P3-001 is non-blocking and deferred as a latent robustness follow-up because the CP856 row titles do not collide after row-key normalization; the full validation suite is run after review and queue regeneration."
+  ],
+  "commands": [
+    {
+      "id": "rp28_marketplace_validate_initial",
+      "command": "npm run rp28:marketplace:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "marketplace_model_test_initial",
+      "command": "node --test packages/marketplace/test/*.test.js",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_plan_validate",
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "validate_closeout_pack_script_syntax",
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_validate_all",
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_test",
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_validate",
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "weighted_validate",
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "fullplan_validate",
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "goal_closeout_validate",
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "critical_rps_validate",
+      "command": "npm run critical-rps:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp28_validate",
+      "command": "npm run rp28:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp28_marketplace_validate",
+      "command": "npm run rp28:marketplace:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "marketplace_model_test",
+      "command": "node --test packages/marketplace/test/*.test.js",
+      "exit_code": 0
+    },
+    {
+      "id": "build",
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "id": "git_diff_check",
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

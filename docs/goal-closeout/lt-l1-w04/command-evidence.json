@@ -1,0 +1,235 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L1-W04",
+  "title": "production data policy additive contract draft",
+  "phase": "L1",
+  "gate": "G7, L1-EXIT",
+  "status": "t01_t02_passed_wp_open_pending_human_ratification",
+  "recorded_at": "2026-06-18T10:43:08Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "contract_effective": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:43:08Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L1-W04-T01",
+      "title": "Draft production-data-policy additive contract",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "contracts/production-data-policy-contract.json",
+        "docs/goal-closeout/lt-l1-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "contract_json_parse": "passed",
+        "required_fields_present": [
+          "scope",
+          "effective_condition",
+          "approver",
+          "approval_unit",
+          "audit_obligation"
+        ],
+        "existing_contract_files_modified": 0,
+        "new_contract_files_added": 1,
+        "rtg_004_quote_preserved": true,
+        "hermes_quote_preserved": true,
+        "contract_effective": false
+      },
+      "commands": [
+        {
+          "command": "node -e \"const c=JSON.parse(require('fs').readFileSync('contracts/production-data-policy-contract.json','utf8'));for(const k of ['scope','effective_condition','approver','approval_unit','audit_obligation'])if(!(k in c))process.exit(1);console.log('contract fields ok')\"",
+          "exit_code": 0,
+          "output": "contract fields ok",
+          "purpose": "Verify contract JSON parses and required fields exist"
+        },
+        {
+          "command": "git status --porcelain contracts/",
+          "exit_code": 0,
+          "output": "?? contracts/production-data-policy-contract.json",
+          "purpose": "Verify the contracts/ delta is one new file and no existing contract file modification"
+        },
+        {
+          "command": "grep -n 'Runtime evidence runs in synthetic sandbox\\|Third-party autonomous agents remain blocked\\|not_effective_until_l7_entry' contracts/production-data-policy-contract.json",
+          "exit_code": 0,
+          "output": "RTG-004 quote, Hermes quote, and not-effective-until-L7 marker present",
+          "purpose": "Verify preserved baseline prohibitions and draft effectiveness boundary are embedded"
+        }
+      ],
+      "notes": [
+        "The contract is a draft and does not permit real data contact.",
+        "Existing contracts are not modified; only a new additive contract file is created."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W04-T02",
+      "title": "Write non-weakening argument for production-data-policy",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/production-data-policy-non-weakening-argument.md",
+        "contracts/production-data-policy-contract.json",
+        "docs/goal-closeout/lt-l1-w04/command-evidence.json"
+      ],
+      "acceptance": {
+        "argument_file_exists": true,
+        "three_requirements_present": true,
+        "contract_field_paths_cited": true,
+        "contrast_table_present": true,
+        "ratification_pending": true
+      },
+      "commands": [
+        {
+          "command": "ls docs/launch/production-data-policy-non-weakening-argument.md",
+          "exit_code": 0,
+          "output": "docs/launch/production-data-policy-non-weakening-argument.md",
+          "purpose": "Verify the non-weakening argument document exists"
+        },
+        {
+          "command": "grep -c '닫힌 팩\\|소급\\|하위 게이트' docs/launch/production-data-policy-non-weakening-argument.md",
+          "exit_code": 0,
+          "output": "3",
+          "purpose": "Verify the three required non-weakening sections are present"
+        },
+        {
+          "command": "grep -n 'scope.closed_cp_evidence_rewrite\\|effective_condition.requires_l1_ratification\\|audit_obligation.retroactive_audit_creation\\|preserved_prohibitions.rtg_004\\|preserved_prohibitions.hermes\\|RTG-004 / Hermes Contrast Table' docs/launch/production-data-policy-non-weakening-argument.md",
+          "exit_code": 0,
+          "output": "Contract field paths and contrast table marker present",
+          "purpose": "Verify each section cites contract field paths and includes the contrast table"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This closes only LT-L1-W04-T01/T02. LT-L1-W04-T03/T04 remain pending on human ratification and later evidence assembly.",
+        "No L7 entry or live data approval is claimed."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W04-T03",
+      "title": "production-data-policy 계약 비준 결정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_passed_wp_open_pending_human_ratification",
+      "objective": "계약과 비약화 논증이 인간 승인으로 비준되고 신설(L1)·발효(L7 진입) 시점 구분이 결정으로 고정된다.",
+      "deliverables": [
+        "launch-decision-register L1-4 행(비준 결정 기록)"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-4·§8-4",
+        "contracts/production-data-policy-contract.json (T01 산출물)",
+        "docs/launch/production-data-policy-non-weakening-argument.md (T02 산출물)"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 L1-4 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "결정문에 신설(L1) 시점과 발효(L7 진입) 시점의 구분이 명시되어 있다.",
+        "근거란에 비약화 논증 문서 경로가 인용되어 있다.",
+        "L1-4 행에 승인 서명 참조가 존재한다.",
+        "비준 반려·조건부 승인 시 status=blocked로 BLOCK 기록(반려 사유·수정 회부 대상 TUW 명시) 후 해소·재상정한다 — 승인 전 L7 진입 금지."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"L1-4\" docs/launch/launch-decision-register.md exit 0 2) 신설/발효 구분 명시 판정 3) 논증 경로 인용·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w04/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w04/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-4·§8-4",
+        "contracts/production-data-policy-contract.json (T01 산출물)",
+        "docs/launch/production-data-policy-non-weakening-argument.md (T02 산출물)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W04-T04",
+      "title": "계약 기계검증·W04 증거 조립",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_passed_wp_open_pending_human_ratification",
+      "objective": "계약 JSON·논증 문서·레지스터 행 3자가 상호 역참조로 연결되고 기계 판정 가능한 상태로 검증되어 G7 증거가 조립된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l1-w04/command-evidence.json 갱신분(검증 출력 일체)"
+      ],
+      "source_refs": [
+        "contracts/production-data-policy-contract.json",
+        "docs/launch/production-data-policy-non-weakening-argument.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-4"
+      ],
+      "acceptance_criteria": [
+        "JSON parse+필수 필드 5종 검증 1줄 명령이 exit 0이다.",
+        "계약·논증 문서·레지스터 L1-4 행이 서로의 경로/키를 역참조한다(3건 모두 grep 검출).",
+        "git status --porcelain contracts/ 출력에서 기존 파일 변경 0건 증거가 보존된다."
+      ],
+      "verification_contract": {
+        "method": "node -e \"const c=JSON.parse(require('fs').readFileSync('contracts/production-data-policy-contract.json','utf8'));for(const k of ['scope','effective_condition','approver','approval_unit','audit_obligation'])if(!(k in c))process.exit(1)\" + 역참조 grep 3건 + git status --porcelain contracts/ 검사",
+        "evidence": "전 명령 출력을 docs/goal-closeout/lt-l1-w04/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-DATA-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w04/command-evidence.json",
+        "contracts/production-data-policy-contract.json",
+        "docs/launch/production-data-policy-non-weakening-argument.md",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-4"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not ratify production-data-policy.",
+    "This record does not permit real data, real credentials, product-state writes, M365 production access, or live data ingest.",
+    "This record does not weaken RTG-004 or Hermes prohibitions.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 4,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

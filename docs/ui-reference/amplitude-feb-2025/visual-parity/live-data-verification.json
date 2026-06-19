@@ -1,0 +1,73 @@
+{
+  "schema_version": "matter.amplitude.live-data-verification.v1",
+  "generated_at": "2026-06-10T13:16:32.245Z",
+  "base_url": "http://127.0.0.1:5173",
+  "api_base": "http://127.0.0.1:4180 (via vite dev proxy, relative /master-data)",
+  "passed": true,
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ],
+  "results": [
+    {
+      "name": "live-allow-table",
+      "url": "/?locale=en&view=profiles&variant=userList&data=live",
+      "description": "Live table renders >=1 row containing \"AMIC Synthetic Client\" with live columns",
+      "passed": true,
+      "detail": {
+        "columns": [
+          "Name",
+          "Type",
+          "Status",
+          "Owner",
+          "Matter"
+        ],
+        "columns_match_live_set": true,
+        "row_count": 7,
+        "rows_containing_amic_synthetic_client": 2
+      },
+      "error": null
+    },
+    {
+      "name": "live-denied-state",
+      "url": "/?locale=en&view=profiles&variant=userList&data=live&ctx=denied",
+      "description": "ctx=denied renders the denied state (no table, no mock rows)",
+      "passed": true,
+      "detail": {
+        "state_text": "Access denied The permission gate blocked this request. No records are shown.",
+        "table_count": 0
+      },
+      "error": null
+    },
+    {
+      "name": "live-review-state",
+      "url": "/?locale=en&view=profiles&variant=userList&data=live&ctx=review",
+      "description": "ctx=review renders the review-required state (no table, no mock rows)",
+      "passed": true,
+      "detail": {
+        "state_text": "Review required This request needs an approval review before records can be shown.",
+        "table_count": 0
+      },
+      "error": null
+    },
+    {
+      "name": "mock-route-unchanged",
+      "url": "/?locale=en&view=profiles&variant=userList",
+      "description": "Mock route still renders the original mock columns and no live-state element",
+      "passed": true,
+      "detail": {
+        "columns": [
+          "User",
+          "ID",
+          "First Seen",
+          "Location",
+          "Country",
+          "Sessions"
+        ],
+        "columns_match_mock_set": true,
+        "row_count": 5,
+        "live_state_element_count": 0
+      },
+      "error": null
+    }
+  ]
+}

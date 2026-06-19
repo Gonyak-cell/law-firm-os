@@ -1,0 +1,106 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-014",
+  "subphase_id": "RP00.P02.M05.S18",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T09:05:25Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "S18 emits only a synthetic metadata retry behavior receipt and does not enqueue retry, execute retry, write retry queue records, write retry attempts, persist retry schedules, start retry timers, dispatch retry workers, execute rollback, execute compensation, write operator escalation, notify customer, write incident traces, append observability events, create runtime routes, execute service logic, evaluate runtime permissions, call AuthZ, run permission engines, apply security trimming, write audit events, write database/storage/product state, write review/approval/blocked-output records, or use real data.",
+    "A preliminary RP00 validation run before evidence creation failed only on the expected missing CP00-014 evidence files; final RP00 validation is recorded after evidence creation.",
+    "The first full-diff Claude CLI run was terminated with zero-byte output and no structured result, so it is recorded as invalid and not counted. The completed compact read-only Claude run is the single valid pack-level review."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "expected": true,
+      "summary": "Pre-evidence RP00 validation failed only because docs/closeout-packs/cp00-014 evidence files did not exist yet."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "409 tests passed after P2 finding fix."
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Full test suite passed with 493 tests."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with current repo requirement_count 227."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 54355 implementation subphases."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed with 3300 micro phases."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Closeout Pack validation passed for CP00-001 through CP00-014."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M05.S18 after CP00-014 evidence finalization."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

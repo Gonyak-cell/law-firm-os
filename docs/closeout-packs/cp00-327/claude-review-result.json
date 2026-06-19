@@ -1,0 +1,46 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-327",
+  "status": "review_waived_by_user",
+  "exactly_one_valid_pack_level_claude_review_run": false,
+  "review_receipt_ref": null,
+  "valid_review_receipts": [],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "user_instruction",
+    "runner": null,
+    "model": null,
+    "effort": null,
+    "read_only": true,
+    "permission_mode": null,
+    "tools": null,
+    "status": null,
+    "signal": null,
+    "session_id": null,
+    "uuid": null,
+    "total_cost_usd": 0,
+    "permission_denials": []
+  },
+  "user_waiver": {
+    "applies_to_pack_id": "CP00-327",
+    "date": "2026-06-11",
+    "owner_instruction": "클로드 리뷰 일단은 생략하고 전체 완료까지 골로 설정하고 327부터 진행",
+    "reason": "User explicitly instructed this run to skip Claude review for now.",
+    "not_counted_as_valid_review": true,
+    "future_precedent": false
+  },
+  "parsed_review": {
+    "overall_verdict": "WAIVED_BY_USER",
+    "not_counted_as_review_evidence": true,
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "summary": "Claude review skipped by explicit owner instruction for CP00-327. This is a waiver, not a PASS review receipt.",
+    "findings": []
+  }
+}

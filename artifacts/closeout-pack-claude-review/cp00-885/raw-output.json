@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-885",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T11:37:33.385Z",
+  "finished_at": "2026-06-17T11:43:29.064Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":354996,\"duration_api_ms\":355727,\"ttft_ms\":4602,\"num_turns\":50,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** (no P0/P1/P2; one P3 transparency note).\\n\\nCP00-885's descriptor-only RP29 Commercial Readiness work (P05 fixture tail + P06 permission-matrix foundation, 150 units) is internally consistent and does not overclaim — all state artifacts correctly report `production_ready: false` / `pending_review`. Binding, deliverable distribution, phase/micro counts, and section rows match the live plan; validators and contract enforce no writes, no runtime, no real data, no secrets, and the correct authority boundaries (Claude read-only/non-final, human approval for runtime, Hermes as control-plane metadata only). The single P3 notes that only targeted commands carry exit-code evidence — the full validation ladder remains the documented precondition before any `production_ready` promotion, which the pack already gates. Nothing blocks pack or this-CP goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2ed21c62-b1d8-4d44-84a3-3a0e288d2f75\",\"total_cost_usd\":2.4221654999999997,\"usage\":{\"input_tokens\":58,\"cache_creation_input_tokens\":116380,\"cache_read_input_tokens\":2131751,\"output_tokens\":25093,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":116380,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":353,\"cache_read_input_tokens\":110227,\"cache_creation_input_tokens\":6520,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6520},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1195,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0013000000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":58,\"outputTokens\":25093,\"cacheReadInputTokens\":2131751,\"cacheCreationInputTokens\":116380,\"webSearchRequests\":0,\"costUSD\":2.4208655,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-885 is a descriptor-only RP29 Commercial Readiness pack closing the P05 synthetic-fixture tail and opening the P06 permission-matrix foundation (RP29.P05.M06.S14-RP29.P06.M03.S22, risk C, 150 units). Read-only inspection confirms the implementation, validators, contract, and tests are internally consistent and that the pack does not overclaim: manifest/command-evidence/construction-inspection/adjudication all report production_ready=false and pending_review. The CP885 pack binding (upstream CP00-884, next CP00-886) and section rows total 150 and match the deliverable distribution {fixture:28,test:20,hermes_evidence:4,claude_review:7,implementation:55,security_audit:23,ui:13}, phase counts (P05=77,P06=73), and micro-phase/title counts; the live closeout-pack-plan.json contains a matching CP00-885 entry that the tests validate against. Permission-matrix rows and validators enforce descriptor_only=true, no runtime execution, no permission/audit writes, no receipts/deployment, no real client data, no credentials/secrets, no legal-hold/ethical-wall/object-ACL bypass, deny-over-allow preserved, and security-trimming/leak-prevention proofs; the contract no_write_attestation is all-false and a secret scan returned only negative attestation fields. Authority boundaries are correct: descriptor sets claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true; Hermes is used only as deterministic control-plane descriptor metadata (emits_runtime_receipt=false), not product runtime; Claude packets are read_only=true and do not promote Claude to final approval. Review hardening is satisfied: auth preflight passed (exit 0, 1434-byte stdout), no invalid review attempts are recorded, and the 0-byte stdout in claude-review-result.json is the pre-review placeholder, not an invalid attempt. No P0/P1/P2 defects found. One P3 transparency note: only three targeted commands carry exit-code evidence; the full deterministic validation ladder is the documented and still-required post-review precondition before any production_ready promotion. Methodology note: the 50k-line contract was sampled at key sections (latest_pack, latest_projection, validation block, attestations) rather than read exhaustively, with structural integrity otherwise covered by the validators and tests.\",\"findings\":[{\"id\":\"CP885-P3-01\",\"severity\":\"P3\",\"title\":\"Full deterministic validation ladder is a pending post-review precondition (only targeted commands evidenced)\",\"file\":\"docs/closeout-packs/cp00-885/command-evidence.json\",\"line\":21,\"details\":\"command-evidence.json records exit_code 0 for only three targeted commands (commercial_syntax_check_initial, commercial_model_service_tests_initial, rp29_commercial_validate_initial). The full validation ladder required before closeout (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) has no exit-code evidence yet. The notes field explicitly states the 'full deterministic validation ladder remains required after review normalization, adjudication update, and queue regeneration.' This is the expected sequencing (review precedes the full ladder), not a code defect.\",\"recommendation\":\"Do not flip production_ready until the full deterministic validation ladder passes. The pack already gates this correctly (manifest production_ready=false, runtime_ready=false, pack_level_claude_review.status=pending_review, commit_policy.status=pending_review_and_validation), so honor that gate; no code change is required.\",\"post_review_disposition\":\"acknowledged_expected_gate — production_ready promotion remains correctly deferred; verify ladder exit codes during closeout normalization before promotion\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"0b86e62f-da76-4035-98bb-de68a15b9d2a\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6513,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "2ed21c62-b1d8-4d44-84a3-3a0e288d2f75",
+    "uuid": "0b86e62f-da76-4035-98bb-de68a15b9d2a",
+    "total_cost_usd": 2.4221654999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

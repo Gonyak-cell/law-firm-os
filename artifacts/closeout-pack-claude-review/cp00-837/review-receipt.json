@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-837",
+  "normalized_at": "2026-06-16T11:30:55.737Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-837/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-837/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-837/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-837/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "312ff09d-ea16-471e-a307-5af056e614d7",
+    "uuid": "ed6dd20f-cd1b-4979-97ae-4c39e375a8eb",
+    "total_cost_usd": 2.843569500000001,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5990,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-837 is a descriptor-only RP27 Platform Extensibility bridge pack (150 units, risk C) covering the P07 failure-foundation closeout (M06-M10) and P08 Hermes evidence command-matrix bridge (M00-M04). The pack-level production_ready claim is correctly NOT asserted yet: manifest, command-evidence, construction-inspection, and adjudication all report production_ready=false / runtime_ready=false / status in_progress, pending exactly one valid hardened read-only Claude review (this receipt). Implementation is sound and consistent: registry.js defines the CP837 binding, requirements, case-set/Hermes/Claude/handoff builders, and contract projection; createRow plus NO_WRITE_ATTESTATION force descriptor_only=true and every runtime/secret/payload/real-data/write flag to false; validators.js (coverage + descriptor + contract validators) reject any runtime opening, API/webhook/workflow secret, real client data, permission/audit detail, product-state write, or review self-approval, and enforce the authority boundary (Claude not final approver, human approval required for runtime opening, local validation not claiming enterprise trust). Distributions reconcile to 150 across deliverable, phase, micro-phase, and micro-title, matching the live plan (closeout-pack-plan.json CP00-837), baseline, and manifest snapshot. Three model.test.js cases assert empty validation errors and a runtime-closed descriptor; the contract top-level validation marker is valid=true with a no_write_attestation. Hermes packets emit_runtime_receipt=false and carry only deterministic validation command matrices, consistent with control-plane review/receipt handling rather than embedded product runtime. Review-hardening posture is clean: auth preflight passed with valid JSON, forbidden_review_evidence/invalid_review_blockers are defined, and the current not_run / 0-byte state is the legitimate pre-review state (invalid_review_attempts=[]). Changed-file scope is respected: only the five active implementation refs plus the pack docs are in scope, and the dirty progress-control-room UI files plus unrelated workbook/docx artifacts are correctly preserved as out-of-pack. One trivial P3 categorization overlap was noted in changed-file-scope.json; it does not affect correctness, boundaries, or readiness. No P0/P1/P2 findings. This receipt is a read-only independent review and not final human/enterprise-trust approval, which remains an expected boundary outside this CP closeout.",
+    "findings": [
+      {
+        "id": "CP837-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope dual-categorizes new-session-handoff.md",
+        "file": "artifacts/closeout-pack-claude-review/cp00-837/changed-file-scope.json",
+        "line": 144,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed simultaneously under untracked_implementation_files (line 144) and under unrelated_dirty_files_preserved (line 151). These buckets are semantically opposed (active-implementation vs. unrelated/preserved). The authoritative omission check, active_untracked_implementation_files_omitted, is [], and the manifest worktree_transition_policy.active_pack_required_untracked_files lists only artifacts/closeout-pack-claude-review/cp00-837 and docs/closeout-packs/cp00-837, so no required pack file is omitted from review and no unrelated file is pulled into pack scope.",
+        "recommendation": "Classify new-session-handoff.md in exactly one bucket (it is an unrelated dirty/untracked doc, so keep it only in unrelated_dirty_files_preserved) to remove the ambiguity in future scope receipts. Cosmetic only.",
+        "post_review_disposition": "Informational; does not block CP00-837 pack or CP-closeout goal. Authoritative omission list is empty and pack scope, descriptor-only boundaries, and no-write/no-real-data guarantees are unaffected."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

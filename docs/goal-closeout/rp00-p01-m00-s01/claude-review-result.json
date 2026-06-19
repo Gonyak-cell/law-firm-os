@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M00.S01",
+  "source_micro_phase_id": "RP00.P01.M00",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "permission_mode": "dontAsk",
+    "output_format": "json",
+    "session_id": "971a5307-472e-4fd8-a008-da1761119263",
+    "uuid": "8818b04e-8b99-43a8-886c-f2a3fcad796b",
+    "duration_ms": 134532,
+    "duration_api_ms": 135704,
+    "total_cost_usd": 0.7356577500000001,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "reviewed_at": "2026-06-03T12:26:55Z"
+  },
+  "review_history": [
+    {
+      "round": "initial_review",
+      "session_id": "3702a36a-008d-4714-8a9d-48f129100292",
+      "uuid": "9cff1f0e-9285-409d-b8c0-4bf988443138",
+      "duration_ms": 247821,
+      "total_cost_usd": 1.3799512500000002,
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "summary": "Initial read-only C00 review found three P3 notes: premature gate status wording, weighted-ledger generic UI profile mismatch, and missing direct lifecycle/review outcome assertions."
+    },
+    {
+      "round": "first_rereview_after_p3_fixes",
+      "session_id": "38ff9807-f8c0-4117-ba18-def7d111f3e8",
+      "uuid": "23cbffda-7689-44db-8875-d7957b33f471",
+      "duration_ms": 257983,
+      "total_cost_usd": 1.5581987499999999,
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "summary": "Re-review confirmed P3 fixes and raised one P2 requiring the weighted-ledger deliverable_type/UI-gate defer to be recorded as auditable repo evidence."
+    },
+    {
+      "round": "final_rereview_after_p2_defer_evidence",
+      "session_id": "971a5307-472e-4fd8-a008-da1761119263",
+      "uuid": "8818b04e-8b99-43a8-886c-f2a3fcad796b",
+      "duration_ms": 134532,
+      "total_cost_usd": 0.7356577500000001,
+      "overall_verdict": "PASS",
+      "summary": "Final re-review confirmed the P2 defer is explicit, machine-enforced, and non-blocking; no P0/P1/P2 remains before production_ready promotion."
+    }
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Production_ready promotion still pending downstream evidence artifacts",
+        "evidence": "Expected sequencing at implemented state; claude-review-result.json, adjudication.md, and construction-inspection.json are attached by this closeout before production_ready promotion.",
+        "recommendation": "No blocking action. Attach downstream evidence and rerun the full validation matrix before production_ready."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Validator enforces defer-record shape but does not cross-assert the live weighted-ledger value",
+        "evidence": "Validator checks the explicit defer fields but does not cross-assert docs/weighted-implementation-ledger.json deliverable_type remains ui.",
+        "recommendation": "Optional hardening for a future generator-profile alignment pass; not required for this package-layout closeout."
+      }
+    ],
+    "review_notes": "Final C00 re-review confirmed the weighted-ledger deliverable_type/ui generic UI gate mismatch is explicitly deferred as auditable contract evidence, the validator enforces the defer shape, no weighted-ledger hand-edit is required, no real data or product-state writes are present, root npm test includes packages/control-plane/test/*.test.js, and no P0/P1/P2 remains blocking production_ready promotion."
+  },
+  "model_usage": {
+    "claude-opus-4-8": {
+      "input_tokens": 14,
+      "output_tokens": 10710,
+      "cache_read_input_tokens": 393842,
+      "cache_creation_input_tokens": 43203,
+      "cost_usd": 0.73475975
+    },
+    "claude-haiku-4-5-20251001": {
+      "input_tokens": 748,
+      "output_tokens": 30,
+      "cost_usd": 0.0008979999999999999
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-115",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-115-claude-review-output-valid.json",
+    "session_id": "68a9c958-ddbe-404c-8306-1ed54cf455dc",
+    "uuid": "e9c884f2-5847-4e76-8905-9ee136453e07",
+    "duration_ms": 279309,
+    "duration_api_ms": 281074,
+    "total_cost_usd": 0.912099,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "Non-alphabetical import/export ordering for the new catalog module",
+        "file": "packages/authz/src/index.js, scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "index.js places `export * from \"./api-fixture-ui-readiness-catalog.js\"` after api-permission-audit-binding even though it sorts first; the .mjs script lists CP115 imports (PERMISSION_KERNEL_CP115_*) ahead of the CP114 imports.",
+        "recommendation": "Optional cosmetic reorder to keep imports/exports alphabetical. No functional impact; does not block closeout."
+      },
+      {
+        "severity": "p3",
+        "title": "Plan-pack unit match not verifiable from the staged diff",
+        "file": "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "requirePlanPackUnitMatch(cp115PlanPack, createPermissionKernelCp115CoveredUnitIds(), \"CP00-115\") depends on docs/closeout-pack-plan/closeout-pack-plan.json, which is not in this diff. The 150 generated unit IDs (RP02.P03.M06.S07 … RP02.P04.M05.S07) are internally consistent, but their exact equality to the plan's CP00-115 entry can only be confirmed against the plan file at runtime.",
+        "recommendation": "Ensure the plan file's CP00-115 unit list matches the generated IDs; the validation script already enforces this when executed."
+      }
+    ],
+    "recommendation": "Approve and close CP00-115.",
+    "rationale": "Unit coverage is exact: 65 API-terminal + 85 UI-readiness = 150 units, first=RP02.P03.M06.S07, last=RP02.P04.M05.S07, across 11 micro-phases (M06 starts at S07, contiguous with CP114's prior S06 terminal). I independently recomputed all eight deliverable buckets from the title/phase tables and every total matches the asserted values (implementation 48, contract 15, security_audit 12, test 12, hermes_evidence 6, claude_review 12, ui 42, fixture 3 = 150). CP114 fixture inheritance is real (matrix.api_fixture_matrix = createPermissionKernelCp114ApiSyntheticFixtureMatrix(), inherited_api_version permission_api_binding.v0.1, api_fixture_surface_count 4). UI readiness defines 13 states including denied (deny), review-required (review_required), and no_unauthorized_count_leak (redacted), plus permission_badge and audit_hint_display catalog surfaces. Leakage prevention holds: freezeUiState hardcodes unauthorized_count_exposed=false and hidden_field_names_exposed=false (overriding any per-state input), and validation loops re-assert these plus all write/share/AI/approval flags false; the full 15-flag no_write_attestation is shared by reference across every catalog row. The diff adds no runtime UI/API routes, persistence adapters, policy mutation, audit/product/database writes, idempotency/lock persistence, external share/export, AI retrieval, or LDIP — it only constructs frozen metadata, docs, tests, and read-only validation. HRX embedded boundary and handoff to CP00-116 / RP02.P04.M05.S08 are correct and consistently asserted in the catalog, contract JSON, tests, and validator. The two P3 items are cosmetic/scope notes and do not affect closeout."
+  }
+}

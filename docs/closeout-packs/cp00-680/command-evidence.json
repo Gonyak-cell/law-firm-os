@@ -1,0 +1,186 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-680",
+  "subphase_id": "RP22.P05.M03.S18",
+  "status": "passed",
+  "production_ready": true,
+  "writes_product_state": false,
+  "no_real_data": true,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": []
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.304Z",
+      "finished_at": "2026-06-14T12:48:15.331Z"
+    },
+    {
+      "command": "node --check packages/integrations-core/src/registry.js",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.331Z",
+      "finished_at": "2026-06-14T12:48:15.355Z"
+    },
+    {
+      "command": "node --check packages/integrations-core/src/service.js",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.355Z",
+      "finished_at": "2026-06-14T12:48:15.383Z"
+    },
+    {
+      "command": "node --check packages/integrations-core/src/validators.js",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.383Z",
+      "finished_at": "2026-06-14T12:48:15.408Z"
+    },
+    {
+      "command": "node --check scripts/validate-rp22-external-integrations-i-contract.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.408Z",
+      "finished_at": "2026-06-14T12:48:15.434Z"
+    },
+    {
+      "command": "node --check packages/integrations-core/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.434Z",
+      "finished_at": "2026-06-14T12:48:15.459Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-680",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.459Z",
+      "finished_at": "2026-06-14T12:48:15.656Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:15.656Z",
+      "finished_at": "2026-06-14T12:48:16.748Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:16.748Z",
+      "finished_at": "2026-06-14T12:48:17.805Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:17.805Z",
+      "finished_at": "2026-06-14T12:48:23.989Z"
+    },
+    {
+      "command": "npm run rp22:external-integrations-i:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:23.989Z",
+      "finished_at": "2026-06-14T12:48:24.197Z"
+    },
+    {
+      "command": "node --test packages/integrations-core/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:24.197Z",
+      "finished_at": "2026-06-14T12:48:24.306Z"
+    },
+    {
+      "command": "npm run rp22:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:24.306Z",
+      "finished_at": "2026-06-14T12:48:24.485Z"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:24.485Z",
+      "finished_at": "2026-06-14T12:48:25.252Z"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:25.252Z",
+      "finished_at": "2026-06-14T12:48:26.030Z"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:26.030Z",
+      "finished_at": "2026-06-14T12:48:26.211Z"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:26.211Z",
+      "finished_at": "2026-06-14T12:48:26.365Z"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:26.365Z",
+      "finished_at": "2026-06-14T12:48:26.514Z"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:26.514Z",
+      "finished_at": "2026-06-14T12:48:28.207Z"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:28.207Z",
+      "finished_at": "2026-06-14T12:48:28.258Z"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:28.258Z",
+      "finished_at": "2026-06-14T12:48:33.841Z"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "started_at": "2026-06-14T12:48:33.841Z",
+      "finished_at": "2026-06-14T12:48:34.891Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-680",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-680",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-680 --timeout_ms=900000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-680",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-680",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was read, written, persisted, exposed, or included in CP00-680 evidence.",
+    "CP00-680 received exactly one valid closeout-eligible hardened read-only Claude review receipt with PASS verdict and P0/P1/P2/P3 counts 0/0/0/0.",
+    "CP680-P2-01 from attempt-01 was fixed before the accepted review by binding createExternalIntegrationsICp680CoverageSummary to CP00-680 and adding a CP00-680 summary.pack_id model-test assertion.",
+    "The first CP00-680 review receipt is preserved under artifacts/closeout-pack-claude-review/cp00-680/attempt-01/ and is not accepted as closeout evidence because it was closeout_ineligible with one P2 finding.",
+    "CP00-680 full post-fix pre-review validation matrix passed 22/22 across closeout-pack validation, closeout-pack-plan generation/validation, RP22 External Integrations I validation, model tests, RP22/weighted/spec/fullplan/global/goal/RP00 validators, git diff --check, npm test, and build.",
+    "External provider API, OAuth, sync, message capture, e-sign, webhook, credential persistence, persistence writes, permission, audit, UI, Hermes, Claude, command-result, golden-case payload, fixture, unauthorized count, AI retrieval, analytics, and test runtimes remain closed."
+  ],
+  "review_artifacts": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-680/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-680/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-680/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-680/review-receipt.json"
+  },
+  "invalid_attempts_preserved": [
+    "artifacts/closeout-pack-claude-review/cp00-680/attempt-01/raw-output.json",
+    "artifacts/closeout-pack-claude-review/cp00-680/attempt-01/review-receipt.json"
+  ]
+}

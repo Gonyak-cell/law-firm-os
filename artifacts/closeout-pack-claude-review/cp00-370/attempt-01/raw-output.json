@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-370",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T20:07:26.274Z",
+  "finished_at": "2026-06-11T20:13:32.783Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 1,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":true,\"api_error_status\":null,\"duration_ms\":364635,\"duration_api_ms\":140437,\"num_turns\":28,\"result\":\"API Error: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()\",\"stop_reason\":\"stop_sequence\",\"session_id\":\"6aa6d605-d3b6-4aef-8e0b-0c2c09f5483e\",\"total_cost_usd\":1.1483970000000001,\"usage\":{\"input_tokens\":22,\"cache_creation_input_tokens\":92780,\"cache_read_input_tokens\":583712,\"output_tokens\":11015,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":92780,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":5445,\"cache_read_input_tokens\":98515,\"cache_creation_input_tokens\":2660,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2660},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1081,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001181,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":22,\"outputTokens\":11015,\"cacheReadInputTokens\":583712,\"cacheCreationInputTokens\":92780,\"webSearchRequests\":0,\"costUSD\":1.147216,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"d5721787-d492-4e22-a9a1-d72d93c78513\"}\n",
+  "stderr": "",
+  "stdout_bytes": 1514,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": true,
+    "api_error_status": null,
+    "session_id": "6aa6d605-d3b6-4aef-8e0b-0c2c09f5483e",
+    "uuid": "d5721787-d492-4e22-a9a1-d72d93c78513",
+    "total_cost_usd": 1.1483970000000001,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

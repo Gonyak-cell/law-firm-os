@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-554",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T19:48:54.433Z",
+  "finished_at": "2026-06-12T19:53:45.711Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":290686,\"duration_api_ms\":291028,\"ttft_ms\":6770,\"num_turns\":32,\"result\":\"Review complete. **Verdict: PASS** — CP00-554 closes cleanly with no findings.\\n\\nThe pack is a descriptor-only RP18 foundation pack (150 units, RP18.P01.M06.S05→RP18.P02.M02.S22) that holds all its declared boundaries: pure no-write descriptor construction, no real data/secrets, Claude confined to a read-only non-approving role, Hermes used only for review-packet/receipt naming, and an appropriately modest `production_ready:false` claim backed by passing implementation/tests/validation. Coverage distributions and contract bindings are internally consistent and cross-verified by the passing validator. Nothing blocks pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d39958e0-3b73-4a51-b716-b9cd566ff1c7\",\"total_cost_usd\":2.2845302500000004,\"usage\":{\"input_tokens\":32,\"cache_creation_input_tokens\":157493,\"cache_read_input_tokens\":1418868,\"output_tokens\":23574,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":157493,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":264,\"cache_read_input_tokens\":152831,\"cache_creation_input_tokens\":5404,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5404},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1150,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001255,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":32,\"outputTokens\":23574,\"cacheReadInputTokens\":1418868,\"cacheCreationInputTokens\":157493,\"webSearchRequests\":0,\"costUSD\":2.2832752500000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-554 is a descriptor-only RP18 (AI Legal Workflows) closeout/foundation pack covering 150 units RP18.P01.M06.S05-RP18.P02.M02.S22. Independent read-only inspection confirms the pack is well-formed and within its declared boundaries. Coverage: deliverable distribution (implementation:77, ui:23, fixture:4, test:20, hermes_evidence:4, claude_review:7, contract:3, security_audit:6, failure_recovery:6) and micro-title distribution recomputed from the plan's included_units match the prompt baseline, registry.js CP554 requirements, and the contract exactly; units are all RP18 with no duplicates. No-write/no-real-data: service.js builds only frozen descriptor objects with no fs/network/DB/runtime side effects; every no-write attestation flag (writes_product_state, creates/updates_database_rows, emits_hermes_runtime_receipt, evaluates_runtime_permission, loads_real_fixture_data) is false; validators, the validator script, and tests only read; no secrets or real client data are present (real_client matches are policy flags asserting false). Authority boundary: claude_is_final_approval=false, promotes_claude_to_final_approval=false, human_final_approval_required=true, read_only=true, tools restricted to Read/Grep/Glob. Hermes patterns are descriptor-only (emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false), used solely for review packet/receipt naming, not product runtime. Review hardening: readiness auth preflight passed with non-zero valid-JSON stdout; validation-report shows no full diff/source in prompt, no forbidden tools, summary-only prohibited for Risk C, and source_inspection_mode read_tools_used. The pack-level production_ready claim is correctly false (status pending final closeout); production_ready_candidate is a separate descriptor-verification flag and does not assert enterprise trust. Contract is internally consistent: current_pack=CP00-554, all four descriptor sections/requirements/attestations present, historical_pack_bindings terminates at CP00-554, and the validator deepEquals these with reported exit 0. index.js re-exports CP554 functions via wildcard (no change needed); unrelated dirty files (UI workstream, LDIP, workbook) are correctly excluded from pack scope. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"87069c93-7ccc-40d5-99ff-12fc540aed97\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4613,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d39958e0-3b73-4a51-b716-b9cd566ff1c7",
+    "uuid": "87069c93-7ccc-40d5-99ff-12fc540aed97",
+    "total_cost_usd": 2.2845302500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

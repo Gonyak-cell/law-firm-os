@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-580",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-580/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-580/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f5e1fd93-e8ca-417f-9acf-e82eedb37500",
+    "uuid": "ef7e848f-9ee3-4f0d-8425-30744a4da3be",
+    "total_cost_usd": 2.6369594999999997,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-580 (Risk C, 150 units, RP18.P08.M02.S05-RP18.P08.M09.S02) is a descriptor-only RP18.P08 implementation review slice and passes independent read-only review. Registry binding, service descriptor/case set, validators, contract projection, package tests, and the rp18 validate script are mutually consistent: the deliverable distribution (hermes_evidence 68 / claude_review 7 / implementation 68 / test 7) and the micro-phase (M02=16, M03-M08=22 each, M09=2) and micro-title counts reconcile exactly to 150, and the M02 tail correctly resumes at S05 (Fixture summary receipt) with no gap/overlap versus CP00-579. Descriptor-only and no-write/no-real-data boundaries are enforced in code, not merely asserted: freezeCp580Result sets every runtime/write/leak flag false, and validators assert descriptor_only/runtime_execution/raw_payload_included/customer_safe per row; the validate script deepEquals contract<->registry<->service so any drift would fail. Claude remains a read-only reviewer and not final approver (allowed tools Read/Grep/Glob, claude_is_final_approval false, enterprise trust not claimed from local validation), and Hermes patterns are used only for deterministic review packet/receipt handling (emits_hermes_runtime_receipt false; production_ready_candidate, not a production claim). The pack does not over-claim or weaken any gate: production_ready=false, runtime_ready=false, status implemented_pending_review, and all listed validation commands are recorded passing (exit 0). Review setup is CP178+ hardened (auth preflight passed with valid JSON; forbidden_review_evidence covers auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, missing fields). Two P3 informational notes only; no P0/P1/P2 issues. Final enterprise-trust closeout still requires the accepted Claude review result, adjudication, construction inspection, and human approval, which are intentionally outside this receipt.",
+    "findings": [
+      {
+        "id": "CP580-P3-01",
+        "severity": "P3",
+        "title": "Post-review evidence files referenced by manifest are not yet present (expected pre-review state)",
+        "file": "docs/closeout-packs/cp00-580/manifest.json",
+        "line": 5905,
+        "details": "The manifest gate evidence_refs and top-level evidence_refs list docs/closeout-packs/cp00-580/claude-review-result.json, adjudication.md, and construction-inspection.json, none of which exist yet; artifacts/closeout-pack-claude-review/cp00-580/ similarly has no raw-output.json or review-receipt.json. This is the correct pre-review state, not an over-claim: manifest.status is implemented_pending_review, production_ready and runtime_ready are false, and command-evidence.json explicitly marks these as post-review gated outputs produced from the accepted review.",
+        "recommendation": "After this review is accepted, generate the post-review artifacts and run the post-review gated commands (closeout-pack:review:run/normalize/receipt:validate, closeout-pack:validate, git diff --check --cached) before commit/closeout so the referenced evidence files actually exist.",
+        "post_review_disposition": "Expected pre-review state; not a defect. No action required at this review stage; tracked for final closeout."
+      },
+      {
+        "id": "CP580-P3-02",
+        "severity": "P3",
+        "title": "Unrelated dirty working-tree files correctly scoped out of CP00-580",
+        "file": "artifacts/closeout-pack-claude-review/cp00-580/changed-file-scope.json",
+        "line": 163,
+        "details": "scripts/progress-control-room-data.mjs and tools/progress-control-room/index.html are modified in the working tree but are classified under unrelated_dirty_files_preserved and are absent from active_pack_implementation_refs. They belong to the non-CP UI/progress-control-room track and are not part of CP00-580; the review prompt directs that unrelated dirty files not be inferred into pack scope. The eight active pack implementation refs (contract, README, index/registry/service/validators, model.test.js, validate-rp18 script) are the only files in scope.",
+        "recommendation": "Keep these two files out of the CP00-580 closeout commit and commit them on the separate UI/non-CP track; verify the staged diff (git diff --check --cached) contains only the eight active pack implementation refs.",
+        "post_review_disposition": "Correctly scoped out by changed-file-scope.json; flagged for the committer to preserve a clean commit boundary. Non-blocking."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

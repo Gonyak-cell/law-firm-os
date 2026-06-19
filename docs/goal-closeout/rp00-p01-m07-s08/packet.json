@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M07.S08",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "title": "Required field registry",
+  "status": "production_ready",
+  "created_at": "2026-06-04T07:10:03.000Z",
+  "implemented_entity": "ControlPlaneStateEnumRegistry",
+  "implemented_slice": "required_field_registry",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m07-s08/packet.json",
+    "docs/goal-closeout/rp00-p01-m07-s08/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m07-s08/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m07-s08/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m07-s08/construction-inspection.json"
+  ],
+  "implementation_summary": [
+    "Added CONTROL_PLANE_STATE_ENUM_REGISTRY_REQUIRED_FIELDS and CONTROL_PLANE_STATE_ENUM_REGISTRY_REQUIRED_FIELD_REGISTRY.",
+    "Added validateControlPlaneStateEnumRegistryRequiredFields using existing identifier, tenant, lifecycle status, ownership, and synthetic audit reference validators.",
+    "Recorded required field fixture data and excluded optional Matter/reference fields to RP00.P01.M07.S09.",
+    "Exposed the registry policy through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY and advanced nextSubphase to RP00.P01.M07.S09.",
+    "Extended model tests and RP00 contract validation for required field registry acceptance gates."
+  ],
+  "scope_boundaries": {
+    "does_not_define_new_enum_values": true,
+    "does_not_complete_optional_field_registry": true,
+    "does_not_complete_state_transition_map": true,
+    "does_not_complete_validation_helper": true,
+    "does_not_complete_state_enum_registry": true,
+    "does_not_complete_RP00_P01": true,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "gates": {
+    "hermes": "H00",
+    "claude": "C00",
+    "claude_review_count": 1,
+    "construction_inspection": "PASS",
+    "next_subphase": "RP00.P01.M07.S09"
+  }
+}

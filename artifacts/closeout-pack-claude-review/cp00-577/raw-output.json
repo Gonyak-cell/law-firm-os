@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-577",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T22:28:24.355Z",
+  "finished_at": "2026-06-12T22:34:42.785Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":377647,\"duration_api_ms\":378164,\"ttft_ms\":4867,\"num_turns\":50,\"result\":\"Review complete. CP00-577 passes with no findings.\\n\\n**Verdict: PASS** — does not block pack or goal closeout; no unresolved P0/P1.\\n\\nThe audit-binding slice (RP18.P07.M05.S11–S20) is descriptor-only and consistent across every artifact (manifest, registry, service, validators, contract, plan, queue, README, tests, validator script). production_ready is correctly `false`, the Claude read-only/non-final-approver boundary holds, Hermes is confined to deterministic evidence descriptors, all no-write/no-real-data/no-leak guards are enforced, and the auth-preflight review evidence is well-formed (exit 0, non-empty, valid JSON). Pending post-review artifacts are expected at this pipeline step and are not a defect.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ba18bc3e-c9d7-487b-8ffe-c98abc10bab5\",\"total_cost_usd\":2.51438675,\"usage\":{\"input_tokens\":74,\"cache_creation_input_tokens\":104949,\"cache_read_input_tokens\":2312455,\"output_tokens\":28027,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":104949,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":296,\"cache_read_input_tokens\":102583,\"cache_creation_input_tokens\":3197,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3197},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1083,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001183,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":74,\"outputTokens\":28027,\"cacheReadInputTokens\":2312455,\"cacheCreationInputTokens\":104949,\"webSearchRequests\":0,\"costUSD\":2.51320375,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-577 (risk A, 10 units, RP18.P07.M05.S11-S20, \\\"Permission And Audit Binding\\\" audit-binding slice) passes read-only review with no findings. The pack is descriptor-only and internally consistent across manifest, registry binding (registry.js:443-458), requirements (registry.js:2266-2306), service descriptor builders (service.js:3337-3408), validators (validators.js:4774-4919), contract projection (contract:27146-27499), closeout-pack-plan, next-pack-queue, README (#cp00-577), tests, and the RP18 validator script.\\n\\nDistribution verified exact (failure_recovery:3, implementation:1, hermes_evidence:2, fixture:1, test:2, security_audit:1) against baseline, plan included_units, and CP577_REQUIREMENTS.deliverable_counts. All 10 descriptor rows (S11 lock_conflict_failure through S20 hermes_failure_evidence) carry descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false.\\n\\nproduction_ready is correctly false and runtime_ready false; the pack does not claim production/runtime readiness. production_ready_candidate:true in the Hermes evidence packet is a descriptor-validity flag, not a runtime claim. The no-write attestation and freeze helpers assert all write/runtime/real-data/leak flags safe (no audit-event write, no permission evaluation, no lock acquisition, no real fixture data, no leaks). Security/audit deliverable (S19 Audit failure hint) and blocked-claim/Hermes-evidence rows are descriptor placeholders with customer-safe-errors-only and no raw payload — no detail leak.\\n\\nAuthority boundary is correct: Claude is read-only independent reviewer and not final approver (promotes_claude_to_final_approval:false), human final approval required for runtime opening, enterprise trust not claimed from local validation. Hermes control-plane patterns are used only for deterministic evidence/review-packet descriptors (emits_hermes_runtime_receipt:false), not product runtime, consistent with hermes_runtime_embedded_in_product:false.\\n\\nReview-hardening evidence is clean: readiness auth preflight passed (exit 0, 1456-byte stdout, well-formed JSON result) — no auth failure, 0-byte stdout, malformed/fenced JSON, tool-call-shaped output, or missing fields. command-evidence records all implementation, test, contract, plan, and repo-wide validation commands at exit 0. Unrelated dirty/untracked files (UI progress-control-room, workbook docs, LDIP invalid-attempt file) are correctly segregated in changed-file-scope and worktree_transition_policy and are not bundled into this pack. The pending post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are absent as expected at the read_only_claude_run step and are produced downstream in the hardening sequence — not a defect.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"76b87378-c866-4e3b-9d6e-175ed424ec2c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5202,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ba18bc3e-c9d7-487b-8ffe-c98abc10bab5",
+    "uuid": "76b87378-c866-4e3b-9d6e-175ed424ec2c",
+    "total_cost_usd": 2.51438675,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

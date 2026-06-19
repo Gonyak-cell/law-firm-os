@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-947",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-18T04:14:24.535Z",
+  "finished_at": "2026-06-18T04:19:31.081Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":306036,\"duration_api_ms\":306916,\"ttft_ms\":3733,\"num_turns\":47,\"result\":\"Review complete. **Verdict: PASS** — no findings.\\n\\nCP00-947's descriptor-only closeout claim is fully supported across implementation, validators, tests, contract regeneration, command evidence, authority boundary, and Hermes review-plane usage. All runtime/write/real-data/decision-emission boundaries are machine-verified closed, the CP178+ hardening evidence is valid, and Claude's read-only non-final-approver role is preserved. Nothing blocks pack closeout or this CP's goal closeout, and there are no unresolved P0/P1 items.\",\"stop_reason\":\"end_turn\",\"session_id\":\"16ec5814-1809-43b5-b75f-068d5e76fed9\",\"total_cost_usd\":2.1604802499999995,\"usage\":{\"input_tokens\":207,\"cache_creation_input_tokens\":108329,\"cache_read_input_tokens\":1940426,\"output_tokens\":20438,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":108329,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":190,\"cache_read_input_tokens\":104387,\"cache_creation_input_tokens\":4415,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4415},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1121,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001226,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":207,\"outputTokens\":20438,\"cacheReadInputTokens\":1940426,\"cacheCreationInputTokens\":108329,\"webSearchRequests\":0,\"costUSD\":2.1592542499999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-947 is a descriptor-only HRX payroll/evaluation restriction bridge (risk A, 10 units: 9 PayrollRestriction tail rows RP30.P06.M02.S05-S13 + 1 EvaluationRestriction foundation row RP30.P06.M03.S01). The descriptor-verified closeout claim is supported: registry binding/requirements/case set/descriptor (packages/hrx/src/registry.js), the coverage+descriptor+contract validators (packages/hrx/src/validators.js:8707-8907), and four CP00-947 tests (packages/hrx/test/model.test.js:2465-2556) consistently encode and machine-check that every runtime, record-write, real-data, permission-bypass, policy-execution, decision-emission, and scoring/calculation flag remains false. The regenerated contract keeps CP00-947 current/latest with latest_projection HrxCp947PayrollEvaluationRestrictionBridgeDescriptor, a descriptor-only EvaluationRestriction row, and validation.valid:true. No-write/no-real-data boundaries hold (manifest implementation_summary: descriptor_only true, opens_runtime/writes_product_state/uses_real_client_data false; command-evidence no_real_data true, all listed commands exit 0). Authority boundary is correct: Claude packet read_only:true and promotes_claude_to_final_approval:false, human approval deferred to CP00-948 for runtime opening, local validation does not claim enterprise trust. Hermes control-plane usage is deterministic review/evidence only (deterministic_only:true, emits_runtime_receipt:false) and not embedded in product runtime. CP178+ review-hardening evidence is valid: auth preflight passed with well-formed JSON, forbidden_tools_present:false, review schema present, prompt 2408B within the 25600B limit, and no active untracked implementation files omitted. The construction-inspection runtime_ready:null / production_ready:false / verdict PENDING is the expected pre-review placeholder (confirmed against closed CP00-946's post-review state) and not a defect. No P0/P1/P2/P3 findings. Claude is a read-only independent reviewer and not final approval authority; this receipt covers the CP00-947 descriptor-only closeout goal only and does not grant runtime opening or enterprise-trust approval.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"23836f06-612d-4709-bbc0-fdf36834c2a2\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4377,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "16ec5814-1809-43b5-b75f-068d5e76fed9",
+    "uuid": "23836f06-612d-4709-bbc0-fdf36834c2a2",
+    "total_cost_usd": 2.1604802499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

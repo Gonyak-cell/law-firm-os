@@ -1,0 +1,1499 @@
+{
+  "schema_version": "law-firm-os.core-domain-contract.v0.14",
+  "program_id": "RP01",
+  "program_title": "Core Domain Foundation",
+  "current_pack": {
+    "pack_id": "CP00-107",
+    "planned_pack_id": "CP00-107",
+    "risk_class": "B",
+    "unit_count": 16,
+    "range": "RP01.P09.M07.S09-RP01.P09.M10.S01",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_review_closeout_readiness_verified"
+  },
+  "review_outcome_routing_pack": {
+    "pack_id": "CP00-106",
+    "planned_pack_id": "CP00-106",
+    "risk_class": "B",
+    "unit_count": 40,
+    "range": "RP01.P09.M03.S10-RP01.P09.M07.S08",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_review_outcome_routing_verified"
+  },
+  "evidence_review_catalog_pack": {
+    "pack_id": "CP00-105",
+    "planned_pack_id": "CP00-105",
+    "risk_class": "C",
+    "unit_count": 150,
+    "range": "RP01.P07.M08.S18-RP01.P09.M03.S09",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_evidence_review_catalog_verified"
+  },
+  "failure_taxonomy_pack": {
+    "pack_id": "CP00-104",
+    "planned_pack_id": "CP00-104",
+    "risk_class": "C",
+    "unit_count": 150,
+    "range": "RP01.P06.M09.S07-RP01.P07.M08.S17",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_failure_taxonomy_evidence_catalog_verified"
+  },
+  "permission_review_packet_pack": {
+    "pack_id": "CP00-103",
+    "planned_pack_id": "CP00-103",
+    "risk_class": "A",
+    "unit_count": 10,
+    "range": "RP01.P06.M08.S17-RP01.P06.M09.S06",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_permission_review_packet_binding_verified"
+  },
+  "permission_matrix_pack": {
+    "pack_id": "CP00-102",
+    "planned_pack_id": "CP00-102",
+    "risk_class": "C",
+    "unit_count": 150,
+    "range": "RP01.P05.M09.S04-RP01.P06.M08.S16",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_permission_matrix_reference_catalog_verified"
+  },
+  "synthetic_fixture_catalog_pack": {
+    "pack_id": "CP00-101",
+    "planned_pack_id": "CP00-101",
+    "risk_class": "C",
+    "unit_count": 150,
+    "range": "RP01.P04.M06.S05-RP01.P05.M09.S03",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_synthetic_fixture_catalog_verified"
+  },
+  "permission_audit_fixture_pack": {
+    "pack_id": "CP00-100",
+    "planned_pack_id": "CP00-100",
+    "risk_class": "A",
+    "unit_count": 10,
+    "range": "RP01.P04.M05.S15-RP01.P04.M06.S04",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_permission_audit_fixture_evidence_verified"
+  },
+  "permission_audit_binding_pack": {
+    "pack_id": "CP00-099",
+    "planned_pack_id": "CP00-099",
+    "risk_class": "A",
+    "unit_count": 10,
+    "range": "RP01.P04.M05.S05-RP01.P04.M05.S14",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_permission_audit_binding_verified"
+  },
+  "ui_state_pack": {
+    "pack_id": "CP00-098",
+    "planned_pack_id": "CP00-098",
+    "risk_class": "B",
+    "unit_count": 40,
+    "range": "RP01.P04.M02.S04-RP01.P04.M05.S04",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_ui_state_surface_verified"
+  },
+  "api_pack": {
+    "pack_id": "CP00-097",
+    "planned_pack_id": "CP00-097",
+    "risk_class": "C",
+    "unit_count": 150,
+    "range": "RP01.P02.M06.S07-RP01.P04.M02.S03",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_api_golden_evidence_surface_verified"
+  },
+  "workflow_pack": {
+    "pack_id": "CP00-096",
+    "planned_pack_id": "CP00-096",
+    "risk_class": "B",
+    "unit_count": 40,
+    "range": "RP01.P02.M04.S07-RP01.P02.M06.S06",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_workflow_binding_verified"
+  },
+  "foundation_pack": {
+    "pack_id": "CP00-095",
+    "planned_pack_id": "CP00-095",
+    "risk_class": "C",
+    "unit_count": 150,
+    "range": "RP01.P00.M00.S01-RP01.P02.M04.S06",
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "production_ready_flag": "core_domain_foundation_acceleration_verified"
+  },
+  "owns": [
+    "Tenant",
+    "User",
+    "Group",
+    "Role",
+    "PermissionReference",
+    "PolicyReference",
+    "Entity",
+    "Person",
+    "Organization",
+    "Client",
+    "ClientProfile",
+    "BillingEntity",
+    "ContactPoint",
+    "Relationship",
+    "Matter",
+    "MatterMember",
+    "MatterTask",
+    "MatterCalendarEvent",
+    "Checklist",
+    "MatterStatusHistory",
+    "DocumentReference",
+    "DocumentVersionReference",
+    "AuditEventReference",
+    "AuditEvent"
+  ],
+  "owner_boundaries": {
+    "Core": [
+      "Tenant",
+      "User",
+      "Group",
+      "Role"
+    ],
+    "PermissionKernel": [
+      "PermissionReference",
+      "PolicyReference"
+    ],
+    "MasterData": [
+      "Entity",
+      "Person",
+      "Organization",
+      "Client",
+      "ClientProfile",
+      "BillingEntity",
+      "ContactPoint",
+      "Relationship"
+    ],
+    "MatterCore": [
+      "Matter",
+      "MatterMember",
+      "MatterTask",
+      "MatterCalendarEvent",
+      "Checklist",
+      "MatterStatusHistory"
+    ],
+    "DMS": [
+      "DocumentReference",
+      "DocumentVersionReference"
+    ],
+    "AuditKernel": [
+      "AuditEventReference",
+      "AuditEvent"
+    ]
+  },
+  "invariants": [
+    "tenant_id_required",
+    "primary_identifier_required",
+    "matter_requires_client",
+    "matter_requires_owner_user",
+    "matter_first_traceability",
+    "pre_matter_exceptions_are_explicit",
+    "dms_owns_documents",
+    "permission_reference_only_until_rp02",
+    "audit_hint_only_until_rp03",
+    "synthetic_data_only"
+  ],
+  "required_entities": {
+    "Tenant": [
+      "tenant_id",
+      "name",
+      "plan",
+      "region",
+      "security_policy",
+      "data_residency",
+      "status"
+    ],
+    "User": [
+      "user_id",
+      "tenant_id",
+      "email",
+      "group_ids",
+      "role_ids",
+      "status"
+    ],
+    "Group": [
+      "group_id",
+      "tenant_id",
+      "name",
+      "member_user_ids",
+      "status"
+    ],
+    "Role": [
+      "role_id",
+      "tenant_id",
+      "name",
+      "permission_set_id",
+      "permissions"
+    ],
+    "PermissionReference": [
+      "permission_id",
+      "tenant_id",
+      "principal_type",
+      "object_type",
+      "action",
+      "effect"
+    ],
+    "PolicyReference": [
+      "policy_id",
+      "tenant_id",
+      "policy_type",
+      "owner_module",
+      "status"
+    ],
+    "Entity": [
+      "entity_id",
+      "tenant_id",
+      "entity_kind",
+      "display_name",
+      "status"
+    ],
+    "Person": [
+      "person_id",
+      "tenant_id",
+      "display_name"
+    ],
+    "Organization": [
+      "organization_id",
+      "tenant_id",
+      "display_name"
+    ],
+    "Client": [
+      "client_id",
+      "tenant_id",
+      "display_name",
+      "confidentiality"
+    ],
+    "ClientProfile": [
+      "client_profile_id",
+      "tenant_id",
+      "client_id"
+    ],
+    "BillingEntity": [
+      "billing_entity_id",
+      "tenant_id",
+      "display_name"
+    ],
+    "ContactPoint": [
+      "contact_point_id",
+      "tenant_id",
+      "owner_entity_id",
+      "contact_type",
+      "value"
+    ],
+    "Relationship": [
+      "relationship_id",
+      "tenant_id",
+      "from_entity_id",
+      "to_entity_id",
+      "relationship_type"
+    ],
+    "Matter": [
+      "matter_id",
+      "tenant_id",
+      "client_id",
+      "owner_user_id",
+      "status",
+      "confidentiality"
+    ],
+    "MatterMember": [
+      "matter_member_id",
+      "tenant_id",
+      "matter_id",
+      "user_id",
+      "role"
+    ],
+    "MatterTask": [
+      "matter_task_id",
+      "tenant_id",
+      "matter_id",
+      "title",
+      "status"
+    ],
+    "MatterCalendarEvent": [
+      "matter_calendar_event_id",
+      "tenant_id",
+      "matter_id",
+      "title",
+      "starts_at"
+    ],
+    "Checklist": [
+      "checklist_id",
+      "tenant_id",
+      "matter_id",
+      "title"
+    ],
+    "MatterStatusHistory": [
+      "matter_status_history_id",
+      "tenant_id",
+      "matter_id",
+      "from_status",
+      "to_status",
+      "changed_at"
+    ],
+    "DocumentReference": [
+      "document_id",
+      "tenant_id",
+      "matter_id",
+      "dms_owned"
+    ],
+    "DocumentVersionReference": [
+      "document_version_id",
+      "document_id",
+      "tenant_id",
+      "matter_id",
+      "version",
+      "dms_owned"
+    ],
+    "AuditEventReference": [
+      "audit_event_id",
+      "tenant_id",
+      "action",
+      "occurred_at"
+    ],
+    "AuditEvent": [
+      "audit_event_id",
+      "tenant_id",
+      "actor_id",
+      "action",
+      "object_type",
+      "object_id",
+      "occurred_at"
+    ]
+  },
+  "entity_definitions": {
+    "Tenant": {
+      "owner_module": "Core",
+      "primary_id": "tenant_id",
+      "required_fields": [
+        "tenant_id",
+        "name",
+        "plan",
+        "region",
+        "security_policy",
+        "data_residency",
+        "status"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "User": {
+      "owner_module": "Core",
+      "primary_id": "user_id",
+      "required_fields": [
+        "user_id",
+        "tenant_id",
+        "email",
+        "group_ids",
+        "role_ids",
+        "status"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Group": {
+      "owner_module": "Core",
+      "primary_id": "group_id",
+      "required_fields": [
+        "group_id",
+        "tenant_id",
+        "name",
+        "member_user_ids",
+        "status"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Role": {
+      "owner_module": "Core",
+      "primary_id": "role_id",
+      "required_fields": [
+        "role_id",
+        "tenant_id",
+        "name",
+        "permission_set_id",
+        "permissions"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "PermissionReference": {
+      "owner_module": "PermissionKernel",
+      "primary_id": "permission_id",
+      "required_fields": [
+        "permission_id",
+        "tenant_id",
+        "principal_type",
+        "object_type",
+        "action",
+        "effect"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "PolicyReference": {
+      "owner_module": "PermissionKernel",
+      "primary_id": "policy_id",
+      "required_fields": [
+        "policy_id",
+        "tenant_id",
+        "policy_type",
+        "owner_module",
+        "status"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Entity": {
+      "owner_module": "MasterData",
+      "primary_id": "entity_id",
+      "required_fields": [
+        "entity_id",
+        "tenant_id",
+        "entity_kind",
+        "display_name",
+        "status"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Person": {
+      "owner_module": "MasterData",
+      "primary_id": "person_id",
+      "required_fields": [
+        "person_id",
+        "tenant_id",
+        "display_name"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Organization": {
+      "owner_module": "MasterData",
+      "primary_id": "organization_id",
+      "required_fields": [
+        "organization_id",
+        "tenant_id",
+        "display_name"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Client": {
+      "owner_module": "MasterData",
+      "primary_id": "client_id",
+      "required_fields": [
+        "client_id",
+        "tenant_id",
+        "display_name",
+        "confidentiality"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "ClientProfile": {
+      "owner_module": "MasterData",
+      "primary_id": "client_profile_id",
+      "required_fields": [
+        "client_profile_id",
+        "tenant_id",
+        "client_id"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "BillingEntity": {
+      "owner_module": "MasterData",
+      "primary_id": "billing_entity_id",
+      "required_fields": [
+        "billing_entity_id",
+        "tenant_id",
+        "display_name"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "ContactPoint": {
+      "owner_module": "MasterData",
+      "primary_id": "contact_point_id",
+      "required_fields": [
+        "contact_point_id",
+        "tenant_id",
+        "owner_entity_id",
+        "contact_type",
+        "value"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Relationship": {
+      "owner_module": "MasterData",
+      "primary_id": "relationship_id",
+      "required_fields": [
+        "relationship_id",
+        "tenant_id",
+        "from_entity_id",
+        "to_entity_id",
+        "relationship_type"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "Matter": {
+      "owner_module": "MatterCore",
+      "primary_id": "matter_id",
+      "required_fields": [
+        "matter_id",
+        "tenant_id",
+        "client_id",
+        "owner_user_id",
+        "status",
+        "confidentiality"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "MatterMember": {
+      "owner_module": "MatterCore",
+      "primary_id": "matter_member_id",
+      "required_fields": [
+        "matter_member_id",
+        "tenant_id",
+        "matter_id",
+        "user_id",
+        "role"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "MatterTask": {
+      "owner_module": "MatterCore",
+      "primary_id": "matter_task_id",
+      "required_fields": [
+        "matter_task_id",
+        "tenant_id",
+        "matter_id",
+        "title",
+        "status"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "MatterCalendarEvent": {
+      "owner_module": "MatterCore",
+      "primary_id": "matter_calendar_event_id",
+      "required_fields": [
+        "matter_calendar_event_id",
+        "tenant_id",
+        "matter_id",
+        "title",
+        "starts_at"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "Checklist": {
+      "owner_module": "MatterCore",
+      "primary_id": "checklist_id",
+      "required_fields": [
+        "checklist_id",
+        "tenant_id",
+        "matter_id",
+        "title"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "MatterStatusHistory": {
+      "owner_module": "MatterCore",
+      "primary_id": "matter_status_history_id",
+      "required_fields": [
+        "matter_status_history_id",
+        "tenant_id",
+        "matter_id",
+        "from_status",
+        "to_status",
+        "changed_at"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "DocumentReference": {
+      "owner_module": "DMS",
+      "primary_id": "document_id",
+      "required_fields": [
+        "document_id",
+        "tenant_id",
+        "matter_id",
+        "dms_owned"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "DocumentVersionReference": {
+      "owner_module": "DMS",
+      "primary_id": "document_version_id",
+      "required_fields": [
+        "document_version_id",
+        "document_id",
+        "tenant_id",
+        "matter_id",
+        "version",
+        "dms_owned"
+      ],
+      "matter_trace_required": true,
+      "pre_matter_allowed": false
+    },
+    "AuditEventReference": {
+      "owner_module": "AuditKernel",
+      "primary_id": "audit_event_id",
+      "required_fields": [
+        "audit_event_id",
+        "tenant_id",
+        "action",
+        "occurred_at"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    },
+    "AuditEvent": {
+      "owner_module": "AuditKernel",
+      "primary_id": "audit_event_id",
+      "required_fields": [
+        "audit_event_id",
+        "tenant_id",
+        "actor_id",
+        "action",
+        "object_type",
+        "object_id",
+        "occurred_at"
+      ],
+      "matter_trace_required": false,
+      "pre_matter_allowed": true
+    }
+  },
+  "matter_traceable_entity_types": [
+    "Matter",
+    "MatterMember",
+    "MatterTask",
+    "MatterCalendarEvent",
+    "Checklist",
+    "MatterStatusHistory",
+    "DocumentReference",
+    "DocumentVersionReference"
+  ],
+  "pre_matter_entity_types": [
+    "Tenant",
+    "User",
+    "Group",
+    "Role",
+    "PermissionReference",
+    "PolicyReference",
+    "Entity",
+    "Person",
+    "Organization",
+    "Client",
+    "ClientProfile",
+    "BillingEntity",
+    "ContactPoint",
+    "Relationship",
+    "AuditEventReference",
+    "AuditEvent"
+  ],
+  "service_entrypoint_contract": {
+    "pack_id": "CP00-095",
+    "entrypoint_id": "core_domain_service_intake",
+    "source_unit_range": "RP01.P00.M00.S01-RP01.P02.M04.S06",
+    "accepts_real_client_data": false,
+    "writes_product_state": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "result_fields": [
+      "entrypoint_id",
+      "normalized_request",
+      "tenant_boundary_precheck",
+      "matter_trace_precheck",
+      "permission_precheck",
+      "audit_hint",
+      "blocked_claims",
+      "writes_product_state"
+    ]
+  },
+  "synthetic_workflow_contract": {
+    "pack_id": "CP00-096",
+    "workflow_id": "core_domain_synthetic_workflow",
+    "source_unit_range": "RP01.P02.M04.S07-RP01.P02.M06.S06",
+    "accepts_real_client_data": false,
+    "writes_product_state": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "persistence_boundary": "synthetic_fixture_only",
+    "blocked_path_policy": "prechecks are canonicalized through routed->blocked before rollback planning",
+    "fixture_source_unit_scope": "RP01.P02.M06.S01-RP01.P02.M06.S06 is the fixture subrange inside the broader CP00-096 workflow pack",
+    "state_transitions": {
+      "requested": [
+        "normalized",
+        "blocked"
+      ],
+      "normalized": [
+        "prechecked",
+        "blocked"
+      ],
+      "prechecked": [
+        "routed",
+        "blocked"
+      ],
+      "routed": [
+        "completed",
+        "blocked"
+      ],
+      "completed": [],
+      "blocked": [
+        "rolled_back",
+        "retry_scheduled"
+      ],
+      "rolled_back": [
+        "retry_scheduled"
+      ],
+      "retry_scheduled": []
+    },
+    "routes": [
+      "ready",
+      "review_required",
+      "approval_required",
+      "blocked"
+    ],
+    "blocked_claims": [
+      "permission_reference_denies_operation",
+      "lock_unavailable",
+      "persistence_boundary_violation",
+      "missing_required_fields",
+      "missing_matter_trace",
+      "owner_module_drift",
+      "core_domain_workflow_validation_error"
+    ]
+  },
+  "synthetic_api_contract": {
+    "pack_id": "CP00-097",
+    "contract_id": "core_domain_synthetic_api_contract",
+    "source_unit_range": "RP01.P03.M00.S01-RP01.P04.M02.S03",
+    "accepts_real_client_data": false,
+    "writes_product_state": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "unauthorized_data_policy": "explicit_visibility_allowlist_only",
+    "endpoints": [
+      "core_domain.workflow.execute",
+      "core_domain.documents.list",
+      "core_domain.matters.summary",
+      "core_domain.evidence.packet"
+    ],
+    "response_fields": [
+      "api_contract_id",
+      "endpoint_id",
+      "status",
+      "data",
+      "errors",
+      "pagination",
+      "permission_evaluated",
+      "audit_written",
+      "writes_product_state",
+      "unauthorized_data_omitted"
+    ]
+  },
+  "golden_case_contract": {
+    "pack_id": "CP00-097",
+    "contract_id": "core_domain_cp097_golden_case_set",
+    "synthetic_only": true,
+    "uses_real_client_data": false,
+    "writes_product_state": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "case_ids": [
+      "workflow_happy_path",
+      "workflow_review_required",
+      "workflow_approval_required",
+      "permission_reference_denied",
+      "lock_retry",
+      "idempotency_replay",
+      "persistence_boundary_violation",
+      "api_unauthorized_data_omission"
+    ]
+  },
+  "ui_surface_contract": {
+    "pack_id": "CP00-097",
+    "source_unit_range": "RP01.P04.M00.S01-RP01.P04.M02.S03",
+    "writes_product_state": false,
+    "surfaces": [
+      "core_domain_entity_directory",
+      "matter_trace_panel",
+      "document_reference_panel"
+    ],
+    "loading_state_policy": "synthetic_placeholders_only",
+    "empty_state_policy": "no_real_client_data"
+  },
+  "ui_state_contract": {
+    "pack_id": "CP00-098",
+    "contract_id": "core_domain_ui_state_contract",
+    "source_unit_range": "RP01.P04.M02.S04-RP01.P04.M05.S04",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "surfaces": [
+      "core_domain_entity_directory",
+      "matter_trace_panel",
+      "permission_audit_binding_panel"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "denied",
+      "review_required",
+      "ready",
+      "error"
+    ],
+    "state_matrix_required_states": [
+      "loading",
+      "empty",
+      "denied",
+      "review_required",
+      "ready"
+    ],
+    "responsive_modes": [
+      "desktop_dense",
+      "mobile_single_column"
+    ],
+    "permission_badge_policy": "reference_only_never_evaluated",
+    "audit_hint_policy": "display_only_never_written",
+    "fixture_policy": "synthetic_only"
+  },
+  "permission_audit_binding_contract": {
+    "pack_id": "CP00-099",
+    "contract_id": "core_domain_permission_audit_binding_contract",
+    "source_unit_range": "RP01.P04.M05.S05-RP01.P04.M05.S14",
+    "surface_id": "permission_audit_binding_panel",
+    "upstream_ui_state_contract_id": "core_domain_ui_state_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "states": [
+      "denied",
+      "review_required"
+    ],
+    "responsive_modes": [
+      "desktop_dense",
+      "mobile_single_column"
+    ],
+    "required_actions": [
+      "inspect_permission_badge",
+      "open_review_reference",
+      "inspect_audit_hint"
+    ],
+    "permission_badge_policy": "reference_only_never_evaluated",
+    "audit_hint_policy": "display_only_never_written",
+    "keyboard_policy": "tab_order_must_reach_permission_badge_before_audit_hint",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "permission_audit_fixture_contract": {
+    "pack_id": "CP00-100",
+    "contract_id": "core_domain_permission_audit_fixture_contract",
+    "source_unit_range": "RP01.P04.M05.S15-RP01.P04.M06.S04",
+    "surface_id": "permission_audit_synthetic_fixture_panel",
+    "source_micro_phase_id": "RP01.P04.M06",
+    "upstream_permission_audit_contract_id": "core_domain_permission_audit_binding_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "states": [
+      "loading",
+      "empty"
+    ],
+    "responsive_modes": [
+      "desktop_dense",
+      "mobile_single_column"
+    ],
+    "data_dependencies": [
+      "Tenant",
+      "Matter",
+      "DocumentReference",
+      "PermissionReference",
+      "AuditEventReference"
+    ],
+    "fixture_policy": "synthetic_fixture_only",
+    "visual_density_policy": "compact_operational_console",
+    "hermes_evidence_policy": "command_evidence_only_no_runtime_side_effects",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "synthetic_fixture_catalog_contract": {
+    "pack_id": "CP00-101",
+    "contract_id": "core_domain_cp101_synthetic_fixture_catalog_contract",
+    "source_unit_range": "RP01.P04.M06.S05-RP01.P05.M09.S03",
+    "upstream_permission_audit_fixture_contract_id": "core_domain_permission_audit_fixture_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "ldip_implemented": false,
+    "ui_fixture_states": [
+      "denied",
+      "review_required"
+    ],
+    "responsive_modes": [
+      "desktop_dense",
+      "mobile_single_column"
+    ],
+    "base_fixture_types": [
+      "Tenant",
+      "User",
+      "Matter",
+      "DocumentReference"
+    ],
+    "fixture_case_ids": [
+      "base_tenant_fixture",
+      "base_user_fixture",
+      "base_matter_fixture",
+      "base_document_fixture",
+      "primary_golden_case",
+      "secondary_golden_case",
+      "review_required_case",
+      "denied_case",
+      "cross_tenant_case",
+      "missing_context_case",
+      "audit_hint_case",
+      "security_trimming_case",
+      "ai_retrieval_or_analytics_case",
+      "fixture_manifest",
+      "golden_test",
+      "failure_test",
+      "hermes_fixture_evidence",
+      "claude_missing_test_prompt",
+      "closeout_handoff",
+      "no_real_data_check"
+    ],
+    "covered_micro_phase_ids": [
+      "RP01.P04.M06",
+      "RP01.P04.M07",
+      "RP01.P04.M08",
+      "RP01.P04.M09",
+      "RP01.P04.M10",
+      "RP01.P05.M00",
+      "RP01.P05.M01",
+      "RP01.P05.M02",
+      "RP01.P05.M03",
+      "RP01.P05.M04",
+      "RP01.P05.M05",
+      "RP01.P05.M06",
+      "RP01.P05.M07",
+      "RP01.P05.M08",
+      "RP01.P05.M09"
+    ],
+    "coverage_policy": "risk_c_fixture_and_evidence_catalog",
+    "evidence_policy": "command_evidence_only_no_runtime_side_effects",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "permission_matrix_contract": {
+    "pack_id": "CP00-102",
+    "contract_id": "core_domain_cp102_permission_matrix_contract",
+    "source_unit_range": "RP01.P05.M09.S04-RP01.P06.M08.S16",
+    "upstream_fixture_catalog_contract_id": "core_domain_cp101_synthetic_fixture_catalog_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "ldip_implemented": false,
+    "action_bindings": [
+      "view",
+      "search",
+      "mutation",
+      "export_download",
+      "share",
+      "ai_retrieval"
+    ],
+    "interaction_bindings": [
+      "legal_hold",
+      "ethical_wall",
+      "object_acl",
+      "review_required_route",
+      "approval_required_route",
+      "security_trimming",
+      "audit_event_expectation",
+      "permission_fixture",
+      "allowed_test",
+      "denied_test"
+    ],
+    "covered_micro_phase_ids": [
+      "RP01.P05.M09",
+      "RP01.P05.M10",
+      "RP01.P06.M00",
+      "RP01.P06.M01",
+      "RP01.P06.M02",
+      "RP01.P06.M03",
+      "RP01.P06.M04",
+      "RP01.P06.M05",
+      "RP01.P06.M06",
+      "RP01.P06.M07",
+      "RP01.P06.M08"
+    ],
+    "permission_policy": "reference_matrix_only_until_rp02_permission_kernel",
+    "audit_policy": "audit_hint_expectation_only_until_rp03_audit_kernel",
+    "security_trimming_policy": "expected_omission_proof_only_no_runtime_filtering",
+    "deny_over_allow_policy": "deny_reference_wins_in_static_matrix",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "permission_review_packet_contract": {
+    "pack_id": "CP00-103",
+    "contract_id": "core_domain_cp103_permission_review_packet_contract",
+    "source_unit_range": "RP01.P06.M08.S17-RP01.P06.M09.S06",
+    "upstream_permission_matrix_contract_id": "core_domain_cp102_permission_matrix_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "executes_export_download": false,
+    "executes_external_share": false,
+    "ldip_implemented": false,
+    "covered_unit_ids": [
+      "RP01.P06.M08.S17",
+      "RP01.P06.M08.S18",
+      "RP01.P06.M08.S19",
+      "RP01.P06.M08.S20",
+      "RP01.P06.M09.S01",
+      "RP01.P06.M09.S02",
+      "RP01.P06.M09.S03",
+      "RP01.P06.M09.S04",
+      "RP01.P06.M09.S05",
+      "RP01.P06.M09.S06"
+    ],
+    "evidence_bindings": [
+      "audit_event_expectation",
+      "permission_fixture",
+      "allowed_test",
+      "denied_test"
+    ],
+    "decision_bindings": [
+      "export_download",
+      "share"
+    ],
+    "audit_event_expectation_policy": "expected_only_until_rp03_audit_kernel",
+    "permission_fixture_policy": "reference_only_until_rp02_permission_kernel",
+    "allowed_denied_test_policy": "expected_outcome_only_no_runtime_evaluation",
+    "export_policy": "approval_required_reference_no_download_execution",
+    "share_policy": "approval_required_reference_no_external_share_execution",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "real_client_data_loaded",
+      "export_download_executed",
+      "external_share_executed",
+      "ldip_implemented"
+    ]
+  },
+  "failure_taxonomy_contract": {
+    "pack_id": "CP00-104",
+    "contract_id": "core_domain_cp104_failure_taxonomy_contract",
+    "source_unit_range": "RP01.P06.M09.S07-RP01.P07.M08.S17",
+    "upstream_permission_review_packet_contract_id": "core_domain_cp103_permission_review_packet_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "executes_ai_retrieval": false,
+    "executes_export_download": false,
+    "executes_external_share": false,
+    "mutates_locks": false,
+    "retries_operations": false,
+    "performs_rollback": false,
+    "performs_compensation": false,
+    "ldip_implemented": false,
+    "covered_unit_count": 150,
+    "covered_micro_phase_ids": [
+      "RP01.P06.M09",
+      "RP01.P06.M10",
+      "RP01.P07.M00",
+      "RP01.P07.M01",
+      "RP01.P07.M02",
+      "RP01.P07.M03",
+      "RP01.P07.M04",
+      "RP01.P07.M05",
+      "RP01.P07.M06",
+      "RP01.P07.M07",
+      "RP01.P07.M08"
+    ],
+    "review_extension_bindings": [
+      "ai_retrieval_decision_binding",
+      "audit_hint_fields",
+      "matched_rule_capture",
+      "deny_over_allow_check",
+      "legal_hold_interaction",
+      "permission_matrix_row",
+      "view_decision_binding",
+      "search_decision_binding"
+    ],
+    "failure_category_ids": [
+      "failure_taxonomy",
+      "missing_tenant",
+      "missing_actor",
+      "missing_matter",
+      "missing_resource",
+      "unknown_action",
+      "cross_tenant",
+      "permission_denied",
+      "ambiguous_rule",
+      "stale_reference",
+      "lock_conflict",
+      "retry_exhaustion",
+      "rollback_expectation",
+      "compensation_expectation",
+      "blocked_claim_receipt",
+      "failure_fixture",
+      "failure_unit_test",
+      "failure_integration_smoke",
+      "audit_failure_hint",
+      "hermes_failure_evidence"
+    ],
+    "failure_policy": "expected_failure_reference_only_no_runtime_recovery",
+    "audit_failure_policy": "audit_hint_only_until_rp03_audit_kernel",
+    "permission_failure_policy": "expected_denial_only_until_rp02_permission_kernel",
+    "recovery_policy": "rollback_compensation_retry_expectations_only",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "ai_retrieval_executed",
+      "export_download_executed",
+      "external_share_executed",
+      "lock_mutated",
+      "retry_executed",
+      "rollback_performed",
+      "compensation_performed",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "evidence_review_catalog_contract": {
+    "pack_id": "CP00-105",
+    "contract_id": "core_domain_cp105_evidence_review_catalog_contract",
+    "source_unit_range": "RP01.P07.M08.S18-RP01.P09.M03.S09",
+    "upstream_failure_taxonomy_contract_id": "core_domain_cp104_failure_taxonomy_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "executes_ai_retrieval": false,
+    "executes_export_download": false,
+    "executes_external_share": false,
+    "mutates_locks": false,
+    "retries_operations": false,
+    "performs_rollback": false,
+    "performs_compensation": false,
+    "ldip_implemented": false,
+    "covered_unit_count": 150,
+    "covered_micro_phase_ids": [
+      "RP01.P07.M08",
+      "RP01.P07.M09",
+      "RP01.P07.M10",
+      "RP01.P08.M00",
+      "RP01.P08.M01",
+      "RP01.P08.M02",
+      "RP01.P08.M03",
+      "RP01.P08.M04",
+      "RP01.P08.M05",
+      "RP01.P08.M06",
+      "RP01.P08.M07",
+      "RP01.P08.M08",
+      "RP01.P08.M09",
+      "RP01.P08.M10",
+      "RP01.P09.M00",
+      "RP01.P09.M01",
+      "RP01.P09.M02",
+      "RP01.P09.M03"
+    ],
+    "failure_closeout_category_ids": [
+      "failure_taxonomy",
+      "missing_tenant",
+      "missing_actor",
+      "missing_matter",
+      "missing_resource",
+      "unknown_action",
+      "cross_tenant",
+      "permission_denied",
+      "ambiguous_rule",
+      "stale_reference",
+      "lock_conflict",
+      "failure_integration_smoke",
+      "audit_failure_hint",
+      "hermes_failure_evidence"
+    ],
+    "hermes_receipt_ids": [
+      "hermes_command_matrix",
+      "evidence_field_list",
+      "changed_file_receipt",
+      "command_result_receipt",
+      "fixture_summary_receipt",
+      "blocked_claim_receipt",
+      "permission_summary_receipt",
+      "audit_summary_receipt",
+      "no_real_data_receipt",
+      "claude_dependency_marker",
+      "human_approval_marker",
+      "pass_semantics",
+      "pass_with_findings_semantics",
+      "block_semantics",
+      "evidence_template",
+      "validation_command_check",
+      "harness_boundary_note",
+      "closeout_handoff",
+      "regression_receipt",
+      "next_gate_readiness"
+    ],
+    "review_question_ids": [
+      "architecture_review_questions",
+      "security_review_questions",
+      "permission_bypass_questions",
+      "audit_completeness_questions",
+      "missing_test_questions",
+      "ui_leak_questions",
+      "downstream_readiness_questions",
+      "risk_register",
+      "severity_taxonomy"
+    ],
+    "evidence_policy": "receipt_reference_only_no_harness_authority_claim",
+    "review_policy": "questions_and_risk_register_only_no_claude_execution",
+    "gate_semantics_policy": "pass_pass_with_findings_block_are_documented_only",
+    "failure_closeout_policy": "continues_cp104_expected_failure_reference_catalog",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "ai_retrieval_executed",
+      "export_download_executed",
+      "external_share_executed",
+      "lock_mutated",
+      "retry_executed",
+      "rollback_performed",
+      "compensation_performed",
+      "claude_review_executed_by_catalog",
+      "human_approval_granted_by_catalog",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "review_outcome_routing_contract": {
+    "pack_id": "CP00-106",
+    "contract_id": "core_domain_cp106_review_outcome_routing_contract",
+    "source_unit_range": "RP01.P09.M03.S10-RP01.P09.M07.S08",
+    "upstream_evidence_review_catalog_contract_id": "core_domain_cp105_evidence_review_catalog_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "executes_ai_retrieval": false,
+    "executes_export_download": false,
+    "executes_external_share": false,
+    "mutates_locks": false,
+    "retries_operations": false,
+    "performs_rollback": false,
+    "performs_compensation": false,
+    "executes_claude_review": false,
+    "grants_human_approval": false,
+    "ldip_implemented": false,
+    "covered_unit_count": 40,
+    "covered_micro_phase_ids": [
+      "RP01.P09.M03",
+      "RP01.P09.M04",
+      "RP01.P09.M05",
+      "RP01.P09.M06",
+      "RP01.P09.M07"
+    ],
+    "outcome_item_ids": [
+      "architecture_review_questions",
+      "security_review_questions",
+      "permission_bypass_questions",
+      "audit_completeness_questions",
+      "missing_test_questions",
+      "ui_leak_questions",
+      "downstream_readiness_questions",
+      "risk_register",
+      "severity_taxonomy",
+      "go_no_go_verdict_format",
+      "finding_routing_map"
+    ],
+    "allowed_verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "severity_levels": [
+      "P0",
+      "P1",
+      "P2",
+      "P3"
+    ],
+    "routing_targets": [
+      "block_pack_for_p0_p1",
+      "fix_or_defer_p2",
+      "document_p3",
+      "preserve_no_write_boundary",
+      "handoff_to_next_pack"
+    ],
+    "review_question_policy": "question_reference_only_no_review_execution",
+    "verdict_policy": "format_reference_only_no_pack_approval",
+    "finding_routing_policy": "routing_reference_only_no_issue_mutation",
+    "severity_policy": "classification_reference_only_no_priority_mutation",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "ai_retrieval_executed",
+      "export_download_executed",
+      "external_share_executed",
+      "lock_mutated",
+      "retry_executed",
+      "rollback_performed",
+      "compensation_performed",
+      "claude_review_executed_by_catalog",
+      "human_approval_granted_by_catalog",
+      "issue_routing_mutated",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "review_closeout_readiness_contract": {
+    "pack_id": "CP00-107",
+    "contract_id": "core_domain_cp107_review_closeout_readiness_contract",
+    "source_unit_range": "RP01.P09.M07.S09-RP01.P09.M10.S01",
+    "upstream_review_outcome_routing_contract_id": "core_domain_cp106_review_outcome_routing_contract",
+    "accepts_real_client_data": false,
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "executes_ai_retrieval": false,
+    "executes_export_download": false,
+    "executes_external_share": false,
+    "mutates_locks": false,
+    "retries_operations": false,
+    "performs_rollback": false,
+    "performs_compensation": false,
+    "executes_claude_review": false,
+    "grants_human_approval": false,
+    "mutates_issue_routing": false,
+    "ldip_implemented": false,
+    "covered_unit_count": 16,
+    "covered_micro_phase_ids": [
+      "RP01.P09.M07",
+      "RP01.P09.M08",
+      "RP01.P09.M09",
+      "RP01.P09.M10"
+    ],
+    "readiness_item_ids": [
+      "architecture_review_questions",
+      "security_review_questions",
+      "permission_bypass_questions",
+      "audit_completeness_questions",
+      "missing_test_questions",
+      "ui_leak_questions",
+      "downstream_readiness_questions",
+      "risk_register",
+      "severity_taxonomy",
+      "go_no_go_verdict_format",
+      "finding_routing_map"
+    ],
+    "allowed_verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "severity_levels": [
+      "P0",
+      "P1",
+      "P2",
+      "P3"
+    ],
+    "routing_targets": [
+      "block_pack_for_p0_p1",
+      "fix_or_defer_p2",
+      "document_p3",
+      "preserve_no_write_boundary",
+      "handoff_to_rp02"
+    ],
+    "hermes_evidence_policy": "evidence_question_reference_only_no_harness_execution",
+    "claude_review_policy": "review_packet_reference_only_no_claude_execution",
+    "closeout_policy": "handoff_question_reference_only_no_production_approval",
+    "terminal_routing_policy": "rp01_terminal_references_handoff_to_rp02_without_runtime_mutation",
+    "forbidden_claims": [
+      "runtime_permission_evaluated",
+      "audit_event_written",
+      "product_state_mutated",
+      "database_row_created",
+      "ai_retrieval_executed",
+      "export_download_executed",
+      "external_share_executed",
+      "lock_mutated",
+      "retry_executed",
+      "rollback_performed",
+      "compensation_performed",
+      "claude_review_executed_by_catalog",
+      "human_approval_granted_by_catalog",
+      "issue_routing_mutated",
+      "real_client_data_loaded",
+      "ldip_implemented"
+    ]
+  },
+  "no_write_boundaries": {
+    "evaluates_runtime_permission": false,
+    "writes_audit_event": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "uses_real_client_data": false
+  },
+  "deferred_to_future_rps": {
+    "permission_evaluation": "RP02 Permission Kernel",
+    "audit_ledger_write": "RP03 Audit And Compliance Kernel",
+    "matter_workflow_runtime": "RP05 Matter Core",
+    "dms_document_runtime": "RP06 DMS Core"
+  },
+  "claude_gate": "C01",
+  "hermes_gate": "H01"
+}

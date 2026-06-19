@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P01.M03.S04",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "title": "Matter trace reference",
+  "status": "passed",
+  "executed_at": "2026-06-03T23:13:19+09:00",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "weighted_subphase_evidence": true
+  },
+  "commands": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed; subphase RP00.P01.M03.S04; status production_ready."
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed; requirement_count 227."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "summary": "Law Firm OS product contract validation passed; modules 9/9, principles 9/9, invariants 7/7."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed; 3,300 source micro phases and 54,355 implementation subphases."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed; 30 release programs, 10 standard phases, 11 micro phases per standard phase."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "summary": "Goal closeout protocol validation passed; Claude gate requires claude-opus-4-8 effort=max read-only."
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Node test suite passed; 41 tests passed, 0 failed."
+    }
+  ],
+  "blocked_claims": [],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "Commands are local validation/test commands and do not write product runtime state.",
+    "S04 implements only the HermesGate Matter trace reference and leaves RP00.P01.M03.S05 Lifecycle status enum as the next subphase."
+  ],
+  "evidence_summary": {
+    "matter_trace_policy_exported": true,
+    "matter_id_nullable_for_firm_level_gates": true,
+    "canonical_matter_id_validated": true,
+    "matter_context_mismatch_rejected": true,
+    "cross_tenant_matter_reference_rejected": true,
+    "synthetic_fixture_validated": true,
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review required before production_ready",
+    "human_approval_boundary": "Human approval is not replaced by Hermes, Claude Code, Codex, or this subphase."
+  },
+  "final_validation_rerun_at": "2026-06-03T23:18:56+09:00"
+}

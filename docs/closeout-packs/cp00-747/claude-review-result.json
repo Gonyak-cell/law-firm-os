@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-747",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-747/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-747/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "2a8c4a6d-a675-4e12-9087-e3061f717a22",
+    "uuid": "f81c2d45-4fe1-4cce-953a-2bbb95b3653d",
+    "total_cost_usd": 2.8431677499999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6019,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-747 is a descriptor-only RP24 Korean Legal Depth P07 failure-workflow bridge pack (risk B, 40 units, RP24.P07.M02.S17-RP24.P07.M04.S12). Verified via Read/Grep/Glob only.\n\nStructure & distribution: The 40 units decompose as M02=6 (Type And Shape Definition tail: test/test/security_audit/hermes_evidence/claude_review/implementation), M03=22 (Primary Implementation Slice: full failure workflow), M04=12 (Secondary Workflow Slice head). This matches KOREAN_LEGAL_CP747_FAILURE_WORKFLOW_ROWS (CP745 20 rows + \"Claude edge-case prompt\" + \"Human escalation note\" = 22) sliced as M02.slice(16), M03 full, M04.slice(0,12) in registry.js:3558/3735-3738. Deliverable distribution {test:4,security_audit:4,hermes_evidence:3,claude_review:2,implementation:3,failure_recovery:23,fixture:1} sums to 40 and matches requirements (registry.js:3712) and the baseline's 40 unit entries (23 failure_recovery confirmed).\n\nImplementation: PACK_BINDING (registry.js:434) is correct (next_pack_id CP00-748, next_subphase RP24.P07.M04.S13, gates H24/C24). createDescriptor (service.js:56) sets authority_boundary claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false, runtime_opening_pack_id=CP00-748; hermes_packet receipt_shape descriptor_only_no_write; claude_packet read_only=true. validateDescriptor (validators.js:16) enforces these plus descriptor-only rows, no sensitive payloads, no Korean legal runtime opening, no permission/audit leakage. index.js re-exports all six required_public_exports via export *.\n\nTests & validation: model.test.js:59-61 assert coverage errors=[], runtime-closed boundaries, hermes emits_runtime_receipt=false, claude read_only=true, handoff to CP00-748, and contract latest_projection=CP00-747 with historical CP722-746 and validation.valid=true. Contract has no \"valid\": false; cp747 coverage block valid with matching distributions. command-evidence.json: all 24 commands (node --check, closeout-pack[-plan]/rp24/rp00 validations, npm test, validate, spec/weighted/fullplan/goal validate, git diff --check, build) exit_code 0.\n\nBoundaries: writes_product_state=false, no_real_data=true, NO_WRITE_ATTESTATION comprehensive (registry.js:451); Claude is read-only independent reviewer (review-request.json tools Read,Grep,Glob), not final approver; Hermes patterns are deterministic control-plane review packet/receipt only, not embedded product runtime.\n\nThe pending/in_progress states in adjudication.md (0 P0/P1/P2), construction-inspection.json (PENDING, production_ready false), command-evidence (in_progress), and claude-review-result.json (pending) are the expected pre-receipt state gated on this hardened review; auth preflight passed with valid JSON and there are no prior invalid review attempts to reject. The pack claims neither runtime nor enterprise trust, so the human/enterprise-trust final-approval authority correctly sits outside this receipt. No P0/P1/P2/P3 findings; the production_ready descriptor-verification claim is supported for pack closeout.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

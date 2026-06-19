@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-338",
+  "normalized_at": "2026-06-11T15:02:11.311Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-338/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-338/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-338/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-338/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d0c6b8d9-d553-44d7-a792-d2872195d8f4",
+    "uuid": "02d8e120-7c8f-46e5-93f9-47cd889ac524",
+    "total_cost_usd": 2.0524722499999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6565,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-338 is a descriptor-only intake-core hermes slice pack (Risk B, 40 units, RP10.P08.M04.S20-RP10.P08.M06.S17) and is supported as claimed. The pack does NOT overclaim production readiness: manifest.json and command-evidence.json both report production_ready=false with status implemented_pending_review / implementation_and_plan_gates_passed_pending_final_closeout; production_ready_candidate=true is a local-validation candidate only, with human final approval still required (authority_boundary.human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-339). No-write/no-real-data boundaries are exhaustively attested in contract no_write_attestation, registry/service freezeCp338Result, validators, manifest implementation_summary, and the per-row descriptor flags; no real IO/runtime constructs exist in the changed source (no fs.write, child_process, process.env, require) and every real_client_data_loaded occurrence is a false negation. Claude is held as a read-only reviewer and explicitly not a final approver (claude_is_final_approval=false, claude_final_approval_claimed=false, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false), all deep-equal-asserted by scripts/validate-rp10-intake-core-contract.mjs. Hermes control-plane patterns are confined to descriptor-only review packet/receipt handling (emits_hermes_runtime_receipt=false, receipt_shape=descriptor_only_intake_hermes_slice_no_write; H10 used only for evidence-packet labeling). CP178+ review hardening is encoded (forbidden_review_evidence covers auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, disabled tools, missing raw-output/source-inspection refs, final-approval/enterprise-trust claims), readiness auth-preflight passed with valid JSON, and summary-only review is correctly prohibited for Risk B. All pre-review validation commands report exit 0; post-review-gated commands (closeout-pack:validate et al.) are correctly deferred until an accepted review result exists, per the documented hardened sequence. Implementation, contract, tests, and validator are mutually consistent (deep-equal contract vs code constants; comprehensive descriptor-only/no-leak/authority test coverage). One trivial, non-blocking classification overlap exists in the review artifact changed-file-scope.json; it does not affect commit behavior since the authoritative manifest worktree policy classifies the pack directory correctly. No P0/P1/P2 issues; nothing blocks pack or goal closeout. Final enterprise-trust approval remains a human responsibility outside this read-only review.",
+    "findings": [
+      {
+        "id": "CP00-338-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists the pack's own evidence dir as both implementation and unrelated-dirty",
+        "file": "artifacts/closeout-pack-claude-review/cp00-338/changed-file-scope.json",
+        "line": 137,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md and docs/closeout-packs/cp00-338/ appear in both untracked_implementation_files (lines 130-133) and unrelated_dirty_files_preserved (lines 135-145). docs/closeout-packs/cp00-338/ is this pack's own manifest/evidence directory and is therefore related, so listing it under a field named 'unrelated_dirty_files_preserved' is mildly self-contradictory. This is confined to the auto-generated review-scope artifact; the authoritative manifest worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json lines 1717-1725) correctly omits the pack directory, so commit/preserve behavior is unaffected. No production-readiness, boundary, or no-write impact.",
+        "recommendation": "Optionally refine the changed-file-scope generator so a file is not emitted into both untracked_implementation_files and unrelated_dirty_files_preserved (treat the pack's own docs/closeout-packs/<pack>/ as related). Non-blocking; no action required for CP00-338 closeout.",
+        "post_review_disposition": "Informational only; does not block pack or goal closeout. The authoritative manifest worktree policy is correct, and the prompt directs the reviewer not to infer unrelated dirty files into pack scope."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

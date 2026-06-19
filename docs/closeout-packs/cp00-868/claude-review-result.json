@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-868",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-868/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-868/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "ba5fe4a5-eb45-4496-9f71-b5d47156775c",
+    "uuid": "2069a906-6daf-4dbe-b958-468e37c4c3c0",
+    "total_cost_usd": 2.0215069999999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6689,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-868 is a descriptor-only RP28 Marketplace evidence-review permission/audit bridge over RP28.P08.M04.S13-RP28.P08.M06.S08 (40 units, risk B). The pack-level descriptor-verified claim is supported across all layers. Plan binding (MARKETPLACE_CP868_PACK_BINDING, registry.js:445) matches the manifest and contract: CP00-868, upstream CP00-867 -> next CP00-869 / RP28.P08.M06.S09, unit_count 40. Coverage matches exactly: deliverable distribution impl 18 / hermes_evidence 19 / test 2 / claude_review 1, phase RP28.P08=40, micro-phase 10/22/8, and micro-title 10/22/8, with row titles derived from EVIDENCE_REVIEW_ROWS slices (M04 slice(12,22), M05 full 22, M06 slice(0,8)) identical to the manifest included_units. Runtime/no-write/no-real-data boundaries are enforced at three layers: createRow (registry.js:2021) sets descriptor_only:true and every execute/write/leak flag false; validateMarketplaceCp868EvidenceReviewPermissionAuditBridgeDescriptor (validators.js:2908) rejects any runtime opening, permission/audit/product-state write, or secret/OAuth/prompt-completion/real-client/permission-detail/audit-body payload; and the contract no_write_attestation (contract:65017) plus validation.valid:true confirm. Authority boundary is correct: claude_is_final_approval:false, human_final_approval_required_for_runtime_opening:true, local_validation_claims_enterprise_trust:false; Hermes packet emits_runtime_receipt:false and writes_product_state:false (deterministic packet/receipt only, not product runtime). Tests (model.test.js:904-938) assert binding, coverage, runtime-closed descriptor (row_count 40), implemented_model_names, and contract projection currency. Review-evidence hardening passes: auth preflight succeeded with a 1226-byte valid JSON result, prompt is 2477B (<25600), only Read/Grep/Glob requested, no forbidden tools; the embedded PENDING claude-review-result.json (0-byte stdout, PENDING verdict) is correctly NOT counted as valid (valid_review_receipts empty, exactly_one_valid_pack_level_claude_review_run:false) and is superseded by this receipt. Command-evidence records local node --check/validate/--test at exit 0 with status pending_review; the full npm validation suite is recorded at closeout per the established CP00-867 precedent. No secrets/PII found in changed files. Manifest production_ready:false and runtime_ready:false correctly scope this as a descriptor bridge with no runtime or enterprise-trust claim. One cosmetic P3 (changed-file-scope path classification) is non-blocking. No P0/P1/P2 issues; safe to close out CP00-868.",
+    "findings": [
+      {
+        "id": "CP00-868-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope classifies the pack's own closeout artifact directory as an untracked implementation file",
+        "file": "artifacts/closeout-pack-claude-review/cp00-868/changed-file-scope.json",
+        "line": 152,
+        "details": "untracked_implementation_files lists docs/closeout-packs/cp00-868/, which is the pack's own closeout evidence/documentation directory (manifest, command-evidence, construction-inspection, adjudication, claude-review-result), not product implementation. This has no material impact on review integrity: active_untracked_implementation_files_omitted is empty, and every real implementation/evidence ref (contracts/marketplace-custom-ai-apps-contract.json, packages/marketplace/README.md, src/registry.js, src/validators.js, test/model.test.js, scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs) is present in the tracked dirty set, so no implementation is hidden from review. This mirrors the analogous CP00-867-P3-01 classification note already tracked and closed by the project.",
+        "recommendation": "Optionally narrow the closeout-pack review hardening implementation-like path detection to exclude docs/closeout-packs/<pack-id>/ so the pack's own evidence directory is not labeled an untracked implementation file. Non-blocking; can be deferred.",
+        "post_review_disposition": "Accepted as non-blocking informational note. Does not affect the descriptor-only verification, no-write/no-real-data boundaries, or coverage distribution. CP00-868 remains safe to close out."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

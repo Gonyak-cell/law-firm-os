@@ -1,0 +1,1537 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-870",
+  "planned_pack_id": "CP00-870",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "opens_runtime": false,
+    "writes_product_state": false,
+    "uses_real_client_data": false,
+    "summary": "CP00-870 continues the RP28 Marketplace descriptor-only P09 Claude review packet secondary workflow and permission/audit bridge across RP28.P09.M04.S01-RP28.P09.M05.S20 without executing review harnesses, Hermes runtime receipts, permission decisions, audit writes, product-state writes, or using real client data.",
+    "source_refs": [
+      "packages/marketplace/README.md",
+      "packages/marketplace/src/registry.js",
+      "packages/marketplace/src/validators.js",
+      "packages/marketplace/test/model.test.js",
+      "contracts/marketplace-custom-ai-apps-contract.json",
+      "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+    ]
+  },
+  "program_id": "RP28",
+  "risk_class": "B",
+  "planned_risk_class": "B",
+  "unit_count": 40,
+  "planned_unit_count": 40,
+  "primary_subphase_id": "RP28.P09.M04.S01",
+  "next_subphase": "RP28.P09.M05.S21",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "production_ready_flag": "marketplace_claude_review_permission_audit_bridge_descriptor_verified",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-870",
+    "planned_pack_id": "CP00-870",
+    "title": "CP00-870 RP28.P09.M04.S01-RP28.P09.M05.S20 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP28.P09.M04.S01",
+      "last_unit_id": "RP28.P09.M05.S20",
+      "description": "RP28.P09.M04.S01-RP28.P09.M05.S20"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP28.P09.M04.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP28.P09.M04.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP28.P09.M04.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP28.P09.M04.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP28.P09.M04.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP28.P09.M04.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP28.P09.M04.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S09",
+        "title": "Severity taxonomy",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S10",
+        "title": "Go/no-go verdict format",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S12",
+        "title": "Human approval summary",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S13",
+        "title": "Claude review packet",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP28.P09.M04.S14",
+        "title": "Closeout criteria",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S15",
+        "title": "PASS closeout note",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S16",
+        "title": "PASS_WITH_FINDINGS closeout note",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S17",
+        "title": "BLOCK closeout note",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S18",
+        "title": "Next RP dependency",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S19",
+        "title": "Documentation update",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M04.S20",
+        "title": "Command rerun",
+        "source_micro_phase_id": "RP28.P09.M04",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP28.P09.M05.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP28.P09.M05.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP28.P09.M05.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP28.P09.M05.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP28.P09.M05.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP28.P09.M05.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S09",
+        "title": "Severity taxonomy",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S10",
+        "title": "Go/no-go verdict format",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S12",
+        "title": "Human approval summary",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S13",
+        "title": "Claude review packet",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP28.P09.M05.S14",
+        "title": "Closeout criteria",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S15",
+        "title": "PASS closeout note",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S16",
+        "title": "PASS_WITH_FINDINGS closeout note",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S17",
+        "title": "BLOCK closeout note",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S18",
+        "title": "Next RP dependency",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S19",
+        "title": "Documentation update",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP28.P09.M05.S20",
+        "title": "Command rerun",
+        "source_micro_phase_id": "RP28.P09.M05",
+        "program_id": "RP28",
+        "phase_id": "RP28.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP28.P09.M04.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S09",
+      "title": "Severity taxonomy",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S10",
+      "title": "Go/no-go verdict format",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S12",
+      "title": "Human approval summary",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S13",
+      "title": "Claude review packet",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S14",
+      "title": "Closeout criteria",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S15",
+      "title": "PASS closeout note",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S16",
+      "title": "PASS_WITH_FINDINGS closeout note",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S17",
+      "title": "BLOCK closeout note",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S18",
+      "title": "Next RP dependency",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S19",
+      "title": "Documentation update",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M04.S20",
+      "title": "Command rerun",
+      "source_micro_phase_id": "RP28.P09.M04",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S09",
+      "title": "Severity taxonomy",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S10",
+      "title": "Go/no-go verdict format",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S12",
+      "title": "Human approval summary",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S13",
+      "title": "Claude review packet",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S14",
+      "title": "Closeout criteria",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S15",
+      "title": "PASS closeout note",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S16",
+      "title": "PASS_WITH_FINDINGS closeout note",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S17",
+      "title": "BLOCK closeout note",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S18",
+      "title": "Next RP dependency",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S19",
+      "title": "Documentation update",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    },
+    {
+      "id": "RP28.P09.M05.S20",
+      "title": "Command rerun",
+      "source_micro_phase_id": "RP28.P09.M05",
+      "program_id": "RP28",
+      "phase_id": "RP28.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "evidence_refs": [
+        "packages/marketplace/README.md",
+        "packages/marketplace/src/registry.js",
+        "packages/marketplace/src/validators.js",
+        "packages/marketplace/test/model.test.js",
+        "contracts/marketplace-custom-ai-apps-contract.json",
+        "scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs"
+      ],
+      "implementation_refs": [
+        "packages/marketplace/src/index.js",
+        "packages/marketplace/src/model.js",
+        "packages/marketplace/src/states.js"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-870/manifest.json",
+    "docs/closeout-packs/cp00-870/command-evidence.json",
+    "docs/closeout-packs/cp00-870/claude-review-result.json",
+    "docs/closeout-packs/cp00-870/adjudication.md",
+    "docs/closeout-packs/cp00-870/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "status": "review_completed",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-870/review-receipt.json",
+    "inherited_previous_valid_review_receipts_not_counted": [
+      "artifacts/closeout-pack-claude-review/cp00-869/review-receipt.json"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-870/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "exactly_one_valid_pack_review_completed": true,
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "a9416b7a-23bb-4124-ad71-788e5e18f81d",
+      "uuid": "f314df7c-7f27-4c0c-b2be-16109a12e6cb",
+      "total_cost_usd": 2.68113125,
+      "permission_denials": []
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "commit_after_production_ready": true
+  }
+}

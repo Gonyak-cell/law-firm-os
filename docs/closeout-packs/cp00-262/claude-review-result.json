@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-262",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-262/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-262/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "93e50394-1181-451f-8f1e-90c7b81695d7",
+    "uuid": "952a3076-1818-406f-add2-ce7fb21e4d43",
+    "total_cost_usd": 2.2052162500000003,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Independent read-only review of CP00-262 (Risk B, 40 units, RP07.P07.M04.S06-RP07.P07.M05.S20, search-core failure binding slice descriptor). The pack is internally consistent and its claims are supported by the actual implementation, tests, contract projection, and validation logic verified via Read/Grep/Glob.\n\nVerified: (1) Pack binding registry.js:487-502 matches range/risk/unit_count and upstream CP00-261 / next CP00-263 (RP07.P07.M05.S21), with clean continuity from the prior commit (CP00-261 ended RP07.P07.M04.S05). (2) Deliverable distribution (failure_recovery 19, security_audit 4, implementation 6, hermes_evidence 4, fixture 2, test 4, claude_review 1 = 40) and micro-title split (Secondary Workflow Slice 20 / Permission And Audit Binding 20) reconcile exactly across prompt, baseline included_units, SEARCH_CORE_CP262_REQUIREMENTS (registry.js:2458-2512), and validateSearchCoreCp262Coverage (validators.js:5589-5622). (3) production_ready is NOT overclaimed: manifest.json, review-baseline.json, and command-evidence.json all hold production_ready:false (status implemented_pending_review / pending_final_closeout); production_ready_flag is a named descriptor-verification string; the Hermes packet emits only a gated production_ready_candidate (coverage.valid && slice.valid). No production_ready gate is weakened. (4) No-write / no-real-data boundary: freezeCp262Result (service.js:3638-3687) sets writes_product_state, dispatch/runtime, lock/retry/rollback, audit, object-storage, and Hermes-receipt flags false plus no_real_data/synthetic_only true; NO_WRITE_ATTESTATION inherits the chain (silent_success_detected/promotes_claude_to_final_approval/claims_enterprise_trust_from_local_validation all false); the descriptor validator (validators.js:5624-5710) enforces these. (5) Claude is a read-only reviewer, not final approver: authority_boundary.claude_is_final_approval=false and human_final_approval_required_for_runtime_opening=true in code, contract projection (search-core-contract.json:30355-30360), and tests (model.test.js:1784). (6) Hermes patterns confined to deterministic review packet/receipt: emits_hermes_runtime_receipt=false, receipt_shape descriptor_only_...no_write, SEARCH_CORE_PROGRAM_CONTRACT.descriptor_only=true. (7) CP178+ review hardening present: forbidden_review_evidence (registry.js:670-682) covers auth failures, zero-byte, malformed/fenced JSON, tool-call-shaped output, disabled tools, and missing refs; readiness auth-preflight passed with well-formed JSON. (8) index.js wildcard-re-exports all 7 required public exports; README has #cp00-262; contract validator (validate-rp07-search-core-contract.mjs:1334-1434) deepEquals the contract failure_binding_slice_descriptor/requirements/attestation to the code and asserts handoff + no-write fields. (9) Changed-file scope: all 7 modified source files are in active_pack_implementation_refs; unrelated dirty files (.docx, ldip result, new-session-handoff.md) correctly preserved as out-of-scope; active_untracked_implementation_files_omitted is empty.\n\nNo P0/P1/P2 issues. One non-blocking P3 metadata observation about redundant labeling in changed-file-scope.json. This review is advisory only; human final approval remains required for any enterprise-trust claim and CP00-262 correctly does not assert it.",
+    "findings": [
+      {
+        "id": "CP262-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-lists the pack manifest dir and handoff note in both untracked-implementation and unrelated-preserved sets",
+        "file": "artifacts/closeout-pack-claude-review/cp00-262/changed-file-scope.json",
+        "line": 100,
+        "details": "docs/closeout-packs/cp00-262/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). The labeling is slightly redundant/ambiguous, but it is conservative and non-material: active_pack_implementation_refs enumerates the 7 in-scope source files, active_untracked_implementation_files_omitted is empty, and the cp00-262/ directory is this pack's own generated manifest/command-evidence rather than a code deliverable. No in-scope implementation file is dropped or misattributed, so pack coverage and the no-write/no-real-data assessment are unaffected.",
+        "recommendation": "Optionally de-duplicate the scope-generator output so a path is classified into a single bucket (pack-artifact vs unrelated-dirty). No action required to close CP00-262.",
+        "post_review_disposition": "Non-blocking informational note. Harness metadata nuance only; does not block pack closeout or goal closeout and requires no change to CP00-262 deliverables."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

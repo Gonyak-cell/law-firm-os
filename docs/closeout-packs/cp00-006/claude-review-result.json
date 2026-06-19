@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-006",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "reason": "full_diff_review_hung_and_was_killed_without_review_output",
+      "counted_as_valid_pack_review": false
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "8f28464b-c82f-414e-99a6-591bc978801c",
+    "uuid": "b60f0d95-6e9f-401b-bf49-af24d7df8d94",
+    "total_cost_usd": 0.80331325,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-006-P2-01",
+        "severity": "p2",
+        "file": "packages/control-plane/src/policies.js",
+        "title": "Required idempotency receipt field list omitted matter_id and decision_reason",
+        "details": "The S10 receipt object included matter_id and decision_reason, and validators checked those values, but the requiredIdempotencyReceiptFields list recorded only the narrower minimum subset.",
+        "required_action": "Add matter_id and decision_reason to the S10 required receipt field list and mirrored contract, validator, and fixture evidence."
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-006.",
+    "Raw P2 CP00-006-P2-01 is fixed by adding matter_id and decision_reason to the S10 required idempotency receipt field list and mirrored validator, contract, and fixture evidence.",
+    "No unresolved P0, P1, or P2 findings remain after adjudication."
+  ]
+}

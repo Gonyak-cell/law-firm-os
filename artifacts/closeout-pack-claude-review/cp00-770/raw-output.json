@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-770",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T15:44:29.913Z",
+  "finished_at": "2026-06-15T15:50:13.047Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":342545,\"duration_api_ms\":344617,\"ttft_ms\":3963,\"num_turns\":51,\"result\":\"CP00-770 review complete — verdict **PASS**, no findings.\\n\\nThe pack is a clean continuation of the CP00-756→769 descriptor-only Migration Platform series: registry binding/requirements match the baseline exactly, generators and validators enforce no-write/no-real-data/runtime-closed boundaries, tests are meaningful, and all 10 required validation commands plus `git diff --check` ran at exit 0. It correctly does **not** assert `production_ready` (stays `PENDING_REVIEW`, gated behind this review), keeps Claude read-only/non-final, uses Hermes only for deterministic control-plane receipts, and the CP178+ hardening guards correctly refuse to count the 0-byte placeholder as valid evidence. Nothing blocks pack or CP-goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"bb6f7ed8-9fc0-4d94-ac48-c94768c11a95\",\"total_cost_usd\":2.435373,\"usage\":{\"input_tokens\":849,\"cache_creation_input_tokens\":124498,\"cache_read_input_tokens\":2200793,\"output_tokens\":22055,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":124498,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":270,\"cache_read_input_tokens\":119486,\"cache_creation_input_tokens\":5448,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5448},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1144,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001244,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":849,\"outputTokens\":22055,\"cacheReadInputTokens\":2200793,\"cacheCreationInputTokens\":124498,\"webSearchRequests\":0,\"costUSD\":2.4341289999999995,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-770 (Migration Platform fixture implementation, risk B, 40 units, RP25.P05.M02.S15-RP25.P05.M04.S12) passes hardened read-only review. The CP770 binding and requirements in registry.js match the pack baseline exactly (risk B, 40 units, range, next CP00-771/RP25.P05.M04.S13, deliverable distribution test:6/hermes_evidence:2/implementation:13/fixture:13/claude_review:2/security_audit:4, micro-title distribution 6/22/12); a hand-count of the 40 included units confirms the distribution. service.js generators (case set, descriptor, Hermes evidence, Claude packet, closeout handoff) follow the consistent descriptor-only pattern and apply MIGRATION_PLATFORM_NO_WRITE_ATTESTATION; validators.js coverage and descriptor validators enforce descriptor-only output, no source-system/import runtime opening, no sensitive payloads, no cross-tenant access, no audit-body/permission-decision leak, no unverified-knowledge creation, no replay execution, and Hermes/Claude gate plus handoff integrity. import-plan.js and mappers.js are descriptor-only/no-write and require human mapping approval; index.js re-exports cleanly; README CP00-770 section is accurate. model.test.js contains meaningful CP00-770 assertions (coverage deepEqual empty errors, descriptor validation, authority boundary claude_is_final_approval=false and runtime_opening_pack_id=CP00-771, runtime-closed flags, latest contract projection). command-evidence.json shows all required validation commands (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) at exit_code 0, status passed_pending_hardened_review. No-write/no-real-data boundaries hold; Hermes is used only for deterministic descriptor-only review packet/receipt handling, not product runtime; Claude remains read-only and non-final. The pack does not prematurely claim production_ready (manifest production_ready=false, runtime_ready=false, inspection verdict PENDING_REVIEW) and correctly gates promotion behind this review with human final approval reserved for enterprise-trust/runtime opening; the descriptor-only production_ready_flag is appropriately scoped. CP178+ evidence hardening is intact: the pre-review placeholder (0-byte stdout) is correctly not counted as a valid receipt and readiness auth-preflight passed. Changed-file scope correctly separates active pack refs from unrelated dirty files with no active untracked implementation files omitted. No P0-P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"205590f5-9269-41f7-9ed4-c7bd3928826e\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4998,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "bb6f7ed8-9fc0-4d94-ac48-c94768c11a95",
+    "uuid": "205590f5-9269-41f7-9ed4-c7bd3928826e",
+    "total_cost_usd": 2.435373,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

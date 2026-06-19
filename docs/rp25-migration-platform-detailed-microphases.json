@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP25",
+  "program_title": "Migration Platform",
+  "program_scope": "file server, SharePoint, Drive, iManage import",
+  "ai_owner": "Codex",
+  "hermes_gate": "H25",
+  "claude_gate": "C25",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP25.P00.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract file server, SharePoint, Drive, iManage import requirements and identify real data accidental exposure, wrong matter mapping, and duplicate import as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Migration Platform contract shape for MigrationPlan, SourceConnector, ImportBatch, MappingRule, MigrationFinding, ImportReceipt.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns MigrationPlan, SourceConnector, and ImportBatch, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for source scan, mapping proposal, and dry run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Migration Platform records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Migration Platform behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Migration Platform examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Migration Platform planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H25 preflight",
+      "objective": "Define the fields Hermes records before Migration Platform implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C25 design brief",
+      "objective": "Prepare Claude Code questions around real data accidental exposure, wrong matter mapping, duplicate import, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P00.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP25.P00 handoff",
+      "objective": "Hand off a contract-first Migration Platform implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "contracts/migration-contract.json",
+        "packages/migration/README.md",
+        "contracts/migration-platform-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/migration.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement MigrationPlan model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for MigrationPlan.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement SourceConnector model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for SourceConnector.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement ImportBatch model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for ImportBatch.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement MappingRule model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for MappingRule.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement MigrationFinding model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for MigrationFinding.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among MigrationPlan, SourceConnector, ImportBatch, MappingRule, MigrationFinding, ImportReceipt and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Migration Platform model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P01.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Migration Platform model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/model.js",
+        "packages/migration/src/states.js",
+        "packages/migration/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for source scan, mapping proposal, and dry run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement source scan",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for source scan.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement mapping proposal",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for mapping proposal.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement dry run",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for dry run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement import execution",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for import execution.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement receipt reconciliation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for receipt reconciliation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for real data accidental exposure, wrong matter mapping, and duplicate import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Migration Platform operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H25.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Migration Platform outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P02.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Migration Platform services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/service.js",
+        "packages/migration/src/policies.js",
+        "packages/migration/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Migration Platform models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define source scan API",
+      "objective": "Lock request, response, permission, audit, and error shape for source scan.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define mapping proposal API",
+      "objective": "Lock request, response, permission, audit, and error shape for mapping proposal.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define dry run API",
+      "objective": "Lock request, response, permission, audit, and error shape for dry run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define import execution API",
+      "objective": "Lock request, response, permission, audit, and error shape for import execution.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define receipt reconciliation API",
+      "objective": "Lock request, response, permission, audit, and error shape for receipt reconciliation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Migration Platform API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for real data accidental exposure, wrong matter mapping, duplicate import, lost version history, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H25 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C25 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P03.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Migration Platform public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/index.js",
+        "packages/migration/src/api-contract.js",
+        "packages/migration/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/migration/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify migration dashboard, mapping review, dry-run report, and import receipt in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan migration dashboard",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for migration dashboard.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan mapping review",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for mapping review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan dry-run report",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for dry-run report.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan import receipt",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for import receipt.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Migration Platform outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Migration Platform rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Migration Platform context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Migration Platform service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P04.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp25-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define file server dry-run golden case",
+      "objective": "Create a synthetic golden case proving file server dry-run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define SharePoint import mapped golden case",
+      "objective": "Create a synthetic golden case proving SharePoint import mapped.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define Drive duplicate flagged golden case",
+      "objective": "Create a synthetic golden case proving Drive duplicate flagged.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define iManage receipt reconciled golden case",
+      "objective": "Create a synthetic golden case proving iManage receipt reconciled.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define real data accidental exposure failure fixture",
+      "objective": "Create a synthetic failing case that proves real data accidental exposure is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define wrong matter mapping failure fixture",
+      "objective": "Create a synthetic failing case that proves wrong matter mapping is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define duplicate import failure fixture",
+      "objective": "Create a synthetic failing case that proves duplicate import is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Migration Platform fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Migration Platform appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P05.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Migration Platform fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/fixtures.js",
+        "packages/migration/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/migration/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for source scan, mapping proposal, dry run, and import execution.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Migration Platform view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Migration Platform mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Migration Platform export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Migration Platform where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Migration Platform obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H25 audit evidence",
+      "objective": "Record which Migration Platform decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P06.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Migration Platform cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/src/security-contract.js",
+        "packages/migration/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define real data accidental exposure failure",
+      "objective": "Fail closed or require review when real data accidental exposure appears in Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define wrong matter mapping failure",
+      "objective": "Fail closed or require review when wrong matter mapping appears in Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define duplicate import failure",
+      "objective": "Fail closed or require review when duplicate import appears in Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define lost version history failure",
+      "objective": "Fail closed or require review when lost version history appears in Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define permission mismatch failure",
+      "objective": "Fail closed or require review when permission mismatch appears in Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Migration Platform operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Migration Platform operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Migration Platform micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P07.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Migration Platform ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "packages/migration/test/failure-cases.test.js",
+        "docs/rp25-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/migration/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H25 command matrix",
+      "objective": "Record exact product commands Hermes should run for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H25 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H25 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H25 no-real-data evidence",
+      "objective": "Record that Migration Platform fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H25 blocked-claim evidence",
+      "objective": "Record unsafe Migration Platform claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H25 Claude dependency",
+      "objective": "Mark C25 review mandatory before Migration Platform closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H25 human approval note",
+      "objective": "Record what the human must approve for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H25 command availability",
+      "objective": "Ensure npm scripts required by H25 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H25 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Migration Platform implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H25 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H25.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P08.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Migration Platform behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp25-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M00",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP25 architecture review questions",
+      "objective": "Ask whether Migration Platform module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M01",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP25 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M02",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP25 bypass review questions",
+      "objective": "Ask Claude to find real data accidental exposure, wrong matter mapping, duplicate import, lost version history, and permission mismatch bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M03",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP25 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Migration Platform.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M04",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP25 downstream readiness questions",
+      "objective": "Ask whether Migration Platform is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M05",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP25 risk register",
+      "objective": "List unresolved Migration Platform risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M06",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Migration Platform findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M07",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Migration Platform closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M08",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP25.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M09",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Migration Platform can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP25.P09.M10",
+      "program_id": "RP25",
+      "program_title": "Migration Platform",
+      "program_scope": "file server, SharePoint, Drive, iManage import",
+      "phase_id": "RP25.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP25 detailed plan",
+      "objective": "Confirm Migration Platform is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H25",
+      "claude_gate": "C25",
+      "target_files": [
+        "docs/rp25-claude-cross-validation-brief.md",
+        "docs/rp25-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H25 evidence or blocked reason can be recorded.",
+        "Claude C25 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

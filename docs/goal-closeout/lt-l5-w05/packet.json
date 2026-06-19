@@ -1,0 +1,40 @@
+{
+  "work_package_id": "LT-L5-W05",
+  "title": "Operational audit-chain WORM verification",
+  "created_at": "2026-06-18T14:21:50Z",
+  "status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+  "phase": "L5",
+  "gate_binding": [
+    "G4",
+    "L5-EXIT"
+  ],
+  "terminal_tuw": "LT-L5-W05-T02",
+  "artifacts": [
+    "docs/launch/l5/audit-chain-worm-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l5-w05/packet.json",
+    "docs/goal-closeout/lt-l5-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l5-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l5-w05/adjudication.md",
+    "docs/goal-closeout/lt-l5-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "audit_chain_test_directory_exists": false,
+    "audit_worm_mutation_test_directory_exists": false,
+    "audit_chain_report_exists": false,
+    "audit_worm_mutation_report_exists": false,
+    "chain_verify_output_exists": false,
+    "mutation_attempt_results_exists": false,
+    "operational_worm_store_verified": false,
+    "legal_hold_purge_block_verified": false,
+    "in_place_mutation_detection_verified": false,
+    "g4_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "subphase_id": "RP00.P02.M05.S02",
+  "source_micro_phase_id": "RP00.P02.M05",
+  "title": "Request normalization",
+  "micro_title": "Permission And Audit Binding",
+  "created_at": "2026-06-06T00:24:33.000Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "bypassPermissions",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "invalid_partial_claude_attempt_notes": [],
+  "raw_review_file": "/tmp/lfos-rp00-p02-m05-s02-claude-review.stream.jsonl",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m05-s02-review-packet.diff",
+  "session_id": "a37deb9b-3f65-474c-914d-cf8f5c014b44",
+  "uuid": "282495ad-84d8-4163-aed0-0fd30fc28fdb",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 2.33420375,
+  "duration_ms": 311064,
+  "usage": {
+    "input_tokens": 33,
+    "cache_creation_input_tokens": 145969,
+    "cache_read_input_tokens": 1621203,
+    "output_tokens": 24401,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 145969,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "APPROVE",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "advisory_findings": [
+    {
+      "id": "ADV-1",
+      "severity": "info",
+      "status": "adjudicated_non_blocking",
+      "area": "packages/control-plane/src/service.js:normalizeControlPlanePermissionAuditBindingRequest",
+      "issue": "Claude noted the normalizer does not reject unexpected extra top-level bindingRequest keys.",
+      "adjudication": "Rejected as required fix. The output is constructed field-by-field from an explicit allow-list, so extra input keys cannot propagate. This also matches the sibling normalizeControlPlaneClaudeReviewRequest pattern. Optional defense-in-depth is deferred."
+    },
+    {
+      "id": "ADV-2",
+      "severity": "info",
+      "status": "adjudicated_as_expected",
+      "area": "scripts/validate-rp00-control-plane-contract.mjs / contracts/control-plane-contract.json",
+      "issue": "Claude observed rp00:control-plane:validate remains red until S02 evidence files exist.",
+      "adjudication": "Accepted as expected closeout sequencing. The final gate is rerun after evidence creation."
+    }
+  ],
+  "review_text": "PASS. RP00.P02.M05.S02 implements metadata-only Permission And Audit Binding request normalization exactly to scope. It depends correctly on production_ready RP00.P02.M05.S01 and RP00.P02.M04.S14, normalizes tenant/actor/Matter/permission/audit/role/deny/security-trim refs plus binding contexts, evidence refs, and acceptance gates, fails closed on unsafe inputs and claims, performs no runtime permission, AuthZ, permission-engine, security-trimming, audit-write, service-route, database, storage, product-state, registry, or human-approval replacement behavior, hands off to RP00.P02.M05.S03, and keeps RP00.P02.M05 open.",
+  "required_fixes": [],
+  "deferred_or_informational": [
+    "Optional defense-in-depth could reject unexpected top-level bindingRequest keys, but this is non-blocking because output construction is allow-listed.",
+    "The pre-evidence RP00 validator failure is expected and is resolved by authoring this evidence packet and rerunning the gate."
+  ],
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "a37deb9b-3f65-474c-914d-cf8f5c014b44",
+    "uuid": "282495ad-84d8-4163-aed0-0fd30fc28fdb",
+    "total_cost_usd": 2.33420375,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m05-s02-claude-review.stream.jsonl",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m05-s02-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "production_ready_verdict": "APPROVE",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [],
+    "advisory_findings": [
+      "ADV-1 optional top-level request extra-key rejection",
+      "ADV-2 expected pre-evidence RP00 gate failure"
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "advisory": 2
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-06T00:24:33.000Z",
+  "production_ready": true
+}

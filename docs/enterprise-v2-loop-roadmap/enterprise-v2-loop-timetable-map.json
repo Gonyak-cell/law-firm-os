@@ -1,0 +1,114 @@
+{
+  "schema_version": "law-firm-os.enterprise-v2-loop-timetable.v0.1",
+  "generated_at": "2026-06-09T00:00:00+09:00",
+  "status": "planning_only",
+  "source_documents": [
+    "docs/spec-v2-integration/v2-rp-anchor-map.md",
+    "docs/spec-v2-integration/v2-overlay-closeout-pack-map.json",
+    "docs/loop-system-integration/loop-enterprise-harness-update.md",
+    "docs/loop-system-integration/loop-rp-anchor-map.md",
+    "docs/loop-system-integration/loop-overlay-closeout-pack-map.json",
+    "docs/enterprise-v2-loop-roadmap/enterprise-v2-loop-plan-upgrade.md",
+    "docs/enterprise-v2-loop-roadmap/enterprise-v2-loop-development-timetable.md"
+  ],
+  "boundary": {
+    "parallel_development_range": "CP00-145-CP00-176",
+    "allowed_edit_scope": [
+      "docs/spec-v2-integration/*",
+      "docs/loop-system-integration/*",
+      "docs/enterprise-v2-loop-roadmap/*"
+    ],
+    "forbidden_edit_scope": [
+      "contracts/*",
+      "packages/*",
+      "scripts/*",
+      "docs/closeout-pack-plan/*",
+      "docs/closeout-packs/*",
+      "docs/weighted-implementation-ledger.*"
+    ]
+  },
+  "milestones": [
+    {
+      "id": "EVL-00",
+      "cp_range": "CP00-145-CP00-176",
+      "rps": ["RP03", "RP04"],
+      "theme": "Active baseline and pre-v2 foundation",
+      "v2_role": "planning_reference_only",
+      "loop_role": "planning_reference_only",
+      "exit_gate": "CP00-176 complete with no overlay code drift"
+    },
+    {
+      "id": "EVL-01",
+      "cp_range": "CP00-177-CP00-299",
+      "rps": ["RP05", "RP06", "RP07", "RP08"],
+      "theme": "v2 knowledge and evidence spine",
+      "v2_role": "Matter Wiki, Matter Graph, Document Register, Citation Ledger, LLM Wiki, Negotiation Ledger",
+      "loop_role": "future context, verifier source, and trigger inputs only",
+      "exit_gate": "source-backed permission-trimmed Matter/DMS/Search/Email spine"
+    },
+    {
+      "id": "EVL-02",
+      "cp_range": "CP00-300-CP00-480",
+      "rps": ["RP09", "RP10", "RP11", "RP12", "RP13", "RP14", "RP15"],
+      "theme": "business domain substrate",
+      "v2_role": "source lineage and operational evidence for CRM, intake, time, billing, finance, settlement, analytics",
+      "loop_role": "future domain-specific loop candidates",
+      "exit_gate": "business records are traceable and approval/audit ready"
+    },
+    {
+      "id": "EVL-03",
+      "cp_range": "CP00-481-CP00-551",
+      "rps": ["RP16", "RP17"],
+      "theme": "enterprise governance and AI safety",
+      "v2_role": "DLP, retention, local AI worker, hybrid routing, AIResult lifecycle, citation validation",
+      "loop_role": "BudgetEnvelope, ModelRoutingPolicy, RetrievalScope, AIApproval, context permission prerequisites",
+      "exit_gate": "no AI/model/tool path without policy, budget, citation/review, and audit evidence"
+    },
+    {
+      "id": "EVL-04",
+      "cp_range": "CP00-552-CP00-583",
+      "rps": ["RP18"],
+      "theme": "core Loop enterprise harness",
+      "v2_role": "consume wiki, graph, citation, retrieval, negotiation evidence",
+      "loop_role": "LoopDefinition, LoopRun, DAGPlan, worker/verifier, execution, verification, partial result, stop conditions",
+      "exit_gate": "LoopRun completion requires verifier pass or approved human exception"
+    },
+    {
+      "id": "EVL-05",
+      "cp_range": "CP00-584-CP00-715",
+      "rps": ["RP19", "RP20", "RP21", "RP22", "RP23"],
+      "theme": "client, admin, and integration operations",
+      "v2_role": "client-visible evidence, VDR source lineage, integration source control",
+      "loop_role": "Approval Inbox, Loop dashboard, admin kill switch, integration triggers, external action hard blocks",
+      "exit_gate": "operator can inspect, pause, approve, reject, and audit Loop actions"
+    },
+    {
+      "id": "EVL-06",
+      "cp_range": "CP00-716-CP00-838",
+      "rps": ["RP24", "RP25", "RP26", "RP27"],
+      "theme": "legal depth, migration, hardening, and platform",
+      "v2_role": "Authority Graph, migrated source backfill, Private/Sovereign deployment, provider extensions",
+      "loop_role": "legal verifier constraints, local/private routing, Tool Gateway, workflow API, webhook callback",
+      "exit_gate": "authority, migration, deployment, and tool paths are policy-gated and auditable"
+    },
+    {
+      "id": "EVL-07",
+      "cp_range": "CP00-839-CP00-890",
+      "rps": ["RP28", "RP29"],
+      "theme": "marketplace and commercial readiness",
+      "v2_role": "commercial audit packages, private/sovereign packaging, evidence export",
+      "loop_role": "Skill Registry, Playbook Manager, Loop marketplace, regression/golden cases, cost reporting, SLA",
+      "exit_gate": "enterprise release-ready with marketplace trust and commercial support"
+    }
+  ],
+  "must_hold_invariants": [
+    "existing_cp_order_remains_authoritative",
+    "v2_overlay_is_knowledge_evidence_spine",
+    "loop_overlay_is_execution_harness_spine",
+    "worker_cannot_self_certify_high_risk_output",
+    "model_calls_require_budget_and_model_route_decision",
+    "context_packages_are_permission_trimmed",
+    "external_actions_require_human_approval",
+    "audit_evidence_is_required_for_completion"
+  ]
+}

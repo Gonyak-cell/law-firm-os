@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-845",
+  "normalized_at": "2026-06-16T15:34:29.125Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-845/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-845/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-845/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-845/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "a720a122-6d2b-4112-9616-a42102a3560f",
+    "uuid": "2deea320-69ba-4816-880f-75138a12cac2",
+    "total_cost_usd": 1.60203925,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6726,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-845 is a descriptor-only RP28 Marketplace And Custom AI Apps scope/domain foundation pack. As read-only reviewer (Read/Grep/Glob; no Bash, no re-execution) I verified the descriptor-verification basis for the production_ready_flag (marketplace_scope_domain_foundation_descriptor_verified) and found it supported. (1) Coverage: docs/closeout-pack-plan/closeout-pack-plan.json, manifest plan_binding_snapshot, and packages/marketplace/src/registry.js agree on CP00-845, risk C, 150 units, range RP28.P00.M00.S01-RP28.P01.M02.S08; deliverable distribution (implementation 108 / contract 8 / security_audit 16 / hermes_evidence 7 / claude_review 3 / ui 8) and phase counts (RP28.P00=122, RP28.P01=28) reconcile arithmetically against the unit list. (2) Implementation/boundaries: model registry is tenant-scoped with matter_trace_ref + AuditEvent on every model; createRow sets descriptor_only=true and runtime_execution + all submission/install/runtime/write + connector_secret/oauth_token/prompt-completion/permission-detail/audit-body flags to false; validators enforce these. Authority boundary correct: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false. Hermes packet emits_runtime_receipt=false / writes_product_state=false (deterministic packet only, not product runtime). (3) Contract: contracts/marketplace-custom-ai-apps-contract.json matches the projection generator, validation.valid=true with a complete no-write attestation; no secret/credential/PII patterns found in contract or package. (4) Tests/validator wired (package.json rp28:marketplace:validate -> scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs); command-evidence reports exit 0 for rp28:marketplace:validate and the model tests (reported, not re-run; I confirmed validators pass by construction and on-disk contract matches projection). (5) State is honest and not over-claimed: manifest status in_progress, production_ready=false, runtime_ready=false; adjudication, construction-inspection, and claude-review-result all PENDING_VALID_REVIEW awaiting exactly this hardened receipt. Review-request confirms read_only=true, tools Read,Grep,Glob, model claude-opus-4-8, effort max, JSON+schema; readiness auth preflight passed (valid JSON, non-empty), no invalid_review_attempts. No auth failure / 0-byte stdout / malformed JSON / fenced-prose / tool-call-shaped / missing-field evidence is being relied upon. One P3 documentation inconsistency only; no P0/P1/P2. Closeout still requires the full validation suite (npm test, npm run validate, rp00:control-plane:validate, git diff --check, etc.) to pass at the closeout step, which is outside this read-only receipt; the pack transparently marks command-evidence status pending_full_validation. Claude remains a read-only independent reviewer and not final approval authority; the human/enterprise-trust approval boundary remains closed and is outside this CP closeout goal.",
+    "findings": [
+      {
+        "id": "CP845-P3-01",
+        "severity": "P3",
+        "title": "program_contract.acceptance_risks summary omits cross_tenant_install_access that is enforced elsewhere",
+        "file": "packages/marketplace/src/registry.js",
+        "line": 32,
+        "details": "MARKETPLACE_PROGRAM_CONTRACT.acceptance_risks (mirrored into contracts/marketplace-custom-ai-apps-contract.json program_contract.acceptance_risks) lists 5 risks: unsafe app permission, custom AI data leak, unreviewed connector, malicious update, tenant install confusion. The enforced fail-closed set MARKETPLACE_RISK_CLAIMS (states.js) and the descriptor blocked_claims, plus packages/marketplace/README.md, list 6 and additionally include cross_tenant_install_access. The summary field is therefore a non-exhaustive subset of the actually-enforced blocked_claims. No validator checks the count of program_contract.acceptance_risks, and safety_gates already includes 'enforce tenant-scoped install', so behavior is unaffected; the enforced set is the stricter superset.",
+        "recommendation": "Add cross_tenant_install_access to MARKETPLACE_PROGRAM_CONTRACT.acceptance_risks (and regenerate the contract) for parity with MARKETPLACE_RISK_CLAIMS/README, or add a brief note that program_contract.acceptance_risks intentionally mirrors the upstream plan summary while blocked_claims is the enforced superset.",
+        "post_review_disposition": "Non-blocking. Cosmetic/documentation consistency only; does not affect descriptor verification, no-write/no-leak boundaries, or the production_ready basis. Does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

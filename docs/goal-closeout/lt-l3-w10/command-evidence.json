@@ -1,0 +1,164 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L3-W10",
+  "title": "SSO/MFA and User-Employee mapping",
+  "phase": "L3",
+  "gate": "G5, L3-EXIT",
+  "created_at": "2026-06-18T13:29:40Z",
+  "status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L2-W02": {
+      "status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L2-W04": {
+      "status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W07": {
+      "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W09": {
+      "status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "conditional_access_policy_export_exists": false,
+    "mfa_login_attempt_record_exists": false,
+    "sso_e2e_report_exists": false,
+    "user_employee_mapping_report_exists": false,
+    "r13_sso_mfa_mapping_exists": false,
+    "w10_launch_evidence_file_count": 0,
+    "sso_descriptor_only": true,
+    "dispatches_sso_runtime": false,
+    "consumes_sso_assertion": false,
+    "stores_idp_secret": false,
+    "employee_mapping_bootstrap_present": false,
+    "mapping_reconciliation_mismatch_zero_verified": false,
+    "mapping_write_audit_count_match_verified": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L3-W10-T01",
+      "title": "Configure Entra Conditional Access MFA policy",
+      "status": "blocked_waiting_on_l3_w07_entra_app_registration_admin_consent_and_policy_export"
+    },
+    {
+      "tuw_id": "LT-L3-W10-T02",
+      "title": "Run Entra SSO login E2E in staging",
+      "status": "blocked_waiting_on_t01_l2_w02_auth_runtime_and_staging_protected_api"
+    },
+    {
+      "tuw_id": "LT-L3-W10-T03",
+      "title": "Bootstrap User-to-Employee mapping under MAT-DEC-02",
+      "status": "blocked_waiting_on_t02_l2_w04_domain_runtime_mapping_loader_and_audit_count_evidence"
+    },
+    {
+      "tuw_id": "LT-L3-W10-T04",
+      "title": "Assemble W10 SSO/MFA and mapping evidence",
+      "status": "blocked_waiting_on_t01_t02_t03_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_four_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "conditional_access_policy_export_verified": false,
+        "sso_e2e_passed": false,
+        "user_employee_reconciliation_mismatch_zero_verified": false,
+        "mapping_audit_count_match_verified": false,
+        "r13_sso_mfa_mapping_verified": false,
+        "g5_satisfied": false,
+        "l3_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L2-W02\" or .wp_id==\"LT-L2-W04\" or .wp_id==\"LT-L3-W07\" or .wp_id==\"LT-L3-W09\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L2-W02\tblocked_pending_l0_l1_decisions_persistence_and_auth_runtime\tstandard_five_blocked",
+        "LT-L2-W04\tblocked_pending_l2_w01_w02_w03_and_context_runtime\tstandard_five_blocked",
+        "LT-L3-W07\tblocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent\tstandard_five_blocked",
+        "LT-L3-W09\tblocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W10 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "required_w10_evidence_files_absent",
+      "command": "for f in docs/launch/l3/conditional-access-policy-export.json docs/launch/l3/conditional-access-policy-export.md docs/launch/l3/sso-e2e-report.md docs/launch/l3/user-employee-mapping-report.md docs/launch/l3/r13-sso-mfa-mapping.md; do test -f \"$f\"; printf '%s\\t%s\\n' \"$?\" \"$f\"; done",
+      "exit_code": 0,
+      "output": [
+        "1\tdocs/launch/l3/conditional-access-policy-export.json",
+        "1\tdocs/launch/l3/conditional-access-policy-export.md",
+        "1\tdocs/launch/l3/sso-e2e-report.md",
+        "1\tdocs/launch/l3/user-employee-mapping-report.md",
+        "1\tdocs/launch/l3/r13-sso-mfa-mapping.md"
+      ],
+      "purpose": "Verify required Conditional Access, SSO E2E, User-Employee mapping, and R13 evidence files are absent."
+    },
+    {
+      "id": "w10_specific_evidence_search",
+      "command": "find docs/launch/l3 docs/goal-closeout/lt-l3-w10 -maxdepth 2 -type f \\( -iname '*sso*' -o -iname '*mfa*' -o -iname '*employee*' -o -iname '*conditional*' -o -iname '*user-employee*' \\) -print 2>/dev/null | sort",
+      "exit_code": 0,
+      "output": [],
+      "purpose": "Verify no W10-specific launch evidence files existed before this blocker packet."
+    },
+    {
+      "id": "sso_descriptor_runtime_flags",
+      "command": "rg -n \"dispatches_sso_runtime|consumes_sso_assertion|stores_idp_secret|descriptor_only\" packages/enterprise/src/sso.js -S",
+      "exit_code": 0,
+      "output": [
+        "12:    dispatches_sso_runtime: false,",
+        "13:    consumes_sso_assertion: false,",
+        "14:    stores_idp_secret: false,",
+        "18:    descriptor_only: true,",
+        "31:  for (const flag of [\"jit_provisioning_runtime_opened\", \"dispatches_sso_runtime\", \"consumes_sso_assertion\", \"stores_idp_secret\", \"exposes_sso_assertion\", \"exposes_secret_material\"]) {",
+        "35:  if (descriptor.descriptor_only !== true) errors.push(\"SSO descriptor must remain descriptor-only\");"
+      ],
+      "purpose": "Verify the current SSO surface is descriptor-only and cannot satisfy Entra SSO E2E."
+    },
+    {
+      "id": "employee_mapping_runtime_context",
+      "command": "rg -n \"employee_api_runtime_opened|missing_user_link_user_employee_link_runtime_opened|user_employee_separation_preserved|employee_user_reverse_link_only|user_account_conflated|real_employee_candidate_payroll_document_data_allowed\" packages/hrx/src/registry.js packages/hrx/src/validators.js docs/launch/risk-control-existence-audit.md -S | sed -n '1,80p'",
+      "exit_code": 0,
+      "output_summary": [
+        "docs/launch/risk-control-existence-audit.md records User/Employee separation as partial and says Employee API runtime remains closed.",
+        "HRX validators preserve user_employee_separation_preserved and employee_user_reverse_link_only guardrails.",
+        "HRX validators repeatedly require real_employee_candidate_payroll_document_data_allowed to remain false.",
+        "The command did not identify a W10 mapping bootstrap report or audit-count reconciliation artifact."
+      ],
+      "purpose": "Verify existing HR/User separation evidence is guardrail evidence, not a completed W10 User-to-Employee mapping bootstrap."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L3-W10.",
+    "This record does not configure Entra Conditional Access or prove MFA enforcement.",
+    "This record does not run Entra SSO, create an authenticated session, or call a protected API.",
+    "This record does not prove unauthenticated, expired-token, or cross-tenant rejection behavior.",
+    "This record does not bootstrap User-to-Employee mapping or reconcile Entra object ids to Employee.user_id.",
+    "This record does not write or count mapping audit events.",
+    "This record does not satisfy R13, G5, or L3-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

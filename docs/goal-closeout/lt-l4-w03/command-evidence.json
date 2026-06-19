@@ -1,0 +1,121 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L4-W03",
+  "title": "Official parity constraint release decision",
+  "phase": "L4",
+  "gate": "L4-EXIT",
+  "created_at": "2026-06-18T14:09:10Z",
+  "status": "blocked_pending_owner_parity_release_decision_and_approval_signature",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L1-W01": {
+      "status": "t01_passed_wp_open",
+      "classification": "command_evidence_only_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "parity_release_record_exists": false,
+    "launch_decision_register_exists": true,
+    "launch_decision_register_status": "template_ready_no_decisions_recorded",
+    "decision_register_rows": 0,
+    "owner_real_role_recorded": false,
+    "owner_approval_signature_recorded": false,
+    "byte_identical_mock_render_path_documented": true,
+    "visual_parity_live_data_evidence_exists": true,
+    "visual_parity_live_data_evidence_result": "PASS",
+    "ui_workstream_conventions_exist": true,
+    "l4_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L4-W03-T01",
+      "title": "Decide and record official release of byte-identical mock render path parity constraint",
+      "status": "blocked_waiting_on_owner_decision_real_role_date_basis_scope_and_approval_signature",
+      "terminal_tuw": true,
+      "acceptance": {
+        "single_tuw_id_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "owner_real_role_recorded": false,
+        "decision_recorded": false,
+        "basis_recorded": false,
+        "date_recorded": false,
+        "approval_signature_recorded": false,
+        "release_and_preserve_sections_verified": false,
+        "l4_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_status",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L1-W01\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L1-W01\tt01_passed_wp_open\tcommand_evidence_only_blocked"
+      ],
+      "purpose": "Verify W03 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "decision_artifact_presence_and_search",
+      "command": "for f in docs/product-ui/parity-release-record.md docs/launch/launch-decision-register.md apps/web/README.md docs/ui-workstream-conventions.md docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.md; do test -f \"$f\"; printf '%s\\t%s\\n' \"$?\" \"$f\"; done && rg -n \"LT-L4-W03|parity-release|패리티 제약|byte-identical|mock render|mock 렌더|visual-parity|Amplitude.*preserve|보존\" docs/launch/launch-decision-register.md docs/product-ui apps/web/README.md docs/ui-workstream-conventions.md docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.md -S",
+      "exit_code": 0,
+      "output_summary": [
+        "docs/product-ui/parity-release-record.md is absent.",
+        "docs/launch/launch-decision-register.md exists.",
+        "apps/web/README.md still documents byte-identical mock render path.",
+        "docs/ui-workstream-conventions.md exists.",
+        "docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.md exists.",
+        "No LT-L4-W03 owner decision row or parity-release record was found."
+      ],
+      "purpose": "Verify required W03 decision artifact is absent and preservation references remain."
+    },
+    {
+      "id": "launch_decision_register_state",
+      "command": "sed -n '1,220p' docs/launch/launch-decision-register.md",
+      "exit_code": 0,
+      "output_summary": [
+        "Status is template_ready_no_decisions_recorded.",
+        "The register says Codex must not fill a human_decision row as decided or deferred without real owner evidence.",
+        "The Register table contains only the header and separator rows.",
+        "No owner role, decision, basis, date, or approval signature row is present."
+      ],
+      "purpose": "Verify the decision register does not contain a valid owner-approved parity release decision."
+    },
+    {
+      "id": "parity_preservation_sources",
+      "command": "sed -n '1,120p' apps/web/README.md && sed -n '1,160p' docs/ui-workstream-conventions.md && sed -n '1,80p' docs/ui-reference/amplitude-feb-2025/visual-parity/live-data-verification.md",
+      "exit_code": 0,
+      "output_summary": [
+        "apps/web/README.md says anything other than data=live keeps the byte-identical mock render path.",
+        "docs/ui-workstream-conventions.md says generated UI reference packs should be changed through generators, not direct output edits.",
+        "live-data-verification.md records Overall result: PASS for the preserved historical visual-parity evidence."
+      ],
+      "purpose": "Verify preserved references exist while the release decision remains absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L4-W03.",
+    "This record does not release the byte-identical mock render path parity constraint.",
+    "This record does not create or infer an owner decision.",
+    "This record does not create docs/product-ui/parity-release-record.md as an approved decision record.",
+    "This record does not add a decided or deferred row to the launch decision register.",
+    "This record does not modify Amplitude reference artifacts or visual-parity evidence.",
+    "This record does not satisfy L4-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

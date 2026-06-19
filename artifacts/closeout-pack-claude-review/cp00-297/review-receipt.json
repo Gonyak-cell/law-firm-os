@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-297",
+  "normalized_at": "2026-06-11T00:52:50.953Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-297/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-297/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-297/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-297/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0c0756c6-63fd-4b88-85dd-357c9552c552",
+    "uuid": "4274a816-e420-4d4e-8b75-cfe5cf2f0213",
+    "total_cost_usd": 2.51794275,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4856,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-297 is a descriptor-only RP08.P09 review-slice pack (M04 Secondary Workflow Slice + M05 Permission And Audit Binding, 40 units) that passes independent read-only review. The pack makes no production_ready overclaim: manifest and command-evidence both record production_ready:false / status implemented_pending_review, with the production_ready_flag being a descriptor-verification label and Hermes production_ready_candidate reflecting only coverage.valid && slice.valid; final readiness is deferred to human approval and downstream runtime-opening pack CP00-298. Deliverable distribution (claude_review:6, security_audit:4, test:2, ui:2, implementation:26 = 40) and micro-title distribution (20/20) match the baseline. All review rows are descriptor_only:true / runtime_execution:false / raw_payload_included:false; the command_rerun guard (executes_command_runtime:false) is correctly inherited via the unbroken CP281->...->CP296->CP297 row-extras spread chain, so validator checks pass legitimately. No-write/no-real-data boundaries are comprehensive (synthetic_only, no_real_data, no DB rows, no object storage, no audit-event writes, no Hermes runtime receipt, no command execution). Authority boundary holds: claude_is_final_approval:false, promotes_claude_to_final_approval:false, human_final_approval_required:true, claims_enterprise_trust_from_local_validation:false; Hermes is used only for deterministic descriptor-only review packet/receipt handling, not embedded product runtime. CP178+ hardening is honored via forbidden_review_evidence (auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, missing fields) and a passing auth preflight with valid JSON. Contract projections (current_pack, cp297_requirements, cp297_no_write_attestation, review_slice_descriptor, historical_pack_bindings tail=CP00-297) are statically consistent with the code-generated structures deep-equaled by the validator; index.js wildcard re-exports propagate the new exports; tests cover coverage/descriptor/Hermes/Claude/handoff; README documents the pack. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are intentionally generated after this review per the documented gated sequence and are not a defect. No P0-P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

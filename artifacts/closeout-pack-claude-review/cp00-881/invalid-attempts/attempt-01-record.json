@@ -1,0 +1,7 @@
+{
+  "attempt_id": "attempt-01",
+  "status": "invalid_not_accepted",
+  "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-881/invalid-attempts/attempt-01-raw-output.json",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-881/invalid-attempts/attempt-01-review-receipt.json"
+}

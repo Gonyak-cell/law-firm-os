@@ -1,0 +1,135 @@
+{
+  "subphase_id": "RP00.P02.M03.S06",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Audit hint precheck",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T07:24:23.206Z",
+  "exactly_one_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "77c6442b-9209-46c2-a425-d0880f7648d9",
+    "uuid": "21c9530f-d60a-4ced-b849-7b25106ed10f",
+    "duration_ms": 375554,
+    "duration_api_ms": 377596,
+    "total_cost_usd": 1.50852475,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "wrapper_result_truncated": true,
+    "transcript_recovered": true,
+    "review_not_rerun": true
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s06-claude-prompt.txt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s06-claude-review.json",
+    "recovered_output_file": "/tmp/lfos-rp00-p02-m03-s06-claude-review-recovered.json",
+    "transcript_path": "/Users/jws/.claude/projects/-Users-jws-Documents-Codex-Law-Firm-OS/77c6442b-9209-46c2-a425-d0880f7648d9.jsonl",
+    "transcript_message_uuid": "b31002e9-dbda-41bc-8f88-02334ef4aad2",
+    "transcript_request_id": "req_011Cbjhs2zkoKZcXUpwcc9Zy",
+    "duration_ms": 375554,
+    "duration_api_ms": 377596,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "21c9530f-d60a-4ced-b849-7b25106ed10f",
+    "session_id": "77c6442b-9209-46c2-a425-d0880f7648d9"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS_WITH_FINDINGS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS_WITH_FINDINGS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "S06-P2-01",
+        "severity": "P2",
+        "title": "No negative test exercises the validator's audit_hint sub-object integrity checks",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": 4540,
+        "status": "fixed",
+        "disposition": "accepted_fixed",
+        "details": "The nested result.audit_hint integrity loop was correct but lacked negative tests for tampered audit hint fields.",
+        "action": "Added negative result-drift cases for nested audit_hint.audit_ledger_append_permitted, audit_hint.audit_event_write_permitted, and audit_hint.policy_ref.",
+        "verification": "node --test packages/control-plane/test/service.test.js passes with 145 tests; npm test passes with 229 tests."
+      },
+      {
+        "id": "S06-P3-01",
+        "severity": "P3",
+        "title": "Reachable missing_permission_precheck_result guard has no negative test",
+        "file": "packages/control-plane/src/service.js",
+        "line": 1175,
+        "status": "fixed",
+        "disposition": "accepted_fixed",
+        "details": "The first-argument S05 permission result object guard was correct but untested.",
+        "action": "Added negative tests for null, undefined, and array permissionResult inputs expecting the S06-local object guard.",
+        "verification": "node --test packages/control-plane/test/service.test.js passes with 145 tests; npm test passes with 229 tests."
+      },
+      {
+        "id": "S06-P3-02",
+        "severity": "P3",
+        "title": "permission_precheck_denied guard is positioned after full S05 validation, making it redundant/unreachable and untested",
+        "file": "packages/control-plane/src/service.js",
+        "line": 1188,
+        "status": "fixed",
+        "disposition": "accepted_fixed",
+        "details": "Denied permission and unsatisfied permission_decision_ref checks were previously masked by the full S05 result validator.",
+        "action": "Moved the S06-local allow_metadata_only and permission_decision_ref_satisfied guards before assertControlPlaneHermesValidationPermissionPrecheckResult, then added denied permission, failed permission precheck, and unsatisfied permission_decision_ref negative tests.",
+        "verification": "node --test packages/control-plane/test/service.test.js passes with 145 tests; npm test passes with 229 tests."
+      }
+    ],
+    "required_followups": [
+      "Create the S06 closeout evidence under docs/goal-closeout/rp00-p02-m03-s06 after fixing/adjudicating the reported P2/P3 findings.",
+      "Rerun local validation gates after fixes; do not rerun Claude because this subphase uses exactly one Claude review."
+    ],
+    "review_limitations": [
+      "Review was limited to the supplied diff and reported validation status; local validation was executed separately in this closeout process.",
+      "The wrapper JSON result field was malformed/truncated, but the Claude CLI run completed successfully and the intact findings were recovered from the session transcript without rerunning Claude."
+    ],
+    "summary": "RP00.P02.M03.S06 implements a metadata-only Hermes Validation Audit hint precheck that consumes the S05 Permission precheck result, requires non-empty audit_event_ref and satisfied permission_decision_ref, carries S02, S03, S04, S05, M00 refs, TEN-001 through TEN-008 traces, validation contexts, and acceptance gates, and emits a frozen audit hint with all audit-write/runtime/Hermes/evidence/AuthZ/permission-engine/product-write flags false. It rejects forbidden and unknown truthy audit claims fail-closed and hands off to RP00.P02.M03.S07. No P0/P1 were reported; the P2 and P3 findings were accepted and fixed before production_ready promotion."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s06-claude-review.json",
+    "transcript_path": "/Users/jws/.claude/projects/-Users-jws-Documents-Codex-Law-Firm-OS/77c6442b-9209-46c2-a425-d0880f7648d9.jsonl",
+    "summary": "Claude returned PASS_WITH_FINDINGS with one P2 and two P3 findings; all findings were fixed before production_ready evidence promotion."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

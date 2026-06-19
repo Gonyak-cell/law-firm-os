@@ -1,0 +1,175 @@
+{
+  "schema_version": "law-firm-os.final-product-completion-gate-contract.v0.1",
+  "contract_id": "final-product-completion-gate",
+  "created_for_tuw": "LT-L0-W01-T01",
+  "purpose": "Define the Final Product Completion Gate from Section 8 as a non-weakening machine/manual contract for Launch L0 G1 evidence.",
+  "source_refs": [
+    "docs/closeout-pack-plan/latest-total-closeout-execution-plan.md#8-final-product-completion-gate",
+    "docs/goal-closeout-protocol.md",
+    "docs/weighted-implementation-ledger.json",
+    "docs/hrx-weighted-implementation-ledger.json",
+    "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "docs/closeout-pack-plan/next-pack-queue.json",
+    "docs/closeout-packs/"
+  ],
+  "non_weakening_policy": {
+    "closed_cp_evidence_is_read_only": true,
+    "launch_evidence_is_additive_only": true,
+    "literal_total_counts_forbidden": true,
+    "totals_must_be_derived_from_source_ledgers": true,
+    "missing_machine_input_fails_closed": true,
+    "manual_items_require_named_human_acceptance_before_go_live": true,
+    "review_waiver_is_not_review_evidence": true
+  },
+  "ledger_inputs": {
+    "law_firm_os_weighted_implementation_ledger": {
+      "path": "docs/weighted-implementation-ledger.json",
+      "total_rule": "count implementation subphases from the ledger at validation time"
+    },
+    "hrx_embedded_people_weighted_implementation_ledger": {
+      "path": "docs/hrx-weighted-implementation-ledger.json",
+      "total_rule": "count HRX implementation subphases from the ledger at validation time"
+    },
+    "expanded_total_rule": "derive by summing the Law Firm OS weighted ledger total and the HRX embedded People ledger total at validation time"
+  },
+  "scope_revision_input": {
+    "path": "docs/launch/scope-revision-register.json",
+    "approval_rule": "validator loads this path from the contract and treats a missing or unapproved record as fail-closed",
+    "missing_path_policy": "fail_closed"
+  },
+  "completion_items": [
+    {
+      "id": "FPCG-01",
+      "section_8_source": "CP00-147 through the final generated closeout pack completed or regenerated with explicit correction policy.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "docs/closeout-pack-plan/next-pack-queue.json",
+        "docs/closeout-packs/"
+      ],
+      "pass_rule": "closeout plan and next-pack queue report closeout_complete=true with zero pending packs, and the live latest pack has production_ready manifest evidence."
+    },
+    {
+      "id": "FPCG-02",
+      "section_8_source": "Law Firm OS units tracked.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/weighted-implementation-ledger.json"
+      ],
+      "pass_rule": "the Law Firm OS unit count is derived from the weighted implementation ledger and reported without hardcoded totals."
+    },
+    {
+      "id": "FPCG-03",
+      "section_8_source": "HRX embedded People/HR Evidence units tracked.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/hrx-weighted-implementation-ledger.json",
+        "contracts/hrx-people-contract.json"
+      ],
+      "pass_rule": "the HRX embedded People unit count is derived from the HRX weighted ledger and reconciled to the HRX contract projection."
+    },
+    {
+      "id": "FPCG-04",
+      "section_8_source": "Expanded units tracked.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/weighted-implementation-ledger.json",
+        "docs/hrx-weighted-implementation-ledger.json"
+      ],
+      "pass_rule": "expanded total is derived from source ledger counts at runtime, not stored as a literal in this contract."
+    },
+    {
+      "id": "FPCG-05",
+      "section_8_source": "LDIP source sections fully classified.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/ldip-integration/ldip-source-index.md",
+        "docs/ldip-integration/"
+      ],
+      "pass_rule": "LDIP source classification coverage is complete or every exception is explicitly deferred or rejected with owner and target."
+    },
+    {
+      "id": "FPCG-06",
+      "section_8_source": "LDIP entities, table fields, agents, tools, clean room types, UI surfaces, APIs, events, NFRs, metrics, tests, priority items, and risks all mapped or explicitly deferred/rejected.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/ldip-integration/"
+      ],
+      "pass_rule": "each LDIP category has mapped, explicitly deferred, or explicitly rejected disposition with no unclassified category rows."
+    },
+    {
+      "id": "FPCG-07",
+      "section_8_source": "Every affected pack passes implementation, tests, Hermes evidence, review evidence or explicit owner waiver, adjudication, construction inspection, production_ready included units, final validation, and commit.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/closeout-packs/",
+        "docs/goal-closeout-protocol.md",
+        "git log"
+      ],
+      "pass_rule": "pack manifests and evidence files satisfy the closeout-pack validator, and any review waiver remains explicitly marked as not counted as review evidence."
+    },
+    {
+      "id": "FPCG-08",
+      "section_8_source": "No unresolved P0/P1 findings.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/closeout-packs/",
+        "docs/goal-closeout/"
+      ],
+      "pass_rule": "no pack or launch goal evidence contains unresolved P0 or P1 findings."
+    },
+    {
+      "id": "FPCG-09",
+      "section_8_source": "P2 findings fixed or explicitly deferred.",
+      "classification": "machine",
+      "machine_sources": [
+        "docs/closeout-packs/",
+        "docs/goal-closeout/"
+      ],
+      "pass_rule": "all P2 findings are fixed or deferred with owner, target phase or pack, and rationale."
+    },
+    {
+      "id": "FPCG-10",
+      "section_8_source": "HRX remains embedded inside Law Firm OS.",
+      "classification": "machine",
+      "machine_sources": [
+        "contracts/hrx-people-contract.json",
+        "packages/hrx/src/registry.js"
+      ],
+      "pass_rule": "HRX contract and projection keep hrx_embedded=true and separate_product=false."
+    },
+    {
+      "id": "FPCG-11",
+      "section_8_source": "LDIP remains internal Legal Data Intelligence capability inside Law Firm OS.",
+      "classification": "manual",
+      "manual_sources": [
+        "docs/ldip-integration/",
+        "docs/launch/final-gate-manual-checklist.md"
+      ],
+      "pass_rule": "human reviewer confirms LDIP is positioned as internal capability only, with no separate-product or external launch claim."
+    },
+    {
+      "id": "FPCG-12",
+      "section_8_source": "Matter-first, permission-first, audit-first, evidence-bound AI, human review, read-only default, external-share safety, and vendor-neutral architecture all pass.",
+      "classification": "manual",
+      "manual_sources": [
+        "contracts/law-firm-os.product-contract.json",
+        "docs/launch/final-gate-manual-checklist.md"
+      ],
+      "pass_rule": "human reviewer signs the architecture invariant checklist and records any exception as a blocking launch finding."
+    },
+    {
+      "id": "FPCG-13",
+      "section_8_source": "Final SaaS-grade product candidate gate passes.",
+      "classification": "manual",
+      "manual_sources": [
+        "docs/launch/final-gate-manual-checklist.md",
+        "docs/launch/g1-completion-evidence-index.md"
+      ],
+      "pass_rule": "designated human approver signs the final SaaS-grade product candidate checklist after machine items pass."
+    }
+  ],
+  "manual_checklist_output": "docs/launch/final-gate-manual-checklist.md",
+  "validator_output": "scripts/validate-final-product-completion-gate.mjs",
+  "evidence_output": "docs/goal-closeout/lt-l0-w01/command-evidence.json"
+}

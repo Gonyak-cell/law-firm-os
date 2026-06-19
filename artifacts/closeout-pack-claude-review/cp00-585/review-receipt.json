@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-585",
+  "normalized_at": "2026-06-12T23:38:34.662Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-585/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-585/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-585/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-585/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "242bf270-3055-4117-bd47-97dc893d5600",
+    "uuid": "fa87d2ac-7fa2-4919-be05-c6c0e58f8a37",
+    "total_cost_usd": 2.34424075,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8998,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-585 is a descriptor-only RP19 (Client Portal) coverage pack over 40 planned units (RP19.P02.M04.S07-RP19.P02.M06.S02): the M04 Secondary Workflow Slice tail (16 rows), the full M05 Permission And Audit Binding cycle (22 rows), and the M06 Synthetic Fixture Set head (2 rows). Independent read-only verification confirms the pack-level claims are supported and boundaries are intact. (1) Distribution: I tabulated all 40 plan units and they exactly match the baseline deliverable_distribution {implementation:16,ui:6,claude_review:2,failure_recovery:4,test:8,contract:2,security_audit:2} and micro_title_distribution {Secondary Workflow Slice:16,Permission And Audit Binding:22,Synthetic Fixture Set:2}, and match registry.js CP585 requirements, the plan entry (closeout-pack-plan.json:405, unit_count 40, deviation_from_plan false), the manifest, and the contract. (2) Contract: current_pack and program.current_pack_id are CP00-585; the p02_workflow_permission_slice_descriptor projection and authority_boundary (claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true, runtime_opening_pack_id:CP00-586) are consistent, and the validator/test deepEqual-lock every projection (descriptor, requirements, no_write_attestation). (3) Source is pure Object.freeze descriptor generation with extensive no-write/no-real-data attestations (writes_product_state:false, no_real_data:true, evaluates_runtime_permission:false, emits_hermes_runtime_receipt:false, exposes_*_detail:false); all 7 required public exports are present via index.js. (4) production_ready is NOT over-claimed: command-evidence and manifest both report production_ready:false, runtime_ready:false, status implemented_pending_review/pending; the Hermes production_ready_candidate flag is clearly a candidate gated behind human final approval and downstream runtime opening (CP00-586). The standing production_ready gate is not weakened. (5) Claude stays a read-only reviewer and not final approver (read_only:true, tools Read/Grep/Glob, claude_not_final_approver:true) and Hermes (H19) is used only for deterministic evidence-packet/receipt descriptors, not product runtime (hermes_runtime_embedded_in_product:false, no_hermes_runtime_receipt:true). (6) CP178+ evidence hardening is sound: forbidden_review_evidence/invalid_review_blockers are present, the readiness auth-preflight passed with valid non-empty JSON, and there are no pre-existing raw-output/review-receipt artifacts being smuggled in as valid (valid_review_receipts:[] / invalid_review_attempts:[]) — this review is the first valid one. (7) Changed-file scope is respected: 8 active client-portal implementation refs plus the pack docs dir; unrelated dirty files (progress-control-room, workbook docs, the v2.0 docx, the LDIP invalid-attempt, new-session-handoff.md) were not inferred into the pack. As an extra integrity check I independently verified the unrelated LDIP review file's claim of an embedded <system-reminder> injection vector in new-session-handoff.md; the current file contains no such block, so the claim does not reproduce and yields no finding. The expected post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are absent, which is correct at this pre-review/pending stage and not a defect. Only two non-blocking P3 observations are raised. Note: human final approval remains required for the enterprise trust claim; Claude is not the final approver.",
+    "findings": [
+      {
+        "id": "CP585-P3-01",
+        "severity": "P3",
+        "title": "M06 micro-title 'Synthetic Fixture Set' does not match its row titles",
+        "file": "packages/client-portal/src/registry.js",
+        "line": 511,
+        "details": "The RP19.P02.M06 section carries micro_title 'Synthetic Fixture Set' (registry.js:497,514) but its two rows are 'Service entrypoint contract' and 'Request normalization' (registry.js:511) with deliverable types contract and implementation - these read as Scope/Contract-cycle rows rather than fixture rows. This is faithfully and consistently reflected across the plan ledger, manifest, contract (contracts/client-portal-core-contract.json:4546-4548), and README, so it is internally consistent. The mismatch originates in the upstream weighted-implementation-ledger micro-cycle generator (source_ledger_sha 13c7ed65...), not in this pack. No functional or boundary impact.",
+        "recommendation": "No change required for CP00-585 closeout. If the plan generator's micro-cycle labeling is revisited upstream, align M06 row titles with the 'Synthetic Fixture Set' micro title (or vice versa) for reader clarity.",
+        "post_review_disposition": "Acknowledged; non-blocking. Faithful projection of the upstream plan ledger; out of this pack's authority to change."
+      },
+      {
+        "id": "CP585-P3-02",
+        "severity": "P3",
+        "title": "CP585 descriptor validator omits the per-row leak-guard blocks present in CP583/CP584",
+        "file": "packages/client-portal/src/validators.js",
+        "line": 532,
+        "details": "validateClientPortalCoreCp585P02WorkflowPermissionSliceDescriptor (validators.js:501-555) asserts the base per-row guards (descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false) for every row plus the no_write_attestation, authority_boundary, contract-projection, and handoff checks, but it does not include the additional per-row assertion blocks that CP583 (validators.js:120-158) and CP584 (validators.js:331-360) apply to specific rows. This is not an active gap: the CP585 section row keys (e.g., permission_precheck, audit_hint_precheck, state_transition_enforcement, persistence_boundary) differ from the foundation-cycle keys those older guards target, and leak prevention for M05 permission/audit rows is enforced at the descriptor-result level via freezeCp585Result (exposes_permission_decision_detail:false, exposes_audit_event_body:false, exposes_blocked_claim_detail:false, customer_safe_errors_only:true) which is locked into the contract through the deepEqual assertion in the validator (scripts/validate-rp19-client-portal-core-contract.mjs:185-191) and tests. So protection is structurally present; the missing blocks are redundant defense-in-depth only.",
+        "recommendation": "Optional: in a future pack, add parallel row-level guard assertions for the M05 Permission And Audit Binding rows mirroring the CP583/CP584 validators for explicit defense-in-depth. Not required for CP00-585 closeout.",
+        "post_review_disposition": "Acknowledged; non-blocking. Leak prevention already enforced at the descriptor-result level and locked via contract deepEqual."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

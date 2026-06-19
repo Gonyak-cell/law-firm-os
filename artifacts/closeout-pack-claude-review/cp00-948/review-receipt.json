@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-948",
+  "normalized_at": "2026-06-18T04:32:21.624Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-948/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-948/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-948/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-948/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0975a3c5-7367-4c04-9278-de83ed44f80b",
+    "uuid": "80694e96-6bd5-4fee-9aa4-dac41aecd36a",
+    "total_cost_usd": 1.7839327499999995,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4848,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-948 (RP30.P06.M03.S02-RP30.P06.M03.S11, risk A, 10 units, EvaluationRestriction HRX slice tail) is a clean descriptor-only closeout pack consistent with the established 50+ pack pattern. Verified through read-only inspection: (1) Pack baseline matches HRX_CP948_PACK_BINDING (registry.js:950), HRX_CP948_REQUIRED_SECTION_ROWS (registry.js:3697), and HRX_CP948_REQUIREMENTS (registry.js:3712) — risk A, 10 units, range RP30.P06.M03.S02-S11, micro_title 'EvaluationRestriction HRX slice' x10. (2) createHrxCp948EvaluationRestrictionTailDescriptor (registry.js:11269) and the domain-row builder (registry.js:4025-4032) close every EvaluationRestriction flag (runtime_opened, record_write_opened, real_data_allowed, bypass_allowed, policy_runtime_opened, decision_emitted, score_runtime_opened) to false; only descriptor_only/deferred decisions are true. Zero dangerous-flag-true occurrences in the generated contract. (3) validateHrxCp948EvaluationRestrictionTailDescriptor (validators.js:8939) enforces those boundaries plus the authority boundary (claude_is_final_approval false, local_validation_claims_enterprise_trust false, human_final_approval_required_for_runtime_opening true, runtime_opening at CP00-949), Hermes emits_runtime_receipt false / deterministic_only true, and Claude packet read_only true / promotes_claude_to_final_approval false. (4) Tests (model.test.js:2506-2592) assert coverage/descriptor/contract validation errors are empty. (5) The contract reflects HrxCp948EvaluationRestrictionTailDescriptor as latest_projection. (6) scripts/validate-rp30-hrx-people-contract.mjs is read-only (readFile only) and chains CP947->948->949 bindings. (7) No-write/no-real-data boundaries hold (command-evidence no_real_data true, writes_product_state false; descriptor product_state_written false). (8) CP178+ hardening checks pass: readiness auth_preflight passed (exit 0, 1447-byte valid-JSON stdout) — not an auth failure, 0-byte, or malformed case. (9) Honest readiness: runtime_ready false, production_ready currently false pending this review, enterprise trust closed — no over-claiming. The pack does not claim runtime or enterprise trust, so the expected human/enterprise approval boundary does not block this CP closeout goal. The descriptor-level production_ready flag 'hrx_evaluation_restriction_tail_descriptor_verified' is fully supported. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

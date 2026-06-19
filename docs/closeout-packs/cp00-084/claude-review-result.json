@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-084",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "16be9ccd-bf2f-4199-a7d9-a38cc19249ca",
+    "uuid": "73db8725-0896-40fc-aa9a-286371117682",
+    "total_cost_usd": 1.03966975,
+    "permission_denials": [],
+    "invalid_sandbox_attempt_counted_as_valid": false
+  },
+  "parsed_review": {
+    "review_id": "C00-CP00-084",
+    "pack_id": "CP00-084",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-084-F1",
+        "severity": "P3",
+        "title": "Upstream planned_pack_id drift branch is untested",
+        "evidence": "The review noted the assembler guarded both pack_id and planned_pack_id, but only pack_id drift was tested before adjudication.",
+        "recommended_action": "Add a negative case mutating only planned_pack_id and assert upstream pack mismatch.",
+        "adjudication": "fixed"
+      },
+      {
+        "id": "CP00-084-F2",
+        "severity": "P3",
+        "title": "No direct tamper test for result-validator boundary flags",
+        "evidence": "The review noted result-validator boundary and exact-key rejection were only indirectly tested before adjudication.",
+        "recommended_action": "Add negative tests for a flipped boundary flag and an extra result key.",
+        "adjudication": "fixed"
+      }
+    ],
+    "boundary_assessment": {
+      "metadata_only": "preserved",
+      "no_write": "preserved",
+      "no_runtime_permission_evaluation": "preserved",
+      "no_runtime_error_response": "preserved",
+      "no_audit_write": "preserved",
+      "no_real_data": "preserved",
+      "no_ldip_implementation": "preserved",
+      "ldip_planning_overlay_only": "preserved"
+    },
+    "summary": "CP00-084 cleanly consumes CP00-083 and binds RP00.P07.M05.S01-S10 as metadata-only permission/audit failure taxonomy and customer-safe failure-message contracts. No P0/P1/P2 findings; P3 test-symmetry findings fixed before closeout."
+  }
+}

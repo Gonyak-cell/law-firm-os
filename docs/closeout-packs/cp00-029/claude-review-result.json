@@ -1,0 +1,137 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-029",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "reason": "large_full_diff_review_context_produced_zero_output_and_was_terminated_before_review_result",
+      "session_id": "4a542403-479f-42e5-8426-25d770a00024",
+      "exit_code": -1,
+      "counted_as_valid_review": false
+    },
+    {
+      "reason": "large_sliced_review_context_produced_zero_output_and_was_terminated_before_review_result",
+      "session_id": "869dd110-19a4-4bda-a278-cbdfd155e73b",
+      "exit_code": -1,
+      "counted_as_valid_review": false
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "no_tools_used": true,
+    "output_format": "text",
+    "session_id": "15524d15-bfc3-4b2c-a20e-09130c2924d4",
+    "uuid": "15524d15-bfc3-4b2c-a20e-09130c2924d4",
+    "uuid_source": "claude_project_session_id_fallback_because_text_output_did_not_expose_message_uuid",
+    "duration_ms_observed_approx": 270000,
+    "total_cost_usd": 0,
+    "cost_metadata_unavailable": true,
+    "cost_metadata_unavailable_reason": "Claude CLI text output did not expose cost metadata for this non-persistent review run; no second review was executed solely to fetch metadata.",
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max"
+  },
+  "raw_review": {
+    "overall_verdict": "REQUEST_CHANGES_AT_REVIEW_TIME_RESOLVED_AFTER_EVIDENCE_CREATION",
+    "claude_reported_verdict": "request_changes",
+    "blocks_pack_closeout_at_review_time": true,
+    "blocks_pack_closeout_after_adjudication": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked_at_review_time": true,
+    "production_ready_blocked_after_adjudication": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 2,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P1",
+        "area": "production_ready consistency / evidence gate",
+        "title": "production_ready asserted while RP00 contract validator is red and evidence pack is absent",
+        "detail": "current_subphase.status and closeout_row.status are both 'production_ready', minimum_closeout_status='production_ready', and production_ready_flag_present=true, with evidence_model='closeout_pack', closeout_pack_ref='CP00-029', evidence_root='docs/closeout-packs/cp00-029'. But known_pre_evidence_gate states `npm run rp00:control-plane:validate` currently FAILS because the cp00-029 pack evidence files are not yet created, and git_diff_stat contains no docs/closeout-packs/cp00-029 entries. The closeout status therefore asserts a completion that the declared evidence model cannot substantiate; the green unit suite (483/0) is a separate surface from the red RP00 contract validator.",
+        "evidence": "current_subphase.status=production_ready; closeout_row.status=production_ready; production_ready_flag_present=true; evidence_root=docs/closeout-packs/cp00-029; known_pre_evidence_gate (validator fails: cp00-029 evidence files not created); git_diff_stat has no docs/closeout-packs/cp00-029 files.",
+        "recommendation": "Author the cp00-029 evidence files under docs/closeout-packs/cp00-029 and re-run `npm run rp00:control-plane:validate` to green BEFORE treating S01 as closed or handing off to S02 as complete. Do not propagate production_ready while the gate is red."
+      },
+      {
+        "id": "F2",
+        "severity": "P2",
+        "area": "ledger handoff (RP00.P02.M06.S11 -> S01 -> S02)",
+        "title": "Upstream dependency on RP00.P02.M06.S11 is declared but not evidenced in-pack",
+        "detail": "The forward chain is consistent (closeout_state_policy.next_subphase and fixture_summary.next_subphase both = RP00.P02.M07.S02; fixture future_subphases lists S02–S20). The backward/cross-micro-phase link rests solely on no_write_scope.depends_on_RP00_P02_M06_S11=true; the packet carries no completion status for M06.S11 and no confirmation that the context IDs/contract S01 consumes match M06.S11's published outputs.",
+        "evidence": "no_write_scope.depends_on_RP00_P02_M06_S11=true; closeout_state_policy.next_subphase=RP00.P02.M07.S02; fixture_summary.next_subphase=RP00.P02.M07.S02; no M06.S11 status present in packet.",
+        "recommendation": "Confirm RP00.P02.M06.S11 is itself at/above its minimum closeout status and that S01's imported CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_CONTEXT_IDS / contract align with M06.S11's outputs before finalizing the handoff."
+      },
+      {
+        "id": "F3",
+        "severity": "P2",
+        "area": "validator / test coverage and no-write boundary",
+        "title": "No-write behavior and assertion depth not verifiable from presence flags alone",
+        "detail": "test/service.test.js is 141 inserted lines yet `node --test` reports 483 pass / 0 fail, implying heavily parameterized/data-driven subtests. code_presence_checks tests_no_write=true, tests_bind_s01=true, tests_fixture=true are presence indicators, not behavioral proof. As a read-only reviewer I cannot execute to confirm the 483 assertions exercise real contract semantics and actually observe the absence of DB/storage/state mutation (writes_product_state=false, does_not_write_database/storage/persist_product_state, does_not_execute_service_logic) rather than merely asserting shape/exports.",
+        "evidence": "git_diff_stat test/service.test.js=141 insertions; tests_already_run=483 pass/0 fail; code_presence_checks.tests_no_write=true, tests_fixture=true; no_write_scope writes_product_state=false and does_not_* flags.",
+        "recommendation": "Verify the suite asserts the no-write boundary by observing no mutation/persistence and no service-logic execution (negative assertions), and that parameterized cases check meaningful contract behavior, not just field presence."
+      },
+      {
+        "id": "F4",
+        "severity": "P3",
+        "area": "no premature completion (M07 / P02 / RP00)",
+        "title": "S01 is 1 of 20 in M07 — correctly non-completing; guard against future rollup drift",
+        "detail": "This pack correctly avoids premature completion: source_micro_phase_completed=false and does_not_complete_RP00_P02_M07, does_not_complete_RP00_P02, does_not_close_RP00, does_not_replace_H00_or_C00 are all true. fixture_summary.future_subphases enumerates S02–S20, so M07 has 19 subphases remaining. No defect now; this is a watch item for downstream packs.",
+        "evidence": "definition_summary.closeout_state_policy.source_micro_phase_completed=false; no_write_scope.does_not_complete_RP00_P02_M07/does_not_complete_RP00_P02/does_not_close_RP00=true; fixture_summary.future_subphases S02–S20.",
+        "recommendation": "Keep source_micro_phase_completed=false until S20 closes and ensure micro-phase/phase/RP00 rollups remain gated on all child subphases in subsequent packs."
+      }
+    ],
+    "security_notes": [
+      "Claude found the no-write metadata-only boundary and no premature M07/P02/RP00 completion claims internally consistent in the supplied packet.",
+      "Claude P1 was evidence-gate sequencing, not runtime security behavior; it is resolved by creating CP00-029 evidence and passing final gates."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 483/483 before evidence generation.",
+      "CP00-029 records one valid pack-level Claude Opus 4.8 max read-only review; earlier zero-output attempts are not counted."
+    ],
+    "summary": "CP00-029 implements the RP00.P02.M07.S01 'Test And Golden Case Set service entrypoint contract' as a metadata/contract-only change across the 8 declared target files, with the no-write boundary, required exports, and forward/backward ledger links all internally consistent within the packet. The unit suite is green (483 pass / 0 fail) and all code-presence checks are true. However, the pack cannot be approved for closeout as-is: the subphase is already flagged status=production_ready (production_ready_flag_present=true) while its declared evidence model is unsatisfied — the cp00-029 evidence files under docs/closeout-packs/cp00-029 do not exist (absent from git_diff_stat) and the authoritative gate `npm run rp00:control-plane:validate` is RED per known_pre_evidence_gate. A production_ready closeout whose own contract validator fails is internally inconsistent. The implementation correctly avoids premature M07/P02/RP00 completion (source_micro_phase_completed=false; does_not_complete_* all true) and stays in-lane (does_not_execute_service_logic=true; service.js is a thin 35-line contract module, no scope creep into S02 request_normalization). Resolve the evidence gate, then this is approvable.",
+    "residual_risk": {
+      "level": "medium",
+      "items": [
+        "Primary blocker: cp00-029 evidence files do not exist and the RP00 contract validator is red; closeout cannot be finalized and production_ready is currently unsubstantiated by its own evidence model (F1).",
+        "production_ready is already set in the ledger ahead of a green gate, creating risk that downstream consumers trust S01 as closed while the validator fails (F1).",
+        "Cross-micro-phase handoff from M06.S11 is asserted, not verified within this pack; contract drift between M06.S11 outputs and S01 inputs cannot be ruled out from the packet (F2).",
+        "No-write boundary and 483-assertion suite are validated only by presence flags and a pass count; behavioral enforcement (no writes, no service-logic execution) is not independently confirmable in this read-only review (F3).",
+        "M07 is only 1/20 complete; integration, persistence-boundary, and approval-routing risks are correctly deferred to later subphases (S02–S20) and remain open by design (F4)."
+      ]
+    }
+  },
+  "raw_review_text": "{\n  \"verdict\": \"request_changes\",\n  \"summary\": \"CP00-029 implements the RP00.P02.M07.S01 'Test And Golden Case Set service entrypoint contract' as a metadata/contract-only change across the 8 declared target files, with the no-write boundary, required exports, and forward/backward ledger links all internally consistent within the packet. The unit suite is green (483 pass / 0 fail) and all code-presence checks are true. However, the pack cannot be approved for closeout as-is: the subphase is already flagged status=production_ready (production_ready_flag_present=true) while its declared evidence model is unsatisfied — the cp00-029 evidence files under docs/closeout-packs/cp00-029 do not exist (absent from git_diff_stat) and the authoritative gate `npm run rp00:control-plane:validate` is RED per known_pre_evidence_gate. A production_ready closeout whose own contract validator fails is internally inconsistent. The implementation correctly avoids premature M07/P02/RP00 completion (source_micro_phase_completed=false; does_not_complete_* all true) and stays in-lane (does_not_execute_service_logic=true; service.js is a thin 35-line contract module, no scope creep into S02 request_normalization). Resolve the evidence gate, then this is approvable.\",\n  \"findings\": [\n    {\n      \"id\": \"F1\",\n      \"severity\": \"P1\",\n      \"area\": \"production_ready consistency / evidence gate\",\n      \"title\": \"production_ready asserted while RP00 contract validator is red and evidence pack is absent\",\n      \"detail\": \"current_subphase.status and closeout_row.status are both 'production_ready', minimum_closeout_status='production_ready', and production_ready_flag_present=true, with evidence_model='closeout_pack', closeout_pack_ref='CP00-029', evidence_root='docs/closeout-packs/cp00-029'. But known_pre_evidence_gate states `npm run rp00:control-plane:validate` currently FAILS because the cp00-029 pack evidence files are not yet created, and git_diff_stat contains no docs/closeout-packs/cp00-029 entries. The closeout status therefore asserts a completion that the declared evidence model cannot substantiate; the green unit suite (483/0) is a separate surface from the red RP00 contract validator.\",\n      \"evidence\": \"current_subphase.status=production_ready; closeout_row.status=production_ready; production_ready_flag_present=true; evidence_root=docs/closeout-packs/cp00-029; known_pre_evidence_gate (validator fails: cp00-029 evidence files not created); git_diff_stat has no docs/closeout-packs/cp00-029 files.\",\n      \"recommendation\": \"Author the cp00-029 evidence files under docs/closeout-packs/cp00-029 and re-run `npm run rp00:control-plane:validate` to green BEFORE treating S01 as closed or handing off to S02 as complete. Do not propagate production_ready while the gate is red.\"\n    },\n    {\n      \"id\": \"F2\",\n      \"severity\": \"P2\",\n      \"area\": \"ledger handoff (RP00.P02.M06.S11 -> S01 -> S02)\",\n      \"title\": \"Upstream dependency on RP00.P02.M06.S11 is declared but not evidenced in-pack\",\n      \"detail\": \"The forward chain is consistent (closeout_state_policy.next_subphase and fixture_summary.next_subphase both = RP00.P02.M07.S02; fixture future_subphases lists S02–S20). The backward/cross-micro-phase link rests solely on no_write_scope.depends_on_RP00_P02_M06_S11=true; the packet carries no completion status for M06.S11 and no confirmation that the context IDs/contract S01 consumes match M06.S11's published outputs.\",\n      \"evidence\": \"no_write_scope.depends_on_RP00_P02_M06_S11=true; closeout_state_policy.next_subphase=RP00.P02.M07.S02; fixture_summary.next_subphase=RP00.P02.M07.S02; no M06.S11 status present in packet.\",\n      \"recommendation\": \"Confirm RP00.P02.M06.S11 is itself at/above its minimum closeout status and that S01's imported CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_CONTEXT_IDS / contract align with M06.S11's outputs before finalizing the handoff.\"\n    },\n    {\n      \"id\": \"F3\",\n      \"severity\": \"P2\",\n      \"area\": \"validator / test coverage and no-write boundary\",\n      \"title\": \"No-write behavior and assertion depth not verifiable from presence flags alone\",\n      \"detail\": \"test/service.test.js is 141 inserted lines yet `node --test` reports 483 pass / 0 fail, implying heavily parameterized/data-driven subtests. code_presence_checks tests_no_write=true, tests_bind_s01=true, tests_fixture=true are presence indicators, not behavioral proof. As a read-only reviewer I cannot execute to confirm the 483 assertions exercise real contract semantics and actually observe the absence of DB/storage/state mutation (writes_product_state=false, does_not_write_database/storage/persist_product_state, does_not_execute_service_logic) rather than merely asserting shape/exports.\",\n      \"evidence\": \"git_diff_stat test/service.test.js=141 insertions; tests_already_run=483 pass/0 fail; code_presence_checks.tests_no_write=true, tests_fixture=true; no_write_scope writes_product_state=false and does_not_* flags.\",\n      \"recommendation\": \"Verify the suite asserts the no-write boundary by observing no mutation/persistence and no service-logic execution (negative assertions), and that parameterized cases check meaningful contract behavior, not just field presence.\"\n    },\n    {\n      \"id\": \"F4\",\n      \"severity\": \"P3\",\n      \"area\": \"no premature completion (M07 / P02 / RP00)\",\n      \"title\": \"S01 is 1 of 20 in M07 — correctly non-completing; guard against future rollup drift\",\n      \"detail\": \"This pack correctly avoids premature completion: source_micro_phase_completed=false and does_not_complete_RP00_P02_M07, does_not_complete_RP00_P02, does_not_close_RP00, does_not_replace_H00_or_C00 are all true. fixture_summary.future_subphases enumerates S02–S20, so M07 has 19 subphases remaining. No defect now; this is a watch item for downstream packs.\",\n      \"evidence\": \"definition_summary.closeout_state_policy.source_micro_phase_completed=false; no_write_scope.does_not_complete_RP00_P02_M07/does_not_complete_RP00_P02/does_not_close_RP00=true; fixture_summary.future_subphases S02–S20.\",\n      \"recommendation\": \"Keep source_micro_phase_completed=false until S20 closes and ensure micro-phase/phase/RP00 rollups remain gated on all child subphases in subsequent packs.\"\n    }\n  ],\n  \"residual_risk\": {\n    \"level\": \"medium\",\n    \"items\": [\n      \"Primary blocker: cp00-029 evidence files do not exist and the RP00 contract validator is red; closeout cannot be finalized and production_ready is currently unsubstantiated by its own evidence model (F1).\",\n      \"production_ready is already set in the ledger ahead of a green gate, creating risk that downstream consumers trust S01 as closed while the validator fails (F1).\",\n      \"Cross-micro-phase handoff from M06.S11 is asserted, not verified within this pack; contract drift between M06.S11 outputs and S01 inputs cannot be ruled out from the packet (F2).\",\n      \"No-write boundary and 483-assertion suite are validated only by presence flags and a pass count; behavioral enforcement (no writes, no service-logic execution) is not independently confirmable in this read-only review (F3).\",\n      \"M07 is only 1/20 complete; integration, persistence-boundary, and approval-routing risks are correctly deferred to later subphases (S02–S20) and remain open by design (F4).\"\n    ]\n  }\n}",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 2,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true,
+    "supplied_context_only": true
+  },
+  "adjudication_notes": "Raw Claude findings F1 P1, F2 P2, F3 P2, and F4 P3 were adjudicated. F1 is resolved by creating the required CP00-029 evidence files and final RP00 validation. F2 is resolved by CP00-028 prerequisite evidence and RP00 validator requiredClosedSubphases/requiredEvidenceRefs coverage for RP00.P02.M06.S11. F3 is resolved by direct no-write assertions, frozen metadata contracts, fixture mirror checks, and absence of DB/storage/product-state adapters in the S01 module. F4 is a downstream watch item and correctly deferred because M07 remains open through S20."
+}

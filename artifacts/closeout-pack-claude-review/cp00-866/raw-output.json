@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-866",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T07:09:48.713Z",
+  "finished_at": "2026-06-17T07:15:25.867Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":336447,\"duration_api_ms\":337101,\"ttft_ms\":6652,\"num_turns\":45,\"result\":\"Review complete. **PASS_WITH_FINDINGS** — does not block CP00-866 pack closeout or this CP's closeout goal.\\n\\nThe bridge pack is internally consistent: bindings/distributions match the baseline (150 units), descriptor-only / no-runtime / no-write / no-real-data boundaries are enforced in `createRow` and the descriptor validator, the authority boundary keeps Claude read-only and non-final-approver, and Hermes is control-plane-only. No P0/P1/P2 defects. One P3 advisory: `changed-file-scope.json` double-categorizes two untracked paths (harness bookkeeping only; the authoritative `active_pack_implementation_refs` is clean).\\n\\nProvenance caveat in the verdict: recorded validation exit codes come from `command-evidence.json` and were not re-executed under read-only review; the full pre-closeout suite remains the implementer's deterministic gate.\",\"stop_reason\":\"end_turn\",\"session_id\":\"dc2ff852-66c8-49ab-811c-ada6ebaf49d4\",\"total_cost_usd\":1.95109525,\"usage\":{\"input_tokens\":667,\"cache_creation_input_tokens\":103487,\"cache_read_input_tokens\":1366213,\"output_tokens\":24663,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":103487,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":341,\"cache_read_input_tokens\":96946,\"cache_creation_input_tokens\":6931,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6931},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1190,\"outputTokens\":19,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012850000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":667,\"outputTokens\":24663,\"cacheReadInputTokens\":1366213,\"cacheCreationInputTokens\":103487,\"webSearchRequests\":0,\"costUSD\":1.9498102499999999,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-866 (RP28 Marketplace failure-recovery evidence-review bridge pack, risk C, 150 units, RP28.P07.M06.S03-RP28.P08.M02.S14) is internally consistent and its descriptor-only/no-runtime/no-real-data/no-write boundaries are enforced in code and tests. Pack binding (registry.js:411), deliverable counts (registry.js:1675) and micro-title counts (registry.js:1698) match the baseline/prompt distributions exactly and both sum to 150; the coverage validator (validators.js:2626) checks these against the live plan and the upstream chain CP00-845..CP00-866 is intact with CP866 binding upstream to CP00-865. createRow (registry.js:1909) hard-codes descriptor_only:true and every runtime/install/write/leak flag to false, and the descriptor validator (validators.js:2662) fails closed on any runtime execution, marketplace opening, permission/audit/product-state write, or real-data/secret/token/prompt inclusion. Authority boundary is correct: descriptor (registry.js:3537) and Claude packet (registry.js:2711) keep Claude read-only and non-final-approver, require human approval for runtime opening, and disclaim enterprise trust for local validation; Hermes packet (registry.js:2446) is control-plane only (emits_runtime_receipt:false, writes_product_state:false, no_real_data:true), consistent with hermes_runtime_embedded_in_product:false. Tests (model.test.js:830-866) assert empty coverage/descriptor errors, runtime-closed rows, and a current CP00-866 contract projection; index.js wildcard re-exports all symbols the validation script imports. Review-hardening checks pass: auth preflight succeeded (exit 0, 1436-byte stdout, not 0-byte/malformed), and the pending-state evidence (command-evidence.json, construction-inspection.json, adjudication.md) is mutually consistent and does not over-claim production_ready or runtime/enterprise trust. Provenance: recorded validation exit codes (rp28:marketplace:validate=0, marketplace node:test=0) are taken from command-evidence.json and were not re-executed during this read-only review; the full pre-closeout validation suite (closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) remains the deterministic closeout gate for the implementer to run. No P0/P1/P2 defects found; one P3 advisory on changed-file-scope bookkeeping. Verdict PASS_WITH_FINDINGS; does not block pack or this CP's closeout goal.\",\"findings\":[{\"id\":\"CP00-866-P3-01\",\"severity\":\"P3\",\"title\":\"changed-file-scope.json double-lists two untracked paths as both pack-implementation and unrelated\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-866/changed-file-scope.json\",\"line\":152,\"details\":\"docs/closeout-pack-plan/new-session-handoff.md and docs/closeout-packs/cp00-866/ appear in both untracked_implementation_files (lines 152-155) and unrelated_dirty_files_preserved (lines 157-171). These two categories are semantically exclusive, so the overlap is a contradictory categorization. Impact is cosmetic only: active_pack_implementation_refs (lines 5-15) is the authoritative in-pack list and is clean (marketplace src/contract/test files plus the validation script), and no unrelated dirty file (progress-control-room, workbook, docx, ldip invalid-attempt) is pulled into pack scope. The production_ready/closeout decision is unaffected.\",\"recommendation\":\"Adjust the changed-file-scope generator so a path is emitted into exactly one of untracked_implementation_files or unrelated_dirty_files_preserved (the pack's own evidence dir docs/closeout-packs/cp00-866/ should be implementation-scoped, not unrelated). No pack content change required.\",\"post_review_disposition\":\"advisory_non_blocking\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"319aa085-0fbc-4578-9ea8-c91f7c9547ab\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6310,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "dc2ff852-66c8-49ab-811c-ada6ebaf49d4",
+    "uuid": "319aa085-0fbc-4578-9ea8-c91f7c9547ab",
+    "total_cost_usd": 1.95109525,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

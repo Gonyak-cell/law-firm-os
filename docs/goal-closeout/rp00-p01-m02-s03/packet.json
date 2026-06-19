@@ -1,0 +1,61 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M02.S03",
+  "source_micro_phase_id": "RP00.P01.M02",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Implement the AIControlRule tenant scope field so tenant_id values are canonical, required, same-tenant checked against a Tenant context, and rejected when cross-tenant before HermesGate model work begins.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m02-s03/packet.json",
+    "docs/goal-closeout/rp00-p01-m02-s03/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M02.S03 in implemented state.",
+    "Adds AI_CONTROL_RULE_TENANT_SCOPE_POLICY with canonical lfos_ lowercase snake-case tenant_id rules and next boundary RP00.P01.M03.S01.",
+    "Adds normalizeAIControlRuleTenantId, validateAIControlRuleTenantId, and assertAIControlRuleTenantScope exports.",
+    "Binds AI_CONTROL_RULE_MODEL.tenantScopePolicy and validateAIControlRule to the tenant scope policy.",
+    "Updates createAIControlRule to store canonical tenant_id values returned by the tenant normalizer.",
+    "Extends the synthetic fixture with ai_control_rule_tenant_scope evidence matching the AIControlRule record and fixture Tenant record.",
+    "Extends the RP00 validator and README with machine checks for the S03 tenant scope field slice."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not implement HermesGate, ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M03.S01."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M03.S01"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M02.S03 implement only the AIControlRule tenant scope field slice, with HermesGate model work deferred to RP00.P01.M03.S01?",
+    "Does the tenant scope policy enforce required tenant_id, lfos_ stable prefix, lowercase snake-case canonical pattern, stored-whitespace rejection, and rejection of noncanonical tenant IDs?",
+    "Do normalizeAIControlRuleTenantId, validateAIControlRuleTenantId, assertAIControlRuleTenantScope, validateAIControlRule, and createAIControlRule consistently preserve canonical tenant scope without weakening fail-closed AI authority rules from S01/S02?",
+    "Does assertAIControlRuleTenantScope reject cross-tenant references and accept same-tenant string/object contexts?",
+    "Does the synthetic fixture avoid real data and prove the AIControlRule tenant_id matches the fixture Tenant record?",
+    "Does the validator enforce S03 exports, fixture validation, cross-tenant rejection, next boundary RP00.P01.M03.S01, and no-write H00 evidence before production_ready?"
+  ],
+  "risk_focus": [
+    "Claiming HermesGate or RP00.P01.M03 work from the AIControlRule tenant-scope slice.",
+    "Accepting noncanonical or cross-tenant tenant IDs that would weaken permission, audit, or AI action isolation.",
+    "Weakening existing AIControlRule forbidden hard-stops while adding tenant normalization.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-700",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T02:07:17.749Z",
+  "finished_at": "2026-06-15T02:13:09.078Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":349729,\"duration_api_ms\":348454,\"ttft_ms\":4909,\"num_turns\":45,\"result\":\"Review complete. **Verdict: PASS** — no findings, nothing blocks pack or goal closeout, no unresolved P0/P1.\\n\\nCP00-700 is a clean descriptor-only increment. I verified through read-only inspection that:\\n- Product source emits only frozen descriptor objects with no network/filesystem/credential I/O; validators actively reject any runtime opening, payload/credential exposure, or real-data loading.\\n- All boundary attestations (writes_product_state, runtime dispatch, persistence, audit, real-data) are `false`, and tests assert the CP700 descriptor stays runtime-closed with the authority boundary intact (Claude non-final, human approval required for runtime opening at CP00-701).\\n- The regenerated contract validates `valid:true` with the CP700 distribution matching the baseline exactly.\\n- Pack evidence makes no inflated claim — `production_ready:false`, pending this review — and plan/queue/manifest agree CP00-700 is the live pack.\\n- The review harness enforces read-only tools and CP178+ hardening; Hermes is descriptor-only control-plane, not product runtime.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d303b8f1-e511-4ffa-914a-899bfd3be6b7\",\"total_cost_usd\":2.6880464999999996,\"usage\":{\"input_tokens\":58,\"cache_creation_input_tokens\":139700,\"cache_read_input_tokens\":2461455,\"output_tokens\":23307,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":139700,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":375,\"cache_read_input_tokens\":134094,\"cache_creation_input_tokens\":6030,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6030},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1129,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001229,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":58,\"outputTokens\":23307,\"cacheReadInputTokens\":2461455,\"cacheCreationInputTokens\":139700,\"webSearchRequests\":0,\"costUSD\":2.6868175,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-700 (RP23 External Integrations II finance-integrations P02 fixture/test bridge, risk class A, 10 units RP23.P02.M06.S15-RP23.P02.M07.S02) passes independent read-only review with no findings. Implementation in packages/finance-integrations/src/{registry,service,validators,index}.js is purely descriptor-only: it emits frozen objects, and a targeted grep for network/filesystem/credential/SQL operations surfaced only no-write attestation flags (all false) and no-leak guard string literals — no product runtime, writes, or real-data access. The NO_WRITE_ATTESTATION (registry.js:120) zeroes every write/dispatch/persist/expose flag, and validateDescriptor (validators.js:8) actively rejects rows that would open bank/card/WEHAGO/Douzone/tax/DART runtime, expose financial payloads, credentials, permission-decision detail, or audit bodies, or load real fixture data. test/model.test.js:28-30 asserts the CP700 descriptor stays runtime-closed with claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-701, and contract.validation.valid=true. The deterministically regenerated contract reports validation.valid=true with the CP700 coverage distribution {ui:1,implementation:2,failure_recovery:2,test:4,contract:1} and micro-title split {Synthetic Fixture Set:8,Test And Golden Case Set:2} matching the pack baseline exactly, and the CP700 descriptor sub-validation valid:true/errors:[]. Pack evidence is internally consistent and makes no inflated claim: manifest, command-evidence, construction-inspection, and adjudication all report production_ready=false, runtime_ready=false, writes_product_state=false, no_real_data=true, status in_progress/pending_review — the pack is pending exactly this hardened review. The live plan (live_state.pack_id=CP00-700) and next-pack-queue (live_latest_pack_id=CP00-700) agree with the manifest. Claude remains a read-only, non-final reviewer: the runner (run-closeout-pack-claude-review.mjs) and hardening lib enforce Read,Grep,Glob only, forbid Bash/Edit/Write/WebFetch/mcp__, and reject auth failures, 0-byte stdout, malformed/fenced JSON, tool-call-shaped output, and missing required fields; Hermes patterns appear only as descriptor-only control-plane evidence packets (emits_runtime_receipt=false), not product runtime. Readiness and auth preflight passed cleanly (prompt 2443B under the 25600B cap, no embedded full diff/source, forbidden_tools_present=false). The human/enterprise-trust final-approval boundary is closed outside this receipt and the pack does not claim runtime or enterprise trust, so per instruction blocks_goal_closeout is not set on that basis. No P0/P1/P2/P3 issues; pack is closeout-eligible.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"3273fc75-6987-42c9-acbf-92bfa1741954\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5503,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d303b8f1-e511-4ffa-914a-899bfd3be6b7",
+    "uuid": "3273fc75-6987-42c9-acbf-92bfa1741954",
+    "total_cost_usd": 2.6880464999999996,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

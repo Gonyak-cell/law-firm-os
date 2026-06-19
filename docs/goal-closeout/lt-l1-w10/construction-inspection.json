@@ -1,0 +1,25 @@
+{
+  "work_package_id": "LT-L1-W10",
+  "inspected_at": "2026-06-18T14:47:32Z",
+  "verdict": "BLOCKED_SCOPE_DECISION_AND_ROSTER_APPROVAL_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "pilot_roster_draft_exists": true,
+    "size_check_lawyers": 4,
+    "size_check_staff": 2,
+    "size_check_admin": 1,
+    "owner_slot_present": true,
+    "oq_015_ma_first_rationale_present": true,
+    "real_people_nominated": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "real_people_nominated": false,
+    "time_allocation_approved": false,
+    "pilot_group_approval_synthesized": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

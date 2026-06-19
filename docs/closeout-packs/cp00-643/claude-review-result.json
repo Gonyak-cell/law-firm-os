@@ -1,0 +1,59 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-643",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "6709d34b-892f-484e-b041-050af659ffe2",
+    "uuid": "5f6e1e03-68ed-4cdc-ba45-c7b54541fe2e",
+    "total_cost_usd": 4.094323500000001,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-643/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-643/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-643 (Risk C, 150 units, RP20.P08.M06.S21-RP20.P09.M04.S12, 10 sections spanning P08 synthetic-fixture-tail/test/Hermes/Claude/closeout rows and P09 review-question/contract/type-shape/primary/secondary-head rows) is a clean descriptor-only P08/P09 review closeout bridge and is well supported by implementation, tests, evidence, and validation. The pack binding is consistent across registry.js:617-632, the contract projection (contracts/data-room-vdr-core-contract.json:7977-8009), baseline, manifest, and the live plan/queue (next-pack-queue.json live_latest=CP00-643, next CP00-644 at RP20.P09.M04.S13; closeout-pack-plan.json live_state matches). Distribution is exact: row arrays (registry.js:1249-1325) sum to 150 across the 10 sections, deliverable counts {implementation:71, hermes_evidence:40, claude_review:16, test:8, security_audit:10, ui:5} and micro-title counts match the baseline, and validators.js:4819-4840 enforces covered_units===150, section_count===10, per-section row-count/title/key equality, and deliverable-count equality. No-write/no-real-data boundaries are exhaustively attested: the base freezer (service.js:266-299) sets synthetic_only, no_real_data, writes_product_state=false, all dispatches_*_runtime=false, evaluates_runtime_permission=false, writes_audit_event=false, reads/writes_object_storage=false, emits_hermes_runtime_receipt=false, and the CP643 layer (service.js:1359-1374) adds executes_p08_*/p09_*_runtime=false plus the full CP643 no_write_attestation (registry.js:2124-2137); validators.js:4842-4884 asserts every one of these, and the contract validation script (validate-rp20-data-room-vdr-core-contract.mjs:562-707, 1109-1115) plus model.test.js:1931-1977 corroborate via deepEqual of contract projections vs registry. The pack-level production_ready claim is correctly NOT yet asserted: manifest production_ready=false / runtime_ready=false / status=in_progress, construction-inspection PENDING_REVIEW, adjudication pending, claude-review-result pending_review with valid_review_receipts=[] and invalid_review_attempts=[]; promotion is gated on this review plus human final approval, with runtime opening deferred to the downstream pack (next_pack_id CP00-644). Authority boundary is correct (service.js:5723-5728): claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true; the Claude packet is read-only (Read,Grep,Glob, source_inspection_basis=read_tools_used) and Claude remains an independent reviewer, not the final approver. CP178+ hardening is satisfied: readiness-report auth_preflight passed (exit 0, 1455 stdout bytes, valid JSON), prompt is 2434B < 25600B limit and excludes full diff/source (source inspected via Read/Grep/Glob), summary-only review is prohibited for this Risk C / security+review pack and was not used, the forbidden_review_evidence list (registry.js:2170-2181) enumerates not_logged_in/zero_byte_output/malformed_json/fenced_json_only/tool_call_shaped_output/missing_raw_output/missing_source_inspection_basis/claude_final_approval_claim/source_mutation_claim/enterprise_trust_claim, and the review_receipt_placeholder row extra (service.js:3297-3300) explicitly marks placeholders as not closeout evidence. Hermes patterns are used only for the deterministic descriptor-only evidence packet/receipt shape, not product runtime. Scope handling is correct: changed-file-scope active refs cover only the data-room package, contract, validator, and docs/closeout-packs/cp00-643/, and unrelated dirty files (UI progress-control-room track, workbook/* launch docs, the v2.0 docx, the LDIP invalid-attempt file, and the regenerated plan/queue) are correctly excluded from the pack's implementation scope. One non-blocking P3 cosmetic carryover is noted (identical to CP642-P3-01). No P0/P1/P2 issues.",
+    "findings": [
+      {
+        "id": "CP643-P3-01",
+        "severity": "P3",
+        "title": "Stale P05-named no-op flag carried into P08 closeout_handoff descriptor rows",
+        "file": "contracts/data-room-vdr-core-contract.json",
+        "line": 48891,
+        "details": "The CP643 descriptor's 'Closeout handoff' rows (P08.M07/M08/M09 sections; e.g. contract line 48891, also 49154 and 49424) carry executes_p05_fixture_closeout_runtime:false alongside handoff_descriptor_only:true. The field name originates from the P05 lineage: the closeout_handoff row-extra is defined with this flag at packages/data-room/src/service.js:2511-2513 and is inherited unchanged because DATA_ROOM_VDR_CORE_CP643_ROW_EXTRAS (service.js:3269-3301) spreads ...DATA_ROOM_VDR_CORE_CP642_ROW_EXTRAS and none of the CP639->CP643 row-extras redefine closeout_handoff. For a P08/P09 review closeout bridge pack the semantically scoped no-op assertion would be P08/P09-named. The value is false, so it only redundantly asserts that no runtime is opened; it does not weaken any gate, open runtime, use real data, write product state, evaluate permissions, emit a Hermes runtime receipt, or make a false production_ready/enterprise-trust claim. Because both the committed contract and the generated descriptor contain the identical field, the deepEqual validator (validate-rp20-data-room-vdr-core-contract.mjs:707) and tests (model.test.js:1976) still pass. This is the same carryover previously recorded as CP642-P3-01.",
+        "recommendation": "Non-blocking. In a future maintenance pass, override the closeout_handoff entry in the shared row-extras chain (or normalize/drop the stale P05-specific field) so the no-op flag reflects the current P08/P09 scope. No change is required for CP00-643 closeout.",
+        "post_review_disposition": "Non-blocking cosmetic note; recurring carryover. Does not affect the production_ready promotion path. Pack remains eligible for closeout pending the required human final approval."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "user_waiver": null
+}

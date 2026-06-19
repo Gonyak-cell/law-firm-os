@@ -1,0 +1,452 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-123",
+  "planned_pack_id": "CP00-123",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "permission_kernel_permission_audit_terminal_boundary_verified",
+  "program_id": "RP02",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP02.P06.M06.S08",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-123",
+    "planned_pack_id": "CP00-123",
+    "title": "CP00-123 RP02.P06.M05.S21-RP02.P06.M06.S08 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP02.P06.M05.S21",
+      "last_unit_id": "RP02.P06.M06.S08",
+      "description": "RP02.P06.M05.S21-RP02.P06.M06.S08"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP02.P06.M05.S21",
+        "title": "Cross-tenant test",
+        "source_micro_phase_id": "RP02.P06.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP02.P06.M05.S22",
+        "title": "Leak prevention test",
+        "source_micro_phase_id": "RP02.P06.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP02.P06.M06.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP02.P06.M06.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P06.M06.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P06.M06.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P06.M06.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P06.M06.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P06.M06.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P06.M06.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP02.P06.M06",
+        "program_id": "RP02",
+        "phase_id": "RP02.P06",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP02.P06.M05.S21",
+      "title": "Cross-tenant test",
+      "source_micro_phase_id": "RP02.P06.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M05.S22",
+      "title": "Leak prevention test",
+      "source_micro_phase_id": "RP02.P06.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    },
+    {
+      "id": "RP02.P06.M06.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "phase_id": "RP02.P06",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-123/command-evidence.json",
+        "docs/closeout-packs/cp00-123/claude-review-result.json",
+        "docs/closeout-packs/cp00-123/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/permission-audit-terminal-boundary.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json"
+      ]
+    }
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-123/manifest.json",
+    "docs/closeout-packs/cp00-123/command-evidence.json",
+    "docs/closeout-packs/cp00-123/claude-review-result.json",
+    "docs/closeout-packs/cp00-123/adjudication.md",
+    "docs/closeout-packs/cp00-123/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "dirty_untracked_files_preserved": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-123/claude-review-result.json"
+  },
+  "hermes_gate": {
+    "gate_id": "H02",
+    "status": "passed",
+    "evidence_ref": "docs/closeout-packs/cp00-123/command-evidence.json"
+  },
+  "construction_inspection": {
+    "status": "PASS",
+    "inspection_ref": "docs/closeout-packs/cp00-123/construction-inspection.json"
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-123 permission kernel permission audit terminal boundary pack"
+  },
+  "closeout_summary": {
+    "implementation": "Added synthetic-only CP00-123 permission/audit terminal boundary module and RP02 contract bindings.",
+    "tests": "Added CP00-123 coverage, behavior, no-write, and H02/C02 handoff assertions.",
+    "claude_review": "PASS",
+    "adjudication": "No P0/P1/P2 findings; pack may close.",
+    "next_pack_id": "CP00-124",
+    "next_subphase_id": "RP02.P06.M06.S09"
+  }
+}

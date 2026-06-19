@@ -1,0 +1,82 @@
+{
+  "subphase_id": "RP00.P02.M04.S04",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Matter trace precheck",
+  "status": "production_ready",
+  "created_at": "2026-06-05T17:26:00Z",
+  "deliverable_type": "contract",
+  "implementation_summary": [
+    "Added the control-plane Claude review Matter trace precheck slice for RP00.P02.M04.S04.",
+    "The S04 policy, result-field registry, prechecker module, service function, validator, synthetic fixture, contract definition, README, and RP00 validator bind a frozen metadata-only Matter trace result after RP00.P02.M04.S03.",
+    "The precheck consumes the S03 tenant-boundary precheck result, requires the RP00.P02.M04.S01 service entrypoint contract, S02 normalized request, and RP00.P02.M03.S20 Hermes Validation denied-path evidence refs to remain intact, and references the Matter-first trace rule RP00.P00.M04.S01.",
+    "The Matter-scoped path emits allow_metadata_only when matter_id and matter_tenant_id align with tenant_id, while the firm-level no-Matter path remains allowed only when no Matter-required claim is asserted.",
+    "Matter-required claims without matter_id emit the canonical matter_required_missing blocked ref; matter_tenant_id without matter_id emits the canonical matter_tenant_without_matter blocked ref; inherited malformed Matter pair shapes fail closed before or at S04 validation.",
+    "The precheck enforces claude-opus-4-8, effort max, read-only review metadata, 10 review contexts, 5 required evidence refs, and 24 acceptance gates inherited through S03.",
+    "Unsafe claims fail closed, including Matter trace bypass, runtime Claude invocation, review queue writes, review assignment writes, review notification writes, service execution, runtime route creation, audit writes, product-state writes, human approval bypass, Hermes/Claude bypass, and source microphase completion.",
+    "The dedicated service tests prove policy binding, Matter-scoped allow behavior, firm-level null Matter behavior, Matter-required denial without Matter context, Matter pair-drift denial, unsafe-claim and wrong-source failures, prechecker no-write boundaries, and synthetic fixture parity.",
+    "The boundary is metadata-only: it does not execute service logic, create runtime routes, invoke Claude at runtime, write review queues, write review assignments, send review notifications, append audit ledgers, write audit events, mutate registries, replace human approval, write storage, write databases, or persist product state.",
+    "RP00.P02.M04 remains open after S04 and hands off to RP00.P02.M04.S05 Permission precheck; RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m04-s04/packet.json",
+    "docs/goal-closeout/rp00-p02-m04-s04/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m04-s04/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m04-s04/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m04-s04/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 249,
+    "full_test_count": 333,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s04_evidence_files"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "ba89c4cc-74b0-410d-b7de-889b23b7854c",
+    "uuid": "ea0aa479-401d-4cb8-bc0e-8b5391cee1d5",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_adjudication": "GO",
+    "production_ready_verdict_after_adjudication": "GO",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 3
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "none",
+    "p3_status": "informational_deferred_with_explicit_boundary",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": false,
+    "completed_micro_phase_id": null,
+    "next_micro_phase_id": "RP00.P02.M04",
+    "next_subphase": "RP00.P02.M04.S05",
+    "does_not_complete_RP00_P02_M04": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M04.S05"
+}

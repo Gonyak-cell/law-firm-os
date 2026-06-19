@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M03.S05",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "title": "Lifecycle status enum",
+  "status": "production_ready",
+  "minimum_closeout_status": "production_ready",
+  "program_id": "RP00",
+  "goal_id": "G00",
+  "rp": "RP00",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "weighted_ledger_ref": {
+    "path": "docs/weighted-implementation-ledger.json",
+    "title": "Lifecycle status enum",
+    "hermes_validation_plan_ref": "H00.weighted_subphase_evidence",
+    "claude_cross_validation_plan_ref": "C00.weighted_subphase_review"
+  },
+  "implemented_scope": {
+    "entity": "HermesGate",
+    "slice": "lifecycle_status_enum",
+    "enum_export": "HERMES_GATE_STATUS_VALUES",
+    "policy_export": "HERMES_GATE_STATUS_POLICY",
+    "function_exports": [
+      "validateHermesGateStatus"
+    ],
+    "target_files": [
+      "packages/control-plane/src/model.js",
+      "packages/control-plane/src/registry.js",
+      "packages/control-plane/test/model.test.js",
+      "packages/control-plane/fixtures/synthetic-control-plane.json",
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md"
+    ],
+    "lifecycle_status_behavior": [
+      "HermesGate.status uses the shared CONTROL_PLANE_LIFECYCLE_STATES enum",
+      "known status values validate fail-closed",
+      "unknown status values are rejected",
+      "stored status values must not include leading or trailing whitespace",
+      "terminal status labels are recorded without implementing the transition map"
+    ]
+  },
+  "non_goals": [
+    "does_not_complete_ownership_metadata",
+    "does_not_complete_reference_relationship_map",
+    "does_not_complete_required_or_optional_field_registry",
+    "does_not_complete_state_transition_map",
+    "does_not_complete_validation_helper",
+    "does_not_implement_full_HermesGate_model",
+    "does_not_complete_RP00_P01",
+    "does_not_close_RP00"
+  ],
+  "evidence_files": {
+    "command_evidence": "docs/goal-closeout/rp00-p01-m03-s05/command-evidence.json",
+    "claude_review_result": "docs/goal-closeout/rp00-p01-m03-s05/claude-review-result.json",
+    "adjudication": "docs/goal-closeout/rp00-p01-m03-s05/adjudication.md",
+    "construction_inspection": "docs/goal-closeout/rp00-p01-m03-s05/construction-inspection.json"
+  },
+  "no_real_data": true,
+  "writes_product_state": false,
+  "next_subphase": "RP00.P01.M03.S06"
+}

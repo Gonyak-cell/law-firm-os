@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP29",
+  "program_title": "Commercial Readiness",
+  "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+  "ai_owner": "Codex",
+  "hermes_gate": "H29",
+  "claude_gate": "C29",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP29.P00.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract CI/CD, observability, SOC2/ISMS-P reports, release requirements and identify unverified release, missing observability, and compliance evidence gap as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Commercial Readiness contract shape for ReleaseCandidate, DeploymentRun, ObservabilitySignal, ComplianceReport, IncidentRunbook, CustomerPlan.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns ReleaseCandidate, DeploymentRun, and ObservabilitySignal, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for release candidate creation, CI/CD validation, and observability review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Commercial Readiness records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Commercial Readiness behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Commercial Readiness examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Commercial Readiness planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H29 preflight",
+      "objective": "Define the fields Hermes records before Commercial Readiness implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C29 design brief",
+      "objective": "Prepare Claude Code questions around unverified release, missing observability, compliance evidence gap, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P00.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP29.P00 handoff",
+      "objective": "Hand off a contract-first Commercial Readiness implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "contracts/commercial-contract.json",
+        "packages/commercial/README.md",
+        "contracts/commercial-readiness-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/commercial.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement ReleaseCandidate model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for ReleaseCandidate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement DeploymentRun model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for DeploymentRun.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement ObservabilitySignal model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for ObservabilitySignal.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement ComplianceReport model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for ComplianceReport.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement IncidentRunbook model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for IncidentRunbook.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among ReleaseCandidate, DeploymentRun, ObservabilitySignal, ComplianceReport, IncidentRunbook, CustomerPlan and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Commercial Readiness model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P01.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Commercial Readiness model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/model.js",
+        "packages/commercial/src/states.js",
+        "packages/commercial/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for release candidate creation, CI/CD validation, and observability review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement release candidate creation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for release candidate creation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement CI/CD validation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for CI/CD validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement observability review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for observability review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement compliance report generation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for compliance report generation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement production release approval",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for production release approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for unverified release, missing observability, and compliance evidence gap.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Commercial Readiness operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H29.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Commercial Readiness outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P02.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Commercial Readiness services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/service.js",
+        "packages/commercial/src/policies.js",
+        "packages/commercial/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Commercial Readiness models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define release candidate creation API",
+      "objective": "Lock request, response, permission, audit, and error shape for release candidate creation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define CI/CD validation API",
+      "objective": "Lock request, response, permission, audit, and error shape for CI/CD validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define observability review API",
+      "objective": "Lock request, response, permission, audit, and error shape for observability review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define compliance report generation API",
+      "objective": "Lock request, response, permission, audit, and error shape for compliance report generation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define production release approval API",
+      "objective": "Lock request, response, permission, audit, and error shape for production release approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Commercial Readiness API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for unverified release, missing observability, compliance evidence gap, unsafe deploy, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H29 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C29 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P03.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Commercial Readiness public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/index.js",
+        "packages/commercial/src/api-contract.js",
+        "packages/commercial/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/commercial/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify release dashboard, deployment status, observability console, and compliance report viewer in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan release dashboard",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for release dashboard.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan deployment status",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for deployment status.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan observability console",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for observability console.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan compliance report viewer",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for compliance report viewer.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Commercial Readiness outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Commercial Readiness rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Commercial Readiness context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Commercial Readiness service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P04.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp29-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define release candidate validated golden case",
+      "objective": "Create a synthetic golden case proving release candidate validated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define deployment evidence captured golden case",
+      "objective": "Create a synthetic golden case proving deployment evidence captured.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define SOC2 report generated golden case",
+      "objective": "Create a synthetic golden case proving SOC2 report generated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define release approval blocks unsafe deploy golden case",
+      "objective": "Create a synthetic golden case proving release approval blocks unsafe deploy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define unverified release failure fixture",
+      "objective": "Create a synthetic failing case that proves unverified release is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define missing observability failure fixture",
+      "objective": "Create a synthetic failing case that proves missing observability is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define compliance evidence gap failure fixture",
+      "objective": "Create a synthetic failing case that proves compliance evidence gap is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Commercial Readiness fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Commercial Readiness appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P05.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Commercial Readiness fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/fixtures.js",
+        "packages/commercial/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/commercial/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for release candidate creation, CI/CD validation, observability review, and compliance report generation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Commercial Readiness view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Commercial Readiness mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Commercial Readiness export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Commercial Readiness where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Commercial Readiness obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H29 audit evidence",
+      "objective": "Record which Commercial Readiness decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P06.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Commercial Readiness cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/src/security-contract.js",
+        "packages/commercial/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define unverified release failure",
+      "objective": "Fail closed or require review when unverified release appears in Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define missing observability failure",
+      "objective": "Fail closed or require review when missing observability appears in Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define compliance evidence gap failure",
+      "objective": "Fail closed or require review when compliance evidence gap appears in Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define unsafe deploy failure",
+      "objective": "Fail closed or require review when unsafe deploy appears in Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define customer plan mismatch failure",
+      "objective": "Fail closed or require review when customer plan mismatch appears in Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Commercial Readiness operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Commercial Readiness operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Commercial Readiness micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P07.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Commercial Readiness ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "packages/commercial/test/failure-cases.test.js",
+        "docs/rp29-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/commercial/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H29 command matrix",
+      "objective": "Record exact product commands Hermes should run for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H29 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H29 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H29 no-real-data evidence",
+      "objective": "Record that Commercial Readiness fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H29 blocked-claim evidence",
+      "objective": "Record unsafe Commercial Readiness claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H29 Claude dependency",
+      "objective": "Mark C29 review mandatory before Commercial Readiness closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H29 human approval note",
+      "objective": "Record what the human must approve for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H29 command availability",
+      "objective": "Ensure npm scripts required by H29 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H29 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Commercial Readiness implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H29 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H29.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P08.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Commercial Readiness behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp29-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M00",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP29 architecture review questions",
+      "objective": "Ask whether Commercial Readiness module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M01",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP29 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M02",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP29 bypass review questions",
+      "objective": "Ask Claude to find unverified release, missing observability, compliance evidence gap, unsafe deploy, and customer plan mismatch bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M03",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP29 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Commercial Readiness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M04",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP29 downstream readiness questions",
+      "objective": "Ask whether Commercial Readiness is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M05",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP29 risk register",
+      "objective": "List unresolved Commercial Readiness risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M06",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Commercial Readiness findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M07",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Commercial Readiness closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M08",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP29.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Commercial Readiness can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP29.P09.M10",
+      "program_id": "RP29",
+      "program_title": "Commercial Readiness",
+      "program_scope": "CI/CD, observability, SOC2/ISMS-P reports, release",
+      "phase_id": "RP29.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP29 detailed plan",
+      "objective": "Confirm Commercial Readiness is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H29",
+      "claude_gate": "C29",
+      "target_files": [
+        "docs/rp29-claude-cross-validation-brief.md",
+        "docs/rp29-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H29 evidence or blocked reason can be recorded.",
+        "Claude C29 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

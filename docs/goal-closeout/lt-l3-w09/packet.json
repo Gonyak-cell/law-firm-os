@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L3-W09",
+  "title": "Outlook Add-in deployment pipeline from pilot to company-wide rollout",
+  "created_at": "2026-06-18T13:26:48Z",
+  "status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+  "phase": "L3",
+  "gate_binding": [
+    "G5",
+    "L3-EXIT"
+  ],
+  "terminal_tuw": "LT-L3-W09-T05",
+  "artifacts": [
+    "docs/launch/l3/outlook-addin-deployment-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l3-w09/packet.json",
+    "docs/goal-closeout/lt-l3-w09/command-evidence.json",
+    "docs/goal-closeout/lt-l3-w09/claude-review-result.json",
+    "docs/goal-closeout/lt-l3-w09/adjudication.md",
+    "docs/goal-closeout/lt-l3-w09/construction-inspection.json"
+  ],
+  "current_status": {
+    "outlook_addin_app_exists": false,
+    "addin_manifest_file_count": 0,
+    "addin_release_gate_precheck_exists": false,
+    "graph_failure_rehearsal_exists": false,
+    "addin_deployment_runbook_exists": false,
+    "w09_launch_evidence_file_count": 0,
+    "m365_runtime_implementation_allowed": false,
+    "admin_center_deployment_export_exists": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

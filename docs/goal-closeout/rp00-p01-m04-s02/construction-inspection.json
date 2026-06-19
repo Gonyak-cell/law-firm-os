@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M04.S02",
+  "source_micro_phase_id": "RP00.P01.M04",
+  "inspected_at": "2026-06-04T03:54:07+09:00",
+  "verdict": "PASS",
+  "production_ready": true,
+  "title": "Primary entity identifier",
+  "claude_review_gate_identifier_verified": true,
+  "implementation_verified": true,
+  "tests_verified": true,
+  "hermes_evidence_verified": true,
+  "claude_review_verified": true,
+  "no_real_data_verified": true,
+  "writes_product_state_verified": false,
+  "inspected_scope": {
+    "entity": "ClaudeReviewGate",
+    "slice": "primary_entity_identifier",
+    "field": "review_id",
+    "stable_prefix": "crg_",
+    "next_subphase": "RP00.P01.M04.S03"
+  },
+  "checks": {
+    "implementation_present": true,
+    "claude_review_gate_identifier_verified": true,
+    "canonical_crg_prefix_enforced": true,
+    "canonical_pattern_branch_tested": true,
+    "blank_and_non_string_rejections_tested": true,
+    "synthetic_fixture_identifier_validates": true,
+    "registry_exposes_identifier_policy": true,
+    "registry_keeps_full_model_future": true,
+    "tenant_scope_deferred_to_s03": true,
+    "matter_trace_deferred_to_s04": true,
+    "hermes_H00_evidence_recorded": true,
+    "claude_C00_review_completed": true,
+    "claude_C00_followup_completed_after_p2_fixes": true,
+    "no_unresolved_p0_or_p1": true,
+    "p2_findings_fixed_or_deferred": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "human_approval_not_synthesized": true,
+    "does_not_create_ui": true,
+    "does_not_complete_RP00_P01": true
+  },
+  "finding_disposition": {
+    "P0": "none",
+    "P1": "none",
+    "P2": "all_fixed",
+    "P3": "accepted_non_blocking_or_no_change"
+  },
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 2,
+    "p3_count": 3,
+    "p2_status": "fixed_or_deferred",
+    "blocking_findings_remaining": false
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Explicit next boundary recorded as RP00.P01.M04.S03; no sensitive production mutation, real data import, client-facing output, finance action, external share, or human approval replacement occurs in this subphase.",
+  "final_validation_required_before_commit": true,
+  "blockers": [],
+  "next_actions": [
+    "Promote RP00.P01.M04.S02 status to production_ready.",
+    "Rerun final validation matrix.",
+    "Commit the subphase closeout.",
+    "Continue to RP00.P01.M04.S03 Tenant scope field."
+  ]
+}

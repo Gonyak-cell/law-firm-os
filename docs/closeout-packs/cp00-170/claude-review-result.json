@@ -1,0 +1,97 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-170",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "5d9ff479-13ab-45a3-a84a-deea52c4184d",
+    "uuid": "dbaa4875-4f75-4929-a5ad-1f4425b38335",
+    "duration_ms": 320301,
+    "duration_api_ms": 322686,
+    "total_cost_usd": 1.082336,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-170-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-170.master_data_failure_taxonomy_edge_case_escalation",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-170-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-170 is a clean, descriptor-only continuation pack consistent with the established CP15x-CP169 pattern. Verified: (1) No side effects in package code - createMasterDataFailureTaxonomyEdgeCaseEscalationDescriptor/Catalog and the Hermes/Claude/handoff builders only assemble frozen descriptors, run JSON.stringify leak checks, and reuse CP169's pure taxonomy descriptor builder; freezeFailureTaxonomyEdgeCaseEscalationResult and MASTER_DATA_CP170_NO_WRITE_ATTESTATION pin all no-write flags false (no real-data load, runtime permission eval, audit append, route/approval dispatch, API handler, network, UI/DOM, AI retrieval, Hermes/Claude execution, retry/rollback, lock acquisition, or case-note writes). (2) CP169 failure taxonomy source coverage is preserved - failure_recovery_bindings rebuild source descriptors via createMasterDataPermissionAuditWorkflowFailureTaxonomyDescriptor (test confirms source pack_id CP00-169), and the two edge-case descriptors (Claude edge-case prompt, human escalation note) are added descriptor-only with sends_claude_prompt/dispatches_review_route/dispatches_approval_route/writes_case_note all false. (3) Customer-facing summaries exclude all prohibited internal data - leak_guard internal_reference_fields and prohibited_outputs are enforced per-row and at catalog level (customer_surface_excludes_internal_refs, prohibited_output_absent), keeping permission refs, audit internals, blocked-claim refs, foreign tenant IDs, hidden source values, rule candidates, stale payloads, internal prompts/notes, and reviewer identity off the renderable surface. (4) Coverage, Hermes packet, Claude packet, handoff, and contract parity are gated by validateMasterDataCp170Coverage, validateMasterDataCp170FailureTaxonomyEdgeCaseEscalation (with contractProjection JSON parity), the Hermes/Claude/handoff builders, model.test, and the validation script (which also bumps schema v0.14->v0.15 and re-points all current/upstream/next bindings); distributions sum to 40 and contract key ordering matches the registry for stringify parity. (5) No HRX split or LDIP implementation is introduced (implements_ldip/splits_hrx_product false; README no-effect boundary explicit). Three non-blocking P3 advisories noted (internal taxonomy key on customer summary, validator no-write subset vs. script-level full coverage, hard-coded \"Risk A\" handoff label). Gate: pass.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "no_retry_or_rollback_execution": true,
+      "no_runtime_lock_acquisition": true,
+      "no_case_note_write": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_b_scope_preserved": true,
+      "handoff_valid": true,
+      "notes": "CP00-170 builds frozen edge-case escalation descriptors only; package code does not load real data, execute runtime permission checks, audit appends, route dispatch, API handlers, UI rendering, AI retrieval, analytics, Hermes, Claude, retry, rollback, locks, or case-note writes."
+    },
+    "findings": [
+      {
+        "id": "CP00-170-C04-F001",
+        "severity": "P3",
+        "file": "packages/master-data/src/service.js",
+        "line": null,
+        "title": "Customer-facing edge-case summary carries internal failure-taxonomy category key",
+        "description": "In createMasterDataFailureTaxonomyEdgeCaseEscalationDescriptor, customerFacingEdgeCaseSummary includes source_descriptor_key (e.g. \"cross_tenant_failure\", \"permission_denied_failure\") for customer_visible bindings. This is an internal CP169 failure-taxonomy category label. It is not in leak_guard.internal_reference_fields or prohibited_outputs, so it passes customer_surface_excludes_internal_refs and prohibited_output_absent, and it is a generic category rather than a permission ref, rule, payload, or tenant ID, so no real leak occurs. Given the strict customer-surface boundary, exposing internal taxonomy keys on the renderable summary is worth confirming as intentional.",
+        "recommendation": "Confirm exposing source_descriptor_key on the customer surface is intended; if customer surfaces should carry only safe_error_code/outcome, drop source_descriptor_key from customerFacingEdgeCaseSummary while retaining it in internal_edge_case_evidence.",
+        "post_review_disposition": "addressed: customer_facing_edge_case_summary no longer exposes source_descriptor_key; the source descriptor key remains in internal_edge_case_evidence only."
+      },
+      {
+        "id": "CP00-170-C04-F002",
+        "severity": "P3",
+        "file": "packages/master-data/src/validators.js",
+        "line": null,
+        "title": "Dedicated edge-case validator asserts only a subset of no-write attestation flags",
+        "description": "validateMasterDataCp170FailureTaxonomyEdgeCaseEscalation directly asserts loads_real_client_data, evaluates_runtime_permission, appends_audit_event, dispatches_review_route, dispatches_approval_route, executes_ai_retrieval, emits_hermes_evidence, sends_claude_prompt, and writes_case_note, but not executes_hermes_command, executes_claude_review, executes_retry, executes_rollback, acquires_runtime_lock, renders_ui, mutates_dom, or issues_network_request. Those flags are still gated because scripts/validate-rp04-master-data-contract.mjs iterates every MASTER_DATA_CP170_NO_WRITE_ATTESTATION key against the contract, so full coverage exists. This is defense-in-depth, not a coverage gap.",
+        "recommendation": "Optionally mirror the full no-write flag set inside the dedicated validator so the package-level gate is self-contained and not solely reliant on the contract-parity script.",
+        "post_review_disposition": "addressed: validateMasterDataCp170FailureTaxonomyEdgeCaseEscalation now mirrors additional no-write/no-effect flags including Hermes/Claude execution, retry/rollback, runtime locks, UI/DOM, network, API, and product writes."
+      },
+      {
+        "id": "CP00-170-C04-F003",
+        "severity": "P3",
+        "file": "packages/master-data/src/validators.js",
+        "line": null,
+        "title": "Closeout handoff hard-codes CP00-171 as Risk A",
+        "description": "createMasterDataCp170CloseoutHandoff sets open_scope to a free-text string describing CP00-171 / RP04.P07.M05.S19 as a \"Risk A\" failure taxonomy boundary. This forward-looking classification is not verifiable from this diff and is not cross-checked against the closeout plan; if CP00-171's risk class differs, the handoff text would be misleading.",
+        "recommendation": "Verify CP00-171's risk class against docs/closeout-pack-plan/closeout-pack-plan.json (or derive it) rather than hard-coding \"Risk A\" in the handoff string.",
+        "post_review_disposition": "addressed: createMasterDataCp170CloseoutHandoff no longer hard-codes the next-pack risk class in open_scope."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  }
+}

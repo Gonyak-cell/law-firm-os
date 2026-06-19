@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M03.S01",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Open the HermesGate package directory layout surface in packages/control-plane without claiming HermesGate model completion.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m03-s01/packet.json",
+    "docs/goal-closeout/rp00-p01-m03-s01/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M03.S01 in implemented state.",
+    "Adds HERMES_GATE_PACKAGE_LAYOUT with target files, target tests, fixture files, future HermesGate model subphases, no-real-data/no-write boundary flags, and next boundary RP00.P01.M03.S02.",
+    "Adds assertHermesGatePackageLayout to validate the package-layout metadata without creating a HermesGate runtime model.",
+    "Exposes hermesGatePackageLayout through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY while keeping the HermesGate entity implementedInFutureSubphase=true and implementedSubphase=null.",
+    "Extends the synthetic fixture with hermes_gate_package_layout evidence proving expected_entity=HermesGate, implemented_model=false, no_real_data=true, writes_product_state=false, and next_subphase=RP00.P01.M03.S02.",
+    "Extends the RP00 validator and README with machine checks for the HermesGate package-layout slice."
+  ],
+  "non_goals": [
+    "Does not implement the HermesGate model, identifier, tenant scope, matter trace reference, lifecycle status enum, ownership metadata, relationship map, required/optional field registry, transition map, or validation helper.",
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not weaken or re-open ProductContract or AIControlRule production_ready slices.",
+    "Does not implement ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M03.S02."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M03.S02"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M03.S01 implement only the HermesGate package directory layout slice and avoid claiming HermesGate model completion?",
+    "Do HERMES_GATE_PACKAGE_LAYOUT and assertHermesGatePackageLayout bind target files, target tests, fixture files, future model subphases, no-real-data/no-write boundaries, and next boundary RP00.P01.M03.S02?",
+    "Does CONTROL_PLANE_DOMAIN_MODEL_REGISTRY expose hermesGatePackageLayout while keeping the HermesGate entity future-only with implementedSubphase=null?",
+    "Does the synthetic fixture record hermes_gate_package_layout with expected_entity=HermesGate, implemented_model=false, no_real_data=true, writes_product_state=false, and next_subphase=RP00.P01.M03.S02?",
+    "Does the validator enforce S01 package-layout exports, fixture evidence, weighted-generator deferral, no-write policy, actual Claude dependency, construction inspection, and next-boundary evidence before production_ready?",
+    "Do prior ProductContract and AIControlRule production_ready slices remain intact?"
+  ],
+  "risk_focus": [
+    "Accidentally claiming HermesGate model completion from a package-layout-only slice.",
+    "Advancing the registry to HermesGate model implementation before RP00.P01.M03.S02-S11.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready.",
+    "Treating generated weighted UI metadata as a blocker instead of an explicit P2 deferral for this non-UI model-layout slice."
+  ]
+}

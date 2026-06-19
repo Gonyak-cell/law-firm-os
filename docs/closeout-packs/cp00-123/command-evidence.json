@@ -1,0 +1,143 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-123",
+  "subphase_id": "RP02.P06.M06.S08",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H02",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "git status --short",
+      "exit_code": 0,
+      "summary": "latest committed pack CP00-122; CP00-123 implementation in progress; unrelated untracked files preserved"
+    },
+    {
+      "command": "git log --all --format='%h %aI %s' --grep='^Close CP00' -n 10",
+      "exit_code": 0,
+      "summary": "latest Close CP00 commit before this pack was CP00-122"
+    },
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "node --check packages/authz/src/permission-audit-terminal-boundary.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/authz/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/authz/test/authz.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp02-permission-kernel-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/permission-kernel-contract.json','utf8')); console.log('permission-kernel-contract json ok')\"",
+      "exit_code": 0,
+      "summary": "permission-kernel-contract json ok"
+    },
+    {
+      "command": "node --test packages/authz/test/*.test.js",
+      "exit_code": 0,
+      "summary": "68 authz tests passed"
+    },
+    {
+      "command": "npm run rp02:permission-kernel:validate",
+      "exit_code": 0,
+      "summary": "CP00-123, 10 units, permission_kernel_cp123_permission_audit_terminal_boundary_contract"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-123-claude-review-output-valid.json",
+      "exit_code": 0,
+      "summary": "valid read-only Claude review completed; P0/P1/P2/P3 0, non-blocking PASS"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "regenerates plan cursor after CP00-123 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-123"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-123",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "all packs through CP00-123 passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full test suite passed after CP00-123 adds 4 authz tests"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-123 is synthetic-only, metadata-only, and Risk A scoped; permission/audit terminal cases use synthetic in-memory evaluator and trimming helpers only.",
+    "Cross-tenant access fails closed with redacted audit object, and leak/search trimming omits unauthorized resources without exposing counts or hidden source fields.",
+    "Mutation/share require approval without granting approval; export/download requires review without executing export; AI retrieval is blocked.",
+    "Audit hints are preview-only and matrix rows are not persisted; LDIP is not implemented and HRX remains embedded inside Law Firm OS.",
+    "Unrelated dirty/untracked files were preserved and not included in the active pack."
+  ]
+}

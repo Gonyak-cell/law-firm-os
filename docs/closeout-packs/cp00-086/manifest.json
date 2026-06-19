@@ -1,0 +1,582 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-086",
+  "planned_pack_id": "CP00-086",
+  "requested_pack_id": "CP00-085",
+  "planned_risk_class": "C",
+  "planned_unit_count": 11,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-085 shifted to CP00-086 by live sequential cursor",
+  "override_reason": "isolated synthetic fixture pack",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-086",
+    "planned_pack_id": "CP00-086",
+    "requested_pack_id": "CP00-085",
+    "title": "CP00-086 RP00.P07.M06.S01-RP00.P07.M06.S11 requested_locked_queue",
+    "risk_class": "C",
+    "planned_risk_class": "C",
+    "planned_unit_count": 11,
+    "unit_count": 11,
+    "range": {
+      "first_unit_id": "RP00.P07.M06.S01",
+      "last_unit_id": "RP00.P07.M06.S11",
+      "description": "RP00.P07.M06.S01-S11"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 11,
+    "correction_reason": "requested CP00-085 shifted to CP00-086 by live sequential cursor",
+    "override_reason": "isolated synthetic fixture pack",
+    "within_default_risk_range": false,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P07.M06.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P07.M06.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M06.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP00.P07.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      }
+    ]
+  },
+  "status": "production_ready",
+  "production_ready": true,
+  "program_id": "RP00",
+  "phase_id": "RP00.P07",
+  "primary_subphase_id": "RP00.P07.M06.S11",
+  "source_micro_phase_id": "RP00.P07.M06",
+  "next_subphase": "RP00.P07.M07.S01",
+  "risk_class": "C",
+  "unit_count": 11,
+  "range_description": "RP00.P07.M06.S01-S11",
+  "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+  "included_units": [
+    {
+      "id": "RP00.P07.M06.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P07.M06.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP00.P07.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_model": "closeout_pack",
+      "closeout_pack_ref": "CP00-086",
+      "evidence_root": "docs/closeout-packs/cp00-086",
+      "production_ready_flag": "control_plane_failure_edge_recovery_synthetic_fixture_set_verified",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-086/manifest.json",
+        "docs/closeout-packs/cp00-086/command-evidence.json",
+        "docs/closeout-packs/cp00-086/claude-review-result.json",
+        "docs/closeout-packs/cp00-086/adjudication.md",
+        "docs/closeout-packs/cp00-086/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133,
+    "snapshot_note": "Legacy individual closeout directories are preserved as historical evidence; CP00-086 completion is pack-level."
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os",
+    "ldip_product_boundary": "internal_legal_data_intelligence_capability_inside_law_firm_os",
+    "ldip_implementation_status": "planning_only_until_no_omission_artifacts_complete"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-086/manifest.json",
+    "docs/closeout-packs/cp00-086/command-evidence.json",
+    "docs/closeout-packs/cp00-086/claude-review-result.json",
+    "docs/closeout-packs/cp00-086/adjudication.md",
+    "docs/closeout-packs/cp00-086/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed"
+  },
+  "commit_policy": {
+    "required": true,
+    "suggested_message": "Close CP00-086 failure edge recovery synthetic fixture set pack"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-130",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "f7b9540b-9fad-463f-88c2-683fd89db4a5",
+    "uuid": "960bce40-f9ba-4149-a9cd-4afca13addc3",
+    "total_cost_usd": 0.74010525,
+    "duration_ms": 202781,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Per-case test loop omits three no-write/leak flags that the contract validator does assert",
+        "file": "packages/authz/test/authz.test.js",
+        "evidence": "The `for (const profile of matrix.case_results)` loop in the CP00-130 test asserts most boundary flags but omits `executes_analytics_query`, `executes_export_download`, and `unauthorized_count_exposed`. These three are still enforced for every case in scripts/validate-rp02-permission-kernel-contract.mjs, so coverage exists at the pack level.",
+        "recommendation": "Optionally add the three assertions to the test loop for symmetry with the validator. Non-blocking — the .mjs validator already enforces them."
+      }
+    ],
+    "blocks_pack_closeout": false,
+    "recommendation": "Approve and close CP00-130.",
+    "rationale": "The pack closes exactly the planned 10 units RP02.P08.M05.S20-RP02.P08.M06.S07: three permission/audit terminal rows (next-gate readiness, documentation update, operator summary) and seven synthetic fixture opening evidence rows (Hermes command matrix, evidence field list, changed-file receipt, command result receipt, fixture summary receipt, blocked-claim receipt, permission summary receipt). first_unit_id=RP02.P08.M05.S20, last_unit_id=RP02.P08.M06.S07, micro-phase split 3/7, deliverable split implementation=3/hermes_evidence=7 — all enforced by validatePermissionKernelCp130Coverage and the validator. CP129 inheritance is wired via imports and runtime checks (inherited_hermes_evidence_workflow_result_count===40, inherited_closeout_handoff_no_commit===true, inherited_permission_summary_reference_only===true). Synthetic-only/metadata-only is preserved (synthetic_only/no_real_data true, product_state_effect 'none', evaluator_invoked false, decision null). Terminal rows stay reference-only (documentation_published, commits_pack, marks_production_ready all false; operator_summary hidden_fields_rendered/contains_real_data/persisted false). Synthetic fixture rows stay preview/reference-only (reference_only true, fixture_persisted false), raw disclosure is blocked (changed_files_disclose_raw_diff and command_result_discloses_raw_output false), and blocked-claim/permission-summary receipts are non-persistent and reference-only (blocked_claim_preview_only true, blocked_claim_persisted false, permission_summary_reference_only true, permission_policy_mutated false). The full no_write_attestation (19 flags) is false in both the source contract and contract JSON, with no runtime UI/API route, policy mutation, audit/product/database write, idempotency/lock persistence, retry/rollback/compensation, export/share, AI/analytics, LDIP, or HRX-split logic introduced (HRX kept embedded). Handoff is fixed to CP00-131 / RP02.P08.M06.S08. The new module is pure frozen-data/functions with no I/O; the only behavioral risk (CP129 case_ids consumed by the inheritance calls) is outside this diff but is gated by the coverage validator and the already-merged CP129. No P0/P1/P2 issues; the single P3 is a cosmetic test-symmetry nit fully compensated by the validator.",
+    "source_overall_verdict": "pass"
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 202781,
+    "duration_api_ms": 211124,
+    "ttft_ms": 189216,
+    "num_turns": 1,
+    "result": "I reviewed the staged diff for CP00-130 against the stated scope. The pack is internally consistent across the contract JSON, the new `hermes-evidence-synthetic-fixture-boundary.js` module, the index re-export, the tests, and the contract validator.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"Per-case test loop omits three no-write/leak flags that the contract validator does assert\",\n      \"file\": \"packages/authz/test/authz.test.js\",\n      \"evidence\": \"The `for (const profile of matrix.case_results)` loop in the CP00-130 test asserts most boundary flags but omits `executes_analytics_query`, `executes_export_download`, and `unauthorized_count_exposed`. These three are still enforced for every case in scripts/validate-rp02-permission-kernel-contract.mjs, so coverage exists at the pack level.\",\n      \"recommendation\": \"Optionally add the three assertions to the test loop for symmetry with the validator. Non-blocking — the .mjs validator already enforces them.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve and close CP00-130.\",\n  \"rationale\": \"The pack closes exactly the planned 10 units RP02.P08.M05.S20-RP02.P08.M06.S07: three permission/audit terminal rows (next-gate readiness, documentation update, operator summary) and seven synthetic fixture opening evidence rows (Hermes command matrix, evidence field list, changed-file receipt, command result receipt, fixture summary receipt, blocked-claim receipt, permission summary receipt). first_unit_id=RP02.P08.M05.S20, last_unit_id=RP02.P08.M06.S07, micro-phase split 3/7, deliverable split implementation=3/hermes_evidence=7 — all enforced by validatePermissionKernelCp130Coverage and the validator. CP129 inheritance is wired via imports and runtime checks (inherited_hermes_evidence_workflow_result_count===40, inherited_closeout_handoff_no_commit===true, inherited_permission_summary_reference_only===true). Synthetic-only/metadata-only is preserved (synthetic_only/no_real_data true, product_state_effect 'none', evaluator_invoked false, decision null). Terminal rows stay reference-only (documentation_published, commits_pack, marks_production_ready all false; operator_summary hidden_fields_rendered/contains_real_data/persisted false). Synthetic fixture rows stay preview/reference-only (reference_only true, fixture_persisted false), raw disclosure is blocked (changed_files_disclose_raw_diff and command_result_discloses_raw_output false), and blocked-claim/permission-summary receipts are non-persistent and reference-only (blocked_claim_preview_only true, blocked_claim_persisted false, permission_summary_reference_only true, permission_policy_mutated false). The full no_write_attestation (19 flags) is false in both the source contract and contract JSON, with no runtime UI/API route, policy mutation, audit/product/database write, idempotency/lock persistence, retry/rollback/compensation, export/share, AI/analytics, LDIP, or HRX-split logic introduced (HRX kept embedded). Handoff is fixed to CP00-131 / RP02.P08.M06.S08. The new module is pure frozen-data/functions with no I/O; the only behavioral risk (CP129 case_ids consumed by the inheritance calls) is outside this diff but is gated by the coverage validator and the already-merged CP129. No P0/P1/P2 issues; the single P3 is a cosmetic test-symmetry nit fully compensated by the validator.\"\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "f7b9540b-9fad-463f-88c2-683fd89db4a5",
+    "total_cost_usd": 0.74010525,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 36685,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 19449,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 36685,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 19449,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 36685,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 36685
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 22940,
+        "outputTokens": 25,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.023065,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 19449,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 36685,
+        "webSearchRequests": 0,
+        "costUSD": 0.71704025,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "960bce40-f9ba-4149-a9cd-4afca13addc3"
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "subphase_id": "RP00.P02.M04.S01",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Service entrypoint contract",
+  "created_at": "2026-06-05T15:51:47Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m04-s01-claude-review.json",
+  "stderr_path": "/tmp/lfos-rp00-p02-m04-s01-claude-review.stderr",
+  "stderr_bytes": 0,
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 655559,
+  "duration_api_ms": 654846,
+  "session_id": "d892b95f-a204-4fac-b240-91a939a5fc0d",
+  "uuid": "2d87402b-1e89-4e3b-affb-dac0aab41b50",
+  "total_cost_usd": 3.54077775,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 52,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_adjudication": "GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude rated the S01 engineering deliverable GO with no P0/P1/P2 findings. Two P3 notes were informational and explicitly deferred because the substantive guarantees are preserved by the declaration-only boundary, the prior S01 convention, and the intentionally stronger context list.",
+  "findings": [
+    {
+      "id": "CLAUDE-S01-P3-001",
+      "severity": "P3",
+      "title": "Database/storage no-write asserted in prose rather than discrete booleans",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that audit and product-state no-write are explicit structured flags, while database and storage no-write are asserted in README prose and guaranteed by the declaration-only object.",
+      "resolution": "Deferred as informational. This matches the established S01 convention and the substantive guarantee holds because the contract is a frozen declaration-only object with no runtime route, no service execution, no audit event writes, no review queue writes, and writes_product_state:false."
+    },
+    {
+      "id": "CLAUDE-S01-P3-002",
+      "severity": "P3",
+      "title": "Review contexts are a superset of the eight named contexts",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that the contract carries 10 reviewContextIds: the eight required named contexts plus human_approval_boundary_context and blocked_claim_context.",
+      "resolution": "Deferred as informational. The two extra contexts strengthen the boundary and do not weaken or obscure the required architecture, security, missing-test, validation-theater, AI-write, go/no-go, P0/P1, and P2 contexts."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T15:51:47Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [
+    {
+      "attempt": 1,
+      "status": "invalid_api_error_not_counted_as_review",
+      "type": "result",
+      "subtype": "success",
+      "is_error": true,
+      "duration_ms": 516642,
+      "duration_api_ms": 305949,
+      "total_cost_usd": 2.0724350000000005,
+      "session_id": "851c89a2-0fe8-4348-9e9d-e5d443cfa200",
+      "uuid": "ea0fe5df-51d5-4c54-add7-8e989e4e994f",
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "stop_reason": "stop_sequence",
+      "num_turns": 31,
+      "result": "API Error: 529 Overloaded. This was a server-side error and did not produce a valid review."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "d892b95f-a204-4fac-b240-91a939a5fc0d",
+    "uuid": "2d87402b-1e89-4e3b-affb-dac0aab41b50",
+    "duration_ms": 655559,
+    "duration_api_ms": 654846,
+    "total_cost_usd": 3.54077775,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m04-s01-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline prompt",
+    "output_file": "/tmp/lfos-rp00-p02-m04-s01-claude-review.json",
+    "stderr_file": "/tmp/lfos-rp00-p02-m04-s01-claude-review.stderr",
+    "stderr_bytes": 0,
+    "duration_ms": 655559,
+    "duration_api_ms": 654846,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "2d87402b-1e89-4e3b-affb-dac0aab41b50",
+    "session_id": "d892b95f-a204-4fac-b240-91a939a5fc0d"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "GO",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Structured no-write cosmetic",
+        "location": "contract and README boundary",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Database/storage no-write is guaranteed by the declaration-only boundary and prior S01 convention."
+      },
+      {
+        "severity": "P3",
+        "title": "Context superset",
+        "location": "reviewContextIds",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "The two extra contexts strengthen the boundary."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M04.S02 Request normalization as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed M00 runtime contract remains exactly plan_authoring, ai_implementation_handoff, and hermes_validation.",
+      "Claude confirmed claude_review is not added to the M00 runtime entrypoint list.",
+      "Claude confirmed the contract is declaration-only and opens the Claude review workflow after RP00.P02.M03.S20.",
+      "Claude confirmed no runtime Claude invocation, no review queue writes, no audit writes, no service execution, and no runtime route creation.",
+      "Claude confirmed RP00.P02.M04 remains open and the next boundary is RP00.P02.M04.S02."
+    ],
+    "summary": "Claude reported GO and no P0/P1/P2 issues. P3 notes are informational."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m04-s01-claude-review.json",
+    "summary": "Claude returned GO with no P0/P1/P2 findings and two P3 informational notes."
+  },
+  "overall_verdict": "PASS"
+}

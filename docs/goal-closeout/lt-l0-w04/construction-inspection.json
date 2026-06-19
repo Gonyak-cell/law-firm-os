@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L0-W04",
+  "inspected_at": "2026-06-18T14:43:24Z",
+  "verdict": "BLOCKED_HUMAN_ACCEPTANCE_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "critical_risk_rows": 7,
+    "blank_judgment_cells": 0,
+    "referral_rows": 7,
+    "referrals_match_matrix": true,
+    "boundary_phrase_present": true,
+    "approval_status": "pending_human_acceptance",
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "runtime_controls_overclaimed": false,
+    "human_acceptance_synthesized": false,
+    "g3_satisfied_claimed": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

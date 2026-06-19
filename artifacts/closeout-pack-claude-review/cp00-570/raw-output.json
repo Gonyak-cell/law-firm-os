@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-570",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T21:35:59.447Z",
+  "finished_at": "2026-06-12T21:41:22.374Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":322144,\"duration_api_ms\":322083,\"ttft_ms\":5003,\"num_turns\":50,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-570 is approved for closeout with no P0/P1/P2 blockers and one non-blocking P3 cosmetic note on review-harness scope labeling.\\n\\nThe descriptor-only pack is internally consistent across all artifacts, honestly reports `production_ready: false` / `runtime_ready: false` (no gate weakened), enforces no-write/no-real-data boundaries, keeps Claude as a read-only non-approver, confines Hermes to deterministic evidence/receipt, and satisfies CP178+ review-hardening. Final enterprise-trust approval remains a human step outside this receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"1a9cfb6b-6249-4d26-b4a2-1be76fe9e223\",\"total_cost_usd\":2.077524,\"usage\":{\"input_tokens\":112,\"cache_creation_input_tokens\":113728,\"cache_read_input_tokens\":1491450,\"output_tokens\":24770,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":113728,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":292,\"cache_read_input_tokens\":107742,\"cache_creation_input_tokens\":6816,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6816},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1089,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001189,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":112,\"outputTokens\":24770,\"cacheReadInputTokens\":1491450,\"cacheCreationInputTokens\":113728,\"webSearchRequests\":0,\"costUSD\":2.0763350000000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-570 is a sound descriptor-only AI legal workflows P06 implementation slice (RP18.P06.M03.S09-RP18.P06.M04.S18, risk B, 40 units). Pack baseline is consistent across prompt, review-baseline.json, registry.js CP570 pack binding, contract current_pack, closeout-pack-plan.json, and manifest.json (deliverable distribution 15 implementation / 8 ui / 3 claude_review / 9 security_audit / 4 test / 1 hermes_evidence = 40; micro counts M03=22, M04=18). The pack-level production_ready claim is FALSE (implementation_layer=descriptor, runtime_ready=false, status=implemented_pending_review) and is well supported: it does not over-claim, does not open runtime, and does not weaken any production_ready gate. No-write/no-real-data boundaries are enforced via freezeCp570Result (all runtime/write/leak flags false), a CP570 no-write attestation that correctly chains from CP551 (promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false), and ROW_EXTRAS containing only descriptor metadata (real_client_data_loaded=false). The CP570 validators, model tests, and contract validator deep-equality checks comprehensively cover coverage/section/authority-boundary/handoff drift, and command-evidence records all implementation+plan+repo-wide gates at exit 0. Claude is correctly bound as read-only independent reviewer and not final approver (authority_boundary + claude_packet + attestation), and Hermes is used only for deterministic descriptor evidence/receipt (emits_hermes_runtime_receipt=false, hermes_runtime_embedded_in_product=false). CP178+ hardening is satisfied: forbidden_review_evidence covers auth-failure, zero-byte, malformed-JSON, fenced-JSON, tool-call-shaped, final-approval and enterprise-trust claims; readiness auth-preflight passed with non-empty valid-JSON stdout; no raw-output/receipt is prematurely present. One non-blocking P3 cosmetic note on review-harness scope labeling. Enterprise trust / final approval remains a human responsibility outside this receipt; this read-only review does not constitute final approval.\",\"findings\":[{\"id\":\"CP570-P3-01\",\"severity\":\"P3\",\"title\":\"Pack's own closeout-docs directory double-labeled in changed-file-scope (implementation vs unrelated)\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-570/changed-file-scope.json\",\"line\":159,\"details\":\"The path docs/closeout-packs/cp00-570/ (the pack's own manifest.json + command-evidence.json) is listed simultaneously under untracked_implementation_files (line 153) and unrelated_dirty_files_preserved (line 159). Labeling the same path both an 'implementation file' and 'unrelated' is contradictory on its face. This is review-harness scope metadata only; it does not affect CP00-570 deliverables, the active_pack_implementation_refs set, or the correctness of source inspection, and the directory was still inspected as part of the pack.\",\"recommendation\":\"In the scope generator, treat the pack's own docs/closeout-packs/<pack>/ closeout artifacts as a distinct category (e.g. pack_closeout_docs) rather than emitting it under both untracked_implementation_files and unrelated_dirty_files_preserved, so the categorization is unambiguous.\",\"post_review_disposition\":\"Non-blocking informational note. Cosmetic tooling-metadata issue only; does not affect pack correctness, scope, or closeout. No action required for CP00-570 closeout; suggested for future scope-generator hygiene.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"2f1055c4-ced0-43aa-914a-bed66e803563\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5708,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "1a9cfb6b-6249-4d26-b4a2-1be76fe9e223",
+    "uuid": "2f1055c4-ced0-43aa-914a-bed66e803563",
+    "total_cost_usd": 2.077524,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

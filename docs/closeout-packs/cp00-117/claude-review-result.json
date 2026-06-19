@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-117",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-117-claude-review-output-valid.json",
+    "session_id": "f428f8ea-bf51-425d-9b1e-6a83fa463c89",
+    "uuid": "6dca2c1c-50b8-42dd-9700-8031995896f0",
+    "duration_ms": 2065027,
+    "duration_api_ms": 2066918,
+    "total_cost_usd": 0.409718,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "Audit-hint sanitization is inherited from CP116 without independent re-filtering in CP117",
+        "file": "packages/authz/src/ui-evidence-state-snapshot.js",
+        "evidence": "createPermissionKernelCp117UiStateSnapshot spreads ...inheritedSurface.audit_hint_display from createPermissionKernelCp116UiPermissionAuditBindingSurface and forces preview_only/emitted_to_audit_ledger/hidden_field_names_exposed flags, but does not re-apply an allowlist to the hint contents itself. The 4 hidden source fields are verifiably dropped (authz.test.js injects privileged_note/cross_tenant_secret/internal_policy_label/sealed_audit_hint_payload and asserts undefined; the validator repeats the injection), so the in-scope guarantee holds. Suppression of any other arbitrary caller-supplied hint key relies entirely on CP116's allowlist behavior.",
+        "recommendation": "Acceptable as designed for a synthetic, metadata-only Risk A pack. For defense-in-depth, consider re-projecting the hint onto the explicit allowlist (actor_id, action, tenant_id, matter_id, effect, reason) inside CP117 so the no-leak guarantee does not depend solely on upstream CP116."
+      }
+    ],
+    "recommendation": "Approve CP00-117 closeout.",
+    "rationale": "Contract bumps to v0.11 and moves current_pack to CP00-117 (Risk A, 10 units, range RP02.P04.M05.S18-RP02.P04.M06.S05, flag permission_kernel_ui_evidence_state_snapshot_verified) with a complete ui_evidence_state_snapshot_pack section that the validator cross-checks against the JS contract (surfaces, exports, state_ids, shape, data-dependency sources, hidden_source_fields, no_write_attestation). All 10 in-scope surfaces are present and correctly typed (hermes_evidence 1, claude_review 1, implementation 3, ui 5; 2 micro phases; first S18, last M06.S05). CP116 inheritance is genuine (imports CP116 contract/surface/manifest/matrix; inherited_ui_permission_audit_contract_id and hidden_source_fields sourced from CP116). Security invariants are enforced and tested: permission badges force grants_access:false, denied_state sets secondary_interaction_enabled:false and grants_access:false with deny effect, audit hints are preview_only with emitted_to_audit_ledger:false, hidden source fields are denied in the data-dependency map and omitted from hint/error/state surfaces (verified by injection), and unauthorized counts are not_collected/not rendered/not exposed. The pack is pure frozen metadata with no fs/network/DB/AI imports; the no_write_attestation and per-snapshot flags assert no runtime UI/API route, no policy mutation, no audit/product/database writes, no idempotency/lock persistence, no export/share, no AI retrieval, and no LDIP. HRX remains embedded-only and handoff is fixed to CP00-118 / RP02.P04.M06.S06 (contiguous after CP116's S17). The single P3 is a non-blocking defense-in-depth observation."
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "law-firm-os.launch-perf.synthetic-profile.v0.1",
+  "profile_id": "lt-l5-w06-wave1-pilot-candidate",
+  "status": "candidate_pending_owner_scale_approval",
+  "seed": "lt-l5-w06-wave1-synthetic-seed-v1",
+  "synthetic_only": true,
+  "no_real_data": true,
+  "target_counts": {
+    "tenants": 1,
+    "users": 12,
+    "matters": 120,
+    "documents": 2400,
+    "emails": 1800,
+    "tasks": 360,
+    "issues": 240,
+    "file_refs": 2400,
+    "audit_hints": 4800
+  },
+  "scenario_mix": {
+    "search_index": {
+      "query_families": 6,
+      "queries_per_family": 40
+    },
+    "document_upload": {
+      "metadata_registrations": 240,
+      "provider_transfer_included": false
+    },
+    "concurrent_users": {
+      "simulated_users": 10,
+      "steps_per_user": 24
+    }
+  },
+  "boundaries": {
+    "owner_scale_approved": false,
+    "staging_loaded": false,
+    "runtime_requests_executed": false,
+    "provider_file_transfer_measured": false,
+    "mat_dec_03_required_for_provider_transfer": true
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-208",
+  "normalized_at": "2026-06-10T04:12:52.031Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": false,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-208/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-208/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-208/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-208/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "a33f2329-a4b9-4eda-ada5-4184bdc81b48",
+    "uuid": "014dc453-47e5-4896-bb57-a4737c5eafdd",
+    "total_cost_usd": 2.9624620000000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9210,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-208 (RP06 DMS-core synthetic fixture tail + golden-case entrypoint descriptor pack, risk A, 10 units, RP06.P02.M06.S16-RP06.P02.M07.S03) is in a coherent implemented_pending_review state and does NOT overclaim production readiness (manifest production_ready:false; production_ready_flag is a label; Hermes emits production_ready_candidate only). Read-only source inspection (Read/Grep/Glob) confirms the 10 planned units map 1:1 to 10 descriptor-only guards (blocked-claim, rollback, retry, happy/denied/review unit-test descriptors, integration smoke, service entrypoint contract, request normalization, tenant boundary precheck). Descriptor-only / no-write / no-real-data boundaries are substantiated in service.js (freezeCp208Result with ~50 false runtime flags), validators.js (validateDmsCoreCp208SyntheticFixtureTailEntrypointDescriptor asserts every runtime flag false + no-leak guards), model.test.js, the validate script, the contract no_write_attestation, and README; there is no network/filesystem/process I/O anywhere in packages/dms/src. CP178+ hardening holds: forbidden_review_evidence matches the required reject-list, readiness auth-preflight passed (exit 0, 1450-byte valid-JSON stdout, not 0-byte), and no invalid review attempts are recorded. Claude is consistently bound as read-only independent reviewer and not final approver, and enterprise trust is not claimed from local validation. Hermes patterns appear only as deterministic control-plane review-packet/receipt descriptors (gate H06), not embedded product runtime. No P0/P1 defects found. Remaining items are governance gating reminders that, by the pack's own design, run after this review in the hardening sequence (populate command-evidence with passing validation runs; generate claude-review-result.json, adjudication.md, construction-inspection.json; run final closeout validation) — these must complete before commit/closeout but do not block this review. Verdict reflects review-step satisfaction only; final human approval for any enterprise trust claim remains required and is out of scope of this receipt.",
+    "findings": [
+      {
+        "id": "CP00-208-R01",
+        "severity": "P2",
+        "title": "command-evidence.json has empty commands[] and pending gate outcome — local/Hermes validation not yet recorded",
+        "file": "docs/closeout-packs/cp00-208/command-evidence.json",
+        "line": 9,
+        "details": "command-evidence.json declares status:pending, production_ready:false, commands:[] (empty), and gate_outcome:pending, with a note that command evidence is populated after the hardened Claude review and final closeout validation steps. The baseline lists 11 required validation commands (npm test, npm run validate, rp06:dms-core:validate, closeout-pack:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check, etc.). As a read-only reviewer I cannot execute them (no Bash) and verified the validate script (scripts/validate-rp06-dms-core-contract.mjs) and tests (packages/dms/test/model.test.js) only by inspection — they are internally consistent and comprehensive, but no passing run is yet recorded in the pack. This is expected for the pending state and is not an implementation defect, but the pack-level production_ready/closeout claim cannot be substantiated by recorded local/Hermes validation until these commands are run and recorded as passing.",
+        "recommendation": "Before pack closeout/commit, run all baseline validation commands and record their passing results in command-evidence.json (commands[] populated, gate_outcome=passed). Do not advance to commit while gate_outcome remains pending.",
+        "post_review_disposition": "Defer to final_closeout_validation step in the hardening sequence; gating reminder, not an implementation defect. Not blocking this review (no P0/P1)."
+      },
+      {
+        "id": "CP00-208-R02",
+        "severity": "P3",
+        "title": "Three required_pack_artifacts not yet present on disk (expected pending state)",
+        "file": "docs/closeout-packs/cp00-208/manifest.json",
+        "line": 487,
+        "details": "manifest.json lists required_pack_artifacts / evidence_refs including docs/closeout-packs/cp00-208/claude-review-result.json, adjudication.md, and construction-inspection.json. Only manifest.json and command-evidence.json currently exist in that directory. This is expected and not an overclaim: production_ready is false and these artifacts are produced by the adjudication, construction_inspection, and review-receipt steps that follow this read-only review (this review is the input to claude-review-result.json, so it cannot pre-exist). Flagged so closeout does not proceed before they exist.",
+        "recommendation": "Generate claude-review-result.json (from this receipt), adjudication.md, and construction-inspection.json during the subsequent hardening steps and confirm all five required_pack_artifacts are present before commit.",
+        "post_review_disposition": "Informational; expected output of post-review hardening steps. Verify present before commit/closeout."
+      },
+      {
+        "id": "CP00-208-R03",
+        "severity": "P3",
+        "title": "changed-file-scope classifies new-session-handoff.md as both an untracked implementation file and unrelated-dirty preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-208/changed-file-scope.json",
+        "line": 158,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 158-161) and unrelated_dirty_files_preserved (line 163-177). The same file being tagged as both an active untracked implementation file and an unrelated preserved dirty file is an internal classification inconsistency in the scope artifact. It has no effect on the DMS implementation under review (the active_pack_implementation_refs and the modified git rows are the 7 dms files plus the contract and validate script), but the dual classification could confuse future scope reconciliation.",
+        "recommendation": "Reconcile the changed-file-scope classification so new-session-handoff.md is listed under a single category (it is plan/session bookkeeping, so unrelated_dirty_files_preserved is the appropriate bucket).",
+        "post_review_disposition": "Informational; no action required for this pack's code correctness. Optional cleanup in scope tooling."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 1,
+      "reported_p3": 2
+    }
+  }
+}

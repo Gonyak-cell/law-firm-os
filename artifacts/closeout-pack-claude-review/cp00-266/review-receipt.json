@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-266",
+  "normalized_at": "2026-06-10T18:54:50.357Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-266/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-266/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-266/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-266/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "c49d9cf8-2246-41fd-863e-59411eb10f1f",
+    "uuid": "3c4980b9-c124-4f8e-82b0-823e395cbbb8",
+    "total_cost_usd": 2.92286275,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7673,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-266 is a descriptor-only RP07 search-core closeout slice (risk B, 40 units, RP07.P08.M04.S13-RP07.P08.M06.S08) and is internally consistent and well-substantiated. The pack identity and distributions agree across the registry binding (packages/search/src/registry.js:559), requirements (registry.js:2798), the contract projection (contracts/search-core-contract.json:16, :34560, :35818), the manifest, the README (packages/search/README.md:129), and the live closeout-pack-plan.json:412 — risk_class B, unit_count 40, deliverable distribution {implementation:18, hermes_evidence:19, test:2, claude_review:1}, and micro-title distribution {Secondary Workflow Slice:10, Permission And Audit Binding:22, Synthetic Fixture Set:8}. Continuity holds: CP00-265 (last unit RP07.P08.M04.S12, next_pack CP00-266) feeds CP00-266 (first unit RP07.P08.M04.S13, next_pack CP00-267). All seven required public exports exist (service.js:4222/4255; validators.js:6531/6566/6651/6672/6695), are surfaced via the index.js wildcard re-export, and are imported by both the validator script and model.test.js. The implementation is genuinely side-effect-free: a grep across packages/search/src for writeFile/fetch/exec/child_process/db/network/process.env returned no matches, and the no_write_attestation enumerates every runtime/write surface as false (search/OCR/index/embedding dispatch, command runtime, audit writes, product-state writes, object storage, real fixture data, raw payloads). The descriptor no-leak guards are non-vacuous — the row-key guard objects (permission_summary_receipt/audit_summary_receipt/blocked_claim_receipt/no_real_data_receipt/claude_dependency_marker/human_approval_marker/hermes_command_matrix/validation_command_check at service.js:3948-3962) supply the exact flags the CP266 validator asserts, so validateSearchCoreCp266HermesBindingSliceDescriptor materially enforces descriptor_only/runtime_execution=false/customer_safe/no-raw-payload plus permission/audit/blocked-claim/real-data exclusions. The authority boundary is preserved throughout: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, claude_packet.read_only=true (service.js:4267-4285; contract authority_boundary at :35834), and Hermes is used only as deterministic packet/receipt descriptors (emits_hermes_runtime_receipt=false), not embedded product runtime. There is no production-readiness overclaim: command-evidence.json and the manifest both set production_ready=false with status implemented_pending_review / implementation_and_plan_gates_passed_pending_final_closeout, and production_ready_candidate is correctly derived from coverage.valid && slice.valid rather than asserting enterprise trust. CP178+ review hardening is intact: forbidden_review_evidence (registry.js:742) rejects auth failures, zero-byte output, malformed/fenced JSON, tool-call-shaped output, and missing required fields, and the readiness auth preflight passed with valid JSON. No P0/P1/P2 issues were found. One cosmetic P3 was noted in the review-harness scope metadata (a path dual-classified as both an active-untracked implementation file and an unrelated preserved file); it does not affect deliverables, validation, or closeout. The unrelated untracked LDIP file (docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json) and the v2.0 .docx are correctly treated as out of scope. Note: this reviewer is a read-only independent reviewer and not the final approval authority; enterprise trust requires human final approval, which remains deferred.",
+    "findings": [
+      {
+        "id": "CP00-266-R01",
+        "severity": "P3",
+        "title": "changed-file-scope.json dual-classifies the pack's own manifest directory as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-266/changed-file-scope.json",
+        "line": 103,
+        "details": "The path docs/closeout-packs/cp00-266/ (the active pack's own manifest + command-evidence directory) appears in untracked_implementation_files (line 97) and simultaneously in unrelated_dirty_files_preserved (line 103); docs/closeout-pack-plan/new-session-handoff.md is similarly dual-listed (lines 96 and 102). This is a cosmetic inconsistency in the review-harness scope-metadata artifact, not in the pack deliverables. active_untracked_implementation_files_omitted is empty (line 99), so no in-scope file was wrongly excluded from review, and the pack's manifest/command-evidence were inspected directly. No deliverable, validation command, or closeout gate is affected.",
+        "recommendation": "Have the changed-file-scope generator exclude the active pack's own docs/closeout-packs/<pack-id>/ directory (and recognized process handoff docs) from unrelated_dirty_files_preserved when they are already listed as untracked implementation files, to remove the ambiguous dual classification.",
+        "post_review_disposition": "Non-blocking. Cosmetic metadata quirk in the review harness artifact; does not affect CP00-266 implementation, tests, validation evidence, no-write/no-real-data boundaries, or closeout. Recorded for maintainer cleanup only."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

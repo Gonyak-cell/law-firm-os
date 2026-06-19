@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-readiness.v0.1",
+  "pack_id": "CP00-691",
+  "status": "ready",
+  "ready": true,
+  "checked_at": "2026-06-15T00:11:33.944Z",
+  "prompt_bytes": 2456,
+  "auth_preflight": {
+    "status": "passed",
+    "exit_code": 0,
+    "signal": null,
+    "stdout_bytes": 1441,
+    "stderr_bytes": 0,
+    "stdout_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":2136,\"duration_api_ms\":3593,\"ttft_ms\":2080,\"num_turns\":1,\"result\":\"{\\\"ok\\\":true,\\\"purpose\\\":\\\"closeout-pack-review-readiness-auth-preflight\\\"}\",\"stop_reason\":\"end_turn\",\"session_id\":\"b460e548-0ad8-406b-8855-608c0ab5147f\",\"total_cost_usd\":0.08303825000000001,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":13053,\"cache_read_input_tokens\":0,\"output_tokens\":36,\"server_tool_use\":{\"web_search_requests\":",
+    "stderr_excerpt": ""
+  },
+  "errors": [],
+  "warnings": [],
+  "review_attempt_counted": false
+}

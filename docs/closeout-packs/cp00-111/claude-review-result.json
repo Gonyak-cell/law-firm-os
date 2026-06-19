@@ -1,0 +1,102 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-111",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-111-claude-review-output-valid.json",
+    "session_id": "cbb5f02f-00c4-4edd-8483-81500f07c603",
+    "uuid": "7b7e2a17-4ec3-4abe-bce0-cd1316b9b879",
+    "duration_ms": 194969,
+    "duration_api_ms": 197047,
+    "total_cost_usd": 0.63820475,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "Audit-hint preview-only property computed but never asserted",
+        "file": "packages/authz/src/synthetic-fixture-boundary.js",
+        "evidence": "runPermissionKernelCp111SyntheticFixtureProfile computes audit_hint_preview_only = workflow.audit_hint_preview?.emitted_to_audit_ledger === false, but neither validatePermissionKernelCp111Coverage nor the new tests assert it is true for the audit_hint_preview profile. That profile's scenario is identical to a plain allow (allowRule, no audit-specific input), so the explicit 'audit hint preview only' scope item is verified only indirectly via writes_audit_event === false, not via the dedicated preview-only flag.",
+        "recommendation": "Assert in validatePermissionKernelCp111Coverage and the test that the audit_hint_preview profile yields audit_hint_preview_only === true, so a regression that emits the hint to the audit ledger is caught directly rather than relying on the persistence-boundary flag."
+      },
+      {
+        "severity": "P3",
+        "title": "HRX embedded-only boundary value not asserted",
+        "file": "packages/authz/src/synthetic-fixture-boundary.js",
+        "evidence": "createPermissionKernelCp111CloseoutHandoff hardcodes hrx_embedded_boundary = 'embedded_people_hr_evidence_module_inside_law_firm_os' (correct), but the new handoff test and scripts/validate-rp02-permission-kernel-contract.mjs only check ldip_implemented === false plus next_pack_id/next_subphase_id; the HRX-embedded value is unverified.",
+        "recommendation": "Add an assertion on handoff.hrx_embedded_boundary to lock the embedded-only HRX boundary named in scope."
+      },
+      {
+        "severity": "P3",
+        "title": "Fail-closed/metadata-only semantics inherited from out-of-diff CP00-110 workflow",
+        "file": "packages/authz/src/synthetic-fixture-boundary.js",
+        "evidence": "All asserted statuses (blocked_before_permission_evaluation, blocked_claim_output, completed_metadata_only, review_required_routing), decision_reason object_acl_allow, and the no-write flags are produced by executePermissionKernelCp110Workflow in service-workflow.js, which is not in this diff. The profile builder uses direct property access (workflow.decision.effect, workflow.idempotency_receipt.persisted, workflow.lock_receipt.acquired, workflow.persistence_boundary.*) for the precheck-blocked profiles, assuming the upstream workflow always returns a fully-populated envelope; only audit_hint_preview uses optional chaining.",
+        "recommendation": "No change required for closeout: the runtime validator and tests assert the observable outputs of every profile. Recorded for traceability — the boundary guarantees rest on the CP00-110 workflow contract, not on code introduced in this pack."
+      }
+    ],
+    "recommendation": "Approve CP00-111 closeout. The pack cleanly covers the planned Risk A range RP02.P02.M06.S03-S12 (10 units, first/last asserted), fail-closed tenant/matter prechecks that block before evaluator invocation, permission allow/deny and object-ACL allow paths, state-transition review routing, and metadata-only idempotency/lock/persistence receipts. The no-write attestation (15 flags incl. AI/export/external-share/LDIP) is comprehensive and cross-checked in both the JS source contract and the JSON contract; metadata-only behavior is verified across all 10 profiles; handoff is fixed to CP00-112/RP02.P02.M06.S13 and HRX stays embedded. The P2/P3 items are non-blocking coverage gaps and can be folded into CP00-112.",
+    "rationale": "The diff adds a synthetic-only fixture-boundary layer over the established CP00-110 workflow with no product-state, audit, database, share/export, AI, or LDIP implementation. README, JS source contract, and JSON contract are mutually consistent, and the validator enforces required/fail-closed/metadata-only profile lists plus the no-write attestation on both sides. Fail-closed semantics are correctly distinguished (precheck blocks evaluator_invoked=false vs. permission_deny evaluator_invoked=true then blocked_claim_output) and tested. No security or correctness defects were found; the only gaps are an unasserted audit-preview flag and an unasserted HRX value, neither of which weakens the verified no-write safety invariant.",
+    "notes": [
+      "No P0/P1 findings were reported by the valid CP00-111 pack-level Claude review.",
+      "Original P2 finding about audit hint preview-only assertion was fixed by tests and validator/source coverage hardening.",
+      "P3 finding about HRX embedded boundary assertion was fixed by tests and validator coverage hardening.",
+      "P3 finding about CP00-110 inheritance was documented as non-blocking; CP111 asserts observable profile outputs and CP00-110 remains a closed upstream pack.",
+      "No second valid Claude review was run."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [
+      {
+        "title": "Audit-hint preview-only property computed but never asserted",
+        "disposition": "fixed_by_direct_audit_hint_preview_assertions",
+        "evidence_refs": [
+          "packages/authz/src/synthetic-fixture-boundary.js",
+          "packages/authz/test/authz.test.js",
+          "scripts/validate-rp02-permission-kernel-contract.mjs"
+        ]
+      }
+    ],
+    "p3_fixed_or_documented": [
+      {
+        "title": "HRX embedded-only boundary value not asserted",
+        "disposition": "fixed_by_handoff_assertions",
+        "evidence_refs": [
+          "packages/authz/test/authz.test.js",
+          "scripts/validate-rp02-permission-kernel-contract.mjs"
+        ]
+      },
+      {
+        "title": "Fail-closed/metadata-only semantics inherited from out-of-diff CP00-110 workflow",
+        "disposition": "documented_non_blocking_upstream_contract_dependency",
+        "evidence_refs": [
+          "docs/closeout-packs/cp00-110/manifest.json",
+          "packages/authz/src/synthetic-fixture-boundary.js"
+        ]
+      }
+    ],
+    "no_second_valid_review_run": true
+  }
+}

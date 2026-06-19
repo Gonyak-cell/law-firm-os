@@ -1,0 +1,302 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-138",
+  "subphase_id": "RP03.P02.M09.S12",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "git status --short",
+      "exit_code": 0,
+      "purpose": "live state check"
+    },
+    {
+      "command": "git log --all --format='%h %aI %s' --grep='^Close CP00' -n 12",
+      "exit_code": 0,
+      "purpose": "latest closeout commit check"
+    },
+    {
+      "command": "node --check packages/audit/src/service-interface-claude-boundary-catalog.js && node --check packages/audit/src/index.js && node --check packages/audit/test/audit.test.js && node --check scripts/validate-rp03-audit-architecture.mjs",
+      "exit_code": 0,
+      "purpose": "syntax validation"
+    },
+    {
+      "command": "node -e JSON.parse audit contract",
+      "exit_code": 0,
+      "purpose": "audit contract JSON parse validation"
+    },
+    {
+      "command": "node --test packages/audit/test/*.test.js",
+      "exit_code": 0,
+      "purpose": "targeted audit package tests"
+    },
+    {
+      "command": "npm run rp03:audit:validate",
+      "exit_code": 0,
+      "purpose": "RP03 audit architecture validator"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "purpose": "closeout pack plan validator"
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "purpose": "closeout validator syntax"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "purpose": "closeout pack validator"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "full test suite"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "spec requirements validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "weighted ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "RP00 control-plane validation"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "purpose": "unstaged diff whitespace validation"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0,
+      "purpose": "staged diff whitespace validation"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H03",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "evidence_packet": {
+      "pack_binding": {
+        "pack_id": "CP00-138",
+        "planned_pack_id": "CP00-138",
+        "risk_class": "A",
+        "unit_count": 10,
+        "range": "RP03.P02.M09.S03-RP03.P02.M09.S12",
+        "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "upstream_pack_id": "CP00-137",
+        "next_pack_id": "CP00-139",
+        "next_subphase_id": "RP03.P02.M09.S13",
+        "hermes_gate": "H03",
+        "claude_gate": "C03"
+      },
+      "contract": {
+        "id": "audit_compliance_cp138_claude_boundary_contract",
+        "pack_id": "CP00-138",
+        "program_id": "RP03",
+        "title": "Audit and compliance Claude packet sensitive boundary",
+        "production_ready_flag": "audit_compliance_claude_packet_sensitive_boundary_verified",
+        "covered_range": "RP03.P02.M09.S03-RP03.P02.M09.S12",
+        "covered_unit_count": 10,
+        "risk_class": "A",
+        "hermes_gate": "H03",
+        "claude_gate": "C03",
+        "no_write": true
+      },
+      "readiness": {
+        "contract_id": "audit_compliance_cp138_claude_boundary_contract",
+        "covered_unit_count": 10,
+        "row_count": 10,
+        "all_cases_ready": true,
+        "deliverable_counts": {
+          "implementation": 6,
+          "security_audit": 2,
+          "ui": 2
+        },
+        "domain_counts": {
+          "tenant_boundary_claude_packet_boundary": 1,
+          "matter_trace_claude_packet_boundary": 1,
+          "permission_audit_claude_packet_boundary": 2,
+          "workflow_claude_packet_boundary": 2,
+          "ui_state_claude_packet_boundary": 1,
+          "state_persistence_claude_packet_boundary": 3
+        },
+        "first_unit_id": "RP03.P02.M09.S03",
+        "last_unit_id": "RP03.P02.M09.S12",
+        "cp137_handoff_inherited": true,
+        "cp139_handoff_declared": true,
+        "h03_gate_bound": true,
+        "c03_gate_bound": true,
+        "claude_review_packet_declared": true,
+        "tenant_boundary_precheck_declared": true,
+        "matter_trace_precheck_declared": true,
+        "permission_audit_precheck_declared": true,
+        "idempotency_lock_persistence_boundaries_declared": true,
+        "hidden_field_policy_declared": true,
+        "pack_id": "CP00-138",
+        "synthetic_only": true,
+        "no_real_data": true,
+        "risk_a_claude_packet_sensitive_boundary": true,
+        "writes_product_state": false,
+        "appends_audit_event": false,
+        "writes_audit_event": false,
+        "mutates_audit_event": false,
+        "deletes_audit_event": false,
+        "creates_database_rows": false,
+        "persists_idempotency_keys": false,
+        "persists_hash_chain_state": false,
+        "persists_retention_policy": false,
+        "modifies_legal_hold": false,
+        "executes_permission_decision": false,
+        "executes_tenant_boundary_check": false,
+        "executes_matter_trace_check": false,
+        "executes_audit_hint_check": false,
+        "executes_audit_query": false,
+        "executes_compliance_export": false,
+        "executes_admin_access_review": false,
+        "acquires_locks": false,
+        "persists_lock_tokens": false,
+        "executes_rollback": false,
+        "executes_retry": false,
+        "renders_ui": false,
+        "executes_claude_review": false,
+        "sends_claude_prompt": false,
+        "writes_hermes_runtime": false,
+        "implements_ldip": false,
+        "splits_hrx_product": false,
+        "unauthorized_count_exposed": false,
+        "unauthorized_object_name_exposed": false,
+        "hidden_field_names_exposed": false,
+        "no_write_attestation": {
+          "accepts_real_client_data": false,
+          "appends_audit_event": false,
+          "writes_audit_event": false,
+          "mutates_audit_event": false,
+          "deletes_audit_event": false,
+          "writes_product_state": false,
+          "creates_database_rows": false,
+          "persists_idempotency_keys": false,
+          "persists_hash_chain_state": false,
+          "persists_retention_policy": false,
+          "modifies_legal_hold": false,
+          "executes_permission_decision": false,
+          "executes_tenant_boundary_check": false,
+          "executes_matter_trace_check": false,
+          "executes_audit_hint_check": false,
+          "executes_audit_query": false,
+          "executes_compliance_export": false,
+          "executes_admin_access_review": false,
+          "acquires_locks": false,
+          "persists_lock_tokens": false,
+          "executes_rollback": false,
+          "executes_retry": false,
+          "renders_ui": false,
+          "executes_claude_review": false,
+          "sends_claude_prompt": false,
+          "writes_hermes_runtime": false,
+          "implements_ldip": false,
+          "splits_hrx_product": false
+        }
+      },
+      "no_write_attestation": {
+        "accepts_real_client_data": false,
+        "appends_audit_event": false,
+        "writes_audit_event": false,
+        "mutates_audit_event": false,
+        "deletes_audit_event": false,
+        "writes_product_state": false,
+        "creates_database_rows": false,
+        "persists_idempotency_keys": false,
+        "persists_hash_chain_state": false,
+        "persists_retention_policy": false,
+        "modifies_legal_hold": false,
+        "executes_permission_decision": false,
+        "executes_tenant_boundary_check": false,
+        "executes_matter_trace_check": false,
+        "executes_audit_hint_check": false,
+        "executes_audit_query": false,
+        "executes_compliance_export": false,
+        "executes_admin_access_review": false,
+        "acquires_locks": false,
+        "persists_lock_tokens": false,
+        "executes_rollback": false,
+        "executes_retry": false,
+        "renders_ui": false,
+        "executes_claude_review": false,
+        "sends_claude_prompt": false,
+        "writes_hermes_runtime": false,
+        "implements_ldip": false,
+        "splits_hrx_product": false
+      },
+      "hidden_source_fields": [
+        "raw_document_body",
+        "full_email_body",
+        "secret",
+        "credential",
+        "payment_card_number",
+        "bank_account_number",
+        "access_token",
+        "private_key",
+        "tenant_filter_internal_expression",
+        "matter_trace_internal_join",
+        "permission_precheck_internal_rule",
+        "audit_hint_internal_payload",
+        "idempotency_internal_key",
+        "lock_token_internal_value",
+        "persistence_internal_target",
+        "claude_prompt_internal_context",
+        "claude_prompt_redaction_source",
+        "cross_tenant_row_count",
+        "unauthorized_object_name"
+      ],
+      "included_units": [
+        "RP03.P02.M09.S03",
+        "RP03.P02.M09.S04",
+        "RP03.P02.M09.S05",
+        "RP03.P02.M09.S06",
+        "RP03.P02.M09.S07",
+        "RP03.P02.M09.S08",
+        "RP03.P02.M09.S09",
+        "RP03.P02.M09.S10",
+        "RP03.P02.M09.S11",
+        "RP03.P02.M09.S12"
+      ],
+      "production_ready_flag": "audit_compliance_claude_packet_sensitive_boundary_verified"
+    }
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-138 is synthetic-only reference evidence.",
+    "CP00-138 does not append, mutate, delete, query, export, or render audit records; it does not execute tenant, matter, permission, audit hint, lock, persistence, Hermes, Claude, LDIP, or HRX product-split behavior.",
+    "Exactly one valid pack-level Claude Opus 4.8 max read-only review is used for closeout."
+  ]
+}

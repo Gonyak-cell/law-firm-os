@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-754",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-754/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-754/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "309e2c69-6fc0-4372-bbeb-2e97dc5565e3",
+    "uuid": "d9d857bc-cd2c-4107-b645-442d5a8ef9f2",
+    "total_cost_usd": 2.6479084999999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7563,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-754 (RP24.P09.M06.S03-S12, risk A, 10 units, descriptor-only \"Synthetic Fixture Set\" slice) passes read-only review. Directly verified by reading source: the CP754 pack binding/requirements/descriptor/case-set chain (registry.js:553,4407; service.js:129-130) correctly extends CP00-753 with next_pack CP00-755 and runtime_opening_pack_id CP00-755; the required-section-rows slice KOREAN_LEGAL_CP752_REVIEW_CLOSEOUT_ROWS.slice(2,12) maps exactly to the 10 S03-S12 unit titles in the baseline; the deliverable distribution (security_audit:2,test:1,ui:1,implementation:6) matches baseline and requirements; three CP754 tests (model.test.js:73-75) cover binding/coverage, runtime-closed descriptor, and latest contract projection; validators.js:29-30 enforce no-leak guards, descriptor-only/no-runtime/no-sensitive-payload rows, the authority boundary (claude_is_final_approval=false, human_final_approval_required=true, local_validation_claims_enterprise_trust=false), and gate/handoff consistency; the regenerated contract sets cp754 as latest_pack/latest_projection while preserving cp722-cp753; the validator script (validate-rp24-korean-legal-depth-contract.mjs:44) includes the cp754 entry; README.md:133 and package.json scripts are present. The pack-level claim is production_ready=false / runtime_ready=false (status in_progress), so no premature production/runtime/enterprise-trust claim is made; the descriptor-layer flag remains pending this review. Boundaries are intact: Hermes is used only for deterministic packet/receipt handling (emits_runtime_receipt=false, receipt_shape descriptor_only_korean_legal_no_write), no real client/matter/legal data, no product-state write, and Claude stays read-only and non-final. Review-hardening checks: auth preflight passed (exit 0, 1469-byte valid JSON result), and the forbidden_review_evidence set (not_logged_in, malformed_json, usage_limit, tool_call_shaped_output, zero_byte_stdout, fenced_json_with_prose) is encoded as invalid_review_blockers; the claude-review-result is correctly in the pending pre-review state. PROVENANCE NOTE: as a read-only reviewer I did not re-execute the validation ladder; the 25 commands at exit 0 (incl. npm test, closeout-pack:validate, weighted/fullplan/goal/control-plane validates, git diff --check) are taken from the recorded command-evidence.json, not independently re-run. One P3 cosmetic finding: the changed-file-scope.json helper double-classifies the pack's own evidence directory and the session-handoff file as both active-untracked-implementation and unrelated_dirty_files_preserved, diverging from the (correct) manifest categorization; active_untracked_implementation_files_omitted is empty so no active file is wrongly dropped from scope. Non-blocking for CP00-754 closeout.",
+    "findings": [
+      {
+        "id": "C-754-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-classifies the pack's own evidence directory as unrelated-preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-754/changed-file-scope.json",
+        "line": 190,
+        "details": "docs/closeout-packs/cp00-754/ is the pack's own required evidence directory: its member files are enumerated in active_pack_required_untracked_files (lines 17-23) and the directory is listed in untracked_implementation_files (line 182). It is simultaneously listed in unrelated_dirty_files_preserved (line 190), and docs/closeout-pack-plan/new-session-handoff.md shows the same overlap (lines 181 and 188). This contradicts the manifest's worktree_transition_policy (manifest.json:194-214), which correctly lists the cp00-754 artifacts only under active_pack_required_untracked_files and does NOT place them under unrelated_dirty_files_preserved. The safety-critical guard active_untracked_implementation_files_omitted is empty (also confirmed by validation-report.json:22), so no active implementation file is wrongly omitted from scope; this is a non-authoritative metadata overlap in a generated review-scope helper, not a defect in the pack's committed deliverables, and does not affect the production_ready determination, no-write/no-real-data boundaries, or what is staged at closeout.",
+        "recommendation": "Update the review-baseline generator so that active required/implementation untracked paths (the pack's own docs/closeout-packs/<id>/ directory and the session-handoff file) are excluded from unrelated_dirty_files_preserved, making changed-file-scope.json match the manifest's worktree_transition_policy categorization. No pack content or revalidation change is required.",
+        "post_review_disposition": "Non-blocking. Cosmetic metadata overlap in a generated review-scope helper; does not affect production_ready evidence, authority/no-write boundaries, or closeout staging. Recommend generator dedup in a future tooling pass."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

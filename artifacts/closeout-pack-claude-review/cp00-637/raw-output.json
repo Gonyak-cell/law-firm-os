@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-637",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T13:08:31.706Z",
+  "finished_at": "2026-06-13T13:14:34.275Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":361997,\"duration_api_ms\":362995,\"ttft_ms\":3532,\"num_turns\":52,\"result\":\"Review complete. **Verdict: PASS** — no P0–P3 findings.\\n\\nCP00-637 is a sound descriptor-only Data Room/VDR P07 failure-recovery bridge pack. Its `production_ready` candidacy (descriptor-verified, not runtime-open) is fully supported: the freeze chain and validators enforce synthetic-only/no-write/no-runtime invariants, all 9 required exports exist and are real, the 40-unit deliverable (20/4/4/2/4/4/2) and micro-title (10/22/8) distributions match, contract projections deep-equal the live descriptor, and command-evidence shows every validation exiting 0. Hermes patterns stay in deterministic control-plane review/receipt handling (not product runtime), and Claude remains a read-only reviewer with `claude_is_final_approval=false` — human final approval and the enterprise trust claim are closed outside this receipt. The pending adjudication/inspection/review-result states are correct pre-review sequencing, not defects.\",\"stop_reason\":\"end_turn\",\"session_id\":\"a19b58ea-3f2d-4890-8f6c-358afcc51218\",\"total_cost_usd\":2.0600702500000003,\"usage\":{\"input_tokens\":62,\"cache_creation_input_tokens\":91913,\"cache_read_input_tokens\":1648654,\"output_tokens\":26391,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":91913,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":381,\"cache_read_input_tokens\":88217,\"cache_creation_input_tokens\":4439,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4439},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1102,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001202,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":62,\"outputTokens\":26391,\"cacheReadInputTokens\":1648654,\"cacheCreationInputTokens\":91913,\"webSearchRequests\":0,\"costUSD\":2.05886825,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Independent read-only review of CP00-637 (Risk B, 40 units, RP20.P07.M02.S13-RP20.P07.M04.S08) confirms the descriptor-only Data Room/VDR P07 failure-recovery type primary/secondary bridge pack is sound and its production_ready candidacy (descriptor-verified, not runtime-open) is supported by implementation, tests, local validation, and boundary attestations. Implementation: base freezeCp610Result (service.js:229) injects synthetic_only/no_real_data/writes_product_state===false/dispatches_*===false/emits_hermes_runtime_receipt===false; freezeCp637Result (service.js:1174) adds the five new P07 executes_*_runtime===false flags; the descriptor factory (service.js:4948) is descriptor-only with authority_boundary claude_is_final_approval=false and human_final_approval_required_for_runtime_opening=true. Exports: all nine required_public_exports exist and are real — PACK_BINDING/REQUIREMENTS (registry.js:515/2395), case-set+descriptor (service.js:4915/4948), validateCoverage/validateDescriptor (validators.js:3975/3998) and Hermes/Claude/handoff builders (validators.js:4043/4058/4074). Validation: validators.js:3998 asserts synthetic_only, no_real_data, writes_product_state===false, all dispatches_*/executes_*_runtime===false, emits_hermes_runtime_receipt===false, and the authority boundary; coverage validator (validators.js:3975) enforces 40 covered units, 3 sections, exact row-key sequences, and deliverable counts. Distribution integrity: deliverable counts sum to 40 (failure_recovery 20, implementation 4, hermes_evidence 4, fixture 2, test 4, security_audit 4, claude_review 2) and micro-title distribution 10/22/8 both match the prompt and the contract required_section_rows (contract 6152-6204). Hermes boundary: createDataRoomVdrCoreCp637HermesEvidencePacket (validators.js:4043) yields a descriptor-only packet with emits_hermes_runtime_receipt=false and receipt_shape descriptor_only_..._no_write — deterministic control-plane review/receipt handling, not product runtime (hermes_runtime_embedded_in_product=false holds). Claude boundary: review packet is read_only with claude_is_final_approval=false (validators.js:4058); forbidden_review_evidence (contract 6243-6254) covers all CP178+ hardening rejections (auth failure, 0-byte stdout, malformed/fenced JSON, tool-call-shaped output, missing fields, final-approval/enterprise-trust claims). Tests/validation: model.test.js carries three CP637 tests — coverage (1598), descriptor-only boundaries incl. handoff to CP00-638/RP20.P07.M04.S09 (1610), and contract-projection parity (1634); the validator script deep-equals contract.projections.cp637_* and contract.packs.cp637_p07_failure_recovery_type_primary_secondary_bridge_descriptor against the live descriptor (script:584-587) and chains cp636Handoff.to_pack_id===CP00-637 (script:915); command-evidence.json records all commands exit 0 with no_real_data=true/writes_product_state=false. Review hardening: readiness auth-preflight passed with valid JSON (readiness-report.json); review-request uses claude-opus-4-8/max/read-only/Read,Grep,Glob; validation-report confirms no forbidden tools and summary-only prohibited (Risk B + security/review deliverables). Plan/queue consistently show CP00-637 live with generated preview CP00-638. The pending claude-review-result/construction-inspection/adjudication states reflect correct pre-review sequencing (this review is the gating step), not defects, and unrelated dirty/untracked files are properly scoped out (changed-file-scope.json). No P0-P3 findings; Claude remains a read-only independent reviewer and not the final approval authority, with the enterprise trust claim closed outside this receipt under human approval.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"d774a24f-ccfa-4eef-b9dd-8a760aa48edd\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6330,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "a19b58ea-3f2d-4890-8f6c-358afcc51218",
+    "uuid": "d774a24f-ccfa-4eef-b9dd-8a760aa48edd",
+    "total_cost_usd": 2.0600702500000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-667",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T08:13:08.086Z",
+  "finished_at": "2026-06-14T08:18:52.031Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":343326,\"duration_api_ms\":343968,\"ttft_ms\":3941,\"num_turns\":39,\"result\":\"Review complete. CP00-667 passes: a descriptor-only RP22 External Integrations I continuation pack (40 units, risk B) with consistent bindings, matching distributions, intact no-write/no-real-data and runtime-closed boundaries, Claude read-only (non-final-approver), and Hermes used only for deterministic evidence. No P0–P3 findings; pack closeout and this CP's goal closeout are not blocked. The `production_ready` claim is correctly pending and not over-asserted.\",\"stop_reason\":\"end_turn\",\"session_id\":\"50a34edc-544c-4b61-bad3-a4f21ff7f256\",\"total_cost_usd\":2.05425375,\"usage\":{\"input_tokens\":44,\"cache_creation_input_tokens\":115333,\"cache_read_input_tokens\":1513161,\"output_tokens\":23015,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115333,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":202,\"cache_read_input_tokens\":112362,\"cache_creation_input_tokens\":3372,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3372},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1142,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001247,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":44,\"outputTokens\":23015,\"cacheReadInputTokens\":1513161,\"cacheCreationInputTokens\":115333,\"webSearchRequests\":0,\"costUSD\":2.0530067499999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-667 is a clean descriptor-only continuation of the RP22 External Integrations I domain model (40 units, RP22.P01.M02.S09–RP22.P01.M04.S06, risk B). Directly verified via Read/Grep/Glob: (1) pack identity and bindings are consistent across manifest, review-baseline, registry.js (EXTERNAL_INTEGRATIONS_I_CP667_PACK_BINDING/REQUIREMENTS), and both contract files (generated_from_pack_id CP00-667, current_pack CP00-667, historical [\\\"CP00-666\\\"], next CP00-668/RP22.P01.M04.S07); (2) deliverable distribution {impl 23, ui 5, fixture 2, test 6, hermes 2, claude 2}=40 and micro-title distribution {12,22,6} match plan baseline, requirements, and the 40 manifest included_units; (3) descriptor-only boundaries hold — every case-set row is descriptor_only:true/runtime_execution:false, no_write_attestation is comprehensive, and runtime_boundary flags (external_api/oauth/sync/message_capture/e_sign/webhook/credential/permission/audit/ui/hermes) are all false; (4) model.test.js meaningfully asserts CP00-667 coverage, descriptor continuation, runtime-closed, serialization-hides-raw-payload, and contract-projection-matches-both-files; (5) authority boundaries intact — Claude read_only:true and promotes_claude_to_final_approval:false / claude_is_final_approval:false, Hermes packets are descriptor-only (hermes_runtime_opened:false, runtime_receipt_emitted:false) used solely for deterministic evidence, not product runtime; (6) no secret/token/PII leak patterns and no real-data values found in source or contracts; (7) both contract files are byte-identical deterministic projections; (8) manifest does not over-claim (production_ready:false, runtime_ready:false, deviation_from_plan:false). The pack-level production_ready flag is correctly pending and is gated by this review. Reported but not re-executed by me (read-only, no Bash): command-evidence.json lists all 22 validation commands at exit 0 (node --check, node --test, closeout-pack[-plan] validators, rp22/weighted/spec/fullplan/global/goal/rp00 validators, git diff --check, npm test, build). CP178+ hardening satisfied: this is the first review (no prior valid/invalid receipts), readiness auth-preflight passed, and this output is schema-valid JSON. No P0/P1/P2/P3 defects. blocks_goal_closeout=false per scope (this CP closeout goal only; pack claims neither runtime nor enterprise trust). Final human approval for enterprise-trust remains outside this read-only receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"62ccbdb5-eaf3-4eb0-b670-be9353c67850\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4605,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "50a34edc-544c-4b61-bad3-a4f21ff7f256",
+    "uuid": "62ccbdb5-eaf3-4eb0-b670-be9353c67850",
+    "total_cost_usd": 2.05425375,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

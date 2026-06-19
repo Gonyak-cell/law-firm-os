@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP14",
+  "program_title": "Partner Settlement",
+  "program_scope": "Origination, allocation, working credit, settlement run lock",
+  "ai_owner": "Codex",
+  "hermes_gate": "H14",
+  "claude_gate": "C14",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP14.P00.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Origination, allocation, working credit, settlement run lock requirements and identify wrong partner credit, unreviewed dispute, and run mutation after lock as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Partner Settlement contract shape for OriginationCredit, WorkingCredit, AllocationRule, SettlementRun, SettlementLine, Dispute.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns OriginationCredit, WorkingCredit, and AllocationRule, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for credit setup, allocation calculation, and settlement preview.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Partner Settlement records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Partner Settlement behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Partner Settlement examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Partner Settlement planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H14 preflight",
+      "objective": "Define the fields Hermes records before Partner Settlement implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C14 design brief",
+      "objective": "Prepare Claude Code questions around wrong partner credit, unreviewed dispute, run mutation after lock, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P00.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP14.P00 handoff",
+      "objective": "Hand off a contract-first Partner Settlement implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "contracts/settlement-contract.json",
+        "packages/settlement/README.md",
+        "contracts/partner-settlement-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement OriginationCredit model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for OriginationCredit.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement WorkingCredit model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for WorkingCredit.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement AllocationRule model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for AllocationRule.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement SettlementRun model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for SettlementRun.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement SettlementLine model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for SettlementLine.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among OriginationCredit, WorkingCredit, AllocationRule, SettlementRun, SettlementLine, Dispute and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Partner Settlement model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P01.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Partner Settlement model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/model.js",
+        "packages/settlement/src/states.js",
+        "packages/settlement/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for credit setup, allocation calculation, and settlement preview.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement credit setup",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for credit setup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement allocation calculation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for allocation calculation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement settlement preview",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for settlement preview.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement dispute review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for dispute review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement run lock",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for run lock.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for wrong partner credit, unreviewed dispute, and run mutation after lock.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Partner Settlement operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H14.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Partner Settlement outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P02.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Partner Settlement services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/policies.js",
+        "packages/settlement/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Partner Settlement models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define credit setup API",
+      "objective": "Lock request, response, permission, audit, and error shape for credit setup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define allocation calculation API",
+      "objective": "Lock request, response, permission, audit, and error shape for allocation calculation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define settlement preview API",
+      "objective": "Lock request, response, permission, audit, and error shape for settlement preview.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define dispute review API",
+      "objective": "Lock request, response, permission, audit, and error shape for dispute review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define run lock API",
+      "objective": "Lock request, response, permission, audit, and error shape for run lock.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Partner Settlement API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for wrong partner credit, unreviewed dispute, run mutation after lock, rounding drift, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H14 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C14 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P03.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Partner Settlement public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/api-contract.js",
+        "packages/settlement/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/settlement/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify settlement workbook, partner allocation view, dispute queue, and run lock banner in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan settlement workbook",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for settlement workbook.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan partner allocation view",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for partner allocation view.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan dispute queue",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for dispute queue.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan run lock banner",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for run lock banner.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Partner Settlement outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Partner Settlement rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Partner Settlement context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Partner Settlement service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P04.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp14-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define credit allocated golden case",
+      "objective": "Create a synthetic golden case proving credit allocated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define settlement preview reconciles golden case",
+      "objective": "Create a synthetic golden case proving settlement preview reconciles.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define dispute blocks lock golden case",
+      "objective": "Create a synthetic golden case proving dispute blocks lock.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define locked run immutable golden case",
+      "objective": "Create a synthetic golden case proving locked run immutable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define wrong partner credit failure fixture",
+      "objective": "Create a synthetic failing case that proves wrong partner credit is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define unreviewed dispute failure fixture",
+      "objective": "Create a synthetic failing case that proves unreviewed dispute is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define run mutation after lock failure fixture",
+      "objective": "Create a synthetic failing case that proves run mutation after lock is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Partner Settlement fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Partner Settlement appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P05.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Partner Settlement fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/fixtures.js",
+        "packages/settlement/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/settlement/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for credit setup, allocation calculation, settlement preview, and dispute review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Partner Settlement view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Partner Settlement mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Partner Settlement export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Partner Settlement where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Partner Settlement obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H14 audit evidence",
+      "objective": "Record which Partner Settlement decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P06.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Partner Settlement cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/src/security-contract.js",
+        "packages/settlement/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define wrong partner credit failure",
+      "objective": "Fail closed or require review when wrong partner credit appears in Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define unreviewed dispute failure",
+      "objective": "Fail closed or require review when unreviewed dispute appears in Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define run mutation after lock failure",
+      "objective": "Fail closed or require review when run mutation after lock appears in Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define rounding drift failure",
+      "objective": "Fail closed or require review when rounding drift appears in Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Partner Settlement operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Partner Settlement operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Partner Settlement micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P07.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Partner Settlement ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "packages/settlement/test/failure-cases.test.js",
+        "docs/rp14-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/settlement/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H14 command matrix",
+      "objective": "Record exact product commands Hermes should run for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H14 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H14 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H14 no-real-data evidence",
+      "objective": "Record that Partner Settlement fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H14 blocked-claim evidence",
+      "objective": "Record unsafe Partner Settlement claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H14 Claude dependency",
+      "objective": "Mark C14 review mandatory before Partner Settlement closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H14 human approval note",
+      "objective": "Record what the human must approve for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H14 command availability",
+      "objective": "Ensure npm scripts required by H14 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H14 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Partner Settlement implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H14 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H14.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P08.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Partner Settlement behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp14-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M00",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP14 architecture review questions",
+      "objective": "Ask whether Partner Settlement module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M01",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP14 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M02",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP14 bypass review questions",
+      "objective": "Ask Claude to find wrong partner credit, unreviewed dispute, run mutation after lock, rounding drift, and undefined bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M03",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP14 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Partner Settlement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M04",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP14 downstream readiness questions",
+      "objective": "Ask whether Partner Settlement is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M05",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP14 risk register",
+      "objective": "List unresolved Partner Settlement risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M06",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Partner Settlement findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M07",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Partner Settlement closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M08",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP14.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M09",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Partner Settlement can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP14.P09.M10",
+      "program_id": "RP14",
+      "program_title": "Partner Settlement",
+      "program_scope": "Origination, allocation, working credit, settlement run lock",
+      "phase_id": "RP14.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP14 detailed plan",
+      "objective": "Confirm Partner Settlement is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H14",
+      "claude_gate": "C14",
+      "target_files": [
+        "docs/rp14-claude-cross-validation-brief.md",
+        "docs/rp14-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H14 evidence or blocked reason can be recorded.",
+        "Claude C14 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

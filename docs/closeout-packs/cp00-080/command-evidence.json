@@ -1,0 +1,166 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-080",
+  "subphase_id": "RP00.P06.M10.S03",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test --test-name-pattern \"Permission Audit Closeout Handoff Decision Binding\" packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "failure_reason": "CP00-080 evidence files were not created yet; contract and closeout rows already pointed at docs/closeout-packs/cp00-080.",
+      "resolved_by": [
+        "docs/closeout-packs/cp00-080/manifest.json",
+        "docs/closeout-packs/cp00-080/command-evidence.json",
+        "docs/closeout-packs/cp00-080/claude-review-result.json",
+        "docs/closeout-packs/cp00-080/adjudication.md",
+        "docs/closeout-packs/cp00-080/construction-inspection.json"
+      ]
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-080",
+      "failure_reason": "docs/closeout-packs/cp00-080/manifest.json did not exist before pack evidence creation.",
+      "resolved_by": [
+        "docs/closeout-packs/cp00-080/manifest.json",
+        "docs/closeout-packs/cp00-080/command-evidence.json",
+        "docs/closeout-packs/cp00-080/claude-review-result.json",
+        "docs/closeout-packs/cp00-080/adjudication.md",
+        "docs/closeout-packs/cp00-080/construction-inspection.json"
+      ]
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "failure_reason": "The first post-evidence generation attempt found CP00-080 next_subphase RP00.P06.M10.S04, which is not present in docs/weighted-implementation-ledger.json because RP00.P06.M10 ends at S03.",
+      "resolved_by": [
+        "CP00-080 source, fixture, contract, and evidence next_subphase corrected to RP00.P07.M00.S01",
+        "CP00-080 source and phase terminal flags corrected to true",
+        "npm run closeout-pack-plan:generate rerun with exit_code 0"
+      ]
+    }
+  ],
+  "claude_review_command": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"read-only code reviewer\" --output-format json \"$(cat /tmp/cp00-080-review-prompt.txt)\"",
+    "exit_code": 0,
+    "exactly_one_valid_pack_level_review": true
+  },
+  "invalid_claude_attempts": [],
+  "evidence_summary": {
+    "claude_review_dependency": "One valid claude-opus-4-8 max read-only review completed before production_ready.",
+    "upstream_boundary": "CP00-080 consumes CP00-079 and requires upstream next_subphase RP00.P06.M09.S08.",
+    "finding_resolution": "Claude P3 F1 and F2 were fixed with assembler-to-published evidence assertions and command_evidence_ref path pinning; F3 was adjudicated as intentional defense-in-depth because strict upstream validation precedes redundant CP00-080 boundary checks.",
+    "ldip_boundary": "LDIP remains planning-only; no LDIP implementation is introduced by CP00-080."
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-080 is metadata-only and does not execute runtime Claude review, runtime permission, AuthZ, security trimming, audit, Hermes evidence packet writes, command evidence writes, database, storage, idempotency, lock, product-state, approval, review-queue, or LDIP implementation logic."
+  ],
+  "plan_generation_receipt": {
+    "command": "npm run closeout-pack-plan:generate",
+    "exit_code": 0,
+    "purpose": "Regenerate closeout pack plan and next-pack queue after CP00-080 evidence assembly.",
+    "not_a_final_validation_command": true,
+    "result_summary": "Generated docs/closeout-pack-plan/closeout-pack-plan.json with 1173 packs and 53812 units; generated docs/closeout-pack-plan/next-pack-queue.json with 14 locked/corrected next-queue packs; queue starts after CP00-080."
+  },
+  "final_validation_summary": {
+    "syntax_checks": "node --check passed for policies, service, validators, service tests, scripts/validate-rp00-control-plane-contract.mjs, and scripts/validate-closeout-pack.mjs.",
+    "targeted_tests": "node --test --test-name-pattern \"Permission Audit Closeout Handoff Decision Binding\" packages/control-plane/test/service.test.js passed 7/7.",
+    "service_tests": "node --test packages/control-plane/test/service.test.js passed 750/750.",
+    "full_tests": "npm test passed 834/834.",
+    "validators": [
+      "npm run validate",
+      "npm run weighted:validate",
+      "npm run spec:requirements:validate",
+      "npm run fullplan:validate",
+      "npm run goal:closeout:validate",
+      "npm run closeout-pack-plan:validate",
+      "npm run closeout-pack:validate",
+      "npm run closeout-pack:validate CP00-080",
+      "npm run rp00:control-plane:validate"
+    ],
+    "diff_check": "git diff --check passed.",
+    "cursor_correction": "CP00-080 terminal next_subphase is RP00.P07.M00.S01, matching the ledger and next planned CP00-081 boundary."
+  }
+}

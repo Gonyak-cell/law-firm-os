@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-307",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T02:45:36.674Z",
+  "finished_at": "2026-06-11T02:51:26.071Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":348796,\"duration_api_ms\":348543,\"ttft_ms\":3801,\"num_turns\":36,\"result\":\"Review complete. **Verdict: PASS** — zero findings (no P0/P1/P2/P3).\\n\\nCP00-307 is a descriptor-only Risk C pack whose `production_ready_candidate` is properly supported: all 21 validation commands pass, validators/tests enforce the no-write/no-real-data/descriptor-only boundaries, and CP178+ review hardening is clean (auth preflight valid, no forbidden tools, scope cleanly separated). Pack-level `production_ready` correctly stays `false` pending human final approval, Claude is confirmed read-only/non-final-approver, and Hermes is deterministic packet/receipt only. Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"29a07600-fc74-4390-aa38-878361169e56\",\"total_cost_usd\":2.656525,\"usage\":{\"input_tokens\":36,\"cache_creation_input_tokens\":149767,\"cache_read_input_tokens\":1850791,\"output_tokens\":16789,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":149767,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":271,\"cache_read_input_tokens\":67869,\"cache_creation_input_tokens\":1855,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":1855},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1164,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012690000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3471,\"outputTokens\":27550,\"cacheReadInputTokens\":2017002,\"cacheCreationInputTokens\":150504,\"webSearchRequests\":0,\"costUSD\":2.655256,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-307 (RP09 CRM core, Risk C, 150 units, range RP09.P04.M06.S06-RP09.P05.M05.S07) is a descriptor-only closeout pack and its production_ready_candidate claim is supported. Evidence verified through read-only tools (Read/Grep/Glob) only: (1) command-evidence.json records all 21 implementation/test/contract/plan/repo-wide validation commands at exit_code 0, with production_ready=false, no_real_data=true, writes_product_state=false, and Hermes gate H09 passed; (2) validators.js derives production_ready_candidate strictly from coverage.valid && foundation.valid, and the foundation validator enforces per-row descriptor_only/runtime_execution=false/customer_safe_errors_only/raw_payload_included=false plus the authority boundary (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true); (3) registry no-write attestation keeps promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false, and carries the CP178+ forbidden_review_evidence list; (4) model.test.js asserts the 150-unit binding, descriptor-only rows (real_client_data_loaded=false, cross_tenant_access_allowed=false, dispatches_ai_runtime=false, claude_is_final_approval=false), and the evidence packets; (5) deliverable/phase/micro distributions reconcile to 150 (P04:83/P05:67). Review hardening is clean: readiness auth_preflight passed with valid non-empty JSON stdout (not fenced, not tool-call-shaped), validation-report shows no forbidden tools and an allowed source_inspection_mode, and changed-file-scope cleanly separates pack refs from unrelated dirty files (the .docx and the ldip invalid-attempt JSON are preserved, not attributed to this pack). Pack-level production_ready correctly remains false and manifest status is implemented_pending_review, deferring the enterprise trust claim to required human final approval; Claude is confirmed a read-only independent reviewer and not the final approver; Hermes patterns are used only for deterministic review packet/receipt handling, not embedded product runtime. The downstream raw-output.json and review-receipt.json are appropriately absent because they are generated from this review step. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ecf55192-1775-48b8-89b7-9482733f41cb\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4565,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "29a07600-fc74-4390-aa38-878361169e56",
+    "uuid": "ecf55192-1775-48b8-89b7-9482733f41cb",
+    "total_cost_usd": 2.656525,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

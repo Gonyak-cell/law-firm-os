@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-096",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 2,
+  "invalid_attempts": [
+    {
+      "attempt": 1,
+      "session_id": "8cf8422c-d5a1-4a9c-ad1d-d362394a3275",
+      "reason": "CLI returned tool-call style text without closeout verdict JSON; not counted as a valid pack-level review."
+    },
+    {
+      "attempt": 2,
+      "session_id": "380c74d5-2ea6-447a-bc9a-27ffca17235a",
+      "reason": "Review input omitted untracked implementation files and returned blocking coverage text instead of required JSON; not counted as a valid pack-level review."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --disallowedTools \"Read,Bash,Edit,Write,MultiEdit,Glob,Grep,LS\" --output-format json < staged diff prompt > /tmp/cp00-096-claude-review-output-valid-3.json",
+    "session_id": "6c146e14-840a-44dc-ba48-e441b6fd41a5",
+    "uuid": "a8b2643c-1c1e-4fe5-8d74-51704836d3dd",
+    "duration_ms": 119708,
+    "total_cost_usd": 0.39559775,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "CP096-P3-01",
+        "severity": "P3",
+        "title": "Executor canonicalizes all blocks through 'routed' state",
+        "description": "executeCoreDomainWorkflow always builds the blocked state_path as requested->normalized->prechecked->routed->blocked regardless of the actual blocking stage (e.g. lock_unavailable conceptually blocks at precheck). The contract declares normalized->blocked and prechecked->blocked transitions that the executor never emits; only requested->blocked (catch path) and routed->blocked are exercised. All emitted transitions are individually valid, so this is a modeling-fidelity gap, not a functional defect.",
+        "recommendation": "Either emit the stage-accurate blocked transition or document that the executor intentionally canonicalizes to the routed->blocked path so the unused contract transitions are not read as dead spec."
+      },
+      {
+        "id": "CP096-P3-02",
+        "severity": "P3",
+        "title": "Fixture source_unit_range narrower than pack range",
+        "description": "CORE_DOMAIN_SYNTHETIC_FIXTURE_PACK_BINDING.source_unit_range is 'RP01.P02.M06.S01-RP01.P02.M06.S06', a subset of the pack/workflow range 'RP01.P02.M04.S07-RP01.P02.M06.S06'. Likely intentional (fixtures live in the M06 sub-band) but the divergence from CORE_DOMAIN_WORKFLOW_PACK_BINDING.range could confuse range-coverage tracking.",
+        "recommendation": "Confirm the sub-range is intentional and add a brief comment, or align the fixture binding range with the pack range."
+      },
+      {
+        "id": "CP096-P3-03",
+        "severity": "P3",
+        "title": "Forbidden persistence target collapses to generic validation error",
+        "description": "A disallowed persistence_target ('database') causes createCoreDomainPersistenceBoundary to throw, which is caught and mapped to the generic 'core_domain_workflow_validation_error' claim. The boundary correctly fails closed (writes_product_state stays false, status blocked), but the specific product/DB-write boundary violation is not distinguishable in blocked_claims.",
+        "recommendation": "Optionally emit a dedicated blocked_claim (e.g. 'persistence_boundary_violation') so boundary breaches are observable separately from generic validation errors. Non-blocking since it already fails closed."
+      },
+      {
+        "id": "CP096-P3-04",
+        "severity": "P3",
+        "title": "Permission-reference denial treated as retryable",
+        "description": "createCoreDomainRetryPolicy marks 'permission_reference_denies_operation' as retryable alongside 'lock_unavailable'. A referenced permission denial is not normally resolved by a synthetic retry without a permission change, so scheduling retry_scheduled for deny is semantically questionable. Synthetic-only, so no boundary impact.",
+        "recommendation": "Reconsider whether a referenced deny should be retryable, or document the synthetic-retry rationale."
+      }
+    ],
+    "notes": [
+      "All hard boundaries upheld: workflow sets evaluates_runtime_permission/writes_audit_event/writes_product_state=false throughout, persistence restricted to none|synthetic_fixture_store and fails closed on disallowed targets, fixtures are synthetic with uses_real_client_data=false; HRX/LDIP untouched.",
+      "Permission handling is reference-binding only (intake.permission_precheck.evaluated=false; deny mapped to blocked_claim), consistent with the stated scope.",
+      "contracts JSON state_transitions and blocked_claims match workflow.js CORE_DOMAIN_WORKFLOW_TRANSITIONS and emitted claims by inspection; validate script and tests reference exports now surfaced via index.js.",
+      "All emitted state_path sequences (happy, blocked, catch) consist of individually valid transitions; assertCoreDomainWorkflowTransition guards the happy/blocked paths.",
+      "No shell/eval/external IO or injection surface; snapshot_ref is a plain synthetic string."
+    ]
+  },
+  "post_review_changes": {
+    "p3_fixed_or_documented": [
+      "CP096-P3-01",
+      "CP096-P3-02",
+      "CP096-P3-03",
+      "CP096-P3-04"
+    ],
+    "no_second_valid_review_run": true
+  }
+}

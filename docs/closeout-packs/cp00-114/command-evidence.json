@@ -1,0 +1,136 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-114",
+  "subphase_id": "RP02.P03.M06.S06",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H02",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "git status --short",
+      "exit_code": 0,
+      "summary": "latest committed pack CP00-113; CP00-114 implementation staged; unrelated untracked files preserved"
+    },
+    {
+      "command": "git log --all --format='%h %aI %s' --grep='^Close CP00' -n 12",
+      "exit_code": 0,
+      "summary": "latest Close CP00 commit before this pack was CP00-113"
+    },
+    {
+      "command": "claude --version",
+      "exit_code": 0,
+      "summary": "2.1.143 (Claude Code)"
+    },
+    {
+      "command": "node --check packages/authz/src/api-synthetic-fixture-set.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/authz/src/index.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/authz/test/authz.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp02-permission-kernel-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/permission-kernel-contract.json','utf8')); console.log('contract json ok')\"",
+      "exit_code": 0,
+      "summary": "contract json ok"
+    },
+    {
+      "command": "node --test packages/authz/test/*.test.js",
+      "exit_code": 0,
+      "summary": "32 tests passed"
+    },
+    {
+      "command": "npm run rp02:permission-kernel:validate",
+      "exit_code": 0,
+      "summary": "CP00-114, 10 units, permission_kernel_cp114_api_synthetic_fixture_set_contract"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-114-claude-review-output-valid.json",
+      "exit_code": 0,
+      "summary": "valid read-only Claude review completed; P0/P1/P2 0, P3 2, non-blocking"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "summary": "regenerates plan cursor after CP00-114 evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "summary": "queue starts after CP00-114"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-114",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "all packs through CP00-114 passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full test suite passed; 1004 tests"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-114 is synthetic-only, metadata-only, and Risk A scoped.",
+    "Unrelated dirty/untracked files were preserved and not included in the active pack."
+  ]
+}

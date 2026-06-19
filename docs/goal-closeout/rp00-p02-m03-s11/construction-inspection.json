@@ -1,0 +1,36 @@
+{
+  "subphase_id": "RP00.P02.M03.S11",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Lock acquisition rule",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T10:03:40Z",
+  "control_plane_hermes_validation_lock_acquisition_rule_verified": true,
+  "verified_behaviors": [
+    "Consumes RP00.P02.M03.S10 Hermes Validation Idempotency key handling results only after validating the S10 result shape, hermes_validation entrypoint, S10 marker, allow_metadata_only decision, idempotency_key_handling_applied flag, idempotency_receipt, audit_event_ref, and idempotency_key.",
+    "Emits a frozen metadata-only lock receipt with tenant, actor, object, permission decision, audit event, idempotency handling, idempotency key, lock rule, lock scope, contention policy, working behavior, effect, and next-subphase fields.",
+    "Records fail-closed lock contention and ownership policy without acquiring runtime locks, writing lock stores, persisting lock records, or creating UI.",
+    "Carries S02 through S10, M00, permission, audit, TEN-001 through TEN-008, validation context, and acceptance gate references.",
+    "Rejects unsafe lock, unknown, runtime, AuthZ, Hermes execution, Hermes evidence, audit write, idempotency-store write, lock-store write, UI, tenant lifecycle mutation, requirement trace bypass, real-data, review-bypass, and product-write claims fail-closed.",
+    "Does not execute service logic, create runtime routes, append audit ledgers, write audit events, mutate tenant lifecycle state, run Hermes validation, create Hermes evidence, evaluate runtime permissions, call AuthZ, use real data, persist idempotency records, acquire locks, persist lock records, create UI, or write product state.",
+    "Does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S12.",
+    "RP00 validator now cross-checks the S11 terminal flag and successor against docs/weighted-implementation-ledger.json."
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s11/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s11/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s11/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s11/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s11/construction-inspection.json"
+  ],
+  "claude_findings": {
+    "p0_count": 1,
+    "p0_status": "fixed",
+    "p1_count": 0,
+    "p2_count": 1,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 1,
+    "p3_status": "fixed"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S11 is production_ready as a non-terminal lock acquisition rule and explicitly hands off to RP00.P02.M03.S12 Persistence boundary."
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-451",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-451/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-451/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "beab7d18-5a1f-430a-89e5-3c0420e66bc7",
+    "uuid": "eb8a2a4b-393d-4bda-a2de-f037aca6f7bb",
+    "total_cost_usd": 1.9920674999999999,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-451 is a clean descriptor-only closeout pack covering the RP14.P09 test/Hermes slice (40 units, Risk B, range RP14.P09.M07.S10-RP14.P09.M09.S07; micro-phase rows 13/20/7; deliverables impl:25/claude_review:6/hermes_evidence:1/security_audit:4/test:2/ui:2 summing to 40). All seven required public exports exist (service.js + validators.js) and re-export through the index.js barrel. The descriptor composes upstream CP450 output and is frozen with a complete no-write / no-real-data flag set (freezeCp451Result), and the validators actively enforce descriptor-only rows and the authority boundary: validateSettlementCoreCp451P09TestHermesSliceDescriptor (validators.js:4601-4608) rejects any promotion of Claude to final approval, any enterprise-trust-from-local-validation claim, and any claude_is_final_approval drift. The contract projection (contracts/settlement-core-contract.json p09_test_hermes_slice_descriptor) is deep-equal verified against the code-generated descriptor by both the validator script (1419-1423) and model.test.js, so there is no code/contract drift. Hermes is used solely as a deterministic review packet/receipt descriptor (H14 evidence, receipt_shape descriptor_only...no_write; emits_hermes_runtime_receipt false; hermes_runtime_embedded_in_product false) and not for product runtime. Claude remains a read-only reviewer (allowed_tools Read/Grep/Glob; read_only true) and not the final approver; human approval and the enterprise trust claim are handled outside this receipt. The pack honestly declares production_ready:false / status implemented_pending_review (command-evidence and manifest agree), exposing only a production_ready_candidate from the Hermes packet, which is the correct deferred posture. CP178+ hardening is satisfied: the inherited forbidden_review_evidence list covers auth failures, zero-byte stdout, malformed JSON, fenced JSON, tool-call-shaped output, and final-approval/enterprise-trust claims; the readiness auth-preflight passed with valid (non-empty, well-formed, unfenced) JSON and exit 0. The post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) correctly do not yet exist for CP00-451 because they are produced downstream of this review (steps 4-7 of the hardening sequence); the completed CP00-450 directory contains them. No P0/P1/P2 issues found. One non-blocking P3 cosmetic note on the generated changed-file-scope artifact. Note: this verdict is independent-reviewer advisory only and does not constitute final approval.",
+    "findings": [
+      {
+        "id": "CP00-451-P3-001",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-lists the pack's own evidence directory under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-451/changed-file-scope.json",
+        "line": 138,
+        "details": "docs/closeout-packs/cp00-451/ (and docs/closeout-pack-plan/new-session-handoff.md) appear in both untracked_implementation_files (lines 131-132) and unrelated_dirty_files_preserved (lines 137-138). The cp00-451/ directory is part of CP00-451: it holds manifest.json and command-evidence.json, is referenced in required_pack_artifacts, and the commit_policy commits it under message 'Close CP00-451 settlement core p09 test hermes slice descriptor pack'. The manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json:1719-1727) correctly EXCLUDES this directory, so the discrepancy is confined to the generated scope artifact and reflects a 'preserved-in-worktree' vs 'unrelated-to-pack' naming conflation. Importantly, active_untracked_implementation_files_omitted is empty, so no required file is dropped from scope and pack integrity is unaffected.",
+        "recommendation": "Optionally refine the changed-file-scope generator so a pack's own evidence directory is not also emitted under unrelated_dirty_files_preserved (or rename the field to reflect 'preserved in worktree'). No code, contract, test, or evidence change is required for CP00-451 closeout.",
+        "post_review_disposition": "Non-blocking informational; does not affect scope integrity, no-write/no-real-data boundaries, the authority boundary, or the deferred production_ready posture. Safe to close out as-is."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

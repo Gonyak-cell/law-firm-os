@@ -1,0 +1,139 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L1-W09",
+  "title": "roadmap conflict matrix",
+  "phase": "L1",
+  "gate": "L1-EXIT",
+  "status": "t01_passed_wp_open_pending_human_authority_decision",
+  "recorded_at": "2026-06-18T10:56:33Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:56:33Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L1-W09-T01",
+      "title": "Create roadmap conflict matrix",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/roadmap-conflict-matrix.md",
+        "docs/goal-closeout/lt-l1-w09/command-evidence.json"
+      ],
+      "acceptance": {
+        "matrix_file_exists": true,
+        "r0_r14_rows": 15,
+        "repo_side_unique_items": [
+          "conflict check",
+          "engagement approval"
+        ],
+        "conflict_rows_with_resolution_options_missing": 0,
+        "l1_9_decision_row_created": false
+      },
+      "commands": [
+        {
+          "command": "ls docs/launch/roadmap-conflict-matrix.md",
+          "exit_code": 0,
+          "output": "docs/launch/roadmap-conflict-matrix.md",
+          "purpose": "Verify the roadmap conflict matrix exists"
+        },
+        {
+          "command": "grep -c '^| R[0-9]' docs/launch/roadmap-conflict-matrix.md",
+          "exit_code": 0,
+          "output": "15",
+          "purpose": "Verify the matrix has R0 through R14 rows"
+        },
+        {
+          "command": "grep -c 'conflict\\|engagement' docs/launch/roadmap-conflict-matrix.md",
+          "exit_code": 0,
+          "output": "8",
+          "purpose": "Verify conflict check and engagement approval are identified"
+        },
+        {
+          "command": "node - <<'NODE'\nconst fs = require('fs');\nconst doc = fs.readFileSync('docs/launch/roadmap-conflict-matrix.md', 'utf8');\nconst rows = doc.split('\\n').filter((line) => /^\\| R[0-9]/.test(line));\nconst missing = rows.filter((line) => line.split('|').map((v) => v.trim())[5] === '');\nconsole.log(JSON.stringify({ rows: rows.length, missing_resolution_options: missing.length }, null, 2));\nif (rows.length !== 15 || missing.length !== 0) process.exit(1);\nNODE",
+          "exit_code": 0,
+          "output": "{\"rows\":15,\"missing_resolution_options\":0}",
+          "purpose": "Verify every R0-R14 row has a resolution option"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This closes only LT-L1-W09-T01. LT-L1-W09-T02 remains pending on human roadmap-authority decision.",
+        "No L1-9 decision row is created by this agent task."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W09-T02",
+      "title": "로드맵 권위 문서 지정·conflict check 포함 판정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_passed_wp_open_pending_human_authority_decision",
+      "objective": "로드맵 권위 문서가 지정되고 conflict check·engagement approval의 1차 포함 여부가 명시 판정된다.",
+      "deliverables": [
+        "launch-decision-register L1-9 행(권위 지정·포함 판정 기록)"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-9",
+        "docs/launch/roadmap-conflict-matrix.md (T01 산출물)"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 L1-9 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "권위 문서가 15번 문서 / docs/roadmap.md / 병합 신설 중 하나로 지정되고 비권위 문서의 지위(레거시·참조)가 명시되어 있다.",
+        "conflict check·engagement approval의 1차 포함 여부가 Wave 1 / Wave 2 초입 / 제외 중 하나로 판정되고(권고 선택지: Wave 1 또는 Wave 2 초입) W01 컷라인과의 정합이 기재되어 있다.",
+        "L1-9 행에 승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"L1-9\" docs/launch/launch-decision-register.md exit 0 2) 권위 지정·비권위 지위 명시 판정 3) 포함 판정 값·컷라인 정합·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w09/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w09/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-9",
+        "docs/launch/roadmap-conflict-matrix.md (T01 산출물)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not designate the authoritative roadmap.",
+    "This record does not decide whether conflict check or engagement approval is Wave 1, Wave 2, or deferred.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 2,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

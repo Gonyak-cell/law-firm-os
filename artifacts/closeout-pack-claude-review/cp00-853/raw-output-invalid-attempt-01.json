@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-853",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-16T17:23:49.728Z",
+  "finished_at": "2026-06-16T17:27:37.339Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 1,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":true,\"api_error_status\":500,\"duration_ms\":227121,\"duration_api_ms\":199734,\"num_turns\":33,\"result\":\"API Error: 500 Internal server error. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com.\",\"stop_reason\":\"stop_sequence\",\"session_id\":\"fbd45996-b0d4-496a-a298-df099ae4df79\",\"total_cost_usd\":1.0876287500000001,\"usage\":{\"input_tokens\":294,\"cache_creation_input_tokens\":78772,\"cache_read_input_tokens\":604538,\"output_tokens\":5095,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":78772,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":395,\"cache_read_input_tokens\":80037,\"cache_creation_input_tokens\":3054,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3054},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1149,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012540000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":300,\"outputTokens\":6106,\"cacheReadInputTokens\":831862,\"cacheCreationInputTokens\":82607,\"webSearchRequests\":0,\"costUSD\":1.08637475,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"4089c1db-26d2-46fe-a8f6-45f6d9d21869\"}\n",
+  "stderr": "",
+  "stdout_bytes": 1545,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": true,
+    "api_error_status": 500,
+    "session_id": "fbd45996-b0d4-496a-a298-df099ae4df79",
+    "uuid": "4089c1db-26d2-46fe-a8f6-45f6d9d21869",
+    "total_cost_usd": 1.0876287500000001,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

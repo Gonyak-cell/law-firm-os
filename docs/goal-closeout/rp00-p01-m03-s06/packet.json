@@ -1,0 +1,94 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M03.S06",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "release_program": "RP00",
+  "release_program_title": "Product Constitution And AI Control Plane",
+  "title": "Ownership metadata",
+  "status": "production_ready",
+  "minimum_closeout_status": "production_ready",
+  "created_at": "2026-06-03T23:43:32+09:00",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "implemented_slice": {
+    "entity": "HermesGate",
+    "slice": "ownership_metadata",
+    "owner_role_values_export": "HERMES_GATE_OWNER_ROLE_VALUES",
+    "policy_export": "HERMES_GATE_OWNERSHIP_POLICY",
+    "validator_export": "validateHermesGateOwnershipMetadata",
+    "owner_module": "packages/control-plane",
+    "default_owner_role": "control_plane_governance_owner",
+    "synthetic_steward_ref": "owner.synthetic_control_plane_steward",
+    "correction_route": "blocked_claim.hermes_gate_ownership_correction",
+    "may_reference": [
+      "Tenant",
+      "Matter",
+      "AuditEventReference",
+      "BlockedClaim",
+      "HumanApproval"
+    ],
+    "may_not_mutate": [
+      "production_product_data",
+      "client_data",
+      "matter_data",
+      "document_data",
+      "billing_data",
+      "human_approval_decisions"
+    ]
+  },
+  "target_files": [
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ],
+  "acceptance_gates": [
+    "ownership_policy_bound",
+    "owner_module_bound",
+    "owner_role_values_bound",
+    "synthetic_steward_ref_enforced",
+    "correction_route_required",
+    "reference_boundary_recorded",
+    "mutation_boundary_recorded",
+    "invalid_owner_metadata_rejected",
+    "relationship_map_deferred_to_next_subphase",
+    "synthetic_fixture_ownership_metadata_validates",
+    "registry_keeps_hermes_gate_model_future",
+    "no_product_state_writes",
+    "actual_claude_cli_review_required",
+    "construction_inspection_required",
+    "next_subphase_boundary_recorded"
+  ],
+  "scope_boundary": {
+    "implements_only_HermesGate_ownership_metadata": true,
+    "does_not_complete_reference_relationship_map": true,
+    "does_not_complete_required_field_registry": true,
+    "does_not_complete_state_transition_map": true,
+    "does_not_complete_validation_helper": true,
+    "does_not_implement_full_HermesGate_model": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "evidence_files": {
+    "command_evidence": "docs/goal-closeout/rp00-p01-m03-s06/command-evidence.json",
+    "claude_review_result": "docs/goal-closeout/rp00-p01-m03-s06/claude-review-result.json",
+    "adjudication": "docs/goal-closeout/rp00-p01-m03-s06/adjudication.md",
+    "construction_inspection": "docs/goal-closeout/rp00-p01-m03-s06/construction-inspection.json"
+  },
+  "next_subphase": "RP00.P01.M03.S07",
+  "production_ready_at": "2026-06-04T01:47:58+09:00",
+  "closeout": {
+    "hermes_evidence_recorded": true,
+    "claude_review_completed": true,
+    "no_unresolved_p0_or_p1": true,
+    "p2_findings_fixed_or_deferred": true,
+    "construction_inspection_passed": true,
+    "final_validation_rerun_required_before_commit": true
+  }
+}

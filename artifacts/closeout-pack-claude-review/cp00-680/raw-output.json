@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-680",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T12:49:51.533Z",
+  "finished_at": "2026-06-14T12:55:52.864Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":360765,\"duration_api_ms\":360667,\"ttft_ms\":5245,\"num_turns\":44,\"result\":\"Review complete. **PASS** with zero open findings.\\n\\nKey results:\\n- **Attempt-01 P2 (CP680-P2-01) verified remediated**: `validators.js:738` now references the CP680 binding; guard assertion added at `model.test.js:389`.\\n- **All boundaries hold**: descriptor-only (freezeCp680Result forces all negative flags), no real data/secrets in changed source, authority boundary intact (Claude non-final, read-only), Hermes is deterministic evidence-only with runtime closed.\\n- **CP178+ hardening passed**: tools restricted to Read/Grep/Glob, auth preflight exit 0 with valid JSON, no premature receipts, summary-only disallowed.\\n- **Correct pre-review state**: manifest/inspection/adjudication all report `production_ready:false` — no overclaim to reject.\\n- The 22/22 validation matrix is reported as-passed in command-evidence; I did not re-run it (read-only, no Bash).\\n\\nDoes not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"1a82f75a-054c-4520-a1d9-ae8fcae71211\",\"total_cost_usd\":2.12908875,\"usage\":{\"input_tokens\":52,\"cache_creation_input_tokens\":100179,\"cache_read_input_tokens\":1660814,\"output_tokens\":26843,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":100179,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":382,\"cache_read_input_tokens\":105931,\"cache_creation_input_tokens\":2643,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2643},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1123,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012280000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":52,\"outputTokens\":26843,\"cacheReadInputTokens\":1660814,\"cacheCreationInputTokens\":100179,\"webSearchRequests\":0,\"costUSD\":2.12786075,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-680 is a descriptor-only closeout pack (RP22 External Integrations I, P05 Primary Implementation Slice; risk A; 10 units RP22.P05.M03.S09-RP22.P05.M03.S18), well-formed with no overclaim. This is a re-review after the attempt-01 P2 fix. [Directly re-inspected via Read/Grep; reviewer is read-only and ran no Bash:] (1) Registry binding registry.js:2312 matches the baseline exactly: pack_id CP00-680, risk A, unit_count 10, range RP22.P05.M03.S09-RP22.P05.M03.S18, upstream CP00-679, next CP00-681/RP22.P05.M03.S19, production_ready_flag external_integrations_i_p05_primary_implementation_fixture_boundary_descriptor_verified; CP679 binding next_pack_id=CP00-680 confirms the chain. (2) EXTERNAL_INTEGRATIONS_I_CP680_REQUIREMENTS deliverable_counts {implementation:3,security_audit:2,fixture:1,test:3,hermes_evidence:1}=10 and micro_title {Primary Implementation Slice:10} match the prompt and the manifest's 10 included_units; all 10 required rows present in requirements, the service case-set, the contract projection, the descriptor validator, and tests. (3) service.js builder uses freezeCp680Result, which forces synthetic_only=true, no_real_data=true, writes_product_state=false and all runtime/credential/leak/bypass flags false; externalIntegrationsIRowKey output for the 10 titles (cross_tenant_case, missing_context_case, audit_hint_case, security_trimming_case, ai_retrieval_or_analytics_case, fixture_manifest, golden_test, failure_test, hermes_fixture_evidence, claude_missing_test_prompt) collides with no ROW_EXTRAS key, so no runtime/payload is injected. (4) validators.js coverage + descriptor validators are real (per-row descriptor_only/no-runtime/customer-safe/no-raw-payload; cross-tenant access denied; AI-retrieval/analytics/fixture/test/UI/permission/audit/persistence runtimes asserted closed; Claude not final approver). (5) Both contracts regenerated with generated_from_pack_id=CP00-680 / current_pack CP00-680 / next_subphase RP22.P05.M03.S19, with cp680_descriptor/cp680_requirements/cp680_no_write_attestation projected; a token/secret scan of changed source found only negative boundary flags, no credential/secret/private-key values. ATTEMPT-01 P2 REMEDIATION VERIFIED: CP680-P2-01 (createExternalIntegrationsICp680CoverageSummary mislabeled pack_id as CP00-679) is fixed -- validators.js:738 now returns EXTERNAL_INTEGRATIONS_I_CP680_PACK_BINDING.pack_id, and a guard assertion assert.equal(coverage.summary.pack_id, 'CP00-680') was added at model.test.js:389; the validator script (validate-rp22-external-integrations-i-contract.mjs:250,296) asserts cp680 coverage.valid and descriptor validity. No remaining open findings. Authority boundary holds: claude_is_final_approval=false (descriptor + packets), promotes_claude_to_final_approval=false, read_only=true, human_final_approval_required_for_runtime_opening=true; the pack claims neither runtime nor enterprise trust within this receipt. Hermes patterns are deterministic evidence/review-packet handling only (command_result=pending_until_closeout_pack_validation, hermes_runtime_opened=false, runtime_receipt_emitted=false), not product runtime. CP178+ hardening: readiness/auth preflight passed (exit 0, 1419-byte non-empty valid JSON), request restricted to Read/Grep/Glob with forbidden_tools_present=false, prompt 2432B (<25600) with prompt_contains_full_diff_or_source=false, summary_only_review_allowed=false (security deliverables present), and no premature top-level raw-output.json/review-receipt.json exist. Pack state is correctly pre-review: manifest production_ready=false/runtime_ready=false/in_progress, construction-inspection PENDING_REVIEW with descriptor_verified=false, adjudication 'no', claude-review-result pending_review -- no unsupported production_ready assertion to reject. [As-reported in command-evidence.json, NOT re-run by this read-only reviewer:] 22/22 commands exit 0 including npm test, npm run build, and git diff --check. Scope note: changed-file-scope.json lists closeout-pack-plan.json and next-pack-queue.json under unrelated_dirty_files_preserved while the manifest worktree list omits them; these are benign closeout-pack-plan:generate outputs, not pack implementation refs -- no boundary violation. blocks_goal_closeout=false: the pack opens no runtime and claims no enterprise trust here (both remain human-gated outside this receipt), and Claude's non-final-approver status is the expected authority boundary, not a defect. Claude remains a read-only independent reviewer, not final approval authority.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"77d89dbe-2113-4fdb-874e-c7da8947758c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 7147,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "1a82f75a-054c-4520-a1d9-ae8fcae71211",
+    "uuid": "77d89dbe-2113-4fdb-874e-c7da8947758c",
+    "total_cost_usd": 2.12908875,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

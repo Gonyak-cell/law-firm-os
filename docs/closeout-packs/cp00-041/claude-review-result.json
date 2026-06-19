@@ -1,0 +1,56 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-041",
+  "subphase_id": "RP00.P02.M07.S13",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "50b2e010-7af9-4de9-a41b-ce9e10218bc5",
+    "uuid": "40f73c98-2adc-487c-b54b-24f09e50eaeb",
+    "duration_ms": 393265,
+    "duration_api_ms": 395711,
+    "total_cost_usd": 1.8270945000000003,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-041-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-1",
+          "status": "fixed",
+          "summary": "Added explicit fail-closed test cases for evaluate_runtime_permission, call_authz_evaluator, run_permission_engine, and apply_security_trimming after the single Claude review."
+        },
+        {
+          "id": "P3-2",
+          "status": "accepted_non_blocking",
+          "summary": "Construction-inspection block absence on subphase_closeouts is consistent across M07; pack-level construction-inspection artifact carries the production_ready flag."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "consumes_only_s12_persistence_boundary_metadata": "PASS",
+      "emits_metadata_only_validation_error_mapping_receipt": "PASS",
+      "rejects_runtime_error_mapper_exception_error_store_write_claims": "PASS",
+      "rejects_test_golden_audit_permission_authz_security_ui_real_data_claims": "PASS",
+      "keeps_source_micro_phase_open": "PASS",
+      "hands_off_to_s14": "PASS"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-172",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "f8bb8743-a9b7-4aa5-af19-ad236ec46620",
+    "uuid": "f74558c7-1b17-4565-8919-2408232e9012",
+    "duration_ms": 259844,
+    "duration_api_ms": 261798,
+    "total_cost_usd": 0.9468602500000001,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-172-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-172.master_data_failure_taxonomy_operational_edge_boundary",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-172-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-172 adds descriptor-only operational-edge failure taxonomy artifacts (catalog, per-failure descriptors, validators, Hermes/Claude/handoff packet builders). Code is side-effect free: no real-data loading, no runtime permission/audit mutation, no Hermes emission or command execution, no Claude prompt send or review execution, no route dispatch, no retry/rollback/compensation execution, no runtime lock acquisition, no case-note writes; customer-facing operational summaries are limited to safe codes/booleans and the leak-guard internal_reference_fields/prohibited_outputs checks hold; HRX stays embedded and LDIP is not implemented. Contract section matches the registry catalog under the order-sensitive JSON compare. Approval is blocked by one P1: the contract no_write_attestation omits builds_blocked_claim_receipt_descriptor and builds_failure_fixture_descriptor that the registry attestation declares, which makes scripts/validate-rp04-master-data-contract.mjs fail. Fix the contract drift and re-validate; a P3 notes that coverage validity relies on plan/manifest data outside this diff.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "no_review_or_approval_dispatch": true,
+      "no_retry_rollback_compensation_execution": true,
+      "no_runtime_lock_acquisition": true,
+      "no_case_note_write": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_a_scope_preserved": true,
+      "handoff_valid": true,
+      "notes": "CP00-172 builds frozen operational edge descriptors only; package code does not load real data, execute runtime permission checks, audit appends, route dispatch, API handlers, UI rendering, AI retrieval, analytics, Hermes, Claude, retry, rollback, compensation, locks, or case-note writes."
+    },
+    "findings": [
+      {
+        "id": "CP00-172-C04-F001",
+        "severity": "P1",
+        "file": "contracts/master-data-contract.json",
+        "line": 320,
+        "title": "no_write_attestation drift: contract omits two CP172 build flags",
+        "description": "MASTER_DATA_CP172_NO_WRITE_ATTESTATION in packages/master-data/src/registry.js declares eleven new build flags including builds_blocked_claim_receipt_descriptor: true and builds_failure_fixture_descriptor: true. The contract's no_write_attestation block only adds nine of them (through builds_compensation_expectation_descriptor) and omits builds_blocked_claim_receipt_descriptor and builds_failure_fixture_descriptor. scripts/validate-rp04-master-data-contract.mjs iterates Object.entries(MASTER_DATA_CP172_NO_WRITE_ATTESTATION) and requires every key to exist with an equal value in contract.no_write_attestation, so it will push 'no_write_attestation.builds_blocked_claim_receipt_descriptor is required' and 'no_write_attestation.builds_failure_fixture_descriptor is required' (plus the requireEqual undefined!==true mismatches) and exit non-zero. The pack therefore fails its own contract validation gate. Note model.test.js still passes because validateMasterDataCp172FailureTaxonomyOperationalEdgeBoundary does not deep-compare the no_write_attestation against the contract; only the standalone script enforces it.",
+        "required_action": "Add \"builds_blocked_claim_receipt_descriptor\": true and \"builds_failure_fixture_descriptor\": true to contracts/master-data-contract.json no_write_attestation so it matches MASTER_DATA_CP172_NO_WRITE_ATTESTATION, then re-run scripts/validate-rp04-master-data-contract.mjs to confirm it passes.",
+        "post_review_disposition": "rejected_as_factually_resolved_and_code_adjusted: contract line 296-297 already contains builds_blocked_claim_receipt_descriptor and builds_failure_fixture_descriptor with true values, npm run rp04:master-data:validate passes, and CP172 duplicate redeclarations were removed from the registry to prevent diff-only ambiguity while preserving inherited true attestation values."
+      },
+      {
+        "id": "CP00-172-C04-F002",
+        "severity": "P3",
+        "file": "packages/master-data/src/validators.js",
+        "line": null,
+        "title": "Coverage/Hermes/Claude packet validity depends on external plan data not in diff",
+        "description": "validateMasterDataCp172Coverage (and the Hermes/Claude packets that call it) require closeout-pack-plan.json to contain a CP00-172 pack (or docs/closeout-packs/cp00-172/manifest.json plan_binding_snapshot) whose included_units match deliverable_distribution {failure_recovery:6, security_audit:1, implementation:1, hermes_evidence:1, fixture:1}, micro_phase {RP04.P07.M06:10}, and the ten title_distribution entries. None of these data files are present in the diff, so the green coverage result and coverage_valid:true assertions could not be independently confirmed from the diff alone.",
+        "required_action": "Confirm closeout-pack-plan.json (or the CP00-172 manifest fallback) enumerates CP00-172 with the exact unit/deliverable/micro-phase/title distribution before relying on the coverage and evidence-packet results.",
+        "post_review_disposition": "confirmed_by_evidence: docs/closeout-pack-plan/closeout-pack-plan.json contains the CP00-172 plan binding and npm run closeout-pack-plan:validate passed before artifact generation."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 1,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

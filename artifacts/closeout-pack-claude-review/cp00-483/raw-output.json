@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-483",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T10:17:29.546Z",
+  "finished_at": "2026-06-12T10:26:36.806Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":545992,\"duration_api_ms\":543940,\"ttft_ms\":3271,\"num_turns\":39,\"result\":\"CP00-483 review finalized: **PASS_WITH_FINDINGS** — pack and goal closeout not blocked, no unresolved P0/P1/P2, one non-blocking P3 cosmetic label nit (handoff `open_scope` wording at `service.js:553` / contract `:5831`). The descriptor-only boundary, distribution counts, auth/validation evidence, and read-only authority boundary all verified clean.\",\"stop_reason\":\"end_turn\",\"session_id\":\"b06a9ff3-2e1f-4676-83e7-bbdaac388d0f\",\"total_cost_usd\":3.1506779999999996,\"usage\":{\"input_tokens\":36,\"cache_creation_input_tokens\":174597,\"cache_read_input_tokens\":1482640,\"output_tokens\":39084,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":174597,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":224,\"cache_read_input_tokens\":27645,\"cache_creation_input_tokens\":2331,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2331},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1150,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00125,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1923,\"outputTokens\":47528,\"cacheReadInputTokens\":1644051,\"cacheCreationInputTokens\":180734,\"webSearchRequests\":0,\"costUSD\":3.149428,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-483 (RP16 governance-core, Risk C, 150 units, RP16.P01.M06.S05-RP16.P02.M02.S22) closes P01 and lays the P02 foundation as a descriptor-only slice. The production_ready claim is supported: (1) deliverable and micro-title distributions reconcile exactly across the prompt baseline, registry REQUIREMENTS, manifest, and contract (150 units tallied: P01=88, P02=62); (2) freezeCp483Result stamps no-runtime/no-write/no-leak flags and validators enforce descriptor_only=true / runtime_execution=false on every P02 row, including service-sounding micros (persistence boundary, lock acquisition, idempotency, rollback/retry, permission/audit precheck) — no runtime is opened; (3) auth preflight passed (exit_code 0, 1446-byte stdout, valid JSON {\\\"ok\\\":true}); validation-report shows summary_only disallowed (Risk C + security/audit + review-evidence present), source inspected via Read/Grep/Glob, no forbidden tools; (4) authority boundary intact — Claude is read-only and not final approver, enterprise trust claim closed outside this receipt, Hermes used only for deterministic review packet/receipt handling and not embedded in product runtime; (5) command-evidence shows all pre-review gates at exit_code 0 and manifest correctly holds production_ready=false / status implemented_pending_review until external approval. One P3 cosmetic finding (handoff open_scope mislabels the next micro as \\\"type and shape rows\\\" when RP16.P02.M03 is \\\"Primary Implementation Slice\\\"); it is mirrored consistently between source and contract with no drift and does not block pack or goal closeout. No P0/P1/P2 issues.\",\"findings\":[{\"id\":\"CP483-P3-01\",\"severity\":\"P3\",\"title\":\"Closeout handoff open_scope mislabels next micro as \\\"type and shape rows\\\"\",\"file\":\"packages/governance/src/service.js\",\"line\":553,\"details\":\"The frozen closeout_handoff.open_scope reads: \\\"Continue RP16.P02.M03.S01 onward with the remaining type and shape rows and downstream micros...\\\" However, the Type And Shape Definition work (micro M02) is fully closed by this pack (last_unit_id RP16.P02.M02.S22), and per docs/closeout-pack-plan/closeout-pack-plan.json:1960 the next micro RP16.P02.M03 is titled \\\"Primary Implementation Slice\\\" (its first step RP16.P02.M03.S01 is \\\"Service entrypoint contract\\\"), not additional type/shape rows. The same text is mirrored verbatim in contracts/governance-core-contract.json:5831, so source and contract are internally consistent (no drift) — this is a cosmetic descriptive label, not a structural or boundary defect.\",\"recommendation\":\"Optionally reword the open_scope to reference the Primary Implementation Slice (RP16.P02.M03) instead of \\\"remaining type and shape rows\\\" in a future pack, updating both packages/governance/src/service.js:553 and the contract mirror at contracts/governance-core-contract.json:5831 together to preserve no-drift. Non-blocking for CP00-483 closeout.\",\"post_review_disposition\":\"Non-blocking cosmetic nit; descriptor-only boundary, counts, attestations, and authority boundary all verified. Does not block pack or goal closeout. Recommend deferring the wording fix to a downstream pack.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"a2cf0cde-00db-4923-af77-04da54d2680c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5181,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "b06a9ff3-2e1f-4676-83e7-bbdaac388d0f",
+    "uuid": "a2cf0cde-00db-4923-af77-04da54d2680c",
+    "total_cost_usd": 3.1506779999999996,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

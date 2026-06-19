@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-708",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T03:37:22.923Z",
+  "finished_at": "2026-06-15T03:41:31.863Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":248151,\"duration_api_ms\":249276,\"ttft_ms\":3364,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0–P3 all zero), does not block pack or goal closeout.\\n\\nCP00-708 is a clean descriptor-only continuation of the finance-integrations CP694–CP707 series. Everything is internally consistent and the descriptor-verified `production_ready` claim is supported: binding/requirements match the baseline and prompt distributions, coverage and descriptor validation are error-free (in code and the regenerated contract with CP00-708 as latest projection), tests cover CP00-708, all 24 validation commands recorded exit 0, no-write/no-real-data attestations hold, and the authority boundary is intact (Claude read-only/non-final, Hermes evidence-only, enterprise trust human-gated). The pack correctly holds `production_ready:false`/`runtime_ready:false` pending this single valid review receipt, with no over-claiming.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d36589f8-b154-4bb3-bf40-7a96c59b387a\",\"total_cost_usd\":2.088593,\"usage\":{\"input_tokens\":46,\"cache_creation_input_tokens\":123726,\"cache_read_input_tokens\":1730655,\"output_tokens\":17941,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":123726,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":346,\"cache_read_input_tokens\":114928,\"cache_creation_input_tokens\":9214,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":9214},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1123,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012230000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":46,\"outputTokens\":17941,\"cacheReadInputTokens\":1730655,\"cacheCreationInputTokens\":123726,\"webSearchRequests\":0,\"costUSD\":2.08737,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-708 is a clean, descriptor-only continuation of the RP23 External Integrations II finance-integrations series (CP694-CP707), and its descriptor-verified production_ready claim is well supported. The CP708 binding (registry.js:239) matches the baseline exactly (risk A, 10 units, RP23.P05.M03.S09-S18, next CP00-709/RP23.P05.M03.S19), and the CP708 requirements (registry.js:2023) match the prompt's deliverable distribution (implementation:3, security_audit:2, fixture:1, test:3, hermes_evidence:1) and micro_title distribution (Primary Implementation Slice:10). Coverage and descriptor validation are clean (errors:[]) both in code and as embedded in the regenerated contract (cp708 coverage.valid/descriptor.valid true; latest_pack and latest_projection = CP00-708; CP694-CP707 preserved as historical; validation.valid:true). Tests (model.test.js:44-46) exercise the CP00-708 binding/coverage, runtime-closed descriptor/packets (claude non-final, human approval required for runtime opening, runtime_opening_pack_id CP00-709, hermes emits_runtime_receipt:false, claude read_only:true), and the contract projection. No-write/no-real-data boundaries hold: NO_WRITE_ATTESTATION is all-false for product-state/runtime/credential/audit/permission exposure, command-evidence records 24/24 commands at exit 0 with no_real_data:true, and the security_audit rows (S11 Audit hint, S12 Security trimming) carry only base safety fields with no audit-body or permission-decision leakage. The authority boundary is intact: Claude is a read-only independent reviewer and not final approver, enterprise trust is closed and human-gated, and Hermes is used only for deterministic control-plane evidence packets, not product runtime. Review hardening checks pass: readiness auth preflight succeeded with well-formed JSON, no forbidden tools, schema present, and zero prior invalid review attempts. The pack correctly holds production_ready:false / runtime_ready:false pending this single valid receipt, with no premature or over-broad runtime/enterprise-trust claims. No P0/P1/P2/P3 findings. Note: this receipt is an independent read-only review only and is not final human/enterprise-trust approval, which remains outside this receipt by design.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e583e563-92fd-49fc-b534-11368e084e6d\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4792,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d36589f8-b154-4bb3-bf40-7a96c59b387a",
+    "uuid": "e583e563-92fd-49fc-b534-11368e084e6d",
+    "total_cost_usd": 2.088593,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-087",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "647c2acd-081e-458b-a3dd-f165ba79c18a",
+    "uuid": "2d012a15-4b70-4443-9921-dc3b2c22efe5",
+    "total_cost_usd": 1.3520127499999999,
+    "permission_denials": [],
+    "invalid_tool_request_attempt_counted_as_valid": false
+  },
+  "invalid_attempts": [
+    {
+      "session_id": "20138e04-3d38-4b65-9719-c25320786905",
+      "uuid": "09da45a6-ed49-47ba-b230-aa2c8a017bb5",
+      "reason": "Claude attempted a disabled Bash tool and returned no verdict or finding counts.",
+      "counted_as_valid_pack_review": false
+    }
+  ],
+  "parsed_review": {
+    "review_id": "claude-c00-cp00-087",
+    "pack_id": "CP00-087",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "CP00-087-P3-01",
+        "severity": "P3",
+        "title": "Referenced CP00-087 closeout artifacts were absent from the review diff",
+        "evidence": "Claude noted command evidence and construction inspection refs before those files were generated.",
+        "recommended_action": "Generate CP00-087 evidence artifacts and run pack/RP00 validators.",
+        "adjudication": "fixed_by_generating_pack_evidence_and_validating"
+      },
+      {
+        "id": "CP00-087-P3-02",
+        "severity": "P3",
+        "title": "catalog_ref points at the same synthetic fixture file that stores metadata evidence",
+        "evidence": "Claude noted testGoldenCatalogPolicy.catalog_ref points to packages/control-plane/fixtures/synthetic-control-plane.json while golden_catalog_write_permitted is false.",
+        "recommended_action": "No code change required; clarify runtime write versus metadata authoring convention.",
+        "adjudication": "accepted_as_metadata_authoring_not_runtime_catalog_write"
+      },
+      {
+        "id": "CP00-087-P3-03",
+        "severity": "P3",
+        "title": "completed_source_micro_phase_ids uses a scoped sliding window",
+        "evidence": "Claude noted completedSourceMicroPhaseIds records RP00.P07.M04-M07 instead of every earlier RP00.P07 microphase.",
+        "recommended_action": "Confirm per-chain scoping is intentional.",
+        "adjudication": "accepted_as_sliding_window_source_scope_convention"
+      }
+    ],
+    "boundary_assessment": {
+      "metadata_only": "preserved",
+      "no_write": "preserved",
+      "no_runtime_test_execution": "preserved",
+      "no_runtime_fixture_generation": "preserved",
+      "no_runtime_permission_evaluation": "preserved",
+      "no_audit_write": "preserved",
+      "no_hermes_evidence_packet_write": "preserved",
+      "no_real_data": "preserved",
+      "no_ldip_implementation": "preserved",
+      "ldip_planning_overlay_only": "preserved"
+    },
+    "raw_review_excerpt": "# Read-Only Review — Law Firm OS Closeout Pack CP00-087\n\n**overall_verdict:** PASS_WITH_FINDINGS\n\n**blocks_pack_closeout:** false\n\n**finding_counts:** p0=0 / p1=0 / p2=0 / p3=3\n\n---\n\n## findings\n\n### [P3] Referenced closeout-pack artifacts are not present in this diff\n- **evidence:** `result.required_evidence_refs` / `upstream_evidence_refs` cite `docs/closeout-packs/cp00-086/*`, and `command_evidence_ref` + `construction_inspection_ref` cite `docs/closeout-packs/cp00-087/{command-evidence.json,construction-inspection.json}`. The validation script (`scripts/validate-rp00-control-plane-contract.mjs`) now requires `inspection.control_plane_failure_edge_recovery_test_golden_case_set_verified === true` and existence of these paths, but none of the `cp00-087/` artifacts appear in the diff.\n- **recommended_action:** Confirm the cp00-087 closeout artifacts exist and that `node scripts/validate-rp00-control-plane-contract.mjs` plus the new `service.test.js` cases pass. This is a review-scope limitation (diff-only), not an observed defect.\n\n### [P3] `catalog_ref` self-references the synthetic fixture file where the binding metadata lives\n- **evidence:** `testGoldenCatalogPolicy.catalog_ref = \"packages/control-plane/fixtures/synthetic-control-plane.json\"` (policies.js) while `golden_catalog_write_permitted: false` / `golden_catalog_write_deferred: true`. The diff does add the catalog metadata block into that same fixture file.\n- **recommended_action:** None required. This is metadata *description* of the golden case set (no runtime golden-catalog persistence; deferred), consistent with the CP00-082→CP00-086 convention. Noted for transparency since it could read as contradictory at a glance.\n\n### [P3] `completed_source_micro_phase_ids` scopes to the failure-edge-recovery chain only (M04–M07)\n- **evidence:** `completedSourceMicroPhaseIds: [\"RP00.P07.M04\",\"RP00.P07.M05\",\"RP00.P07.M06\",\"RP00.P07.M07\"]` (policies.js), hard-asserted in validators.js. Any earlier RP00.P07 micro-phases (M01–M03) are not enumerated.\n- **recommended_action:** Confirm the per-chain scoping is intentional. Low risk: `phase_completed: false` and `open_source_micro_phase_ids: [\"RP00.P07.M08\"]`, so no premature phase completion is claimed; the list is validator-enforced and matches prior packs.\n\n---\n\n## boundary_assessment\n\n- **metadata-only:** PASS — All 20 catalog/matrix entries carry `metadata_only: true`, `expected_runtime_writes: false`, `runtime_test_execution_permitted: false`; the assembler only returns a frozen object and rejects every truthy `boundaryClaims` entry (`cannot claim …` / `cannot accept unknown claim …`).\n- **no-write:** PASS — `golden_catalog_write_permitted`, `runtime_test_execution_*`, `runtime_fixture_generation_*`, `audit_ledger_append_permitted`, `audit_event_write_permitted`, `hermes_evidence_packet_write_permitted`, `command_evidence_write_permitted`, `database/storage/product_state/idempotency/lock` flags all `false`; `writes_product_state: false`. Forbidden-claims set extends the upstream set with `write_golden_case_catalog`, `run_failure_unit_test`, `write_hermes_failure_evidence_packet`, etc.\n- **no-real-data:** PASS — Synthetic identifiers only (`tenant.synthetic.lawfirm`, `user.synthetic.operator-designer`, `matter.synthetic.control-plane`); `no_real_data: true` at every level; `use_real_client_data`/`use_secret_material` forbidden.\n- **no-LDIP:** PASS — `ldip_implementation_allowed: false`, `ldip_planning_gate_ref` referenced as planning gate only; `start_ldip_implementation`/`add_ldip_runtime_schema` forbidden.\n\n**Handoff integrity:** Upstream consumption validated (`pack_id`/`planned_pack_id === \"CP00-086\"`, upstream `next_subphase === \"RP00.P07.M07.S01\"`, full upstream-result re-assertion); M07 closed (S01–S20 closeouts added, `source_micro_phase_completed: true`); `next_subphase: \"RP00.P07.M08.S01\"`; `current_subphase` and validator cursor advanced to RP00.P07.M07.S20 / RP00.P07.M07. The CP00-086→CP00-087 cursor correction (`requested_pack_id: \"CP00-086\"`, `deviation_from_plan: false`) follows the established live-cursor pattern.",
+    "summary": "CP00-087 binds RP00.P07.M07.S01-S20 as a metadata-only failure edge recovery Test And Golden Case Set over CP00-086 synthetic fixture evidence. Claude returned PASS_WITH_FINDINGS with no P0/P1/P2 findings and three non-blocking P3 notes adjudicated before closeout."
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.changed-file-scope.v0.1",
+  "pack_id": "CP00-225",
+  "active_pack_scope_available": true,
+  "active_pack_implementation_refs": [
+    "contracts/dms-core-contract.json",
+    "packages/dms/README.md",
+    "packages/dms/src/index.js",
+    "packages/dms/src/registry.js",
+    "packages/dms/src/service.js",
+    "packages/dms/src/validators.js",
+    "packages/dms/test/model.test.js",
+    "scripts/validate-rp06-dms-core-contract.mjs"
+  ],
+  "active_pack_required_untracked_files": [],
+  "git_status_rows": [
+    {
+      "status": " M",
+      "file": "contracts/dms-core-contract.json",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/dms/README.md",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/dms/src/registry.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/dms/src/service.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/dms/src/validators.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/dms/test/model.test.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "scripts/validate-rp06-dms-core-contract.mjs",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-pack-plan/new-session-handoff.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-packs/cp00-225/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/enterprise-v2-loop-roadmap/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/loop-system-integration/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/spec-v2-integration/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    }
+  ],
+  "untracked_implementation_files": [
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-225/"
+  ],
+  "active_untracked_implementation_files_omitted": [],
+  "unrelated_dirty_files_preserved": [
+    "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-225/",
+    "docs/enterprise-v2-loop-roadmap/",
+    "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+    "docs/loop-system-integration/",
+    "docs/spec-v2-integration/"
+  ]
+}

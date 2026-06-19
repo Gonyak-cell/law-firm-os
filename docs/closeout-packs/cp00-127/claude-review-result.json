@@ -1,0 +1,112 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-127",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "da4af1de-1ca2-4d09-ab86-1f2a227ac2a6",
+    "uuid": "5da6c42d-8102-4287-8e10-15ad07cad943",
+    "total_cost_usd": 0.643289,
+    "duration_ms": 173696,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "CP00-127 closeout manifest and plan-pack entry are external to this diff",
+        "file": "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "Validator reads docs/closeout-packs/cp00-127/manifest.json via readJsonIfExists and resolves cp127PlanPack from closeoutPlan.packs.find(...) or the manifest snapshot, then calls requirePlanPackUnitMatch(cp127PlanPack, ...) with required defaulting true. Neither the per-pack manifest nor a closeout-pack-plan.json update is present in this diff.",
+        "recommendation": "Confirm closeout-pack-plan.json already enumerates CP00-127 with range RP02.P07.M05.S17-RP02.P07.M06.S04 so the plan-pack unit match resolves; the per-pack manifest is normally produced during the closeout step. Informational only; does not affect the code/contract boundary verification and does not block closeout."
+      }
+    ],
+    "blocks_pack_closeout": false,
+    "recommendation": "Approve. The pack closes the planned Risk A failure taxonomy permission/audit test evidence and synthetic fixture opening slice within scope, with all required no-write and reference-only boundaries enforced and asserted.",
+    "rationale": "Scope is fully satisfied. The new packages/authz/src/failure-taxonomy-test-fixture-boundary.js binds exactly 10 units across two micro phases (RP02.P07.M05.S17-S22 permission/audit test evidence and RP02.P07.M06.S01-S04 synthetic fixture opening), covering all ten required behaviors: failure taxonomy, missing tenant/actor/Matter failures, failure unit test, failure integration smoke, audit failure hint, Hermes failure evidence, Claude edge-case prompt, and human escalation note. CP126 inheritance is genuine (imports and calls createPermissionKernelCp126FailureTaxonomyWorkflowBinding plus two case lookups; validation enforces inherited_workflow_result_count===40 and the unit-test/Hermes reference-only bindings). Synthetic-only/metadata-only is preserved (synthetic_only/no_real_data true, fixture_contains_real_data false). Unit test and integration smoke are deterministic and non-persisting (permission_audit_test_evidence.deterministic true, persisted false; replay_persists_state false). Audit hint and Hermes evidence are preview/reference-only (emitted_to_audit_ledger false, writes_hermes_runtime false). Claude prompt rows are read-only and executes_claude_review false; human escalation grants_human_approval false. Synthetic fixture opening fails closed for missing tenant/actor/Matter (missing_*_denied true, fail_closed true, fixture_persisted false) and unknown cases block before evaluation. No runtime UI/API routes, permission-policy mutation, audit/product/database writes, idempotency persistence, locks, retry/rollback/compensation, export/share, AI/analytics, LDIP, or HRX split appear anywhere; all 19 no_write_attestation flags are false in both the source module and the contract JSON, the validate script asserts each, and the suite verifies the no-write/leak-free invariant across all case results. Contract bump (v0.20->v0.21), current_pack switch to CP00-127, production_ready_flag, 11 public exports, 10 hidden source fields, deliverable/domain counts (test 2, security_audit 1, hermes_evidence 1, claude_review 1, implementation 1, failure_recovery 4), and handoff to CP00-128 / RP02.P07.M06.S05 are internally consistent. The single P3 is an informational note that the closeout manifest and plan entry live outside this diff."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 173696,
+    "duration_api_ms": 175517,
+    "ttft_ms": 156989,
+    "num_turns": 1,
+    "result": "Reviewed the staged CP00-127 diff against the stated Risk A boundaries. Findings as JSON below.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"CP00-127 closeout manifest and plan-pack entry are external to this diff\",\n      \"file\": \"scripts/validate-rp02-permission-kernel-contract.mjs\",\n      \"evidence\": \"Validator reads docs/closeout-packs/cp00-127/manifest.json via readJsonIfExists and resolves cp127PlanPack from closeoutPlan.packs.find(...) or the manifest snapshot, then calls requirePlanPackUnitMatch(cp127PlanPack, ...) with required defaulting true. Neither the per-pack manifest nor a closeout-pack-plan.json update is present in this diff.\",\n      \"recommendation\": \"Confirm closeout-pack-plan.json already enumerates CP00-127 with range RP02.P07.M05.S17-RP02.P07.M06.S04 so the plan-pack unit match resolves; the per-pack manifest is normally produced during the closeout step. Informational only; does not affect the code/contract boundary verification and does not block closeout.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve. The pack closes the planned Risk A failure taxonomy permission/audit test evidence and synthetic fixture opening slice within scope, with all required no-write and reference-only boundaries enforced and asserted.\",\n  \"rationale\": \"Scope is fully satisfied. The new packages/authz/src/failure-taxonomy-test-fixture-boundary.js binds exactly 10 units across two micro phases (RP02.P07.M05.S17-S22 permission/audit test evidence and RP02.P07.M06.S01-S04 synthetic fixture opening), covering all ten required behaviors: failure taxonomy, missing tenant/actor/Matter failures, failure unit test, failure integration smoke, audit failure hint, Hermes failure evidence, Claude edge-case prompt, and human escalation note. CP126 inheritance is genuine (imports and calls createPermissionKernelCp126FailureTaxonomyWorkflowBinding plus two case lookups; validation enforces inherited_workflow_result_count===40 and the unit-test/Hermes reference-only bindings). Synthetic-only/metadata-only is preserved (synthetic_only/no_real_data true, fixture_contains_real_data false). Unit test and integration smoke are deterministic and non-persisting (permission_audit_test_evidence.deterministic true, persisted false; replay_persists_state false). Audit hint and Hermes evidence are preview/reference-only (emitted_to_audit_ledger false, writes_hermes_runtime false). Claude prompt rows are read-only and executes_claude_review false; human escalation grants_human_approval false. Synthetic fixture opening fails closed for missing tenant/actor/Matter (missing_*_denied true, fail_closed true, fixture_persisted false) and unknown cases block before evaluation. No runtime UI/API routes, permission-policy mutation, audit/product/database writes, idempotency persistence, locks, retry/rollback/compensation, export/share, AI/analytics, LDIP, or HRX split appear anywhere; all 19 no_write_attestation flags are false in both the source module and the contract JSON, the validate script asserts each, and the suite verifies the no-write/leak-free invariant across all case results. Contract bump (v0.20->v0.21), current_pack switch to CP00-127, production_ready_flag, 11 public exports, 10 hidden source fields, deliverable/domain counts (test 2, security_audit 1, hermes_evidence 1, claude_review 1, implementation 1, failure_recovery 4), and handoff to CP00-128 / RP02.P07.M06.S05 are internally consistent. The single P3 is an informational note that the closeout manifest and plan entry live outside this diff.\"\n}\n```\n\nNo blocking issues; the diff is additive metadata/test scaffolding consistent with prior packs and stays within the synthetic, reference-only, no-write boundary.",
+    "stop_reason": "end_turn",
+    "session_id": "da4af1de-1ca2-4d09-ab86-1f2a227ac2a6",
+    "total_cost_usd": 0.643289,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 35456,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 15916,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 35456,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 15916,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 35456,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 35456
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 22145,
+        "outputTokens": 22,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.022255,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 15916,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 35456,
+        "webSearchRequests": 0,
+        "costUSD": 0.621034,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "5da6c42d-8102-4287-8e10-15ad07cad943"
+  }
+}

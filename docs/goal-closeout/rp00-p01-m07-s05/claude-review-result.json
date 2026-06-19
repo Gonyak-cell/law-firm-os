@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v1",
+  "subphase_id": "RP00.P01.M07.S05",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools": "",
+    "write_tools_granted": false,
+    "permission_denials": [],
+    "session_id": "2235e0fd-56cf-4ccc-aad8-1cc5aa52ef74",
+    "uuid": "16a0c212-ebcc-4c80-9106-02e0d9d0567c",
+    "initial_turn_uuid": "83f981d6-9121-4ec7-80ea-fd964b26d347",
+    "initial_turn_result_incomplete": true,
+    "initial_turn_disposition": "not_counted_as_verdict_because_it_returned_a_tool_invocation_without_findings",
+    "duration_ms": 510782,
+    "duration_api_ms": 513199,
+    "total_cost_usd": 2.024398,
+    "executed_at": "2026-06-04T06:20:16Z",
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s05-claude-review-continuation.json",
+    "initial_raw_result_path": "/tmp/lfos-rp00-p01-m07-s05-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "summary": "Claude Code Opus 4.8 max read-only review reported no P0 or P1 findings. It reported one P2 discrepancy about weighted title disposition set membership; local adjudication verified the finding was based on a misread because S05 is in alignedWithWeightedLedgerSubphases, not contractTitleAuthoritativeSubphases. Two P3 test-symmetry observations were fixed by adding numeric, object, tab, and newline invalid-status unit assertions.",
+    "findings": [
+      {
+        "id": "STATE-M07-S05-001",
+        "severity": "P2",
+        "title": "Disposition status vs authoritative-set membership",
+        "files": [
+          "contracts/control-plane-contract.json",
+          "scripts/validate-rp00-control-plane-contract.mjs"
+        ],
+        "status": "not_applicable_after_adjudication",
+        "disposition": "Rejected after local verification. S05 appears in alignedWithWeightedLedgerSubphases, not contractTitleAuthoritativeSubphases, and the contract item records aligned_with_weighted_ledger. The strict validator agrees with this placement; no contract change is required."
+      },
+      {
+        "id": "STATE-M07-S05-002",
+        "severity": "P3",
+        "title": "Numeric and object invalid status cases are only validator-covered",
+        "files": [
+          "packages/control-plane/test/model.test.js"
+        ],
+        "status": "fixed",
+        "disposition": "Added unit assertions that validateControlPlaneStateEnumRegistryStatus rejects numeric and object inputs."
+      },
+      {
+        "id": "STATE-M07-S05-003",
+        "severity": "P3",
+        "title": "Tab and newline stored-whitespace status cases are not explicit in unit tests",
+        "files": [
+          "packages/control-plane/test/model.test.js"
+        ],
+        "status": "fixed",
+        "disposition": "Added unit assertions that tab-prefixed and newline-suffixed stored statuses are rejected by the stored-whitespace guard."
+      }
+    ]
+  }
+}

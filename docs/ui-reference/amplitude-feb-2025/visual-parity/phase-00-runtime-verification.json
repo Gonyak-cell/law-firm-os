@@ -1,0 +1,1079 @@
+{
+  "schema_version": "matter.amplitude.runtime-verification.v1",
+  "generated_at": "2026-06-09T16:03:06.612Z",
+  "base_url": "http://127.0.0.1:5173",
+  "passed": true,
+  "console_errors": [],
+  "mobile_metrics": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "horizontalOverflow": false
+  },
+  "results": [
+    {
+      "name": "home-ko",
+      "url": "/?locale=ko&view=home",
+      "expectText": "Matter Analytics",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "home-en",
+      "url": "/?locale=en&view=home",
+      "expectText": "Matter Analytics",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "home-tour-en",
+      "url": "/?locale=en&view=home&variant=tour",
+      "expectText": "What's New",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "new-navigation-tour-modal-en",
+      "url": "/?locale=en&view=home&modal=newNavigationTour",
+      "expectText": "Experience the new Amplitude",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "annotation-modal-en",
+      "url": "/?locale=en&view=home&modal=annotation",
+      "expectText": "New Annotation",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "auth-signup-ko",
+      "url": "/?locale=ko&view=auth&authStep=signup",
+      "expectText": "matter 시작하기",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "auth-signup-modal-en",
+      "url": "/?locale=en&view=auth&authStep=signupModal",
+      "expectText": "Get started free",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "auth-login-en",
+      "url": "/?locale=en&view=auth&authStep=login",
+      "expectText": "Log in to matter",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "auth-verify-ko",
+      "url": "/?locale=ko&view=auth&authStep=verify",
+      "expectText": "이메일을 확인하세요",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "content-ko",
+      "url": "/?locale=ko&view=content",
+      "expectText": "전체 콘텐츠",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "visual-labeling-launch-modal-en",
+      "url": "/?locale=en&view=content&modal=visualLabelingLaunch",
+      "expectText": "Launch Visual Labeling",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "profiles-ko",
+      "url": "/?locale=ko&view=profiles",
+      "expectText": "사용자 프로필",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "profiles-user-list-en",
+      "url": "/?locale=en&view=profiles&variant=userList",
+      "expectText": "Matching Profiles",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "save-cohort-modal-en",
+      "url": "/?locale=en&view=profiles&variant=userList&modal=saveCohort",
+      "expectText": "No Current Location",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "analytics-en",
+      "url": "/?locale=en&view=analytics",
+      "expectText": "Untitled Chart",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "analytics-data-table-en",
+      "url": "/?locale=en&view=analytics&variant=dataTable",
+      "expectText": "Start your data table",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "analytics-data-table-picker-en",
+      "url": "/?locale=en&view=analytics&variant=dataTablePicker",
+      "expectText": "Select or Define a Metric",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "metric-untitled-modal-en",
+      "url": "/?locale=en&view=analytics&variant=dataTable&modal=metricUntitled",
+      "expectText": "Untitled metric",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "metric-named-modal-en",
+      "url": "/?locale=en&view=analytics&variant=dataTable&modal=metricNamed",
+      "expectText": "Sign ups per day",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "metric-picker-modal-en",
+      "url": "/?locale=en&view=analytics&variant=dataTable&modal=metricPicker",
+      "expectText": "Any Active Event",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "metric-preview-modal-en",
+      "url": "/?locale=en&view=analytics&variant=dataTable&modal=metricPreview",
+      "expectText": "Current Uniques",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "dashboards-ko",
+      "url": "/?locale=ko&view=dashboards",
+      "expectText": "대시보드",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "dashboard-template-en",
+      "url": "/?locale=en&view=dashboards&variant=template",
+      "expectText": "Template Preview",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "create-dashboard-modal-en",
+      "url": "/?locale=en&view=dashboards&variant=template&modal=createDashboard",
+      "expectText": "Create New Dashboard",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "dashboard-subscribe-modal-en",
+      "url": "/?locale=en&view=dashboards&modal=dashboardSubscribe",
+      "expectText": "Subscribe to Dashboard Reports",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "dashboard-subscribe-success-modal-en",
+      "url": "/?locale=en&view=dashboards&modal=dashboardSubscribeSuccess",
+      "expectText": "Your schedules have been updated successfully",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "ask-ko",
+      "url": "/?locale=ko&view=ask",
+      "expectText": "matter에게 질문",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "ask-retention-en",
+      "url": "/?locale=en&view=ask&variant=retention",
+      "expectText": "Generated retention chart",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiments-en",
+      "url": "/?locale=en&view=experiments",
+      "expectText": "Experiment Overview",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiments-overview-cards-en",
+      "url": "/?locale=en&view=experiments&variant=overviewCards",
+      "expectText": "Web experimentation",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-builder-en",
+      "url": "/?locale=en&view=experiments&variant=builder",
+      "expectText": "Targeting",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-setup-site-en",
+      "url": "/?locale=en&view=experiments&variant=expSiteSetup",
+      "expectText": "Script tag detected",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-setup-variants-en",
+      "url": "/?locale=en&view=experiments&variant=expVariantsDrawer",
+      "expectText": "Set up your variants",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-setup-goals-en",
+      "url": "/?locale=en&view=experiments&variant=expGoalsConfigured",
+      "expectText": "Sign up interest",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-setup-delivery-en",
+      "url": "/?locale=en&view=experiments&variant=expDelivery",
+      "expectText": "Delivery Options",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-visual-editor-en",
+      "url": "/?locale=en&view=experiments&variant=expVisualEditor",
+      "expectText": "Selector",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-action-modal-en",
+      "url": "/?locale=en&view=experiments&variant=expActionModal",
+      "expectText": "Apply an action to this variant",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-adding-modal-en",
+      "url": "/?locale=en&view=experiments&variant=expAdding",
+      "expectText": "Adding variants to your experiment",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-detail-settings-en",
+      "url": "/?locale=en&view=experiments&variant=expDetailSettings",
+      "expectText": "Targeting",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-detail-activity-en",
+      "url": "/?locale=en&view=experiments&variant=expDetailActivity",
+      "expectText": "Data Quality",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "experiment-start-modal-en",
+      "url": "/?locale=en&view=experiments&variant=expStartModal",
+      "expectText": "Start Experiment",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "new-experiment-modal-en",
+      "url": "/?locale=en&view=experiments&variant=overviewCards&modal=newExperiment",
+      "expectText": "New Web Experiment",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "new-experiment-blank-modal-en",
+      "url": "/?locale=en&view=experiments&variant=overviewCards&modal=newExperimentBlank",
+      "expectText": "Name*",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "new-experiment-filled-modal-en",
+      "url": "/?locale=en&view=experiments&variant=overviewCards&modal=newExperimentFilled",
+      "expectText": "Targeted Page",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "new-experiment-advanced-modal-en",
+      "url": "/?locale=en&view=experiments&variant=overviewCards&modal=newExperimentAdvanced",
+      "expectText": "Multi-Armed Bandit",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "admin-ko",
+      "url": "/?locale=ko&view=admin",
+      "expectText": "조직 설정",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "profile-settings-en",
+      "url": "/?locale=en&view=admin&variant=profile",
+      "expectText": "Personal Information",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "profile-picture-modal-en",
+      "url": "/?locale=en&view=admin&variant=profile&modal=profilePicture",
+      "expectText": "Profile Picture",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "dark-en",
+      "url": "/?locale=en&theme=dark&view=dark",
+      "expectText": "Theme Preferences",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "dark",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "theme-preferences-modal-en",
+      "url": "/?locale=en&view=home&modal=themePreferences",
+      "expectText": "Match System Settings",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "search-ko",
+      "url": "/?locale=ko&view=home&query=atlas",
+      "expectText": "Search \"atlas\"",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "save-modal-en",
+      "url": "/?locale=en&view=analytics&modal=save",
+      "expectText": "Save Chart",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "share-modal-en",
+      "url": "/?locale=en&view=analytics&modal=share",
+      "expectText": "Add people",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "share-invite-modal-en",
+      "url": "/?locale=en&view=analytics&modal=shareInvite",
+      "expectText": "Alex Smith",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "share-toast-en",
+      "url": "/?locale=en&view=analytics&variant=shareToast",
+      "expectText": "Success. Shared",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "share-history-modal-en",
+      "url": "/?locale=en&view=analytics&modal=shareHistory",
+      "expectText": "Last Viewed",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "save-chart-card-modal-en",
+      "url": "/?locale=en&view=analytics&modal=saveChartCard",
+      "expectText": "Page Views by Unique Users",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "save-chart-suggest-modal-en",
+      "url": "/?locale=en&view=analytics&modal=saveChartSuggest",
+      "expectText": "Suggest",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "save-chart-report-dropdown-modal-en",
+      "url": "/?locale=en&view=analytics&modal=saveChartReportDropdown",
+      "expectText": "Create a new dashboard",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "save-chart-report-selected-modal-en",
+      "url": "/?locale=en&view=analytics&modal=saveChartReportSelected",
+      "expectText": "Untitled Dashboard - Dec 16",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "archive-modal-en",
+      "url": "/?locale=en&view=content&modal=archive",
+      "expectText": "Archive 2 items?",
+      "passed": true,
+      "textFound": 2,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "generate-chart-modal-en",
+      "url": "/?locale=en&view=dashboards&modal=generateChart",
+      "expectText": "Generate Chart with AI",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "ask-feedback-modal-en",
+      "url": "/?locale=en&view=ask&variant=retention&modal=feedback",
+      "expectText": "Were you satisfied with the response?",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "feedback-widget-rating-en",
+      "url": "/?locale=en&view=home&variant=feedbackStars",
+      "expectText": "How would you rate your experience",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "feedback-widget-comment-en",
+      "url": "/?locale=en&view=home&variant=feedbackComment",
+      "expectText": "Anything else to add?",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "feedback-widget-filled-en",
+      "url": "/?locale=en&view=home&variant=feedbackFilled",
+      "expectText": "Show me mouse clicks",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "feedback-widget-thanks-en",
+      "url": "/?locale=en&view=home&variant=feedbackThanks",
+      "expectText": "Thank you for your feedback",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "opening-tab-modal-en",
+      "url": "/?locale=en&view=experiments&modal=openingTab",
+      "expectText": "Opening a new tab",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "invite-modal-ko",
+      "url": "/?locale=ko&view=admin&modal=invite",
+      "expectText": "멤버 초대",
+      "passed": true,
+      "textFound": 3,
+      "metrics": {
+        "title": "matter",
+        "locale": "ko",
+        "theme": "light",
+        "bodyFont": "\"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "headingFont": "\"SUITE Matter\", \"Pretendard Matter\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "remove-member-modal-en",
+      "url": "/?locale=en&view=admin&modal=remove",
+      "expectText": "Remove 1 team member?",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "confirm-modal-en",
+      "url": "/?locale=en&view=experiments&modal=confirm",
+      "expectText": "Approve rollout?",
+      "passed": true,
+      "textFound": 1,
+      "metrics": {
+        "title": "matter",
+        "locale": "en",
+        "theme": "light",
+        "bodyFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "headingFont": "Comfortaa, \"Avenir Next\", \"SF Pro Rounded\", Inter, sans-serif",
+        "horizontalOverflow": false
+      }
+    }
+  ]
+}

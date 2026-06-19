@@ -1,0 +1,59 @@
+{
+  "work_package_id": "LT-L8-W01",
+  "title": "Go-live readiness validator and contract",
+  "inspected_at": "2026-06-18T12:17:36Z",
+  "verdict": "PASS_LOCAL_ACCEPTANCE_ONLY",
+  "production_ready": false,
+  "go_live_approved": false,
+  "scope": {
+    "contract_created": true,
+    "validator_created": true,
+    "green_fixture_created": true,
+    "red_fixture_created": true,
+    "non_weakening_doc_created": true,
+    "goal_closeout_evidence_files_created": true,
+    "existing_contract_files_modified_by_l8_w01_scope": false,
+    "existing_script_files_modified_by_l8_w01_scope": false
+  },
+  "quality_gates": {
+    "contract_json_parses": true,
+    "contract_gate_count": 10,
+    "contract_criteria_nonempty": true,
+    "contract_evidence_nonempty": true,
+    "no_go_policy_partial_pass_carryover_forbidden": true,
+    "no_go_policy_p0_p1_adjudication_required": true,
+    "no_go_policy_full_rejudgment_required": true,
+    "validator_green_fixture_exit_0": true,
+    "validator_green_all_ten_gates_pass": true,
+    "validator_red_fixture_exit_1": true,
+    "validator_red_failed_gate": "G7",
+    "validator_red_missing_evidence": "G7-E02",
+    "validator_threshold_hardcoding_scan_matches": 0,
+    "non_weakening_closed_pack_read_only_section": true,
+    "non_weakening_retroactive_claims_blocked_section": true,
+    "non_weakening_lower_gates_not_replaced_section": true
+  },
+  "review_gates": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_review": false,
+    "unresolved_review_findings": "not_applicable_no_review_run"
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "synthetic_fixture_only": true,
+    "writes_product_state": false,
+    "closed_cp_evidence_rewritten": false,
+    "human_approval_replaced": false,
+    "live_gate_evidence_synthesized": false
+  },
+  "blocked_claims": [
+    "go_live_approved",
+    "production_ready",
+    "g1_g10_live_evidence_satisfied",
+    "g10_human_signoff_satisfied",
+    "valid_claude_review_completed"
+  ],
+  "human_acceptance_or_explicit_next_goal_boundary": "LT-L8-W01 local validator and contract acceptance is complete. Actual G1-G10 evidence assembly and G10 human approval remain in LT-L8-W02 and LT-L8-W03.",
+  "next_work_package": "LT-L8-W02"
+}

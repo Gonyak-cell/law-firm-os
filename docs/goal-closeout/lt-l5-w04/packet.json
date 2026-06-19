@@ -1,0 +1,41 @@
+{
+  "work_package_id": "LT-L5-W04",
+  "title": "External penetration test and PIPA review",
+  "created_at": "2026-06-18T14:20:08Z",
+  "status": "blocked_pending_external_pentest_roe_report_adjudication_pipa_review_and_evidence_map",
+  "phase": "L5",
+  "gate_binding": [
+    "G3",
+    "G7",
+    "L5-EXIT"
+  ],
+  "terminal_tuw": "LT-L5-W04-T05",
+  "artifacts": [
+    "docs/launch/l5/external-pentest-pipa-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l5-w04/packet.json",
+    "docs/goal-closeout/lt-l5-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l5-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l5-w04/adjudication.md",
+    "docs/goal-closeout/lt-l5-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "roe_exists": false,
+    "external_pentest_report_exists": false,
+    "pentest_adjudication_exists": false,
+    "pipa_review_exists": false,
+    "evidence_map_exists": false,
+    "security_acceptance_run_all_exists": false,
+    "external_vendor_report_received": false,
+    "residual_p0_p1_zero_verified": false,
+    "g3_satisfied": false,
+    "g7_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

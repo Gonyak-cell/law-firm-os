@@ -1,0 +1,59 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M02.S01",
+  "source_micro_phase_id": "RP00.P01.M02",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Implement the AIControlRule model surface with required fields, references, ownership metadata, action constraints, review-required triggers, and fail-closed authority boundaries.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/states.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m02-s01/packet.json",
+    "docs/goal-closeout/rp00-p01-m02-s01/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M02.S01 in implemented state.",
+    "Adds AI_CONTROL_RULE_MODEL, AI_CONTROL_RULE_REQUIRED_FIELDS, AI_CONTROL_RULE_STATUS_VALUES, AI_ALLOWED_ACTION_VALUES, AI_FORBIDDEN_ACTION_VALUES, createAIControlRule, and validateAIControlRule.",
+    "Adds AIControlRule tests for air_ identifiers, tenant scope, status lifecycle, allowed actions, forbidden hard-stops, review_required_when, blocked_claim_refs, immutable returned records, and fail-closed validation.",
+    "Extends the synthetic fixture with a no-real-data AIControlRule record.",
+    "Records an explicit weighted-ledger generator defer for generic package-layout/ui profile mismatch without hand-editing generated ledger output.",
+    "Extends the RP00 validator and README with machine checks for the AIControlRule model slice and next subphase boundary."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not implement HermesGate, ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M02.S02."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M02.S02"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M02.S01 implement AIControlRule only, with HermesGate and later entities still deferred to later subphases?",
+    "Do identifier, tenant-scope, status-lifecycle, allowed-actions, forbidden-actions, review_required_when, blocked-claim reference, and audit-metadata rules align with the P00 contract shell and type/shape definition?",
+    "Does the AIControlRule validator fail closed for unsafe authority claims including production data writes, human gate approval, Hermes bypass, Claude bypass, and completion claims without evidence?",
+    "Does the synthetic AIControlRule fixture avoid real data and product-state writes?",
+    "Does the validator enforce AIControlRule model exports, fixture validation, fail-closed checks, weighted-generator defer evidence, and next boundary RP00.P01.M02.S02?"
+  ],
+  "risk_focus": [
+    "Claiming full Domain Model implementation from the AIControlRule-only slice.",
+    "Allowing AI rules to permit production writes, human approval impersonation, Hermes bypass, Claude bypass, or completion claims without evidence.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

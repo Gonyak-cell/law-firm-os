@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-238",
+  "normalized_at": "2026-06-10T12:37:57.679Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-238/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-238/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-238/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-238/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5a9d42db-eec2-45a1-9b55-41fda0d1b8f1",
+    "uuid": "4b680036-44cb-46e9-ac29-58c182f468bc",
+    "total_cost_usd": 2.1739075000000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5630,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-238 (RP07 Search OCR And Index; risk_class C; 150 units; RP07.P01.M06.S05–RP07.P02.M02.S22) is internally consistent and the pack-level production_ready claim is correctly NOT asserted. (1) production_ready is FALSE across command-evidence.json and manifest.json (status \"implementation_and_plan_gates_passed_pending_final_closeout\" / \"implemented_pending_review\"); the Hermes packet's production_ready_candidate=true denotes only descriptor verification (coverage.valid && foundation.valid via validators.js), not runtime readiness. All gate commands (node --check x5, node --test, rp05/rp06/rp07 + plan/weighted/spec/goal/fullplan validators, npm test/validate/build, git diff --check) exit 0; no_real_data=true; writes_product_state=false; all *_runtime and *_leak guards false. Distributions sum to 150 and match the prompt exactly (deliverable, micro-title, phase P01:88/P02:62, micro-phase counts). (2) Review-hardening (CP178+) is satisfied: auth preflight passed (exit_code 0, stdout_bytes 1444, valid JSON {ok:true}), review_attempt_counted=false, the registry forbidden_review_evidence list enumerates the rejection criteria (auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, disabled tools, missing raw-output ref, missing source-inspection basis, claude final-approval claim, source-mutation claim, production enterprise-trust claim), and no forbidden evidence is present; invalid_attempts_preserved=[]. (3) Claude is read-only and explicitly NOT final approver everywhere (review-request read_only=true tools Read/Grep/Glob; gate C07; service/descriptor authority_boundary claude_is_final_approval=false with human_final_approval_required_for_runtime_opening=true; manifest claude_not_final_approver=true; enterprise_trust_not_claimed_from_local_validation=true). (4) Hermes (gate H07) is used only for deterministic review-packet/receipt handling — hermes_runtime_embedded_in_product=false, no Hermes runtime receipts, evidence packet is descriptor-only. Changed-file scope is clean: the 8 active implementation refs are consistent (registry/service/validators/index/test/contract/validator script/README all bind CP00-238, upstream CP00-237, next CP00-239 at RP07.P02.M03.S01), and unrelated dirty files (the v2.0 .docx and docs/{enterprise-v2-loop-roadmap,ldip-integration,loop-system-integration,spec-v2-integration}) are correctly preserved/excluded from this pack. No P0/P1/P2/P3 findings. Note: Claude is an independent read-only reviewer; pack and enterprise-trust closure require human final approval outside this receipt.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

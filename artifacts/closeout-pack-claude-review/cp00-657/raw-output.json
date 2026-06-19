@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-657",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T01:04:13.265Z",
+  "finished_at": "2026-06-14T01:08:10.614Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":236601,\"duration_api_ms\":241378,\"ttft_ms\":3172,\"num_turns\":41,\"result\":\"Review complete: **PASS** with zero findings. CP00-657's descriptor-only Admin Console synthetic failure recovery bridge is fully supported by implementation, validators, tests, contract projection, and command evidence — all runtime/real-data/write boundaries are closed and enforced, Hermes is confined to deterministic review-packet handling, and Claude stays a read-only reviewer. The receipt does not block pack or CP-goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"86d996f9-6bc9-485d-ac53-902a2a4b0236\",\"total_cost_usd\":2.2621350000000002,\"usage\":{\"input_tokens\":52,\"cache_creation_input_tokens\":142282,\"cache_read_input_tokens\":1854223,\"output_tokens\":17768,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":142282,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":229,\"cache_read_input_tokens\":121829,\"cache_creation_input_tokens\":5965,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5965},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-opus-4-8\":{\"inputTokens\":52,\"outputTokens\":17768,\"cacheReadInputTokens\":1854223,\"cacheCreationInputTokens\":142282,\"webSearchRequests\":0,\"costUSD\":2.2608340000000005,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-haiku-4-5-20251001\":{\"inputTokens\":1201,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001301,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-657 (Risk C, 150 units, RP21.P06.M06.S04-RP21.P07.M03.S14) adds the Admin Console synthetic failure recovery bridge descriptor following the established descriptor-only pattern of CP645-CP656. Independent read-only inspection confirms the pack-level production_ready claim is supported: (1) descriptor and case set are strictly descriptor-only with every row descriptor_only:true/runtime_execution:false/raw_payload_included:false (service.js:3476-3611), and freezeCp657Result injects ~40 top-level false flags including executes_failure_recovery_runtime:false and persists_failure_receipt:false (service.js:593-640); (2) no-real-data/no-write boundaries are enforced in the bridge contract, test-evidence contract, and runtime boundary, with failure_recovery, permission_matrix, and Hermes runtimes all closed; (3) validateAdminConsoleCp657SyntheticFailureRecoveryBridgeDescriptor (validators.js:2317-2447) and validateAdminConsoleCp657Coverage rigorously check 38 false-flags, distribution (impl 40/security_audit 26/ui 17/claude_review 4/test 16/failure_recovery 44/hermes_evidence 2/fixture 1 = 150), RP21-only units, and handoff to CP00-658; (4) four CP657 tests assert these boundaries (model.test.js:939-999); (5) the contract projection sets current_pack=CP00-657, historical through CP656, validated by the contract script (validate-rp21-admin-console-contract.mjs:318-437); (6) command-evidence reports all 23 validation commands exit 0 with production_ready:false/no_real_data:true/writes_product_state:false. Hermes patterns are used only for deterministic review packet/receipt handling (runtime_receipt_emitted:false, hermes_runtime_opened:false), not product runtime. Claude remains a read-only reviewer (read_only:true, blocks_pack_on_p0_p1_p2:true, promotes_claude_to_final_approval:false) and is not final approver. Pending-state inspection/adjudication/claude-review-result artifacts correctly await this very review rather than prematurely asserting readiness. Review evidence is valid: auth preflight passed (exit 0, 1442-byte well-formed JSON), inspection done via Read/Grep/Glob only, and this is the single review run with no prior raw-output/receipt. The pack does not claim runtime or enterprise trust, so the human-final-approval/enterprise-trust boundary remains correctly outside this receipt and does not block this CP closeout goal. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"10c8172b-7999-4676-b066-c66a27c65067\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4529,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "86d996f9-6bc9-485d-ac53-902a2a4b0236",
+    "uuid": "10c8172b-7999-4676-b066-c66a27c65067",
+    "total_cost_usd": 2.2621350000000002,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "subphase_id": "RP00.P02.M02.S08",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T03:16:30Z",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "6ec9f72a-f4ee-4bba-ab45-8137f18c1361",
+    "uuid": "8bf998ca-967e-46c1-adeb-6c2eb55d6b43",
+    "total_cost_usd": 1.6013572500000002,
+    "permission_denials": [],
+    "write_tools_granted": false
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "duration_ms": 367716,
+    "duration_api_ms": 370790,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "8bf998ca-967e-46c1-adeb-6c2eb55d6b43",
+    "session_id": "6ec9f72a-f4ee-4bba-ab45-8137f18c1361"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict": "PASS_WITH_FINDINGS",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "S08-P3-01",
+        "severity": "P3",
+        "title": "Disposition owner for S08 differs from adjacent S07 entry",
+        "status": "fixed"
+      },
+      {
+        "id": "S08-P3-02",
+        "severity": "P3",
+        "title": "Two rejection branches lack direct negative tests; one is likely redundant",
+        "status": "fixed_by_closeout_evidence"
+      },
+      {
+        "id": "S08-P3-03",
+        "severity": "P3",
+        "title": "S08 is a near-clone of S07; production_ready here means closed contract slice, not runtime capability",
+        "status": "not_applicable_after_adjudication"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "S08-P3-01",
+      "severity": "P3",
+      "title": "Disposition owner for S08 differs from adjacent S07 entry",
+      "evidence": "Claude observed the new S08 weighted_title_disposition owner used control-plane-contract while adjacent S07 used Codex.",
+      "recommended_action": "Align S08 owner metadata with S07.",
+      "disposition": "fixed",
+      "resolution": "contracts/control-plane-contract.json now records the S08 weighted_title_disposition owner as Codex."
+    },
+    {
+      "id": "S08-P3-02",
+      "severity": "P3",
+      "title": "Two rejection branches lack direct negative tests; one is likely redundant",
+      "evidence": "Claude observed no direct negative test for secondary_workflow_path_applied false and noted the S07 decision re-check is likely redundant after assertControlPlaneAIImplementationHandoffPrimaryHappyPathResult.",
+      "recommended_action": "Add a negative test for secondary_workflow_path_applied false and either test or keep the decision guard as defense-in-depth.",
+      "disposition": "fixed_by_closeout_evidence",
+      "resolution": "packages/control-plane/test/service.test.js now rejects secondary_workflow_path_applied false. The primary_happy_path_decision re-check is retained as intentional defense-in-depth because the upstream S07 result validator already rejects tampered decisions before S08 emits a receipt."
+    },
+    {
+      "id": "S08-P3-03",
+      "severity": "P3",
+      "title": "S08 is a near-clone of S07; production_ready here means closed contract slice, not runtime capability",
+      "evidence": "Claude observed S08 mirrors S07 structure and remains metadata-only, with no service logic, runtime route, permission engine, AuthZ, or audit write behavior.",
+      "recommended_action": "No code change required; document that production_ready denotes a validated closed contract slice.",
+      "disposition": "not_applicable_after_adjudication",
+      "resolution": "This subphase intentionally closes a metadata-only control-plane contract slice. construction-inspection.json and packet.json record that no runtime capability is claimed and handoff continues to RP00.P02.M02.S09."
+    }
+  ],
+  "review_summary": "S08 correctly consumes the S07 primary happy path result, emits a frozen synthetic metadata-only secondary workflow receipt, carries S02-S07 and M00 refs plus handoff_context_ids and acceptance_gate_ids, supports firm-level null Matter context, fails closed on missing/wrong/tampered S07 input and forbidden or unknown secondary workflow claims, and preserves no-real-data/no-write/no-runtime/no-audit-write/no-handoff-draft boundaries. No P0/P1/P2 and no production_ready blocker."
+}

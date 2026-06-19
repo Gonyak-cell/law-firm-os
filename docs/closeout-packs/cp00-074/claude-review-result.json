@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-074",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"You are a read-only code reviewer with no tools. Review only the provided diff. Never say you need to inspect files or run commands. Output the final verdict in the requested structure.\" --output-format json < /tmp/cp00-074-review-prompt.txt > /tmp/cp00-074-claude-review-output.json",
+    "output_ref": "/tmp/cp00-074-claude-review-output.json",
+    "session_id": "01a56170-3e08-433b-89cd-7792633508ca",
+    "uuid": "66c085bd-3020-4073-bfda-8734564da522",
+    "total_cost_usd": 0.80050075,
+    "duration_ms": 167745,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 0
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-074-F1",
+        "source_id": "F1",
+        "severity": "P3",
+        "area": "contract_policy_drift_guard",
+        "title": "Descriptive mirror lists in contract definition were not programmatically tied to JS policy",
+        "file": "contracts/control-plane-contract.json",
+        "line": null,
+        "blocking": false,
+        "status": "fixed",
+        "details": "Claude noted that the CP00-074 contract definition mirrors policy-owned lists such as result_fields, required_input_fields, acceptance_gate_ids, and forbidden_boundary_suite_claims, and recommended a structural equality assertion to prevent future drift.",
+        "recommendation": "Add a structural equality assertion comparing the contract definition lists to CONTROL_PLANE_PERMISSION_AUDIT_BINDING_INTERACTION_PROOF_POLICY.",
+        "disposition": "accepted_and_fixed_after_review",
+        "fix_ref": "packages/control-plane/test/service.test.js"
+      }
+    ],
+    "residual_risks": [
+      "Low. CP00-074 is metadata-only and forward-looking; runtime permission evaluation, AuthZ evaluator calls, security trimming execution, audit event writes, review queue writes, fixture/test execution, database/storage/idempotency/lock/product-state writes, and LDIP implementation remain explicitly prohibited.",
+      "The only review finding was non-blocking contract drift hardening and was fixed before closeout."
+    ],
+    "overall_summary": "CP00-074 ControlPlanePermissionAuditBindingInteractionProof covers the planned 10 Risk-A units RP00.P06.M05.S10-S19, consumes the CP00-073 initial matrix boundary, binds deny-over-allow, legal hold, ethical wall, object ACL, review route, approval route, security trimming proof, audit event expectation, permission fixture, and allowed test metadata, and preserves no-write/fail-closed/LDIP-planning-only boundaries."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 167745,
+    "duration_api_ms": 170530,
+    "num_turns": 1,
+    "stop_reason": "end_turn",
+    "session_id": "01a56170-3e08-433b-89cd-7792633508ca",
+    "total_cost_usd": 0.80050075,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "uuid": "66c085bd-3020-4073-bfda-8734564da522",
+    "result_excerpt": "Verdict APPROVE. P0=0, P1=0, P2=0, P3=1. Blocking findings none. Required fixes none."
+  },
+  "raw_output_ref": "/tmp/cp00-074-claude-review-output.json"
+}

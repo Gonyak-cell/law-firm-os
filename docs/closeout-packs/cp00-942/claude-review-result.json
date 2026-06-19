@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-942",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-942/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-942/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "d1fb0a8c-e0e2-436a-83a5-959f1be418b6",
+    "uuid": "68d1ee04-5663-44fe-b97e-b2cdc6858096",
+    "total_cost_usd": 2.188749,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-942 is a descriptor-only HRX evidence bridge (CandidateFixture tail rows RP30.P05.M08.S06-S08 plus LeaveFixture foundation rows RP30.P05.M09.S01-S07; 10 units; risk A). Read-only inspection (Read/Grep/Glob) confirms the pack-level claim is supported and not overclaimed: manifest production_ready=false, runtime_ready=false, descriptor_only=true, status in_progress with pack_level_claude_review pending_hardened_review (expected pre-review state). Scope/binding HRX_CP942_PACK_BINDING (registry.js:848) matches manifest, baseline, contract, and prompt (upstream CP00-941, next CP00-943 / RP30.P05.M09.S08). Coverage matches micro_title_distribution exactly (CandidateFixture 3, LeaveFixture 7; M08:3 + M09:7; implementation:10) per HRX_CP942_REQUIREMENTS (registry.js:3288) and required_section_rows (registry.js:3271). Descriptor-only/no-runtime/no-write/no-real-data boundaries are enforced consistently across the row generator (registry.js:3376), createHrxCp942 descriptor (registry.js:9972) where all domain_entities and baseline_decisions flags resolve to closed, the validators (validators.js:7868-8036), the standalone validate script (scripts/validate-rp30-hrx-people-contract.mjs, which chains CP897->CP942 bindings, coverage, descriptor, contract, capabilities, and safety gates), and contracts/hrx-people-contract.json (latest_projection HrxCp942CandidateLeaveFixtureTailBridgeDescriptor, runtime_opening_pack_id CP00-943, authority_boundary all closed, 10 rows with correct entity_name markers). Tests in packages/hrx/test/model.test.js (2262-2349) assert empty validation errors for binding, coverage, descriptor runtime-closed, and contract projection; command-evidence records node --test and rp30:hrx:validate at exit 0. README CP00-942 entry (packages/hrx/README.md:95) accurately states the descriptor-only closed boundaries with no overclaim. Authority boundary intact: Claude is read-only and not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false, claude_packet.read_only=true), human approval required for runtime opening, enterprise trust closed; Hermes packet is deterministic_only with emits_runtime_receipt=false (review/evidence handling, not product runtime). Changed-file-scope is respected: active implementation refs are consistent and unrelated dirty files (progress-control-room data/html, the .docx, workbook docs, ldip results) are correctly excluded with no omitted active untracked implementation files. Review-evidence hardening checks pass: auth preflight succeeded (exit 0, 1446-byte well-formed JSON, no 0-byte/malformed/tool-call-shaped output), prompt is 2397 bytes (< 25600 limit), no full diff/source in prompt, and forbidden tools are absent. No P0/P1/P2 issues. One P3 provenance note only: the closeout artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, command-evidence.json) remain PENDING by design and command-evidence currently records only the 5 HRX-specific commands at exit 0 (gate_outcome pending_final_validation, hermes_gate pending); the broader validation ladder named in the prompt was not re-executed in this read-only receipt, identical to the now-closed CP00-941 review. Verdict PASS_WITH_FINDINGS; this review does not block pack or this-CP goal closeout.",
+    "findings": [
+      {
+        "id": "CP942-P3-01",
+        "severity": "P3",
+        "title": "Descriptor correctness verified statically; full closeout validation ladder not re-executed in this read-only receipt",
+        "file": "docs/closeout-packs/cp00-942/command-evidence.json",
+        "line": 40,
+        "details": "command-evidence.json records 5 HRX-specific commands (node --check x3, node --test packages/hrx/test/*.test.js, npm run rp30:hrx:validate) all at exit_code 0, with status and gate_outcome 'pending_final_validation' and hermes_gate.status 'pending'. The broader validation ladder named in the prompt/baseline (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is expected-before-closeout but not yet captured as executed. As a read-only reviewer (Read/Grep/Glob, no Bash) I confirmed descriptor/coverage/validator/contract/test correctness and all descriptor-only/no-write/no-real-data/authority boundaries by static inspection and by the tests as written, but did not independently re-execute these commands; the recorded exit codes are author-reported, not reviewer-reproduced. This is the expected pre-review state (it matches the now-closed CP00-941 at review time), not an implementation defect.",
+        "recommendation": "Before the deterministic runner flips the manifest to production_ready/closed, ensure it records the full validation ladder passing and updates adjudication.md, construction-inspection.json, command-evidence.json, and claude-review-result.json out of PENDING using this receipt. No code change is required for the descriptor implementation.",
+        "post_review_disposition": "informational_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

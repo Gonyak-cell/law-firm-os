@@ -1,0 +1,31 @@
+{
+  "work_package_id": "LT-L5-W07",
+  "inspected_at": "2026-06-18T14:23:38Z",
+  "verdict": "BLOCKED_DR_REHEARSAL_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "db_failure_rehearsal_exists": false,
+    "restore_rehearsal_exists": false,
+    "index_resync_rehearsal_exists": false,
+    "rehearsal_evidence_map_exists": false,
+    "rpo_rto_measurements_exists": false,
+    "notification_receipts_exist": false,
+    "audit_chain_verify_after_recovery_passed": false,
+    "permission_trimming_diff_zero_verified": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "staging_accessed": false,
+    "production_accessed": false,
+    "real_matter_or_hr_sensitive_data_accessed": false,
+    "failure_injection_performed": false,
+    "backup_restore_performed": false,
+    "index_resync_performed": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

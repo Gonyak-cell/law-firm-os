@@ -1,0 +1,73 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-189",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-189/review-receipt.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f3cba0fa-59f2-44b7-b799-182487e87424",
+    "uuid": "65883968-27c7-4a77-ae4f-98e069a1ca01",
+    "total_cost_usd": 3.4989027499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8340,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-189 (RP05 Matter Core synthetic-fixture failure-evidence continuation, Risk C, 150 units across RP05.P06.M06.S04-RP05.P07.M03.S14) reviewed read-only via Read/Grep/Glob. The pack does NOT over-claim production readiness: manifest.json, contracts/matter-core-contract.json, command-evidence.json, construction-inspection.json, and adjudication.md uniformly report production_ready=false / status in_progress|pending, and the production_ready_flag is a descriptive string, not a boolean true. Unit math reconciles: 94 synthetic (RP05.P06: M06=19,M07=22,M08=22,M09=20,M10=11) + 56 failure (RP05.P07: M00=11,M01=11,M02=20,M03=14) = 150, matching descriptor row generation, requirements micro_phase_row_counts/deliverable_counts, and the manifest included_units. No-write/no-real-data boundary is strongly enforced: MATTER_CORE_CP189_NO_WRITE_ATTESTATION carries ~30 booleans all false (writes_product_state, evaluates_runtime_permission, writes_audit_event, dispatches_review/approval_route, executes_rollback/retry, renders_live_dom, executes_api_handler, implements_loop_engine, uses_real_client_data, issues_network_request, promotes_claude_to_final_approval, claims_enterprise_trust_from_local_validation, plus leak-detail guards) with synthetic_only=true; validateMatterCoreCp189SyntheticFixtureFailureEvidence errors if any attestation bool is non-false and asserts descriptor leak_guards (no_raw_payload, no_real_client_data, no_runtime_permission_evaluation, no_audit_event_write, replay_commands_inert, etc.). Row builders derive refs from control type + micro_phase_id (not from input payload), and a package-wide grep found no real-data/network/secret/write patterns. Authority boundary is honored throughout: code, attestations, the Claude review packet (read_only=true, allowed_tools Read/Grep/Glob, claude_is_final_approval=false, production_or_enterprise_trust_claim=false), adjudication.md, and README all hold Claude as a read-only independent reviewer and NOT final approval, with enterprise trust closed by human approval outside this receipt. Hermes patterns appear only as deterministic review/evidence packet+receipt handling (createMatterCoreCp189HermesEvidencePacket: no_real_data=true, production_ready_candidate gated on coverage.valid && continuation.valid; hermes_gate H05 pending_final_validation), with hermes_runtime_embedded_in_product=false — no product-runtime execution. CP178+ review-hardening surface is intact: MATTER_CORE_CP179 forbidden_review_evidence (inherited by CP189) enumerates auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, disabled_source_tools, missing_raw_output_ref, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim, and these are wired as invalid_review_blockers. readiness-report.json shows a healthy auth preflight (exit_code 0, stdout_bytes 1435 of valid JSON, not 0-byte). Tests in packages/matter/test/model.test.js use static JSON imports and guarded read-only existence checks only and assert the 150/94/56 split, distributions, no-write/leak guards, hermes production_ready_candidate, claude read_only + allowed_tools, and handoff to CP00-190 / RP05.P07.M03.S15. Unrelated dirty/untracked files (amplitude UI scripts, logo-animation HTML, the docs/ldip-integration invalid-attempt fixture, etc.) are correctly fenced out by changed-file-scope.json and are not treated as pack scope. One non-blocking P3 dead-code validation finding (vacuous self-referential boundary-ref loop) is recorded below; it does not weaken any enforced boundary because the critical refs/outcomes are independently asserted. No P0/P1/P2 issues found. Pack closeout and goal closeout are not blocked by this review; final human approval for the enterprise trust claim remains required outside this read-only receipt.",
+    "findings": [
+      {
+        "id": "CP00-189-R01",
+        "severity": "P3",
+        "title": "Vacuous self-referential boundary-ref validation loop in CP189 continuation validator",
+        "file": "packages/matter/src/validators.js",
+        "line": 3341,
+        "details": "In validateMatterCoreCp189SyntheticFixtureFailureEvidence, the loop `for (const boundaryRef of requirements.required_boundary_refs) { if (!requirements.required_boundary_refs.includes(boundaryRef)) errors.push(...) }` checks each element of required_boundary_refs for membership in the same array, which is always true, so the error branch is unreachable and the loop validates nothing. The immediately following loop (line 3344) is the correct shape, testing required_failure_claims membership against a DISTINCT array (failure_control_template), which indicates the boundary-ref loop was intended to compare required_boundary_refs against a different source of truth (e.g., the descriptor's emitted boundary refs or a control template) rather than itself. Practical risk is low because the boundary/outcome invariants this loop appears meant to guard are independently and correctly enforced elsewhere in the same function: descriptor outcome bindings at lines 3404-3424 (blocked permission_denied_failure and cross_tenant_failure rows, review_required_route and approval_required_route rows, blocked_claim_receipt and hermes_failure_evidence ref bindings, leak_prevention_test security-trimming-proof binding) and the leak_guards loop at 3425-3438, and row builders set refs deterministically from control type + micro_phase_id.",
+        "recommendation": "Either remove the dead loop, or rewire it to compare requirements.required_boundary_refs against the actual boundary refs emitted on the descriptor rows (or the relevant control template) so a missing/renamed boundary ref would surface an error, mirroring the pattern used by the adjacent required_failure_claims check.",
+        "post_review_disposition": "Non-blocking. Does not affect the pack production_ready (false) claim, the no-write/no-real-data boundary, the read-only/non-final-approver authority boundary, or CP178+ review hardening. Recommend fixing as low-priority cleanup; does not gate CP00-189 pack closeout or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-189/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "adjudication_summary": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1,
+    "p3_status": "fixed_after_review_by_final_validator_cleanup",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false
+  }
+}

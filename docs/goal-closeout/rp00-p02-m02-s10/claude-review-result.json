@@ -1,0 +1,139 @@
+{
+  "subphase_id": "RP00.P02.M02.S10",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T04:20:05Z",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "066f0810-c5dd-4b3c-8ebe-d7ff2e0a71a1",
+    "uuid": "e193df4c-c274-4aa9-bb56-569fb81e82db",
+    "duration_ms": 329248,
+    "duration_api_ms": 331671,
+    "total_cost_usd": 1.340087,
+    "permission_denials": [],
+    "write_tools_granted": false
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "duration_ms": 329248,
+    "duration_api_ms": 331671,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "e193df4c-c274-4aa9-bb56-569fb81e82db",
+    "session_id": "066f0810-c5dd-4b3c-8ebe-d7ff2e0a71a1"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict": "PASS_WITH_FINDINGS",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "S10-P3-01",
+        "severity": "P3",
+        "title": "Documented idempotency_key_pattern was looser than enforced behavior",
+        "status": "fixed"
+      },
+      {
+        "id": "S10-P3-02",
+        "severity": "P3",
+        "title": "idempotency_receipt_fields enumerates required subset rather than full receipt shape",
+        "status": "not_applicable_after_adjudication"
+      }
+    ]
+  },
+  "raw_claude_cli_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 329248,
+    "duration_api_ms": 331671,
+    "ttft_ms": 312230,
+    "num_turns": 1,
+    "result": "Read-only C00 review of RP00.P02.M02.S10 (AI Implementation Handoff — Idempotency key handling) complete. The change is additive, fail-closed, synthetic/metadata-only, and the new policy/precheck/validator/fixture/contract/test surfaces are mutually consistent with strong negative-path coverage. No P0/P1/P2 issues; two non-blocking documentation nits.\n\n```json\n{\n  \"verdict\": \"approve\",\n  \"subphase\": \"RP00.P02.M02.S10\",\n  \"summary\": \"AI Implementation Handoff Idempotency key handling consumes the S09 state-transition-enforcement result, emits a frozen synthetic metadata-only idempotency receipt for safe lowercase idem.synthetic.* keys, defaults the key when absent, rejects untrimmed/non-synthetic/uppercase/overlong keys, and fail-closes on every forbidden bypass/runtime/write/audit-write/runtime-permission/AuthZ/idempotency-store/lock-acquisition/real-data/review-bypass and unknown truthy claim. All preserved boundaries (no real data, no product writes, no service execution, no runtime route, no permission engine, no AuthZ evaluator, no audit ledger/event write, no handoff drafting, no idempotency-record write, no lock acquisition) are pinned by value in the result validator, mirrored exactly in the fixture, and re-asserted end-to-end in the contract validator. Handoff target RP00.P02.M02.S11 (lock acquisition rule) is recorded. Scope is confined to the 8 listed files; no prior-subphase checks were weakened and the requiredClosed/current-subphase progression is correct.\",\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"file\": \"contracts/control-plane-contract.json (mirrored in packages/control-plane/src/policies.js, fixtures/synthetic-control-plane.json)\",\n      \"line_or_area\": \"idempotency_key_pattern = \\\"idem.synthetic.[a-z0-9._:-]+\\\"\",\n      \"issue\": \"The documented pattern string has unescaped literal dots and no ^/$ anchors, and omits the actually-enforced \\\"idem.synthetic.\\\" prefix requirement and 128-char max. Enforcement in code uses /^idem\\\\.synthetic\\\\.[a-z0-9._:-]+$/ plus a length cap, so the contract string is looser than reality. Nothing compiles this string today (enforcement is the hardcoded code regex), so there is no current correctness or security impact, but a future runtime implementer compiling the contract pattern verbatim would build an unanchored, over-permissive matcher.\",\n      \"recommendation\": \"Keep treating the pattern as advisory, or tighten the documented string to an anchored/escaped form and note the prefix + max-length constraints so the contract spec matches enforced behavior.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"file\": \"packages/control-plane/src/service.js, packages/control-plane/src/validators.js\",\n      \"line_or_area\": \"idempotency_receipt construction vs required_idempotency_receipt_fields / idempotency_receipt_fields\",\n      \"issue\": \"The emitted idempotency_receipt carries 5 provenance fields (matter_id, idempotency_key_source, idempotency_ttl_policy_ref, state_transition_behavior_ref, decision_reason) beyond the 13 enumerated in idempotency_receipt_fields. All 18 are pinned by value in assertControlPlaneAIImplementationHandoffIdempotencyKeyHandlingResult, so it is safe and deterministic, but the advertised field list is a strict subset of the actual receipt. Consistent with the S07–S09 receipt pattern.\",\n      \"recommendation\": \"No change required. Optionally document that *_receipt_fields enumerates the canonical required subset rather than the full receipt shape.\"\n    }\n  ],\n  \"final_gate\": {\n    \"p0_p1_clear\": true,\n    \"p2_resolution_required\": false,\n    \"production_ready_recommendation\": \"approve — production_ready; no P0/P1/P2 findings; two non-blocking P3 documentation nits may be addressed at the team's discretion. Note that npm run rp00:control-plane:validate is expected to fail only on the not-yet-created RP00.P02.M02.S10 closeout evidence (claude-review-result.json, adjudication, construction-inspection.json with control_plane_ai_implementation_handoff_idempotency_key_handling_verified=true), which is the normal post-review bootstrapping order.\"\n  }\n}\n```\n\nVerdict: approve — the subphase fully satisfies its stated intent with comprehensive fail-closed validation and no blocking issues; only two minor, non-blocking P3 documentation observations.",
+    "stop_reason": "end_turn",
+    "session_id": "066f0810-c5dd-4b3c-8ebe-d7ff2e0a71a1",
+    "total_cost_usd": 1.340087,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 86332,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 29616,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 86332,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 29616,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 86332,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 86332
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 58438,
+        "outputTokens": 28,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.058578,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 29616,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 86332,
+        "webSearchRequests": 0,
+        "costUSD": 1.281509,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "e193df4c-c274-4aa9-bb56-569fb81e82db"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "packet_version": "law-firm-os.claude-review-packet.v0.1",
+  "goal_id": "goal1-foundation-slice",
+  "program_id": "RP02",
+  "program_title": "Permission Kernel",
+  "claude_gate": "C02",
+  "checkpoint_id": "RP02.C02.all_checkpoints",
+  "status": "packet_ready",
+  "review_checkpoints": [
+    "RP02.P00.M09 permission model design review",
+    "RP02.P01.M07 precedence enum review",
+    "RP02.P02.M01 evaluator review",
+    "RP02.P02.M03 deny-over-allow review",
+    "RP02.P02.M04 ethical wall review",
+    "RP02.P03.M09 API and error contract review",
+    "RP02.P05.M07 bypass fixture review",
+    "RP02.P06.M07 permission-audit matrix review",
+    "RP02.P06.M09 missing audit hint review",
+    "RP02.P07.M09 edge and fail-closed review",
+    "RP02.P08.M05 Hermes dependency review",
+    "RP02.P09.M00-M10 final cross-validation closeout"
+  ],
+  "changed_files": [
+    "contracts/permission-kernel-contract.json",
+    "packages/authz/src/evaluate.js",
+    "packages/authz/src/index.js",
+    "packages/authz/test/authz.test.js"
+  ],
+  "contracts_reviewed": [
+    "contracts/permission-kernel-contract.json",
+    "contracts/core-domain-contract.json"
+  ],
+  "tests_reviewed": [
+    "npm test",
+    "npm run goal1:foundation:validate"
+  ],
+  "hermes_evidence_refs": [
+    "H02.domain_authz_audit_tests",
+    "H02.goal1_foundation_validate"
+  ],
+  "requirement_refs": [
+    "REQ-007",
+    "REQ-008",
+    "REQ-009"
+  ],
+  "risk_focus": [
+    "admin bypass",
+    "cross-tenant access",
+    "search count leak",
+    "AI retrieval overreach",
+    "ambiguous allow/deny precedence"
+  ],
+  "claude_questions": [
+    "Does the evaluator deny before allowing, including object ACL and policy denies?",
+    "Does cross-tenant access fail closed even for administrators?",
+    "Does search trimming remove unauthorized rows before display or counts?",
+    "Can permission decisions emit audit hints without leaking protected payloads?"
+  ],
+  "expected_verdict_format": {
+    "allowed_verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "finding_severity": [
+      "P0_BLOCKER",
+      "P1_MUST_FIX",
+      "P2_SHOULD_FIX",
+      "P3_NOTE"
+    ]
+  },
+  "finding_routing": "P0/P1 findings must create correction subphases before RP02 production_ready closeout."
+}

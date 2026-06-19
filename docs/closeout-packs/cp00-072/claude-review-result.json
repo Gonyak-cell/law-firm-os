@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-072",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"You are a read-only code reviewer with no tools. Review only the provided diff. Never say you need to inspect files or run commands. Output the final verdict in the requested structure.\" --output-format json < /tmp/cp00-072-review-prompt.txt > /tmp/cp00-072-claude-review-output.json",
+    "output_ref": "/tmp/cp00-072-claude-review-output.json",
+    "session_id": "d377fe9b-ad5b-421c-9edc-0ded09a34fe7",
+    "uuid": "319b20b7-2ce3-4a8a-baf9-547ef224c992",
+    "total_cost_usd": 0.88689675,
+    "duration_ms": 158034,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 0
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "id": "CP00-072-F1",
+        "source_id": "SWG-01",
+        "severity": "P3",
+        "area": "test_fixture_validation",
+        "title": "Fixture result payload was not validated end-to-end against the result assertion",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "blocking": false,
+        "status": "fixed",
+        "details": "Claude observed that the fixture mirrors policy test spot-checked result flags but did not run the fixture result through assertControlPlanePermissionAuditSecondaryWorkflowGuardResult, which could allow future manual fixture drift to pass.",
+        "recommendation": "Add assert.equal(assertControlPlanePermissionAuditSecondaryWorkflowGuardResult(suiteFixture.result), true) to the fixture mirrors policy test.",
+        "disposition": "accepted_and_fixed_after_review",
+        "fix_ref": "packages/control-plane/test/service.test.js"
+      }
+    ],
+    "residual_risks": [
+      "Low. CP00-072 is metadata-only and forward-looking; runtime permission evaluation, AuthZ evaluator calls, security trimming, audit event writes, review queue writes, database/storage/idempotency/lock/product-state writes, and LDIP implementation remain explicitly prohibited.",
+      "The only review finding was non-blocking test-fixture hardening and was fixed before closeout."
+    ],
+    "overall_summary": "CP00-072 ControlPlanePermissionAuditSecondaryWorkflowGuard covers the planned 10 Risk-A units RP00.P06.M04.S04-S13, consumes the CP00-071 secondary matrix boundary, binds secondary mutation/export-download/share/AI retrieval decisions plus audit hint, matched rule, deny-over-allow, legal hold, ethical wall, and object ACL interactions, and preserves no-write/fail-closed/LDIP-planning-only boundaries."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 158034,
+    "duration_api_ms": 160137,
+    "num_turns": 1,
+    "stop_reason": "end_turn",
+    "session_id": "d377fe9b-ad5b-421c-9edc-0ded09a34fe7",
+    "total_cost_usd": 0.88689675,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "uuid": "319b20b7-2ce3-4a8a-baf9-547ef224c992",
+    "result_excerpt": "Verdict APPROVE. P0=0, P1=0, P2=0, P3=1. Blocking findings none. Required fixes none. Residual risk low."
+  },
+  "raw_output_ref": "/tmp/cp00-072-claude-review-output.json"
+}

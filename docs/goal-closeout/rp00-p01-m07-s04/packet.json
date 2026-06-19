@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v1",
+  "subphase_id": "RP00.P01.M07.S04",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "title": "Matter trace reference",
+  "status": "production_ready",
+  "created_at": "2026-06-04T06:01:06Z",
+  "summary": "Binds the control-plane state enum registry to nullable firm-level Matter trace or canonical matter_ Matter context before lifecycle and enum policy slices continue.",
+  "implemented_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "primary_exports": [
+    "CONTROL_PLANE_STATE_ENUM_REGISTRY_MATTER_TRACE_POLICY",
+    "normalizeControlPlaneStateEnumRegistryMatterId",
+    "validateControlPlaneStateEnumRegistryMatterId",
+    "assertControlPlaneStateEnumRegistryMatterTrace"
+  ],
+  "acceptance_summary": {
+    "matter_trace_policy_bound": true,
+    "matter_field_nullable_for_firm_level_registry": true,
+    "stable_prefix_enforced": "matter_",
+    "canonical_pattern_enforced": "^matter_[a-z0-9]+(?:_[a-z0-9]+)*$",
+    "matter_normalization_executable": true,
+    "same_matter_assertion_executable": true,
+    "cross_tenant_matter_reference_rejected": true,
+    "synthetic_fixture_matter_trace_validates": true,
+    "identifier_record_matches": true,
+    "tenant_record_matches": true,
+    "required_when_deferred_to_future_behavior_slices": true,
+    "defines_new_enum_values": false,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_create_ui": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true
+  },
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m07-s04/packet.json",
+    "docs/goal-closeout/rp00-p01-m07-s04/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m07-s04/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m07-s04/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m07-s04/construction-inspection.json"
+  ],
+  "next_subphase": "RP00.P01.M07.S05"
+}

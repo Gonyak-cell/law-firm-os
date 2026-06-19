@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-112",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-112-claude-review-output-valid.json",
+    "session_id": "1bbfebdd-3ac6-4525-be04-f678982ed07e",
+    "uuid": "e51c874c-2f4f-4a43-bb82-568e01064f08",
+    "duration_ms": 177743,
+    "duration_api_ms": 179853,
+    "total_cost_usd": 0.6326334999999998,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Two taxonomy error codes are declared but never emitted or exercised",
+        "file": "packages/authz/src/interface-closeout-catalog.js",
+        "evidence": "PERMISSION_KERNEL_CP112_INTERFACE_CLOSEOUT_CONTRACT.error_codes (and contract interface_closeout_error_codes) list \"permission_denied\" and \"unauthorized_data_omitted\", but createPermissionKernelCp112ApiInterfaceFixture only ever pushes non_synthetic_request_blocked, tenant_boundary_precheck_failed, matter_trace_precheck_failed, and invalid_pagination. No fixture path or test demonstrates the other two; \"unauthorized_data_omitted\" is also represented as a normal-operation boolean flag (unauthorized_data_omitted: true) rather than an error, so listing it among error codes is semantically mixed.",
+        "recommendation": "Acceptable for an api_interface_scaffold_only taxonomy that declares forward-looking codes; if desired, add a fixture branch/test exercising permission_denied or annotate these two as scaffold-only/unexercised. Non-blocking."
+      }
+    ],
+    "recommendation": "Approve and close CP00-112. The pack is a clean synthetic-only terminal+interface scaffold with no write paths; the single P3 is an informational taxonomy note, not a defect.",
+    "rationale": "Scope verified item-by-item against the diff. (1) Synthetic-only catalog: PACK_BINDING and contract declare risk_class C, unit_count 150, range RP02.P02.M06.S13-RP02.P03.M05.S06; every catalog row is frozen with synthetic_only/no_real_data/catalog_only and a shared CP112_NO_WRITE_ATTESTATION; manifest area_counts (85 service / 65 API) and deliverable_counts sum to 150 and match both the validator and tests. (2) Unauthorized data omission: createPermissionKernelCp112ApiInterfaceFixture builds responseItem via an explicit allow-list (resource_id, resource_type, tenant_id, matter_id, title, annotations) so privileged_note and cross_tenant_secret are never serialized; omitted_fields documents them and tests + validator assert items[0].privileged_note/cross_tenant_secret === undefined. (3) Validation error mapping: non-synthetic, tenant drift, matter drift, and out-of-range page_size each map to explicit codes, and items is emptied ([]) when any error is present. (4) Metadata-only profiles: terminal matrix reuses CP111 profiles and four API fixtures; validator+tests assert idempotency_persisted/lock_acquired/writes_product_state/writes_audit_event all false. (5) No permission/audit/product/database writes: every no_write_attestation flag (mutates_permission_policy, writes_audit_event, writes_product_state, creates_database_rows, persists_idempotency_keys, acquires_locks) is false in both the contract JSON and source; functions are pure, returning frozen objects with no fs/network/DB access; permission_annotation/audit_annotation are preview strings only. (6) No external share/export/AI/LDIP: executes_export_download/external_share/ai_retrieval/claude_review/implements_ldip all false; Hermes command_anchors are inert reference strings; Claude packet is read_only metadata describing the required single review. (7) HRX embedded-only: closeout handoff sets hrx_embedded_boundary=embedded_people_hr_evidence_module_inside_law_firm_os and ldip_implemented=false. (8) Handoff: next_pack_id CP00-113 / next_subphase_id RP02.P03.M05.S07 is consistent across binding, contract, manifest, and handoff, and the CP111 block still chains into CP00-112. Matrix correctness depends on upstream CP111 profile names outside this diff, but the included tests would fail loudly if those profiles were malformed.",
+    "notes": [
+      "No P0/P1/P2 findings were reported by the valid CP00-112 pack-level Claude review.",
+      "P3 taxonomy exercise note was documented as non-blocking and carried forward as a CP00-113 API permission/audit binding candidate.",
+      "No second valid Claude review was run."
+    ]
+  },
+  "raw_result_text": "Reviewed the staged CP00-112 diff against the RP02 interface-closeout scope. Verdict below.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": [\n    {\n      \"severity\": \"p3\",\n      \"title\": \"Two taxonomy error codes are declared but never emitted or exercised\",\n      \"file\": \"packages/authz/src/interface-closeout-catalog.js\",\n      \"evidence\": \"PERMISSION_KERNEL_CP112_INTERFACE_CLOSEOUT_CONTRACT.error_codes (and contract interface_closeout_error_codes) list \\\"permission_denied\\\" and \\\"unauthorized_data_omitted\\\", but createPermissionKernelCp112ApiInterfaceFixture only ever pushes non_synthetic_request_blocked, tenant_boundary_precheck_failed, matter_trace_precheck_failed, and invalid_pagination. No fixture path or test demonstrates the other two; \\\"unauthorized_data_omitted\\\" is also represented as a normal-operation boolean flag (unauthorized_data_omitted: true) rather than an error, so listing it among error codes is semantically mixed.\",\n      \"recommendation\": \"Acceptable for an api_interface_scaffold_only taxonomy that declares forward-looking codes; if desired, add a fixture branch/test exercising permission_denied or annotate these two as scaffold-only/unexercised. Non-blocking.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve and close CP00-112. The pack is a clean synthetic-only terminal+interface scaffold with no write paths; the single P3 is an informational taxonomy note, not a defect.\",\n  \"rationale\": \"Scope verified item-by-item against the diff. (1) Synthetic-only catalog: PACK_BINDING and contract declare risk_class C, unit_count 150, range RP02.P02.M06.S13-RP02.P03.M05.S06; every catalog row is frozen with synthetic_only/no_real_data/catalog_only and a shared CP112_NO_WRITE_ATTESTATION; manifest area_counts (85 service / 65 API) and deliverable_counts sum to 150 and match both the validator and tests. (2) Unauthorized data omission: createPermissionKernelCp112ApiInterfaceFixture builds responseItem via an explicit allow-list (resource_id, resource_type, tenant_id, matter_id, title, annotations) so privileged_note and cross_tenant_secret are never serialized; omitted_fields documents them and tests + validator assert items[0].privileged_note/cross_tenant_secret === undefined. (3) Validation error mapping: non-synthetic, tenant drift, matter drift, and out-of-range page_size each map to explicit codes, and items is emptied ([]) when any error is present. (4) Metadata-only profiles: terminal matrix reuses CP111 profiles and four API fixtures; validator+tests assert idempotency_persisted/lock_acquired/writes_product_state/writes_audit_event all false. (5) No permission/audit/product/database writes: every no_write_attestation flag (mutates_permission_policy, writes_audit_event, writes_product_state, creates_database_rows, persists_idempotency_keys, acquires_locks) is false in both the contract JSON and source; functions are pure, returning frozen objects with no fs/network/DB access; permission_annotation/audit_annotation are preview strings only. (6) No external share/export/AI/LDIP: executes_export_download/external_share/ai_retrieval/claude_review/implements_ldip all false; Hermes command_anchors are inert reference strings; Claude packet is read_only metadata describing the required single review. (7) HRX embedded-only: closeout handoff sets hrx_embedded_boundary=embedded_people_hr_evidence_module_inside_law_firm_os and ldip_implemented=false. (8) Handoff: next_pack_id CP00-113 / next_subphase_id RP02.P03.M05.S07 is consistent across binding, contract, manifest, and handoff, and the CP111 block still chains into CP00-112. Matrix correctness depends on upstream CP111 profile names outside this diff, but the included tests would fail loudly if those profiles were malformed.\"\n}\n```"
+}

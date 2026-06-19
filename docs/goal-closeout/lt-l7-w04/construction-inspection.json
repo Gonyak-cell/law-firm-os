@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-L7-W04",
+  "inspected_at": "2026-06-18T14:56:20Z",
+  "verdict": "BLOCKED_RUNTIME_PILOT_ROSTER_TRAINING_SESSIONS_AND_COMPLETION_EVIDENCE_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "training_guides_created": 6,
+    "handson_environment_spec_created": true,
+    "session_record_template_created": true,
+    "completion_ledger_template_created": true,
+    "sessions_conducted": false,
+    "completion_100_percent_verified": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "training_session_evidence_synthesized": false,
+    "pilot_roster_approval_synthesized": false,
+    "completion_ledger_synthesized": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

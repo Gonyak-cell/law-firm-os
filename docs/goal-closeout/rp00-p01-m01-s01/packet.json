@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M01.S01",
+  "source_micro_phase_id": "RP00.P01.M01",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Implement the ProductContract model surface with stable identifiers, tenant scope, Matter references, status constraints, and audit metadata before AIControlRule is implemented.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/states.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m01-s01/packet.json",
+    "docs/goal-closeout/rp00-p01-m01-s01/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M01.S01 in implemented state.",
+    "Adds PRODUCT_CONTRACT_MODEL, PRODUCT_CONTRACT_REQUIRED_FIELDS, PRODUCT_CONTRACT_STATUS_VALUES, createProductContract, and validateProductContract.",
+    "Adds ProductContract tests for stable pc_ identifiers, tenant scope, status lifecycle, nullable matter_refs, audit metadata, immutable returned records, and fail-closed validation.",
+    "Extends the synthetic fixture with a no-real-data ProductContract record.",
+    "Records an explicit weighted-ledger generator defer for generic package-layout/ui profile mismatch without hand-editing generated ledger output.",
+    "Extends the RP00 validator and README with machine checks for the ProductContract model slice and next subphase boundary."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not implement AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M02.S01."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M02.S01"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M01.S01 implement ProductContract only, with AIControlRule and the other entities still deferred to later subphases?",
+    "Do identifier, tenant-scope, status-lifecycle, Matter-reference, and audit-metadata rules align with the P00 contract shell and type/shape definition?",
+    "Does the synthetic ProductContract fixture avoid real data and product-state writes?",
+    "Does the validator enforce ProductContract model exports, fixture validation, fail-closed checks, weighted-generator defer evidence, and next boundary RP00.P01.M02.S01?",
+    "Can this subphase be promoted after C00 review, adjudication, construction inspection, and final validation without claiming full Domain Model/P01/RP00 completion?"
+  ],
+  "risk_focus": [
+    "Claiming full Domain Model implementation from the ProductContract-only slice.",
+    "Allowing ProductContract records without tenant scope, audit_event_ref, created_at, or updated_at.",
+    "Treating nullable Matter references as permission to use real matter data.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

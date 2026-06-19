@@ -1,0 +1,79 @@
+{
+  "packet_version": "law-firm-os.claude-review-packet.v0.1",
+  "goal_id": "goal1-foundation-slice",
+  "program_id": "RP03",
+  "program_title": "Audit And Compliance Kernel",
+  "claude_gate": "C03",
+  "checkpoint_id": "RP03.C03.all_checkpoints",
+  "status": "packet_ready",
+  "review_checkpoints": [
+    "RP03.P00.M09 audit architecture design review",
+    "RP03.P01.M05 hash-chain model review",
+    "RP03.P02.M01 append-only service review",
+    "RP03.P02.M02 correction event review",
+    "RP03.P02.M03 hash-chain verification review",
+    "RP03.P02.M05 legal hold service review",
+    "RP03.P03.M09 interface and export review",
+    "RP03.P05.M07 tamper and WORM fixture review",
+    "RP03.P06.M09 permission/audit completeness review",
+    "RP03.P07.M09 edge and fail-closed review",
+    "RP03.P08.M05 Hermes dependency review",
+    "RP03.P09.M00-M10 final cross-validation closeout"
+  ],
+  "changed_files": [
+    "contracts/audit-compliance-contract.json",
+    "packages/audit/src/events.js",
+    "packages/audit/src/append-only-ledger.js",
+    "packages/audit/src/retention.js",
+    "packages/audit/src/index.js",
+    "packages/audit/test/audit.test.js"
+  ],
+  "contracts_reviewed": [
+    "contracts/audit-compliance-contract.json",
+    "contracts/permission-kernel-contract.json"
+  ],
+  "tests_reviewed": [
+    "npm test",
+    "npm run rp03:audit-architecture:validate",
+    "npm run goal1:foundation:validate"
+  ],
+  "hermes_evidence_refs": [
+    "H03.domain_authz_audit_tests",
+    "H03.rp03_audit_architecture_validate",
+    "H03.goal1_foundation_validate"
+  ],
+  "requirement_refs": [
+    "REQ-010",
+    "REQ-011",
+    "REQ-012"
+  ],
+  "risk_focus": [
+    "mutable audit event",
+    "missing actor",
+    "retention purge bypass",
+    "legal hold bypass",
+    "PII overlogging",
+    "hash chain replay gap",
+    "cross-tenant audit leak"
+  ],
+  "claude_questions": [
+    "Can an audit event be changed without creating a correction event?",
+    "Does hash-chain verification detect tamper, gaps, or sequence mismatch?",
+    "Can retention purge proceed while legal hold is active?",
+    "Do audit payloads avoid raw document bodies, secrets, and unnecessary personal data?"
+  ],
+  "expected_verdict_format": {
+    "allowed_verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "finding_severity": [
+      "P0_BLOCKER",
+      "P1_MUST_FIX",
+      "P2_SHOULD_FIX",
+      "P3_NOTE"
+    ]
+  },
+  "finding_routing": "P0/P1 findings must create correction subphases before RP03 production_ready closeout."
+}

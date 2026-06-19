@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-949",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-18T04:39:21.530Z",
+  "finished_at": "2026-06-18T04:44:30.656Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":308582,\"duration_api_ms\":310138,\"ttft_ms\":4242,\"num_turns\":47,\"result\":\"PASS — no findings. CP00-949 is a clean descriptor-only bridge (2 EvaluationRestriction tail + 8 CandidatePrivacy foundation rows) and its descriptor-verified claim is fully supported.\\n\\nWhat I confirmed across the changed files:\\n- **Identity/scope** match the baseline exactly: `HRX_CP949_PACK_BINDING` (registry.js:967), manifest snapshot, distribution {EvaluationRestriction:2, CandidatePrivacy:8}.\\n- **Descriptor + rows** (registry.js:11486, 3866) keep every runtime/write/real-data/bypass/decision/masking flag `false`; authority boundary keeps Claude non-final and requires human approval for runtime opening.\\n- **Validators** (validators.js:9042-9243) align field-for-field with the generated rows and the full upstream chain; **tests** (model.test.js:2541-2634) assert empty error arrays; **contract** regenerated with `validation.valid=true` and an all-closed no-write attestation; **validate script** updated to the CP949 binding.\\n- **Boundaries**: Claude read-only/non-approver; Hermes packet is deterministic review-only (`emits_runtime_receipt=false`); no real data/secrets. CP178+ hardening clean — auth preflight passed, no stray/invalid receipts, PENDING states are the correct pre-review state.\\n\\nProvenance: I statically corroborated the `command-evidence.json` exit codes (validators/tests/exports/contract correctly wired) but did not re-execute them, per the read-only constraint. The review does not block pack or CP closeout; runtime/masking/enterprise-trust/final-human-approval remain correctly deferred.\",\"stop_reason\":\"end_turn\",\"session_id\":\"9403eac9-1b99-4742-917e-15971539f7f8\",\"total_cost_usd\":2.1022592500000004,\"usage\":{\"input_tokens\":193,\"cache_creation_input_tokens\":119153,\"cache_read_input_tokens\":1601972,\"output_tokens\":22175,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":119153,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":609,\"cache_read_input_tokens\":117105,\"cache_creation_input_tokens\":2525,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2525},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1122,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001227,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":193,\"outputTokens\":22175,\"cacheReadInputTokens\":1601972,\"cacheCreationInputTokens\":119153,\"webSearchRequests\":0,\"costUSD\":2.1010322500000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-949 (risk A, 10 units, RP30.P06.M03.S12-RP30.P06.M04.S08) is a descriptor-only bridge that ties the final 2 EvaluationRestriction tail rows into the 8 CandidatePrivacy foundation rows. The pack-level claim is descriptor-verified, not runtime/production: manifest production_ready=false, runtime_ready=false, implementation_layer=descriptor. That claim is fully supported by the changed implementation and is internally consistent across every layer I inspected via Read/Grep/Glob.\\n\\nVerified: (1) Identity/scope — HRX_CP949_PACK_BINDING (registry.js:967) and the manifest plan_binding_snapshot match the baseline exactly (pack_id, risk A, unit_count 10, first RP30.P06.M03.S12, last RP30.P06.M04.S08, next CP00-950/RP30.P06.M04.S09); micro_title distribution {EvaluationRestriction:2, CandidatePrivacy:8} matches required_section_rows (registry.js:3760) and requirements (registry.js:3777). (2) Descriptor — createHrxCp949EvaluationCandidatePrivacyBridgeDescriptor (registry.js:11486) sources from CP948, sets all EvaluationRestriction and CandidatePrivacy domain-entity runtime/write/real-data/bypass/policy/decision/score/masking flags false, all baseline_decisions deferred, authority_boundary {claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true}. Rows come from createHrxDomainRows (registry.js:3866), which sets descriptor_only/hrx_embedded/domain_bridge_descriptor true and all runtime/write/real-data/secret fields false. (3) Validators — coverage + descriptor + contract validators (validators.js:9042-9243) align field-for-field with the generated rows and the full upstream binding chain. (4) Tests — model.test.js:2541-2634 assert binding, coverage distribution, closed runtime, and contract projection with empty error arrays. (5) Contract — contracts/hrx-people-contract.json regenerated with current_pack/latest_pack=CP00-949, latest_projection=HrxCp949EvaluationCandidatePrivacyBridgeDescriptor, validation.valid=true, and an all-closed no_write_attestation. (6) Validate script updated to the CP949 binding with a non-zero exit on any drift.\\n\\nBoundaries: Claude stays read-only and non-final-approver (review-request tools Read,Grep,Glob; read_only=true; claude_packet.promotes_claude_to_final_approval=false). Hermes pattern is deterministic control-plane review only (hermes_packet.emits_runtime_receipt=false, deterministic_only=true; no product runtime). No real HR/evaluation/candidate data, credentials, or secrets. CP178+ hardening: auth preflight passed (exit 0, 1444-byte valid JSON), no prior/invalid review receipts exist, and the PENDING state in adjudication/inspection/claude-review-result is the correct pre-review state finalized by the post-review closeout step.\\n\\nProvenance note: command-evidence.json exit codes (node --check/--test, npm run rp30:hrx:validate) were statically corroborated by confirming the validators, tests, exports, and contract are correctly wired; they were not re-executed, consistent with the read-only review constraint. No P0/P1/P2/P3 findings. This review does not block pack or CP closeout; runtime opening, masking runtime, enterprise-trust, and final human approval remain correctly deferred to later packs/authorities.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"7f0b4acc-4312-4398-9192-ea77d23a1c83\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6526,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "9403eac9-1b99-4742-917e-15971539f7f8",
+    "uuid": "7f0b4acc-4312-4398-9192-ea77d23a1c83",
+    "total_cost_usd": 2.1022592500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

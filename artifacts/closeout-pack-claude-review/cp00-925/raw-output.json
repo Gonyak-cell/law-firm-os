@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-925",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T19:53:21.870Z",
+  "finished_at": "2026-06-17T19:59:39.530Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":376933,\"duration_api_ms\":377968,\"ttft_ms\":3131,\"num_turns\":50,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-925 passes independent read-only review; no P0/P1/P2 findings, one P3 informational note. The descriptor-only `production_ready=false`/`runtime_ready=false` claim is fully supported, all HR-operations/employee-portal runtime/write/real-data/permission boundaries are enforced and verified closed, and the read-only authority + non-runtime Hermes boundaries are honored. This receipt does not block pack closeout or this CP's goal closeout; final closeout still depends on the post-review deterministic ladder and adjudication the artifacts already mark pending.\",\"stop_reason\":\"end_turn\",\"session_id\":\"9f42f48a-a23b-4788-abda-7622fca3abcc\",\"total_cost_usd\":2.4164812500000004,\"usage\":{\"input_tokens\":62,\"cache_creation_input_tokens\":121311,\"cache_read_input_tokens\":1977759,\"output_tokens\":26715,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":121311,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":253,\"cache_read_input_tokens\":114221,\"cache_creation_input_tokens\":7625,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7625},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1118,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012230000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":62,\"outputTokens\":26715,\"cacheReadInputTokens\":1977759,\"cacheCreationInputTokens\":121311,\"webSearchRequests\":0,\"costUSD\":2.4152582500000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-925 is a descriptor-only RP30 P04 bridge pack (risk A, 10 implementation units, RP30.P04.M00.S03-RP30.P04.M01.S03) binding HROperations tail rows (7) into EmployeePortal foundation rows (3). Independent read-only inspection (Read/Grep/Glob) confirms registry.js, validators.js, model.test.js, contracts/hrx-people-contract.json, and scripts/validate-rp30-hrx-people-contract.mjs are internally consistent: pack binding, chain continuity (upstream CP00-924, next CP00-926/RP30.P04.M01.S04), and deliverable/micro-title distributions all match the baseline and prompt. All boundary flags remain closed (operations/portal runtime, record writes, policy execution, HR-state finalization, self-service actions, permission bypass, payroll runtime, HR AI final judgment, runtime receipts, real employee/candidate/payroll data, credentials/secrets, separate-product, enterprise-trust); a targeted grep for any of these set to true returned zero matches across registry, validators, and the contract JSON, and the contract validation marker is valid:true with a full no_write_attestation. Authority boundary is honored: the Claude packet is read_only and does not promote Claude to final approval, local validation does not claim enterprise trust, and the Hermes packet emits_runtime_receipt=false used only for deterministic review/evidence handling rather than product runtime. Review-evidence hardening checks pass: readiness auth_preflight succeeded (exit 0, well-formed JSON, 1436-byte stdout), prompt is 2395B (<25600B), only Read/Grep/Glob tools were authorized, no forbidden tools, and no active untracked implementation files were omitted; UI-workstream dirty files (progress-control-room) are correctly classified as unrelated and out of pack scope. The pack-level production_ready=false / runtime_ready=false descriptor-verified claim is accurate and fully supported by implementation, tests, local validation, command evidence (no_real_data=true, writes_product_state=false), inspection, and adjudication, all of which are consistently in the pending_review pre-closeout state. No P0/P1/P2 findings. One P3 informational note records that final pack closeout remains contingent on the post-review deterministic validation ladder and adjudication/receipt promotion that the artifacts themselves declare pending, and that this read-only review is independent verification, not final human/enterprise-trust approval. This receipt does not block pack closeout or this CP's goal closeout.\",\"findings\":[{\"id\":\"CP00-925-P3-01\",\"severity\":\"P3\",\"title\":\"Final closeout contingent on post-review deterministic ladder and adjudication (informational; not a defect)\",\"file\":\"docs/closeout-packs/cp00-925/command-evidence.json\",\"line\":41,\"details\":\"The pack's pre-review command-evidence (node --check; node --test packages/hrx/test/*.test.js; npm run rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate -- all exit_code 0) is a subset of the full baseline validation ladder. command-evidence.json:41 and adjudication.md explicitly state these checks must be re-confirmed by the post-promotion ladder (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) before commit, and that production_ready remains false until exactly one valid review receipt plus adjudication and queue regeneration complete. Consistently, construction-inspection.json has runtime_ready/status/boundary=null and claude-review-result.json is status=pending_review with null parsed_review. This is the documented descriptor-only pre-closeout process, not a code or boundary defect; it is recorded so the receipt makes explicit that this read-only review is independent verification and not final human/enterprise-trust approval.\",\"recommendation\":\"Proceed as already specified: run the full deterministic validation ladder and complete adjudication plus review-receipt promotion at closeout, keeping production_ready/runtime_ready false and enterprise-trust closed until human final approval. No code or descriptor change is required.\",\"post_review_disposition\":\"acknowledged_informational_no_action_required\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"d45a65e6-fe81-42b1-a4ce-865a7e1d6800\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6594,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "9f42f48a-a23b-4788-abda-7622fca3abcc",
+    "uuid": "d45a65e6-fe81-42b1-a4ce-865a7e1d6800",
+    "total_cost_usd": 2.4164812500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

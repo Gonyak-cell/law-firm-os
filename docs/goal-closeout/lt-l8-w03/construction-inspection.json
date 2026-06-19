@@ -1,0 +1,47 @@
+{
+  "work_package_id": "LT-L8-W03",
+  "title": "Cutover runbook and go/no-go operations",
+  "inspected_at": "2026-06-18T12:21:08Z",
+  "verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+  "production_ready": false,
+  "go_live_approved": false,
+  "quality_gates": {
+    "cutover_runbook_exists": true,
+    "runbook_step_count": 7,
+    "rollback_criteria_doc_exists": true,
+    "cutover_execution_log_exists": true,
+    "go_no_go_decision_doc_exists": true,
+    "company_rollout_record_exists": true,
+    "goal_closeout_evidence_files_created": true,
+    "tabletop_record_performed": false,
+    "execution_log_complete": false,
+    "go_no_go_signature_present": false,
+    "forty_eight_hour_watch_complete": false
+  },
+  "review_gates": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_review": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "production_freeze_declared": false,
+    "final_delta_executed": false,
+    "m365_admin_action_executed": false,
+    "human_approval_replaced": false
+  },
+  "blocked_claims": [
+    "go_live_approved",
+    "cutover_executed",
+    "company_wide_rollout_executed",
+    "g10_human_signoff_satisfied",
+    "forty_eight_hour_watch_complete"
+  ],
+  "external_or_owner_blockers": [
+    "LT-L8-W02 G1-G10 evidence must pass",
+    "Owner-approved rollback criteria are required",
+    "Go/no-go meeting and signed decision are required",
+    "M365 admin execution is required for company-wide rollout"
+  ]
+}

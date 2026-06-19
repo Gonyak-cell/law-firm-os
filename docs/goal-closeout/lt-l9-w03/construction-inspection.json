@@ -1,0 +1,20 @@
+{
+  "work_package_id": "LT-L9-W03",
+  "inspected_at": "2026-06-18T12:21:08Z",
+  "verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+  "production_ready": false,
+  "quality_gates": {
+    "disposition_plan_exists": true,
+    "freeze_record_exists": true,
+    "disposition_record_exists": true,
+    "owner_decision_present": false,
+    "legacy_freeze_executed": false,
+    "destructive_disposition_executed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "legacy_permission_change_executed": false,
+    "destructive_operation_executed": false
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "subphase_id": "RP00.P02.M03.S08",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Secondary workflow path",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T08:22:50Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [
+    {
+      "source": "claude_cli",
+      "session_id": "6b7525f1-b569-45e8-a070-bcb439e6c8b5",
+      "uuid": "47a035e1-6460-4050-b8e0-dd3ff7474317",
+      "duration_ms": 134143,
+      "duration_api_ms": 136599,
+      "total_cost_usd": 0.8082485000000001,
+      "reason_not_counted": "Claude returned a non-verdict partial response that said it would read files and did not provide PASS, findings, or closeout decision."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "772106b4-427c-4f87-8cd6-d366d6d59f20",
+    "uuid": "6431cbe3-e353-4e42-80ac-17af45bf4491",
+    "duration_ms": 251037,
+    "duration_api_ms": 253145,
+    "total_cost_usd": 2.38626425,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s08-claude-review-valid.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Edit,Write,MultiEdit,Bash --json-schema --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s08-claude-prompt-valid.txt",
+    "schema_file": "/tmp/lfos-rp00-p02-m03-s08-claude-schema.json",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s08-claude-review-valid.json",
+    "duration_ms": 251037,
+    "duration_api_ms": 253145,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "6431cbe3-e353-4e42-80ac-17af45bf4491",
+    "session_id": "772106b4-427c-4f87-8cd6-d366d6d59f20"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [],
+    "required_followups": [
+      "Create docs/goal-closeout/rp00-p02-m03-s08 closeout evidence so npm run rp00:control-plane:validate passes; this is the normal post-review closeout step, not a code defect."
+    ],
+    "review_notes": [
+      "Scope is confined to S08 with no edits to S01-S07 logic, other entrypoints, routes, or UI.",
+      "S02-S07, M00, permission/audit, TEN-001 through TEN-008, validation contexts, and acceptance gates are carried and pinned by the result validator.",
+      "Missing, invalid, wrong-source S07 input and every forbidden or unknown non-false claim throw fail-closed.",
+      "All hazard flags are hard false; result and receipt are frozen and metadata-only.",
+      "Policy, service, validators, tests, fixture, README, contract, and RP00 validator align; fixture parity is full deepEqual."
+    ],
+    "summary": "RP00.P02.M03.S08 is a clean, additive, metadata-only Hermes Validation Secondary workflow path implementation. Claude reported PASS / GO with no P0/P1/P2/P3 findings and no closeout block. The only follow-up is normal S08 closeout evidence creation."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s08-claude-review-valid.json",
+    "summary": "Claude returned PASS / GO with no findings; only required follow-up was normal S08 closeout evidence creation."
+  },
+  "overall_verdict": "PASS"
+}

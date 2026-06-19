@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-695",
+  "normalized_at": "2026-06-15T01:17:29.690Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-695/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-695/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-695/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-695/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "6eb3cd39-f44b-48fb-8f13-affd013a4bca",
+    "uuid": "d2ec68a7-2f7c-43db-8710-13e41c828b49",
+    "total_cost_usd": 1.9539442500000002,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7201,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-695 is a descriptor-only RP23 External Integrations II domain-model/workflow-slice extension (40 units, RP23.P01.M02.S09-RP23.P01.M04.S06, risk B). Independent read-only inspection of registry.js, service.js, validators.js, index.js, test/model.test.js, the generated external-integrations-ii contract, the manifest, and the evidence files confirms the pack's claims. The implementation produces only Object.freeze'd descriptor objects with no runtime dispatch, no DB/object-storage access, no permission/audit evaluation, and no Hermes runtime receipts; FINANCE_INTEGRATIONS_NO_WRITE_ATTESTATION flags are truthful (the only filesystem write is the dev-time contract projection artifact, outside product-state scope). Contract coverage and descriptor validation are clean (valid:true, errors:[]) for both CP00-694 (historical) and CP00-695 (latest); distributions match frozen requirements (impl 23 / ui 5 / fixture 2 / test 6 / hermes 2 / claude 2; M02 12 / M03 22 / M04 6). Six node:test cases exercise create/validate functions, distribution drift, authority boundaries, and handoff identity; command-evidence records the 23/23 pre-review validation matrix at exit 0 (including npm test, build, and git diff --check). Authority boundary is intact: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local validation does not claim enterprise trust, and Claude packets are read-only with hardened invalid-review blockers. Hermes patterns are descriptor/control-plane only (emits_runtime_receipt=false). The pack correctly stays production_ready=false in pending_review with no premature or invalid review receipt; readiness auth-preflight passed with valid JSON (1436-byte stdout, exit 0) — no auth failure, 0-byte stdout, malformed JSON, fenced/prose, or tool-call-shaped evidence. No P0/P1/P2 issues found; two P3 informational provenance notes, both dispositioned acceptable. Verdict: PASS — eligible for closeout adjudication. Final human/enterprise-trust approval remains outside this read-only receipt.",
+    "findings": [
+      {
+        "id": "CP695-R1",
+        "severity": "P3",
+        "title": "CP00-695 plan binding resolves via manifest snapshot, not the live plan forward queue",
+        "file": "docs/closeout-packs/cp00-695/manifest.json",
+        "line": 1435,
+        "details": "The live closeout-pack-plan.json packs[] forward queue begins at CP00-696 (line 401) while live_state.pack_id is CP00-695 (line 36), so model.test.js planPack() finds no CP00-695 entry in plan.packs and falls back to manifest.plan_binding_snapshot. I verified that snapshot is consistent with review-baseline.json source_plan_pack and registry FINANCE_INTEGRATIONS_CP695_REQUIREMENTS (40 units; impl 23/ui 5/fixture 2/test 6/hermes 2/claude 2; M02 12/M03 22/M04 6; range RP23.P01.M02.S09-RP23.P01.M04.S06). changed-file-scope.json appropriately lists the plan/queue files under unrelated_dirty_files_preserved.",
+        "recommendation": "No action required. The manifest plan_binding_snapshot is the authoritative frozen binding for a pack mid-closeout and the test fallback is intentional; provenance is sound.",
+        "post_review_disposition": "Accepted as designed; non-blocking."
+      },
+      {
+        "id": "CP695-R2",
+        "severity": "P3",
+        "title": "Sole filesystem write is the dev-time contract projection artifact, outside product no-write scope",
+        "file": "scripts/validate-rp23-external-integrations-ii-contract.mjs",
+        "line": 30,
+        "details": "The validator writeFile()s contracts/external-integrations-ii-contract.json during npm run rp23:external-integrations-ii:validate. This is a deterministic control-plane/build artifact, not product runtime state: it does not create/update database rows, object storage, audit events, permission decisions, or Hermes runtime receipts. FINANCE_INTEGRATIONS_NO_WRITE_ATTESTATION (writes_product_state:false, emits_hermes_runtime_receipt:false, creates_database_rows:false, etc.) scopes to product state and remains truthful, consistent with the prior CP00-694 pattern.",
+        "recommendation": "No action required. Optionally document that no_write_attestation covers product state rather than dev-time generated artifacts to remove future ambiguity.",
+        "post_review_disposition": "Accepted; non-blocking and consistent with the imported deterministic control-plane review-packet/receipt pattern."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-154",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "e13a2c04-79fb-4114-882c-96dac8ece814",
+    "uuid": "7c1041a8-6294-4613-b469-91f438573763",
+    "duration_ms": 243148,
+    "duration_api_ms": 245013,
+    "total_cost_usd": 0.7991654999999999,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-154-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C03.CP00-154.audit_compliance_review_sensitive_boundary",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-154-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "CP154-F1",
+        "severity": "P3",
+        "title": "README boundary-disclaimer bullets migrated from CP00-153 section into CP00-154",
+        "evidence": "packages/audit/README.md: the new '## CP00-154 Review Sensitive Boundary Pack' heading is inserted before the two pre-existing generic bullets ('Hermes evidence rows ... descriptors only' and 'The catalog does not execute ...'). Those bullets previously documented CP00-153, so CP00-153's section is left with only its two function bullets, and the inherited 'PASS/PASS_WITH_FINDINGS/BLOCK closeout notes' wording describes CP00-153 closeout-verdict rows rather than CP00-154's row set (CP00-154 has a 'Go/no-go verdict format' descriptor, not closeout-verdict rows).",
+        "recommended_action": "Give CP00-154 its own boundary-disclaimer bullets and restore the disclaimer bullets under CP00-153; reword the inherited 'closeout notes' phrase to match CP00-154's go/no-go verdict-format descriptor. Cosmetic only."
+      },
+      {
+        "id": "CP154-F2",
+        "severity": "P3",
+        "title": "No-write assertions are tautological (validation theater), so a future real-write regression would not be caught",
+        "evidence": "packages/audit/src/review-sensitive-boundary-catalog.js freezeNoWriteResult() spreads the caller result then hard-overrides ~45 side-effect flags to false unconditionally; packages/audit/test/audit.test.js 'CP00-154 cases keep review-sensitive rows no-write' and scripts/validate-rp03-audit-architecture.mjs CP00-154 case loops then assert those same hardcoded false constants. The checks compare constants to constants rather than observing behavior.",
+        "recommended_action": "Accept as by-design for this descriptor-only/no-write pack — the module genuinely has no side effects and the contract↔code↔plan consistency checks are real. No change required for closeout; if regression protection is wanted later, add a guard that the module imports no ledger/fs/network surface."
+      },
+      {
+        "id": "CP154-F3",
+        "severity": "P3",
+        "title": "Coverage error paths and the unknown-case throw are not exercised by tests",
+        "evidence": "packages/audit/src/review-sensitive-boundary-catalog.js: validateAuditComplianceCp154Coverage() count/first/last/uniqueness/plan-order error branches and runAuditComplianceCp154ReviewSensitiveBoundaryCase()'s 'Unknown CP00-154 ... case' throw are only ever hit on the happy path; the added tests and validator call them only with valid inputs.",
+        "recommended_action": "Optional: add a negative test for an unknown caseId and a malformed planPack. Low risk; consistent with prior CP packs and not required for closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "p2_status": "fixed_or_deferred",
+    "p3_disposition": "one fixed, two accepted as non-blocking descriptor-scope residual risk"
+  }
+}

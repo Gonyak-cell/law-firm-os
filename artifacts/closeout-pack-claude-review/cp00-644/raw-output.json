@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-644",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T15:26:22.501Z",
+  "finished_at": "2026-06-13T15:32:57.351Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":394265,\"duration_api_ms\":394665,\"ttft_ms\":3240,\"num_turns\":59,\"result\":\"Review complete. Verdict: **PASS** — no blocking findings.\\n\\nCP00-644 is a clean descriptor-only Risk C pack. Every layer (registry binding, contract projection, manifest, queue, validators, tests, command-evidence) is mutually consistent, the 122-unit/7-section/deliverable distribution is deterministically correct, and all no-write/no-runtime/no-real-data boundaries are enforced and tested. Claude's read-only/non-approver boundary and Hermes descriptor-only posture hold; the pending `production_ready` state is the correct pre-closeout posture with no premature enterprise-trust claim. Final approval remains with the human.\",\"stop_reason\":\"end_turn\",\"session_id\":\"cb1a7cb6-c15f-4127-8b77-2e32f6f838a2\",\"total_cost_usd\":2.69169725,\"usage\":{\"input_tokens\":157,\"cache_creation_input_tokens\":115323,\"cache_read_input_tokens\":2556969,\"output_tokens\":27617,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115323,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":258,\"cache_read_input_tokens\":111540,\"cache_creation_input_tokens\":4464,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4464},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1134,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001234,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":157,\"outputTokens\":27617,\"cacheReadInputTokens\":2556969,\"cacheCreationInputTokens\":115323,\"webSearchRequests\":0,\"costUSD\":2.6904632499999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-644 is a descriptor-only Risk C closeout pack (122 units, RP20.P09.M04.S13-RP20.P09.M10.S10) for the RP20 Data Room/VDR P09 review closeout tail. Read-only inspection via Read/Grep/Glob confirms the pack is internally consistent and its (pending) production_ready posture is supported by implementation, tests, and local/contract validation. Verified: (1) The CP644 pack binding in packages/data-room/src/registry.js matches the baseline, the contract projection in contracts/data-room-vdr-core-contract.json (cp644_pack_binding/cp644_requirements/cp644_no_write_attestation/cp644_p09_review_closeout_tail_descriptor), the manifest plan_binding_snapshot, and next-pack-queue.json (live_latest CP00-644, next CP00-645). (2) Deliverable distribution computes deterministically to claude_review:18, implementation:78, security_audit:12, test:6, ui:6, hermes_evidence:2 = 122, from the P09_REVIEW row definitions (QUESTION=10, EXTENDED=20, FULL=22, SECONDARY_TAIL=EXTENDED.slice(12)=8) and the title->type classifier in service.js; this matches registry expected_deliverable_counts and the manifest (doubled 36/156 due to two included_units arrays). The 7 micro-phase sections (M04-M10) and row counts/keys are asserted by validateDataRoomVdrCoreCp644Coverage. (3) freezeCp644Result sets all 7 executes_p09_review_*_runtime flags plus the no-write attestation (no product-state writes, no audit/permission writes, no object storage, no Hermes runtime receipt, synthetic_only/no_real_data) to false; validators and model tests assert each boundary and contract-projection deep-equality. (4) command-evidence.json records 19 commands all exiting 0 (node --check, rp20 validator, node --test, npm test/validate/build, git diff --check); readiness-report auth preflight passed with valid JSON (no auth failure, no 0-byte/malformed/fenced/tool-call output). (5) Claude is kept read-only and non-approving (claude_is_final_approval:false, allowed_tools Read/Grep/Glob, forbidden_review_evidence includes claude_final_approval_claim/enterprise_trust_claim/source_mutation_claim), and Hermes patterns are descriptor/receipt-only (hermes_runtime_embedded_in_product:false). The chain CP00-643 -> CP00-644 -> CP00-645 (next_subphase RP21.P00.M00.S01) is consistent. The pack's evidence artifacts (command-evidence/construction-inspection/claude-review-result/adjudication) correctly show in_progress/pending pre-closeout state awaiting this review; no premature production_ready or enterprise-trust claim is asserted. Human final approval remains required for any enterprise-trust/runtime-opening claim; this review is advisory read-only evidence, not final approval. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"d0216f45-772d-40af-afe3-094b26a834fc\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5007,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "cb1a7cb6-c15f-4127-8b77-2e32f6f838a2",
+    "uuid": "d0216f45-772d-40af-afe3-094b26a834fc",
+    "total_cost_usd": 2.69169725,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

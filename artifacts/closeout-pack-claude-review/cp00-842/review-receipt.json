@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-842",
+  "normalized_at": "2026-06-16T14:49:34.948Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-842/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-842/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-842/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-842/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "7d25a301-2f3e-4956-b341-05fcb1dc19f2",
+    "uuid": "c8c7ac67-5d8f-4f7b-8ad4-8a288966dca1",
+    "total_cost_usd": 1.9094705,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7451,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-842 is a descriptor-only RP27 Platform Extensibility \"Claude closeout / synthetic fixture bridge\" pack (10 units, risk A, range RP27.P09.M05.S16-RP27.P09.M06.S03; deliverables implementation:6/hermes_evidence:1/claude_review:2/security_audit:1; micro_titles Permission And Audit Binding:7/Synthetic Fixture Set:3), inspected via Read/Grep/Glob only. Coverage matches the live plan: included units, titles (CLAUDE_REVIEW_ROWS.slice(15,22) for M05 + slice(0,3) for M06 = the exact 7+3 manifest unit titles), and all deliverable/phase/micro/title distributions align with PLATFORM_EXTENSIBILITY_CP842_REQUIREMENTS (registry.js:1753) and are enforced by validators (validators.js:2400 coverage, 2436 descriptor, 2491 contract). Per-row no-leak guards hold: createRow (registry.js:1932) defaults descriptor_only=true, runtime_execution=false and all *_included/*_secret_included false via PLATFORM_EXTENSIBILITY_NO_WRITE_ATTESTATION (registry.js:35); the CP842 case-set builder (registry.js:2511) passes no overrides, and the descriptor validator rejects api_key_issued/webhook_delivered/workflow_executed/permission_decision_written/audit_event_written/writes_product_state=true (validators.js:2476-2481). The generated contract is consistent (current/latest_pack CP00-842, latest_projection descriptor PlatformExtensibilityCp842ClaudeCloseoutSyntheticFixtureBridgeDescriptor, validation.valid=true with no_write_attestation all false; contract.json:38-69/424/51118); a grep across the entire contract found no dangerous *_included/*_written/*_issued/runtime_execution/enterprise-trust flag set true, and no claude_is_final_approval/promotes_claude_to_final_approval/runtime_opening_allowed=true. Tests (model.test.js:692-726) assert zero coverage/descriptor validation errors, runtime-closed flags, a read_only non-final-approval Claude packet, and CP00-842 contract currency. command-evidence.json reports node --check x3, npm run rp27:platform-extensibility:validate, and platform node --test all at exit 0 (agent-reported; not re-run here, per read-only); all referenced npm scripts exist (package.json). Authority boundary preserved: Claude read-only and not final approver (claude_packet.read_only=true/promotes_claude_to_final_approval=false, authority_boundary.claude_is_final_approval=false, validators.js:2448), human approval required for runtime opening, enterprise trust not claimed by local validation. Hermes packet is deterministic control-plane review evidence only (gate H27, emits_runtime_receipt=false, registry.js:2815), not embedded product runtime. Manifest honestly holds production_ready=false/runtime_ready=false/status=in_progress with the pack-level review pending exactly this receipt; review readiness auth-preflight passed (exit 0) and no invalid prior attempts are recorded — no overclaim. One P3 metadata nit on changed-file-scope.json; no P0/P1/P2. Does not block CP00-842 pack closeout or this CP's goal closeout; final human approval for runtime opening remains outside this receipt (next boundary CP00-843 / RP27.P09.M06.S04).",
+    "findings": [
+      {
+        "id": "CP00-842-P3-01",
+        "severity": "P3",
+        "title": "new-session-handoff.md double-classified in changed-file-scope.json",
+        "file": "artifacts/closeout-pack-claude-review/cp00-842/changed-file-scope.json",
+        "line": 144,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed under both untracked_implementation_files (line 144) and unrelated_dirty_files_preserved (line 151) of changed-file-scope.json. The authoritative pack scope disagrees: manifest.json active_pack_required_untracked_files and worktree_transition_policy list only artifacts/closeout-pack-claude-review/cp00-842 and docs/closeout-packs/cp00-842 as required untracked files and place new-session-handoff.md under unrelated_dirty_files_preserved (manifest.json:472). The file itself is a stale (2026-06-08) generic onboarding/handoff document with no CP00-842 deliverable content and no production_ready claim. active_untracked_implementation_files_omitted is [], so no required file was dropped from review. Impact is cosmetic classification only.",
+        "recommendation": "Optional: remove docs/closeout-pack-plan/new-session-handoff.md from untracked_implementation_files in changed-file-scope.json so it is classified solely as an unrelated preserved dirty file, matching the manifest. No action required for closeout.",
+        "post_review_disposition": "Non-blocking. Accepted as a harmless metadata quirk in the review-harness scope file; the manifest is authoritative for pack scope, the file carries no CP00-842 claim, and no required file was omitted. No fix required before closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

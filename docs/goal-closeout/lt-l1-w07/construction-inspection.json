@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-L1-W07",
+  "inspected_at": "2026-06-18T14:47:32Z",
+  "verdict": "BLOCKED_QUOTES_AND_OWNER_BUDGET_APPROVAL_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "budget_draft_exists": true,
+    "required_categories_present": true,
+    "budget_rows": 10,
+    "blank_budget_rows": 0,
+    "quote_pending_lines": 9,
+    "owner_budget_approval_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "vendor_quotes_synthesized": false,
+    "budget_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

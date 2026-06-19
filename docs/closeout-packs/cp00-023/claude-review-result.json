@@ -1,0 +1,118 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-023",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "reason": "claude_cli_completed_without_final_review_report",
+      "session_id": "07be1668-e0da-400c-a79f-d719b77e9858",
+      "uuid": "69927696-c226-4e3e-a603-03843fa43868",
+      "duration_ms": 97039,
+      "note": "This run emitted only a pre-review intent/tool-call-like text and was not accepted as the pack-level Claude review evidence."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "072bb157-23c6-4057-b048-461992316457",
+    "uuid": "b157483e-ea41-43fd-8dba-52a7c8ea8ee4",
+    "duration_ms": 222635,
+    "duration_api_ms": 224616,
+    "total_cost_usd": 1.01328075,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 50853,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.050948,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 2,
+        "outputTokens": 19593,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 75355,
+        "webSearchRequests": 0,
+        "costUSD": 0.9623327500000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_P3_FINDINGS_ADJUDICATED",
+    "claude_reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-023-RAW-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/src/policies.js:0",
+        "title": "happy_path_receipt_fields under-enumerates the emitted receipt keys",
+        "details": "requiredHappyPathReceiptFields (mirrored into result.happy_path_receipt_fields) lists 11 keys, but the constructed happy_path_receipt object emits 15 keys, additionally carrying matter_id, fixture_file_ref, audit_hint_policy_ref, and decision_reason. There is no correctness risk: assertControlPlaneSyntheticFixtureSetPrimaryHappyPathResult value-pins all 15 receipt keys explicitly, and the fixture deep-equal snapshot in both the unit test and rp00 live check would catch any added/removed key. The field is also named 'required' (a minimum set). It is purely a self-description nit: a consumer iterating happy_path_receipt_fields would not see the four extra keys.",
+        "recommendation": "Either document that happy_path_receipt_fields is the minimum required set (not the exhaustive key list), or extend it to enumerate all 15 emitted receipt keys for consumer clarity and to keep the declared shape aligned with the frozen receipt.",
+        "adjudication_status": "deferred_nonblocking_schema_clarity",
+        "adjudication_detail": "The receipt field list is treated as a minimum required set. The validator value-pins all emitted receipt keys, fixture equality covers the full receipt object, and no consumer currently relies on the list as exhaustive. A future schema-clarity pack may rename or expand this field without blocking CP00-023."
+      },
+      {
+        "id": "CP00-023-RAW-P3-02",
+        "severity": "P3",
+        "blocking": false,
+        "location": "contracts/control-plane-contract.json:0",
+        "title": "Closeout evidence pack for cp00-023 not present in this diff",
+        "details": "The contract flips current_subphase to RP00.P02.M06.S07 with status production_ready and evidence_root docs/closeout-packs/cp00-023, and the rp00 validator now requires inspection.control_plane_synthetic_fixture_set_primary_happy_path_verified === true plus the cp00-023 evidence files. Those evidence artifacts are not part of this code diff, so npm run rp00:control-plane:validate will FAIL until they are generated (this matches the stated 'expected FAIL only because cp00-023 evidence files were missing'). This is the documented workflow, not a code defect, but it is a real production_ready closeout gate.",
+        "recommendation": "Before finalizing closeout, generate the docs/closeout-packs/cp00-023 evidence pack and the construction-inspection record with control_plane_synthetic_fixture_set_primary_happy_path_verified=true, then confirm a fully green npm run rp00:control-plane:validate run.",
+        "adjudication_status": "resolved_by_evidence_generation",
+        "adjudication_detail": "The CP00-023 closeout pack evidence files are generated in this pack and final RP00/closeout validation is required before commit."
+      }
+    ],
+    "security_notes": [
+      "Claude found the S07 metadata-only no-write guarantee holds.",
+      "Claude found no P0/P1/P2 issues and no false production_ready overreach."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 455/455 before evidence generation.",
+      "The first incomplete Claude CLI output is not counted as a valid review; CP00-023 records one valid pack-level Claude review."
+    ],
+    "summary": "Claude reported two nonblocking P3 findings. The receipt-field self-description note is explicitly deferred as schema clarity; the missing evidence note is resolved by generating CP00-023 evidence before final validation. Unresolved P0/P1/P2/P3 after adjudication is 0."
+  },
+  "raw_review_text": "{\"review_id\":\"CP00-023\",\"model\":\"claude-opus-4-8\",\"effort\":\"max\",\"read_only\":true,\"summary\":\"RP00.P02.M06.S07 Synthetic Fixture Set Primary happy path is a clean, metadata-only, fail-closed precheck pack. The new service function precheckControlPlaneSyntheticFixtureSetPrimaryHappyPath is pure (no fs/network/DB/runtime side effects) and gates strictly: it requires a well-formed S06 audit-hint result (object shape, non-blank audit_event_ref, synthetic_fixture_set entrypoint, audit_hint_precheck_subphase_id === RP00.P02.M06.S06), re-runs the full assertControlPlaneSyntheticFixtureSetAuditHintPrecheckResult, requires carried allow_metadata_only + audit_event_ref_satisfied, and rejects ALL truthy claims (both the 27 forbidden and any unknown key) — a maximally fail-closed claims allowlist. The emitted result pins every *_permitted/runtime_route_created flag to false and no_real_data/writes_product_state correctly, freezes result/receipt/arrays, and carries only synthetic IDs. Policy, prechecker, validators, fixture, contract definition, README, and the rp00 validator are mutually consistent and cross-pinned: length checks (forbidden=27, failClosedOn=19, receiptFields=11), bidirectional field-set equality, JSON-equality on canonical context/evidence/marker arrays, an end-to-end live S02->S07 chain compared to the fixture precheck_result, and rejection cases for wrong entrypoint/source/marker, missing/denied audit hint, and each forbidden+unknown+non-object claim. requiredClosedSubphases and the weighted-ledger loop correctly ratchet S06 into closed state while S07 becomes current via a dedicated boundary check; closeout flag, production_ready_requires, and construction-inspection verification are wired. No-write/no-runtime, fail-closed, evidence/contract consistency, and test coverage all hold. Only minor (P3) consistency/closeout-process notes; nothing blocking.\",\"findings\":[{\"severity\":\"P3\",\"title\":\"happy_path_receipt_fields under-enumerates the emitted receipt keys\",\"file\":\"packages/control-plane/src/policies.js\",\"line\":0,\"details\":\"requiredHappyPathReceiptFields (mirrored into result.happy_path_receipt_fields) lists 11 keys, but the constructed happy_path_receipt object emits 15 keys, additionally carrying matter_id, fixture_file_ref, audit_hint_policy_ref, and decision_reason. There is no correctness risk: assertControlPlaneSyntheticFixtureSetPrimaryHappyPathResult value-pins all 15 receipt keys explicitly, and the fixture deep-equal snapshot in both the unit test and rp00 live check would catch any added/removed key. The field is also named 'required' (a minimum set). It is purely a self-description nit: a consumer iterating happy_path_receipt_fields would not see the four extra keys.\",\"recommendation\":\"Either document that happy_path_receipt_fields is the minimum required set (not the exhaustive key list), or extend it to enumerate all 15 emitted receipt keys for consumer clarity and to keep the declared shape aligned with the frozen receipt.\"},{\"severity\":\"P3\",\"title\":\"Closeout evidence pack for cp00-023 not present in this diff\",\"file\":\"contracts/control-plane-contract.json\",\"line\":0,\"details\":\"The contract flips current_subphase to RP00.P02.M06.S07 with status production_ready and evidence_root docs/closeout-packs/cp00-023, and the rp00 validator now requires inspection.control_plane_synthetic_fixture_set_primary_happy_path_verified === true plus the cp00-023 evidence files. Those evidence artifacts are not part of this code diff, so npm run rp00:control-plane:validate will FAIL until they are generated (this matches the stated 'expected FAIL only because cp00-023 evidence files were missing'). This is the documented workflow, not a code defect, but it is a real production_ready closeout gate.\",\"recommendation\":\"Before finalizing closeout, generate the docs/closeout-packs/cp00-023 evidence pack and the construction-inspection record with control_plane_synthetic_fixture_set_primary_happy_path_verified=true, then confirm a fully green npm run rp00:control-plane:validate run.\"}],\"blocking_findings\":0,\"p0_p1_count\":0,\"p2_count\":0,\"verdict\":\"pass\"}",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude raw P3 findings were adjudicated without running a second valid review: receipt-field exhaustiveness is deferred as nonblocking schema clarity, and the evidence-pack absence is resolved by CP00-023 evidence generation plus final validation. Unresolved P0/P1/P2/P3 after adjudication is 0."
+}

@@ -1,0 +1,2037 @@
+{
+  "schema_version": "law-firm-os.launch-closure-dependency-graph.v0.1",
+  "generated_at": "2026-06-18T15:52:27.865Z",
+  "source_refs": [
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-phase-exit-readiness-audit.json",
+    "docs/launch/launch-evidence-acceptance-matrix.json",
+    "docs/launch/launch-evidence-acceptance-matrix-validation.json",
+    "docs/launch/owner-action-deferral-request.json",
+    "docs/launch/owner-action-deferral-request-validation.json",
+    "docs/launch/launch-manual-evidence-intake-validation.json",
+    "docs/launch/launch-decision-register-validation.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "records_dependency_topology_only": true,
+    "go_live_approved_by_this_graph": false,
+    "owner_deferrals_approved_by_this_graph": false,
+    "intake_rows_satisfied_by_this_graph": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "phase_node_count": 11,
+    "blocked_phase_node_count": 11,
+    "failed_gate_node_count": 10,
+    "gate_acceptance_node_count": 31,
+    "l9_closure_node_count": 5,
+    "pending_acceptance_node_count": 36,
+    "evidence_satisfied_acceptance_node_count": 0,
+    "owner_deferred_acceptance_node_count": 0,
+    "missing_intake_acceptance_node_count": 0,
+    "blocked_wp_node_count": 70,
+    "owner_approved_deferrals_present": false,
+    "coverage_eligible_valid_deferred_rows": 0,
+    "non_coverage_valid_deferred_rows": 0,
+    "go_live_all_pass": false,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "phase_nodes": [
+    {
+      "phase": "PRE",
+      "exit_gate": "PRE-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-PRE-W01",
+        "LT-PRE-W02",
+        "LT-PRE-W03",
+        "LT-PRE-W04",
+        "LT-PRE-W05",
+        "LT-PRE-W06"
+      ],
+      "recorded_wp_ids": [
+        "LT-PRE-W07"
+      ],
+      "related_failed_gate_ids": [],
+      "related_acceptance_ids": []
+    },
+    {
+      "phase": "L0",
+      "exit_gate": "L0-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W04",
+        "LT-L0-W05"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03",
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ]
+    },
+    {
+      "phase": "L1",
+      "exit_gate": "L1-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L1-W01",
+        "LT-L1-W02",
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L1-W05",
+        "LT-L1-W06",
+        "LT-L1-W07",
+        "LT-L1-W08",
+        "LT-L1-W09",
+        "LT-L1-W10"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G10",
+        "G7"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ]
+    },
+    {
+      "phase": "L2",
+      "exit_gate": "L2-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W05",
+        "LT-L2-W06",
+        "LT-L2-W07"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G2",
+        "G3"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03",
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ]
+    },
+    {
+      "phase": "L3",
+      "exit_gate": "L3-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L3-W01",
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L3-W06",
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04",
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03",
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ]
+    },
+    {
+      "phase": "L4",
+      "exit_gate": "L4-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L4-W01",
+        "LT-L4-W02",
+        "LT-L4-W03",
+        "LT-L4-W04",
+        "LT-L4-W05",
+        "LT-L4-W06"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [],
+      "related_acceptance_ids": []
+    },
+    {
+      "phase": "L5",
+      "exit_gate": "L5-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G3",
+        "G4",
+        "G7"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04",
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ]
+    },
+    {
+      "phase": "L6",
+      "exit_gate": "L6-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W04",
+        "LT-L6-W05",
+        "LT-L6-W06"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G6",
+        "G7"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ]
+    },
+    {
+      "phase": "L7",
+      "exit_gate": "L7-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L7-W04",
+        "LT-L7-W05",
+        "LT-L7-W06"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [
+        "G8"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03"
+      ]
+    },
+    {
+      "phase": "L8",
+      "exit_gate": "L8-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "recorded_wp_ids": [
+        "LT-L8-W01"
+      ],
+      "related_failed_gate_ids": [
+        "G1",
+        "G10",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03",
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03",
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04",
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04",
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03",
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03",
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03",
+        "ACC-GL-G9-G9-E01",
+        "ACC-GL-G9-G9-E03"
+      ]
+    },
+    {
+      "phase": "L9",
+      "exit_gate": "L9-EXIT",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_wp_ids": [
+        "LT-L9-W01",
+        "LT-L9-W02",
+        "LT-L9-W03",
+        "LT-L9-W04",
+        "LT-L9-W05"
+      ],
+      "recorded_wp_ids": [],
+      "related_failed_gate_ids": [],
+      "related_acceptance_ids": []
+    }
+  ],
+  "gate_nodes": [
+    {
+      "gate_id": "G1",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G1-E02",
+        "G1-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L0",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G2",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G2-E01",
+        "G2-E02",
+        "G2-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L0-W02",
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W07",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L0",
+        "L2",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G3",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G3-E01",
+        "G3-E02",
+        "G3-E03",
+        "G3-E04"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L0-W04",
+        "LT-L2-W05",
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L0",
+        "L2",
+        "L5",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G4",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G4-E01",
+        "G4-E02",
+        "G4-E03",
+        "G4-E04"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L3",
+        "L5",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G5",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G5-E01",
+        "G5-E02",
+        "G5-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L3",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G6",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G6-E01",
+        "G6-E02",
+        "G6-E03",
+        "G6-E04"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L3-W06",
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W05",
+        "LT-L6-W06",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L3",
+        "L6",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G7",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G7-E01",
+        "G7-E02",
+        "G7-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L5-W04",
+        "LT-L6-W04",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L1",
+        "L5",
+        "L6",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G8",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G8-E01",
+        "G8-E02",
+        "G8-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L8-W02"
+      ],
+      "related_phase_ids": [
+        "L7",
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G9",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G9-E01",
+        "G9-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G9-G9-E01",
+        "ACC-GL-G9-G9-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "related_phase_ids": [
+        "L8"
+      ]
+    },
+    {
+      "gate_id": "G10",
+      "status": "fail",
+      "failed_evidence_ids": [
+        "G10-E01",
+        "G10-E02",
+        "G10-E03"
+      ],
+      "acceptance_ids": [
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03"
+      ],
+      "related_blocked_wp_ids": [
+        "LT-L1-W05",
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "related_phase_ids": [
+        "L1",
+        "L8"
+      ]
+    }
+  ],
+  "blocked_wp_nodes": [
+    {
+      "wp_id": "LT-PRE-W01",
+      "phase": "PRE",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_owner_ratification",
+      "evidence_base": "docs/goal-closeout/lt-pre-w01",
+      "terminal_tuw": "LT-PRE-W01-T01",
+      "related_acceptance_ids": [],
+      "next_required_action": {
+        "owner_role": "Launch owner / critical RP hardening plan approver",
+        "decision_needed": "Adopt, conditionally adopt, or reject docs/critical-rp-saas-hardening-plan.md",
+        "evidence_to_add_after_decision": [
+          "Decision row in workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "Status line update in docs/critical-rp-saas-hardening-plan.md",
+          "Updated grep evidence showing Adopted=1 and Proposed=0"
+        ]
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W02",
+      "phase": "PRE",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_missed_cp_interleave_window",
+      "evidence_base": "docs/goal-closeout/lt-pre-w02",
+      "terminal_tuw": "LT-PRE-W02-T01",
+      "related_acceptance_ids": [],
+      "next_required_action": {
+        "owner_role": "Launch owner / runtime rebaseline approver",
+        "decision_needed": "Approve treating the missed CP interleave as a post-CP L2/L4 runtime rebaseline, or approve a separate scope revision path.",
+        "evidence_to_add_after_decision": [
+          "Decision row in the launch decision register or absorption decision register",
+          "Updated runtime gap/rebaseline approval evidence",
+          "Updated LT-PRE-W02 command evidence with owner decision"
+        ]
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W03",
+      "phase": "PRE",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_storage_decision",
+      "evidence_base": "docs/goal-closeout/lt-pre-w03",
+      "terminal_tuw": "LT-PRE-W03-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": {
+        "owner_role": "Launch owner / document storage architecture approver",
+        "decision_needed": "Choose SharePoint/OneDrive original storage or object storage for document originals, with basis and date.",
+        "evidence_to_add_after_decision": [
+          "MAT-DEC-03 decision row update in workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "docs/launch/mat-dec-03-unseal-referral.md",
+          "Scope revision judgment after the chosen storage path is known"
+        ]
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W04",
+      "phase": "PRE",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_owner_disposition",
+      "evidence_base": "docs/goal-closeout/lt-pre-w04",
+      "terminal_tuw": "LT-PRE-W04-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-PRE-W05",
+      "phase": "PRE",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "blocker_categories": [
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_mat_dec_08",
+      "evidence_base": "docs/goal-closeout/lt-pre-w05",
+      "terminal_tuw": "LT-PRE-W05-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": {
+        "owner_role": "Launch owner / data classification approver",
+        "decision_needed": "Choose the closed confidentiality enum list and application boundary, including whether privilege and HR-sensitive values are added.",
+        "evidence_to_add_after_decision": [
+          "MAT-DEC-08 decision row update",
+          "docs/launch/confidentiality-enum-extension-spec.md",
+          "Updated LT-PRE-W05 command evidence with decided value list and implementation boundary"
+        ]
+      }
+    },
+    {
+      "wp_id": "LT-PRE-W06",
+      "phase": "PRE",
+      "gate_binding": [
+        "PRE-EXIT"
+      ],
+      "blocker_categories": [
+        "external_dependency"
+      ],
+      "command_status": "blocked_pending_external_actions",
+      "evidence_base": "docs/goal-closeout/lt-pre-w06",
+      "terminal_tuw": "LT-PRE-W06-T04",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L0-W01",
+      "phase": "L0",
+      "gate_binding": [
+        "G1",
+        "L0-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_human_acceptance",
+      "evidence_base": "docs/goal-closeout/lt-l0-w01",
+      "terminal_tuw": "LT-L0-W01-T05",
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L0-W02",
+      "phase": "L0",
+      "gate_binding": [
+        "G1",
+        "G2",
+        "L0-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_human_approval",
+      "evidence_base": "docs/goal-closeout/lt-l0-w02",
+      "terminal_tuw": "LT-L0-W02-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L0-W03",
+      "phase": "L0",
+      "gate_binding": [
+        "G1",
+        "L0-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_owner_rejudgment",
+      "evidence_base": "docs/goal-closeout/lt-l0-w03",
+      "terminal_tuw": "LT-L0-W03-T03",
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L0-W04",
+      "phase": "L0",
+      "gate_binding": [
+        "G3",
+        "L0-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_human_acceptance",
+      "evidence_base": "docs/goal-closeout/lt-l0-w04",
+      "terminal_tuw": "LT-L0-W04-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L0-W05",
+      "phase": "L0",
+      "gate_binding": [
+        "G1",
+        "L0-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_owner_ratification_and_cell_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l0-w05",
+      "terminal_tuw": "LT-L0-W05-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W01",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "command_status": "t01_passed_wp_open",
+      "evidence_base": "docs/goal-closeout/lt-l1-w01",
+      "terminal_tuw": "LT-L1-W01-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W02",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "decision_round_brief_blocked_pending_owner_decisions",
+      "evidence_base": "docs/goal-closeout/lt-l1-w02",
+      "terminal_tuw": "LT-L1-W02-T09",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W03",
+      "phase": "L1",
+      "gate_binding": [
+        "G7",
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "external_dependency"
+      ],
+      "command_status": "t01_draft_blocked_pending_external_legal_review_result",
+      "evidence_base": "docs/goal-closeout/lt-l1-w03",
+      "terminal_tuw": "LT-L1-W03-T03",
+      "related_acceptance_ids": [
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W04",
+      "phase": "L1",
+      "gate_binding": [
+        "G7",
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_t02_passed_wp_open_pending_human_ratification",
+      "evidence_base": "docs/goal-closeout/lt-l1-w04",
+      "terminal_tuw": "LT-L1-W04-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W05",
+      "phase": "L1",
+      "gate_binding": [
+        "G10",
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "t01_brief_blocked_pending_owner_approval",
+      "evidence_base": "docs/goal-closeout/lt-l1-w05",
+      "terminal_tuw": "LT-L1-W05-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W06",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "decision_brief_blocked_pending_owner_hosting_decision",
+      "evidence_base": "docs/goal-closeout/lt-l1-w06",
+      "terminal_tuw": "LT-L1-W06-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W07",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "command_status": "draft_completed_pending_l1_w06_quotes",
+      "evidence_base": "docs/goal-closeout/lt-l1-w07",
+      "terminal_tuw": "LT-L1-W07-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W08",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "draft_completed_pending_l0_w02_approval",
+      "evidence_base": "docs/goal-closeout/lt-l1-w08",
+      "terminal_tuw": "LT-L1-W08-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W09",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "t01_passed_wp_open_pending_human_authority_decision",
+      "evidence_base": "docs/goal-closeout/lt-l1-w09",
+      "terminal_tuw": "LT-L1-W09-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L1-W10",
+      "phase": "L1",
+      "gate_binding": [
+        "L1-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "draft_completed_pending_l1_w01_scope_decision",
+      "evidence_base": "docs/goal-closeout/lt-l1-w10",
+      "terminal_tuw": "LT-L1-W10-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W01",
+      "phase": "L2",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "evidence_base": "docs/goal-closeout/lt-l2-w01",
+      "terminal_tuw": "LT-L2-W01-T11",
+      "related_acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W02",
+      "phase": "L2",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+      "evidence_base": "docs/goal-closeout/lt-l2-w02",
+      "terminal_tuw": "LT-L2-W02-T14",
+      "related_acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W03",
+      "phase": "L2",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_l2_w01_w02_and_write_runtime",
+      "evidence_base": "docs/goal-closeout/lt-l2-w03",
+      "terminal_tuw": "LT-L2-W03-T18",
+      "related_acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W04",
+      "phase": "L2",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+      "evidence_base": "docs/goal-closeout/lt-l2-w04",
+      "terminal_tuw": "LT-L2-W04-T23",
+      "related_acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W05",
+      "phase": "L2",
+      "gate_binding": [
+        "G3",
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_runtime_risk_controls_and_predecessors",
+      "evidence_base": "docs/goal-closeout/lt-l2-w05",
+      "terminal_tuw": "LT-L2-W05-T07",
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W06",
+      "phase": "L2",
+      "gate_binding": [
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t01_draft_blocked_t05_passed_wp_open",
+      "evidence_base": "docs/goal-closeout/lt-l2-w06",
+      "terminal_tuw": "LT-L2-W06-T06",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L2-W07",
+      "phase": "L2",
+      "gate_binding": [
+        "G2",
+        "L2-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_runtime_integration_harness_and_predecessors",
+      "evidence_base": "docs/goal-closeout/lt-l2-w07",
+      "terminal_tuw": "LT-L2-W07-T08",
+      "related_acceptance_ids": [
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W01",
+      "phase": "L3",
+      "gate_binding": [
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_human_signature",
+      "evidence_base": "docs/goal-closeout/lt-l3-w01",
+      "terminal_tuw": "LT-L3-W01-T05",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W02",
+      "phase": "L3",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l3-w02",
+      "terminal_tuw": "LT-L3-W02-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W03",
+      "phase": "L3",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l3-w03",
+      "terminal_tuw": "LT-L3-W03-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W04",
+      "phase": "L3",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "evidence_base": "docs/goal-closeout/lt-l3-w04",
+      "terminal_tuw": "LT-L3-W04-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W05",
+      "phase": "L3",
+      "gate_binding": [
+        "G4",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+      "evidence_base": "docs/goal-closeout/lt-l3-w05",
+      "terminal_tuw": "LT-L3-W05-T05",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W06",
+      "phase": "L3",
+      "gate_binding": [
+        "G6",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+      "evidence_base": "docs/goal-closeout/lt-l3-w06",
+      "terminal_tuw": "LT-L3-W06-T05",
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W07",
+      "phase": "L3",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "external_dependency",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "evidence_base": "docs/goal-closeout/lt-l3-w07",
+      "terminal_tuw": "LT-L3-W07-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W08",
+      "phase": "L3",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "evidence_base": "docs/goal-closeout/lt-l3-w08",
+      "terminal_tuw": "LT-L3-W08-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W09",
+      "phase": "L3",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_addin_manifest_admin_center_pilot_e2e_and_rollback_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l3-w09",
+      "terminal_tuw": "LT-L3-W09-T05",
+      "related_acceptance_ids": [
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L3-W10",
+      "phase": "L3",
+      "gate_binding": [
+        "G5",
+        "L3-EXIT"
+      ],
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "command_status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l3-w10",
+      "terminal_tuw": "LT-L3-W10-T04",
+      "related_acceptance_ids": [
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L4-W01",
+      "phase": "L4",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "blocker_categories": [
+        "external_dependency",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t02_t06_t09_t12_t15_t18_ia_drafts_completed_pending_scope_storage_m365_and_runtime_wp_open",
+      "evidence_base": "docs/goal-closeout/lt-l4-w01",
+      "terminal_tuw": "LT-L4-W01-T21",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L4-W02",
+      "phase": "L4",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_official_wiring_roadmap_live_client_runtime_and_gap_tracker",
+      "evidence_base": "docs/goal-closeout/lt-l4-w02",
+      "terminal_tuw": "LT-L4-W02-T05",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L4-W03",
+      "phase": "L4",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "blocked_pending_owner_parity_release_decision_and_approval_signature",
+      "evidence_base": "docs/goal-closeout/lt-l4-w03",
+      "terminal_tuw": "LT-L4-W03-T01",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L4-W04",
+      "phase": "L4",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "command_status": "t01_ui_harness_passed_t02_t03_t04_blocked_pending_w01_w02",
+      "evidence_base": "docs/goal-closeout/lt-l4-w04",
+      "terminal_tuw": "LT-L4-W04-T04",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L4-W05",
+      "phase": "L4",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "t01_i18n_policy_t02_glossary_t03_app_copy_audit_blocked_pending_owner_policy_and_source_cleanup",
+      "evidence_base": "docs/goal-closeout/lt-l4-w05",
+      "terminal_tuw": "LT-L4-W05-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L4-W06",
+      "phase": "L4",
+      "gate_binding": [
+        "L4-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_screen_flows_t03_training_index_drafts_blocked_pending_runtime_validation_captures_walkthrough_and_final_link_check",
+      "evidence_base": "docs/goal-closeout/lt-l4-w06",
+      "terminal_tuw": "LT-L4-W06-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W01",
+      "phase": "L5",
+      "gate_binding": [
+        "G3",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "evidence_base": "docs/goal-closeout/lt-l5-w01",
+      "terminal_tuw": "LT-L5-W01-T10",
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W02",
+      "phase": "L5",
+      "gate_binding": [
+        "G3",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls",
+      "evidence_base": "docs/goal-closeout/lt-l5-w02",
+      "terminal_tuw": "LT-L5-W02-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W03",
+      "phase": "L5",
+      "gate_binding": [
+        "G3",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_bypass_test_suites_addin_scope_check_bypass_matrix_and_runtime_predecessors",
+      "evidence_base": "docs/goal-closeout/lt-l5-w03",
+      "terminal_tuw": "LT-L5-W03-T05",
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W04",
+      "phase": "L5",
+      "gate_binding": [
+        "G3",
+        "G7",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "external_dependency",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_external_pentest_roe_report_adjudication_pipa_review_and_evidence_map",
+      "evidence_base": "docs/goal-closeout/lt-l5-w04",
+      "terminal_tuw": "LT-L5-W04-T05",
+      "related_acceptance_ids": [
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W05",
+      "phase": "L5",
+      "gate_binding": [
+        "G4",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+      "evidence_base": "docs/goal-closeout/lt-l5-w05",
+      "terminal_tuw": "LT-L5-W05-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W06",
+      "phase": "L5",
+      "gate_binding": [
+        "G4",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t01_decision_brief_t02_harness_t03_report_draft_blocked_pending_owner_thresholds_staging_load_and_performance_verdict",
+      "evidence_base": "docs/goal-closeout/lt-l5-w06",
+      "terminal_tuw": "LT-L5-W06-T03",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L5-W07",
+      "phase": "L5",
+      "gate_binding": [
+        "G4",
+        "L5-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_pending_dr_runbooks_staging_rehearsals_rpo_rto_audit_verify_and_index_resync_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l5-w07",
+      "terminal_tuw": "LT-L5-W07-T03",
+      "related_acceptance_ids": [
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L6-W01",
+      "phase": "L6",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+      "evidence_base": "docs/goal-closeout/lt-l6-w01",
+      "terminal_tuw": "LT-L6-W01-T03",
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L6-W02",
+      "phase": "L6",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_permission_procedure_t02_faq_onboarding_drafts_blocked_pending_runtime_support_channel_and_training_source",
+      "evidence_base": "docs/goal-closeout/lt-l6-w02",
+      "terminal_tuw": "LT-L6-W02-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L6-W03",
+      "phase": "L6",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "t01_draft_blocked_pending_l1_w05_approval_governance_and_l5_w02_validation",
+      "evidence_base": "docs/goal-closeout/lt-l6-w03",
+      "terminal_tuw": "LT-L6-W03-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L6-W04",
+      "phase": "L6",
+      "gate_binding": [
+        "G7",
+        "L6-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature"
+      ],
+      "command_status": "t01_reviewer_roster_decision_brief_t02_operations_draft_blocked_pending_owner_approval_sla_disable_authority_and_dry_run",
+      "evidence_base": "docs/goal-closeout/lt-l6-w04",
+      "terminal_tuw": "LT-L6-W04-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L6-W05",
+      "phase": "L6",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_runbook_t02_tabletop_scaffold_blocked_pending_real_change_pipeline_deploy_regression_and_rollback_evidence",
+      "evidence_base": "docs/goal-closeout/lt-l6-w05",
+      "terminal_tuw": "LT-L6-W05-T02",
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L6-W06",
+      "phase": "L6",
+      "gate_binding": [
+        "G6",
+        "L6-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t01_definitions_t02_target_brief_t03_synthetic_collector_blocked_pending_staging_dashboard_targets_and_24h_refresh",
+      "evidence_base": "docs/goal-closeout/lt-l6-w06",
+      "terminal_tuw": "LT-L6-W06-T03",
+      "related_acceptance_ids": [
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L7-W01",
+      "phase": "L7",
+      "gate_binding": [
+        "G8",
+        "L7-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+      "evidence_base": "docs/goal-closeout/lt-l7-w01",
+      "terminal_tuw": "LT-L7-W01-T10",
+      "related_acceptance_ids": [
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L7-W02",
+      "phase": "L7",
+      "gate_binding": [
+        "G8",
+        "L7-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+      "evidence_base": "docs/goal-closeout/lt-l7-w02",
+      "terminal_tuw": "LT-L7-W02-T06",
+      "related_acceptance_ids": [
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L7-W03",
+      "phase": "L7",
+      "gate_binding": [
+        "G8",
+        "L7-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_pending_gl_mig_02_delta_freeze_design_production_backfill_preflight_execution_verification_and_g8_package",
+      "evidence_base": "docs/goal-closeout/lt-l7-w03",
+      "terminal_tuw": "LT-L7-W03-T07",
+      "related_acceptance_ids": [
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L7-W04",
+      "phase": "L7",
+      "gate_binding": [
+        "L7-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_t02_t03_t04_training_package_templates_blocked_pending_l4_w01_l4_w06_staging_runtime_pilot_roster_sessions_and_100_percent_completion",
+      "evidence_base": "docs/goal-closeout/lt-l7-w04",
+      "terminal_tuw": "LT-L7-W04-T04",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L7-W05",
+      "phase": "L7",
+      "gate_binding": [
+        "L7-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "evidence_base": "docs/goal-closeout/lt-l7-w05",
+      "terminal_tuw": "LT-L7-W05-T04",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L7-W06",
+      "phase": "L7",
+      "gate_binding": [
+        "L7-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "runtime_or_operational_evidence",
+        "policy_or_scope_decision"
+      ],
+      "command_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "evidence_base": "docs/goal-closeout/lt-l7-w06",
+      "terminal_tuw": "LT-L7-W06-T04",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L8-W02",
+      "phase": "L8",
+      "gate_binding": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "L8-EXIT"
+      ],
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "command_status": "blocked_current_gate_evidence_survey_recorded",
+      "evidence_base": "docs/goal-closeout/lt-l8-w02",
+      "terminal_tuw": "LT-L8-W02-T10",
+      "related_acceptance_ids": [
+        "ACC-GL-G1-G1-E02",
+        "ACC-GL-G1-G1-E03",
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03",
+        "ACC-GL-G2-G2-E01",
+        "ACC-GL-G2-G2-E02",
+        "ACC-GL-G2-G2-E03",
+        "ACC-GL-G3-G3-E01",
+        "ACC-GL-G3-G3-E02",
+        "ACC-GL-G3-G3-E03",
+        "ACC-GL-G3-G3-E04",
+        "ACC-GL-G4-G4-E01",
+        "ACC-GL-G4-G4-E02",
+        "ACC-GL-G4-G4-E03",
+        "ACC-GL-G4-G4-E04",
+        "ACC-GL-G5-G5-E01",
+        "ACC-GL-G5-G5-E02",
+        "ACC-GL-G5-G5-E03",
+        "ACC-GL-G6-G6-E01",
+        "ACC-GL-G6-G6-E02",
+        "ACC-GL-G6-G6-E03",
+        "ACC-GL-G6-G6-E04",
+        "ACC-GL-G7-G7-E01",
+        "ACC-GL-G7-G7-E02",
+        "ACC-GL-G7-G7-E03",
+        "ACC-GL-G8-G8-E01",
+        "ACC-GL-G8-G8-E02",
+        "ACC-GL-G8-G8-E03",
+        "ACC-GL-G9-G9-E01",
+        "ACC-GL-G9-G9-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L8-W03",
+      "phase": "L8",
+      "gate_binding": [
+        "G9",
+        "G10",
+        "L8-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_cutover_templates_and_boundaries_recorded",
+      "evidence_base": "docs/goal-closeout/lt-l8-w03",
+      "terminal_tuw": "LT-L8-W03-T07",
+      "related_acceptance_ids": [
+        "ACC-GL-G10-G10-E01",
+        "ACC-GL-G10-G10-E02",
+        "ACC-GL-G10-G10-E03",
+        "ACC-GL-G9-G9-E01",
+        "ACC-GL-G9-G9-E03"
+      ],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L9-W01",
+      "phase": "L9",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "blocker_categories": [
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "blocked_hypercare_templates_recorded",
+      "evidence_base": "docs/goal-closeout/lt-l9-w01",
+      "terminal_tuw": "LT-L9-W01-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L9-W02",
+      "phase": "L9",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "blocker_categories": [
+        "policy_or_scope_decision"
+      ],
+      "command_status": "blocked_kpi_baseline_templates_recorded",
+      "evidence_base": "docs/goal-closeout/lt-l9-w02",
+      "terminal_tuw": "LT-L9-W02-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L9-W03",
+      "phase": "L9",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "blocker_categories": [
+        "evidence_completion"
+      ],
+      "command_status": "blocked_legacy_disposition_templates_recorded",
+      "evidence_base": "docs/goal-closeout/lt-l9-w03",
+      "terminal_tuw": "LT-L9-W03-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L9-W04",
+      "phase": "L9",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "blocker_categories": [
+        "external_dependency",
+        "runtime_or_operational_evidence"
+      ],
+      "command_status": "t01_wave2_opening_gate_definition_draft_blocked_pending_l6_w04_external_ai_prerequisites_and_runtime_verdict",
+      "evidence_base": "docs/goal-closeout/lt-l9-w04",
+      "terminal_tuw": "LT-L9-W04-T03",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    },
+    {
+      "wp_id": "LT-L9-W05",
+      "phase": "L9",
+      "gate_binding": [
+        "L9-EXIT"
+      ],
+      "blocker_categories": [
+        "owner_decision_or_signature",
+        "external_dependency"
+      ],
+      "command_status": "t01_wave3_opening_gate_definition_draft_blocked_pending_external_identity_hr_sensitivity_oq006_and_owner_signoff",
+      "evidence_base": "docs/goal-closeout/lt-l9-w05",
+      "terminal_tuw": "LT-L9-W05-T02",
+      "related_acceptance_ids": [],
+      "next_required_action": null
+    }
+  ],
+  "l9_closure_nodes": [
+    {
+      "acceptance_id": "ACC-L9-C01",
+      "intake_id": "L9-C01",
+      "closure_criterion": "Last 14 days P0/P1 count equals zero",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral"
+    },
+    {
+      "acceptance_id": "ACC-L9-C02",
+      "intake_id": "L9-C02",
+      "closure_criterion": "Four consecutive weeks SLO met",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral"
+    },
+    {
+      "acceptance_id": "ACC-L9-C03",
+      "intake_id": "L9-C03",
+      "closure_criterion": "Four weeks audit completeness green",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral"
+    },
+    {
+      "acceptance_id": "ACC-L9-C04",
+      "intake_id": "L9-C04",
+      "closure_criterion": "Every incident has post-analysis link",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral"
+    },
+    {
+      "acceptance_id": "ACC-L9-C05",
+      "intake_id": "L9-C05",
+      "closure_criterion": "Owner signoff",
+      "current_status": "missing",
+      "current_intake_status": "pending_evidence_or_owner_deferral"
+    }
+  ],
+  "findings": []
+}

@@ -1,0 +1,68 @@
+{
+  "subphase_id": "RP00.P02.M03.S17",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Rollback behavior",
+  "created_at": "2026-06-05T12:49:45Z",
+  "verdict": "PASS",
+  "production_ready": true,
+  "control_plane_hermes_validation_rollback_behavior_verified": true,
+  "scope": {
+    "implements_only_control_plane_hermes_validation_rollback_behavior": true,
+    "depends_on_RP00_P02_M03_S16": true,
+    "next_subphase": "RP00.P02.M03.S18",
+    "source_micro_phase_completed": false
+  },
+  "quality_gates": {
+    "implementation_complete": true,
+    "tests_passed": true,
+    "hermes_validation_passed_after_evidence": "passed",
+    "claude_review_completed": true,
+    "claude_p0_unresolved": 0,
+    "claude_p1_unresolved": 0,
+    "claude_p2_unresolved": 0,
+    "adjudication_complete": true
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "rollback_execution_permitted": false,
+    "retry_execution_permitted": false,
+    "compensation_execution_permitted": false,
+    "operator_escalation_write_permitted": false,
+    "customer_notification_permitted": false,
+    "incident_trace_write_permitted": false,
+    "observability_event_write_permitted": false,
+    "service_logic_execution_permitted": false,
+    "runtime_route_created": false,
+    "hermes_validation_execution_permitted": false,
+    "hermes_evidence_creation_permitted": false,
+    "audit_event_write_permitted": false,
+    "database_write_permitted": false,
+    "storage_write_permitted": false,
+    "product_state_persistence_permitted": false,
+    "review_queue_write_permitted": false,
+    "approval_record_write_permitted": false,
+    "ui_created": false
+  },
+  "recovery_gates": {
+    "recovery_path_metadata_present": true,
+    "incident_traceability_metadata_present": true,
+    "retry_strategy_ref_present": true,
+    "compensation_strategy_ref_present": true,
+    "operator_escalation_ref_present": true,
+    "customer_safe_error_message_ref_present": true,
+    "incident_trace_ref_present": true
+  },
+  "claude_findings": {
+    "p0_count": 0,
+    "p0_status": "none",
+    "p1_count": 0,
+    "p1_status": "none",
+    "p2_count": 2,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 2,
+    "p3_status": "informational_no_code_change"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S17 is production_ready as a non-terminal rollback behavior boundary and explicitly hands off to RP00.P02.M03.S18 Retry behavior.",
+  "inspected_at": "2026-06-05T12:49:45Z"
+}

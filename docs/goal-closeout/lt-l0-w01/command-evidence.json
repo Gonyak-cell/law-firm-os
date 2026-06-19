@@ -1,0 +1,360 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L0-W01",
+  "title": "Final Product Completion Gate validator and contract",
+  "phase": "L0",
+  "gate": "G1, L0-EXIT",
+  "status": "blocked_pending_human_acceptance",
+  "recorded_at": "2026-06-18T09:41:14Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T09:41:14Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L0-W01-T01",
+      "title": "Design final-product-completion-gate contract",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "contracts/final-product-completion-gate-contract.json"
+      ],
+      "acceptance": {
+        "section_8_to_contract_mapping": "passed",
+        "machine_manual_classification_present": "passed",
+        "input_source_paths_present": "passed",
+        "forbidden_literal_totals": "passed",
+        "json_parse": "passed"
+      },
+      "commands": [
+        {
+          "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/final-product-completion-gate-contract.json','utf8')); console.log('json_parse=ok')\"",
+          "exit_code": 0,
+          "output": "json_parse=ok",
+          "purpose": "Contract JSON parse check"
+        },
+        {
+          "command": "node - <<'NODE' ... compare Section 8 bullet count, contract item count, forbidden literal totals, and scope revision input ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "section_8_bullets": 13,
+            "contract_items": 13,
+            "one_to_one": true,
+            "literal_total_hits": [],
+            "scope_revision_path": "docs/launch/scope-revision-register.json",
+            "missing_path_policy": "fail_closed"
+          },
+          "purpose": "Section 8 one-to-one mapping and no hardcoded total check"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The contract encodes all 13 Section 8 completion items as FPCG-01 through FPCG-13.",
+        "Unit totals are represented as source-ledger references and runtime derivation rules, not literal total values.",
+        "Scope revision input path is now part of the contract so T02 can fail closed if the approved record is missing.",
+        "This TUW is not the LT-L0-W01 terminal item; WP-level G1 evidence assembly remains pending until LT-L0-W01-T05."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W01-T02",
+      "title": "Implement final completion gate validator core",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "scripts/validate-final-product-completion-gate.mjs",
+        "package.json",
+        "docs/launch/scope-revision-register.json"
+      ],
+      "acceptance": {
+        "validator_source_forbidden_literal_totals": "passed",
+        "contract_scope_revision_path_loaded": "passed",
+        "missing_scope_revision_policy": "fail_closed",
+        "unit_sum_reported": "passed",
+        "production_ready_satisfied_count_reported": "passed",
+        "ldip_classification_rate_reported": "passed",
+        "p0_p1_counts_reported": "passed",
+        "deterministic_two_run_diff": "passed"
+      },
+      "commands": [
+        {
+          "command": "node --check scripts/validate-final-product-completion-gate.mjs",
+          "exit_code": 0,
+          "purpose": "Validator syntax check"
+        },
+        {
+          "command": "if grep -nE '55256|54355|901' scripts/validate-final-product-completion-gate.mjs; then exit 1; else echo 'no_forbidden_total_literals=ok'; fi",
+          "exit_code": 0,
+          "output": "no_forbidden_total_literals=ok",
+          "purpose": "Confirm validator source derives totals instead of hardcoding them"
+        },
+        {
+          "command": "node -e \"JSON.parse(require('fs').readFileSync('docs/launch/scope-revision-register.json','utf8')); console.log('scope_revision_json_parse=ok')\"",
+          "exit_code": 0,
+          "output": "scope_revision_json_parse=ok",
+          "purpose": "Scope revision baseline register JSON parse check"
+        },
+        {
+          "command": "npm run final-product-completion-gate:validate",
+          "exit_code": 0,
+          "output_json": {
+            "verdict": "PASS",
+            "scope_revision_status": "approved",
+            "law_firm_os_units": 54355,
+            "hrx_embedded_people_units": 901,
+            "expanded_total_units": 55256,
+            "closeout_complete": true,
+            "live_latest_pack_id": "CP00-987",
+            "production_ready_pack_count": 987,
+            "manifest_unit_proxy_count": 55131,
+            "satisfied_units": 55256,
+            "required_units": 55256,
+            "ldip_source_sections_total": 68,
+            "ldip_classified_sections": 68,
+            "ldip_classification_rate_percent": 100,
+            "validator_p0_count": 0,
+            "validator_p1_count": 0,
+            "structured_review_p0_count": 0,
+            "structured_review_p1_count": 0
+          },
+          "purpose": "Run final product completion gate validator core"
+        },
+        {
+          "command": "node scripts/validate-final-product-completion-gate.mjs > /tmp/law-firm-os-final-gate-run-1.json; node scripts/validate-final-product-completion-gate.mjs > /tmp/law-firm-os-final-gate-run-2.json; diff -u /tmp/law-firm-os-final-gate-run-1.json /tmp/law-firm-os-final-gate-run-2.json",
+          "exit_code": 0,
+          "output": "diff output empty",
+          "purpose": "Verify deterministic validator output over two consecutive runs"
+        }
+      ],
+      "notes": [
+        "The validator loads ledger paths and the scope revision path from the contract.",
+        "The validator reports closeout_plan_completion as the production_ready count source when the closeout plan and queue are complete and the latest live pack is production_ready.",
+        "The scope revision register records no scope delta after CP closeout; future scope deltas require separate approved revisions.",
+        "Full Claude review remains waived by user instruction and is not counted as valid review evidence."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W01-T03",
+      "title": "Extend validator for invariants and closeout pack gate-chain evidence",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "scripts/validate-final-product-completion-gate.mjs",
+        "docs/goal-closeout/lt-l0-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "pack_gate_chain_target_count_reported": "passed",
+        "pack_directory_count_reconciled": "passed",
+        "invariant_rows_reported": "passed",
+        "missing_pack_list_reported": "passed",
+        "review_waiver_not_counted_as_valid_review": "passed",
+        "deterministic_two_run_diff": "passed"
+      },
+      "commands": [
+        {
+          "command": "node --check scripts/validate-final-product-completion-gate.mjs",
+          "exit_code": 0,
+          "purpose": "Validator syntax check after T03 extension"
+        },
+        {
+          "command": "if grep -nE '55256|54355|901' scripts/validate-final-product-completion-gate.mjs; then exit 1; else echo 'no_forbidden_total_literals=ok'; fi",
+          "exit_code": 0,
+          "output": "no_forbidden_total_literals=ok",
+          "purpose": "Confirm T03 extension did not hardcode unit totals"
+        },
+        {
+          "command": "npm run final-product-completion-gate:validate",
+          "exit_code": 0,
+          "output_json": {
+            "verdict": "PASS",
+            "invariants_required_count": 8,
+            "invariants_passed_count": 8,
+            "pack_count": 987,
+            "required_artifact_complete_count": 987,
+            "implementation_evidence_count": 987,
+            "tests_evidence_count": 987,
+            "hermes_evidence_count": 987,
+            "valid_review_count": 952,
+            "review_waiver_count": 35,
+            "review_satisfied_count": 987,
+            "adjudication_count": 987,
+            "construction_inspection_pass_count": 987,
+            "included_units_production_ready_count": 987,
+            "final_validation_count": 987,
+            "commit_evidence_count": 987,
+            "review_waiver_is_not_valid_review_evidence": true,
+            "missing_pack_count": 0,
+            "validator_p0_count": 0,
+            "validator_p1_count": 0
+          },
+          "purpose": "Run final gate validator with T03 invariant and gate-chain checks"
+        },
+        {
+          "command": "ls docs/closeout-packs/ | grep -c '^cp00-'",
+          "exit_code": 0,
+          "output": "987",
+          "purpose": "Reconcile validator pack_count with closeout pack directory count"
+        },
+        {
+          "command": "node scripts/validate-final-product-completion-gate.mjs > /tmp/law-firm-os-final-gate-t03-run-1.json; node scripts/validate-final-product-completion-gate.mjs > /tmp/law-firm-os-final-gate-t03-run-2.json; diff -u /tmp/law-firm-os-final-gate-t03-run-1.json /tmp/law-firm-os-final-gate-t03-run-2.json",
+          "exit_code": 0,
+          "output": "diff output empty",
+          "purpose": "Verify deterministic validator output after T03 extension"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The validator now emits one row each for matter-first, permission-first, audit-first, evidence-bound AI, human review, read-only default, external-share safety, and vendor-neutral architecture.",
+        "The validator scans every closeout pack directory and reports missing pack gate-chain evidence as an explicit list.",
+        "The 35 review waivers are kept separate from 952 valid reviews and are not counted as valid review evidence."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W01-T04",
+      "title": "Write manual checklist for non-machine final gate items",
+      "status": "passed",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/final-gate-manual-checklist.md",
+        "docs/goal-closeout/lt-l0-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "checklist_items_equal_contract_manual_items": "passed",
+        "judgment_procedure_present": "passed",
+        "reviewer_role_present": "passed",
+        "evidence_location_present": "passed",
+        "machine_item_overlap": "none"
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... compare contract manual ids with checklist rows and required fields ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "manual_ids": [
+              "FPCG-11",
+              "FPCG-12",
+              "FPCG-13"
+            ],
+            "checklist_ids": [
+              "FPCG-11",
+              "FPCG-12",
+              "FPCG-13"
+            ],
+            "missing": [],
+            "extra": [],
+            "machine_overlap": [],
+            "rows_with_missing_required_fields": []
+          },
+          "purpose": "Verify checklist set equals contract manual item set and required fields are present"
+        },
+        {
+          "command": "grep -nE '^\\| FPCG-[0-9]+ \\|' docs/launch/final-gate-manual-checklist.md",
+          "exit_code": 0,
+          "output": "FPCG-11, FPCG-12, and FPCG-13 rows present",
+          "purpose": "Show the checklist contains only manual Final Product Completion Gate items"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The checklist remains pending_human_acceptance; no human signature or manual approval is synthesized.",
+        "Machine-classified items remain in the validator and are intentionally absent from the manual checklist."
+      ]
+    },
+    {
+      "tuw_id": "LT-L0-W01-T05",
+      "title": "Run completion judgment and assemble G1 evidence",
+      "status": "blocked_pending_human_acceptance",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/g1-completion-evidence-index.md",
+        "docs/launch/final-gate-manual-checklist.md",
+        "docs/goal-closeout/lt-l0-w01/command-evidence.json"
+      ],
+      "acceptance": {
+        "validator_exit_code_recorded": "passed",
+        "validator_findings_recorded": "passed",
+        "g1_evidence_index_links_resolve": "passed",
+        "manual_checklist_all_items_signed": "blocked_pending_human_acceptance",
+        "g1_closed": false
+      },
+      "commands": [
+        {
+          "command": "npm run final-product-completion-gate:validate",
+          "exit_code": 0,
+          "output_json": {
+            "verdict": "PASS",
+            "scope_revision_status": "approved",
+            "expanded_total_units": 55256,
+            "production_ready_satisfied_units": 55256,
+            "ldip_classification_rate_percent": 100,
+            "invariants_passed": "8/8",
+            "pack_count": 987,
+            "missing_pack_count": 0,
+            "validator_p0_count": 0,
+            "validator_p1_count": 0,
+            "structured_review_p0_count": 0,
+            "structured_review_p1_count": 0
+          },
+          "purpose": "Record official final gate machine judgment"
+        },
+        {
+          "command": "node - <<'NODE' ... extract markdown path links from docs/launch/g1-completion-evidence-index.md and check fs.existsSync ... NODE",
+          "exit_code": 0,
+          "output_json": {
+            "path_count": 10,
+            "missing": []
+          },
+          "purpose": "Verify G1 evidence index file links resolve"
+        },
+        {
+          "command": "grep -n 'pending' docs/launch/final-gate-manual-checklist.md docs/launch/g1-completion-evidence-index.md",
+          "exit_code": 0,
+          "output": "Manual checklist and G1 evidence index still show pending_human_acceptance.",
+          "purpose": "Confirm manual gate is not falsely closed"
+        }
+      ],
+      "blocking_condition": {
+        "id": "LT-L0-W01-T05-HUMAN-ACCEPTANCE",
+        "severity": "P1",
+        "reason": "FPCG-11, FPCG-12, and FPCG-13 require real human judgment/signature. Codex must not synthesize manual acceptance.",
+        "required_to_unblock": [
+          "A designated human approver records decisions for FPCG-11, FPCG-12, and FPCG-13 in docs/launch/final-gate-manual-checklist.md.",
+          "After signature, rerun npm run final-product-completion-gate:validate and link verification, then update docs/launch/g1-completion-evidence-index.md from blocked_pending_human_acceptance to closed."
+        ]
+      },
+      "notes": [
+        "G1 machine evidence is ready and passing.",
+        "G1 is not closed because the manual checklist is unsigned.",
+        "No manual acceptance, final SaaS-grade product candidate approval, or human signature was synthesized."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L0-W01.",
+    "This record does not synthesize FPCG-11, FPCG-12, or FPCG-13 manual acceptance.",
+    "This record does not claim G1 is closed.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

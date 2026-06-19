@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v1",
+  "subphase_id": "RP00.P01.M07.S06",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools": "",
+    "write_tools_granted": false,
+    "permission_denials": [],
+    "session_id": "8b78b985-73f4-4473-b1f1-0e370da02257",
+    "uuid": "8e327a8a-fcb8-4b41-beca-e5736320a992",
+    "duration_ms": 149329,
+    "duration_api_ms": 151100,
+    "total_cost_usd": 0.6512574999999999,
+    "executed_at": "2026-06-04T06:34:53Z",
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s06-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "summary": "Claude Code Opus 4.8 max read-only review reported no P0, no P1, and no material P2 findings. It reported three P3 advisory hardening notes: duplicate ownership boundary array entries are not rejected by the runtime validator, regex policy strings and RegExp constants can drift, and explicit missing-field unit tests could be added. These are non-blocking for this synthetic ownership metadata slice and are deferred to later hardening or validation-helper work.",
+    "findings": [
+      {
+        "id": "STATE-M07-S06-001",
+        "severity": "P3",
+        "title": "Runtime validator accepts duplicate may_reference or may_not_mutate entries",
+        "files": [
+          "packages/control-plane/src/model.js"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Deferred as non-blocking hardening. Contract and fixture evidence are exact-length checked, and this S06 slice only validates synthetic ownership metadata. Future arbitrary instance validation can add uniqueness checks without changing the S06 production_ready result."
+      },
+      {
+        "id": "STATE-M07-S06-002",
+        "severity": "P3",
+        "title": "Policy pattern strings and RegExp constants can drift independently",
+        "files": [
+          "packages/control-plane/src/model.js"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Deferred as non-blocking hardening. Current strings and RegExp constants are byte-aligned and validated by tests and the contract script. Deriving one from the other can be handled in a later shared validation-helper slice."
+      },
+      {
+        "id": "STATE-M07-S06-003",
+        "severity": "P3",
+        "title": "Missing-field cases are covered indirectly rather than explicitly",
+        "files": [
+          "packages/control-plane/test/model.test.js"
+        ],
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Deferred as non-blocking test hardening. assertControlPlaneString already fails closed for absent fields, and S06 includes null, array, invalid role, invalid refs, invalid correction route, and boundary omission tests. Explicit missing-key cases can be added in a later hardening pass."
+      }
+    ]
+  }
+}

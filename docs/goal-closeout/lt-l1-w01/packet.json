@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-L1-W01",
+  "title": "go-live scope cutoff decision register scaffold",
+  "created_at": "2026-06-18T14:44:26Z",
+  "status": "t01_passed_wp_open",
+  "phase": "L1",
+  "gate_binding": [
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W01-T03",
+  "artifacts": [
+    "docs/launch/launch-decision-register.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w01/packet.json",
+    "docs/goal-closeout/lt-l1-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w01/adjudication.md",
+    "docs/goal-closeout/lt-l1-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "register_file_exists": true,
+    "required_header_columns_present": 8,
+    "human_decision_rows_synthesized": 0,
+    "t01_passed": true,
+    "t02_t03_open": true,
+    "l1_phase_entry_claimed": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

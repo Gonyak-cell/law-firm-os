@@ -1,0 +1,29 @@
+{
+  "work_package_id": "LT-L2-W02",
+  "inspected_at": "2026-06-18T13:03:06Z",
+  "verdict": "BLOCKED_TRUST_BOUNDARY_RUNTIME_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "trust_boundary_design_decision_exists": false,
+    "auth_src_directory_exists": false,
+    "token_middleware_exists": false,
+    "synthetic_issuer_exists": false,
+    "session_runtime_exists": false,
+    "msal_naa_adapter_exists": false,
+    "server_side_principal_resolver_exists": false,
+    "permission_context_builder_exists": false,
+    "header_injection_path_removed": false,
+    "permission_pipeline_exists": false,
+    "route_gate_coverage_test_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "entra_admin_consent_claimed": false,
+    "owner_decision_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

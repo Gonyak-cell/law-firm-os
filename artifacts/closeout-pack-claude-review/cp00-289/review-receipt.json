@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-289",
+  "normalized_at": "2026-06-10T23:18:20.667Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-289/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-289/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-289/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-289/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "df941c73-0c3b-48c5-b599-c63667afc1d9",
+    "uuid": "ae731a42-b6e4-4161-8c59-1babcaa2db66",
+    "total_cost_usd": 3.4353207500000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7797,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-289 is a descriptor-only email/DMS permission-binding slice (RP08.P06.M07.S07-RP08.P06.M09.S02, 40 units: M07 test/golden tail 16, full M08 Hermes evidence permission cycle 22, M09 Claude review packet head 2). All review-focus areas pass. Coverage and deliverable distribution {implementation:12, security_audit:10, ui:8, claude_review:2, test:8} were independently confirmed against registry requirements (registry.js:1671), the slice/coverage validators (validators.js:3888,3923), the test suite (test/model.test.js:1125-1172), and the live closeout-pack-plan (closeout-pack-plan.json:411). Descriptor-only/no-runtime/no-real-data boundaries are sound: no fetch/fs-write/child_process/spawn/SQL/dispatch patterns exist anywhere in packages/email-dms/src, source modules import only registry+service constants, and freezeCp289Result (service.js:2401) stamps writes_product_state:false, evaluates_runtime_permission:false, writes_audit_event:false, loads_real_fixture_data:false, deny_over_allow_enforced:true, and all no-leak flags. The validator script (validate-rp08-email-dms-core-contract.mjs:877) deep-equals the serialized contract projection against the source descriptor, and command-evidence.json records every required validation command at exit 0. Authority boundary is correct throughout: Claude is read-only (tools Read/Grep/Glob), claude_is_final_approval:false, promotes_claude_to_final_approval:false, human final approval required, production_ready:false with status implemented_pending_review and explicit no-enterprise-trust-from-local-validation. CP178+ review hardening blockers (failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, plus more) are encoded in forbidden_review_evidence (registry.js:490) and the auth preflight passed with valid JSON. Hermes control-plane patterns are used only for deterministic evidence-packet/receipt handling (emits_hermes_runtime_receipt:false; no_hermes_runtime_receipt:true), not product runtime. No P0/P1/P2 findings. Two P3 observations are by-design and non-blocking: post-review evidence artifacts are correctly deferred, and a generated scope artifact has a cosmetic classification redundancy. Pack is ready to proceed through the post-review hardening sequence to human final approval.",
+    "findings": [
+      {
+        "id": "CP00-289-P3-01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts referenced by manifest are not yet on disk (expected pre-review state)",
+        "file": "docs/closeout-packs/cp00-289/manifest.json",
+        "line": 1651,
+        "details": "manifest evidence_refs/required_pack_artifacts (lines 1648-1661) list claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in docs/closeout-packs/cp00-289/. This is the expected pre-review state: those three artifacts are produced by the hardened review sequence (normalize -> receipt_validate -> finding_adjudication -> construction_inspection) that consumes this very review. command-evidence.json notes (line 95) already document these as post-review gated commands executed before commit. Status is implemented_pending_review and pack_level_claude_review.status is pending, so no inconsistency exists at this stage.",
+        "recommendation": "No action required for this review. At closeout, ensure the post-review sequence actually generates claude-review-result.json, adjudication.md, and construction-inspection.json before the commit/goal-closeout gates run.",
+        "post_review_disposition": "expected_pre_review_state_non_blocking"
+      },
+      {
+        "id": "CP00-289-P3-02",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists the pack's own evidence dir as both implementation and unrelated-preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-289/changed-file-scope.json",
+        "line": 103,
+        "details": "docs/closeout-packs/cp00-289/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105) of this generated scope artifact. The authoritative manifest worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json:1695-1698) correctly lists ONLY the v2.0 docx and the LDIP invalid-attempt json, not the pack evidence dir. The pack evidence directory is genuinely part of CP00-289 and must be staged at commit; the broader 'unrelated' list in the generated artifact is a cosmetic redundancy with no effect on the source-of-truth, but a commit script keying off changed-file-scope could mis-skip the dir.",
+        "recommendation": "Treat the manifest worktree_transition_policy as authoritative for staging; confirm docs/closeout-packs/cp00-289/ is staged (not skipped as 'unrelated') when the pack is committed. Optionally de-duplicate the generated scope classification. Non-blocking.",
+        "post_review_disposition": "cosmetic_generated_artifact_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

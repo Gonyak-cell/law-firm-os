@@ -1,0 +1,582 @@
+{
+  "schema_version": "law-firm-os.critical-rp-saas-hardening.v0.1",
+  "purpose": "Research-backed hardening overlay for the 16 release programs that determine whether Law Firm OS can become a secure, enterprise-grade legal SaaS.",
+  "critical_rp_ids": [
+    "RP00",
+    "RP01",
+    "RP02",
+    "RP03",
+    "RP04",
+    "RP05",
+    "RP06",
+    "RP07",
+    "RP10",
+    "RP12",
+    "RP14",
+    "RP16",
+    "RP17",
+    "RP25",
+    "RP26",
+    "RP29"
+  ],
+  "research_sources": [
+    {
+      "id": "OWASP-ASVS",
+      "name": "OWASP Application Security Verification Standard",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/",
+      "applies_to": ["authentication", "authorization", "session", "validation", "api", "files", "configuration"]
+    },
+    {
+      "id": "OWASP-API-2023",
+      "name": "OWASP API Security Top 10 2023",
+      "url": "https://owasp.org/API-Security/editions/2023/en/0x00-header/",
+      "applies_to": ["object authorization", "broken authentication", "object property authorization", "resource consumption", "unsafe api consumption"]
+    },
+    {
+      "id": "NIST-SSDF",
+      "name": "NIST SP 800-218 Secure Software Development Framework",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "applies_to": ["secure development", "supply chain", "code review", "testing", "release evidence"]
+    },
+    {
+      "id": "NIST-CSF-2",
+      "name": "NIST Cybersecurity Framework 2.0",
+      "url": "https://www.nist.gov/cyberframework",
+      "applies_to": ["govern", "identify", "protect", "detect", "respond", "recover"]
+    },
+    {
+      "id": "NIST-PRIVACY",
+      "name": "NIST Privacy Framework",
+      "url": "https://www.nist.gov/privacy-framework",
+      "applies_to": ["data minimization", "privacy risk", "consent", "notice", "data lifecycle"]
+    },
+    {
+      "id": "AICPA-TSC",
+      "name": "AICPA Trust Services Criteria",
+      "url": "https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022",
+      "applies_to": ["security", "availability", "processing integrity", "confidentiality", "privacy"]
+    },
+    {
+      "id": "CSA-CCM",
+      "name": "Cloud Security Alliance Cloud Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/research/cloud-controls-matrix/",
+      "applies_to": ["cloud controls", "iam", "logging", "data security", "change management"]
+    },
+    {
+      "id": "NIST-AI-RMF",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "applies_to": ["ai governance", "risk mapping", "measurement", "management"]
+    },
+    {
+      "id": "OWASP-LLM",
+      "name": "OWASP Top 10 for LLM Applications",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "applies_to": ["prompt injection", "sensitive information disclosure", "supply chain", "excessive agency", "output handling"]
+    },
+    {
+      "id": "PCI-DSS",
+      "name": "PCI DSS v4.0.1",
+      "url": "https://www.pcisecuritystandards.org/document_library/",
+      "applies_to": ["payment data", "card data boundary", "tokenization", "segmentation"]
+    },
+    {
+      "id": "OTEL",
+      "name": "OpenTelemetry Semantic Conventions",
+      "url": "https://opentelemetry.io/docs/concepts/semantic-conventions/",
+      "applies_to": ["trace", "metrics", "logs", "resource attributes", "incident evidence"]
+    },
+    {
+      "id": "KOREA-PIPA",
+      "name": "Korea Personal Information Protection Act resources",
+      "url": "https://www.pipc.go.kr/eng/",
+      "applies_to": ["personal information", "data subject rights", "privacy safeguards", "retention"]
+    }
+  ],
+  "universal_saas_controls": [
+    "tenant_isolation",
+    "object_level_authorization",
+    "deny_over_allow",
+    "matter_first_traceability",
+    "append_only_audit_or_evidence",
+    "privacy_minimization",
+    "secure_secret_handling",
+    "idempotency_and_replay_protection",
+    "data_retention_and_legal_hold",
+    "observability_trace_log_metric",
+    "synthetic_fixture_only",
+    "contract_tests",
+    "threat_model",
+    "migration_or_release_rollback",
+    "hermes_gate",
+    "claude_cross_validation",
+    "human_approval"
+  ],
+  "rp_overlays": [
+    {
+      "id": "RP00",
+      "title": "Product Constitution And AI Control Plane",
+      "tier": "foundation_control_plane",
+      "why_critical": "It defines who may change product scope, how AI work is bounded, and how Hermes, Claude Code, and human approval interact.",
+      "research_alignment": ["NIST-SSDF", "NIST-CSF-2", "AICPA-TSC"],
+      "essential_capabilities": [
+        "product authority matrix",
+        "AI write boundary",
+        "Hermes validation boundary",
+        "Claude cross-review boundary",
+        "human approval ledger",
+        "blocked-claim register"
+      ],
+      "safety_gates": [
+        "no autonomous production mutation",
+        "no harness authority over product code",
+        "every major RP has Hxx and Cxx gate",
+        "scope changes require contract update",
+        "release claims require evidence"
+      ],
+      "mandatory_artifacts": [
+        "contracts/law-firm-os.product-contract.json",
+        "docs/ai-led-law-firm-os-development-plan.md",
+        "docs/hermes-connection.md"
+      ],
+      "hermes_gate": "H00",
+      "claude_gate": "C00"
+    },
+    {
+      "id": "RP01",
+      "title": "Core Domain Foundation",
+      "tier": "identity_and_domain_root",
+      "why_critical": "All later objects depend on stable tenant, user, client, matter, document reference, and audit identities.",
+      "research_alignment": ["OWASP-ASVS", "OWASP-API-2023", "NIST-PRIVACY", "AICPA-TSC"],
+      "essential_capabilities": [
+        "canonical Tenant/User/Client/Matter IDs",
+        "immutable identity reference rules",
+        "domain invariant registry",
+        "matter-first reference policy",
+        "PII classification per entity",
+        "cross-module ownership map"
+      ],
+      "safety_gates": [
+        "no duplicate Client or Matter identity systems",
+        "no document or billing object without valid owner",
+        "tenant_id is mandatory on persisted objects",
+        "PII fields are classified",
+        "core invariant tests block downstream RP work"
+      ],
+      "mandatory_artifacts": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/src/entities.js",
+        "packages/domain/src/invariants.js"
+      ],
+      "hermes_gate": "H01",
+      "claude_gate": "C01"
+    },
+    {
+      "id": "RP02",
+      "title": "Permission Kernel",
+      "tier": "authorization_root",
+      "why_critical": "A legal SaaS fails immediately if object authorization, deny rules, or search trimming can be bypassed.",
+      "research_alignment": ["OWASP-ASVS", "OWASP-API-2023", "NIST-CSF-2", "CSA-CCM"],
+      "essential_capabilities": [
+        "RBAC/ABAC/ACL evaluator",
+        "deny-over-allow precedence",
+        "ethical wall rules",
+        "object-level authorization",
+        "search and AI retrieval trimming",
+        "permission decision receipt"
+      ],
+      "safety_gates": [
+        "deny rules override every allow",
+        "cross-tenant access fails closed",
+        "object property over-posting is blocked",
+        "search counts cannot leak restricted results",
+        "every permission decision can produce an audit hint"
+      ],
+      "mandatory_artifacts": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js"
+      ],
+      "hermes_gate": "H02",
+      "claude_gate": "C02"
+    },
+    {
+      "id": "RP03",
+      "title": "Audit And Compliance Kernel",
+      "tier": "evidence_root",
+      "why_critical": "It is the evidence ledger for compliance, incident response, legal hold, AI traceability, and release claims.",
+      "research_alignment": ["AICPA-TSC", "CSA-CCM", "OTEL", "NIST-CSF-2", "NIST-PRIVACY"],
+      "essential_capabilities": [
+        "append-only audit event",
+        "tamper-evident hash chain",
+        "WORM retention",
+        "legal hold",
+        "privacy-safe evidence refs",
+        "compliance export custody"
+      ],
+      "safety_gates": [
+        "no in-place audit mutation",
+        "correction event required",
+        "chain gaps are detected",
+        "legal hold blocks purge",
+        "audit query is permission-trimmed"
+      ],
+      "mandatory_artifacts": [
+        "docs/rp03-audit-compliance-architecture.md",
+        "contracts/audit-compliance-contract.json",
+        "scripts/validate-rp03-audit-architecture.mjs"
+      ],
+      "hermes_gate": "H03",
+      "claude_gate": "C03"
+    },
+    {
+      "id": "RP04",
+      "title": "Master Data",
+      "tier": "party_identity_root",
+      "why_critical": "CRM, conflict, billing, settlement, and matter teams must share one person, organization, and relationship model.",
+      "research_alignment": ["NIST-PRIVACY", "OWASP-ASVS", "AICPA-TSC"],
+      "essential_capabilities": [
+        "person and organization canonicalization",
+        "client group model",
+        "relationship graph",
+        "duplicate review queue",
+        "conflict alias support",
+        "privacy classification"
+      ],
+      "safety_gates": [
+        "duplicate merge requires review",
+        "relationship direction is explicit",
+        "client group membership is permission-trimmed",
+        "privacy-sensitive attributes are masked",
+        "conflict aliases remain searchable but access-controlled"
+      ],
+      "mandatory_artifacts": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/src/entities.js",
+        "packages/master-data/src/relationships.js"
+      ],
+      "hermes_gate": "H04",
+      "claude_gate": "C04"
+    },
+    {
+      "id": "RP05",
+      "title": "Matter Core",
+      "tier": "legal_work_root",
+      "why_critical": "Matter is the primary product axis; weak matter lifecycle rules break DMS, billing, settlement, portal, and AI.",
+      "research_alignment": ["OWASP-ASVS", "NIST-PRIVACY", "AICPA-TSC"],
+      "essential_capabilities": [
+        "matter lifecycle state machine",
+        "matter team membership",
+        "matter closing lock",
+        "task and calendar traceability",
+        "matter-level permission inheritance",
+        "matter activity evidence"
+      ],
+      "safety_gates": [
+        "matter cannot exist without tenant and client",
+        "closed matter mutation is blocked or review-required",
+        "team changes create audit events",
+        "matter data is tenant-isolated",
+        "downstream objects keep matter_id when applicable"
+      ],
+      "mandatory_artifacts": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/src/matters.js",
+        "packages/matter/src/lifecycle.js"
+      ],
+      "hermes_gate": "H05",
+      "claude_gate": "C05"
+    },
+    {
+      "id": "RP06",
+      "title": "DMS Core",
+      "tier": "document_knowledge_root",
+      "why_critical": "Documents, versions, file objects, locks, previews, and retention labels are the core legal work substrate.",
+      "research_alignment": ["OWASP-ASVS", "OWASP-API-2023", "NIST-PRIVACY", "AICPA-TSC", "CSA-CCM"],
+      "essential_capabilities": [
+        "document versioning",
+        "file object digest",
+        "object storage boundary",
+        "document lock",
+        "rendition provenance",
+        "download/view audit"
+      ],
+      "safety_gates": [
+        "no version overwrite",
+        "file object access is authorized per object",
+        "download emits audit evidence",
+        "legal hold and retention labels are enforceable",
+        "malware and content-type checks are modeled before production upload"
+      ],
+      "mandatory_artifacts": [
+        "contracts/dms-core-contract.json",
+        "packages/dms/src/documents.js",
+        "packages/dms/src/versions.js"
+      ],
+      "hermes_gate": "H06",
+      "claude_gate": "C06"
+    },
+    {
+      "id": "RP07",
+      "title": "Search OCR And Index",
+      "tier": "retrieval_root",
+      "why_critical": "Search and semantic retrieval can leak restricted information unless trimming and citation contracts are built in from the start.",
+      "research_alignment": ["OWASP-API-2023", "OWASP-LLM", "NIST-PRIVACY", "OTEL"],
+      "essential_capabilities": [
+        "permission-trimmed search",
+        "OCR provenance",
+        "index freshness state",
+        "semantic retrieval citation",
+        "restricted-count suppression",
+        "reindex receipt"
+      ],
+      "safety_gates": [
+        "unauthorized hits and counts are hidden",
+        "OCR text is linked to document version",
+        "semantic result cites source version",
+        "stale index state is visible",
+        "AI retrieval uses the same trimming contract"
+      ],
+      "mandatory_artifacts": [
+        "contracts/search-index-contract.json",
+        "packages/search/src/indexer.js",
+        "packages/search/src/query.js"
+      ],
+      "hermes_gate": "H07",
+      "claude_gate": "C07"
+    },
+    {
+      "id": "RP10",
+      "title": "Intake Conflict Engagement",
+      "tier": "risk_intake_root",
+      "why_critical": "Conflict and engagement controls prevent legal and commercial damage before a matter exists.",
+      "research_alignment": ["OWASP-ASVS", "NIST-PRIVACY", "AICPA-TSC"],
+      "essential_capabilities": [
+        "intake request trace",
+        "conflict search evidence",
+        "conflict hit review",
+        "waiver approval",
+        "engagement letter state",
+        "fee term lock"
+      ],
+      "safety_gates": [
+        "engagement cannot issue before conflict clearance or approved waiver",
+        "conflict hits are not silently dismissed",
+        "waiver requires human approval",
+        "fee terms are versioned",
+        "pre-matter data is privacy-scoped"
+      ],
+      "mandatory_artifacts": [
+        "contracts/intake-conflict-contract.json",
+        "packages/intake/src/conflicts.js",
+        "packages/intake/src/engagements.js"
+      ],
+      "hermes_gate": "H10",
+      "claude_gate": "C10"
+    },
+    {
+      "id": "RP12",
+      "title": "Billing And Invoicing",
+      "tier": "finance_revenue_root",
+      "why_critical": "Revenue, invoice state, tax export, write-downs, and write-offs need processing integrity and approval evidence.",
+      "research_alignment": ["AICPA-TSC", "PCI-DSS", "OWASP-ASVS", "NIST-CSF-2"],
+      "essential_capabilities": [
+        "proforma lifecycle",
+        "invoice issue lock",
+        "write-down/write-off approval",
+        "tax invoice export receipt",
+        "billing entity validation",
+        "financial audit event"
+      ],
+      "safety_gates": [
+        "issued invoice cannot mutate in place",
+        "write-off requires approval",
+        "billing entity mismatch blocks issue",
+        "tax export is reconciled",
+        "payment card data stays out of product logs and audit payloads"
+      ],
+      "mandatory_artifacts": [
+        "contracts/billing-invoicing-contract.json",
+        "packages/billing/src/proforma.js",
+        "packages/billing/src/invoices.js"
+      ],
+      "hermes_gate": "H12",
+      "claude_gate": "C12"
+    },
+    {
+      "id": "RP14",
+      "title": "Partner Settlement",
+      "tier": "compensation_integrity_root",
+      "why_critical": "Partner compensation needs deterministic allocation, dispute routing, run locks, and replayable evidence.",
+      "research_alignment": ["AICPA-TSC", "NIST-CSF-2", "OTEL"],
+      "essential_capabilities": [
+        "allocation rule versioning",
+        "settlement run preview",
+        "settlement run lock",
+        "dispute review",
+        "calculation replay",
+        "approval receipt"
+      ],
+      "safety_gates": [
+        "locked settlement run cannot mutate",
+        "allocation formula version is recorded",
+        "dispute blocks closeout",
+        "run replay matches stored totals",
+        "manual override requires human approval and audit"
+      ],
+      "mandatory_artifacts": [
+        "contracts/partner-settlement-contract.json",
+        "packages/settlement/src/allocation.js",
+        "packages/settlement/src/settlement-run.js"
+      ],
+      "hermes_gate": "H14",
+      "claude_gate": "C14"
+    },
+    {
+      "id": "RP16",
+      "title": "Governance DLP Retention",
+      "tier": "data_governance_root",
+      "why_critical": "DLP, legal hold, retention, break-glass, and incident response define whether sensitive legal data can be controlled.",
+      "research_alignment": ["NIST-PRIVACY", "NIST-CSF-2", "CSA-CCM", "AICPA-TSC"],
+      "essential_capabilities": [
+        "DLP policy evaluation",
+        "legal hold activation",
+        "retention schedule",
+        "break-glass approval",
+        "incident response workflow",
+        "policy evidence export"
+      ],
+      "safety_gates": [
+        "legal hold overrides retention purge",
+        "DLP blocks risky export",
+        "break-glass is time-limited and audited",
+        "policy change requires approval",
+        "incident actions are traceable"
+      ],
+      "mandatory_artifacts": [
+        "contracts/governance-dlp-retention-contract.json",
+        "packages/governance/src/dlp.js",
+        "packages/governance/src/retention.js"
+      ],
+      "hermes_gate": "H16",
+      "claude_gate": "C16"
+    },
+    {
+      "id": "RP17",
+      "title": "AI Governance",
+      "tier": "ai_safety_root",
+      "why_critical": "AI retrieval, output, citations, review, and model policy must be governed before AI legal workflows scale.",
+      "research_alignment": ["NIST-AI-RMF", "OWASP-LLM", "NIST-PRIVACY", "OWASP-API-2023", "AICPA-TSC"],
+      "essential_capabilities": [
+        "model policy",
+        "retrieval scope trimming",
+        "citation requirement",
+        "prompt injection control",
+        "human review routing",
+        "AI job audit"
+      ],
+      "safety_gates": [
+        "AI cannot retrieve unauthorized documents",
+        "client-facing output requires human review",
+        "citations reference document version",
+        "prompt injection tests exist",
+        "AI tool use has least-privilege scope and audit"
+      ],
+      "mandatory_artifacts": [
+        "contracts/ai-governance-contract.json",
+        "packages/ai-governance/src/model-policy.js",
+        "packages/ai-governance/src/retrieval-scope.js"
+      ],
+      "hermes_gate": "H17",
+      "claude_gate": "C17"
+    },
+    {
+      "id": "RP25",
+      "title": "Migration Platform",
+      "tier": "customer_onboarding_root",
+      "why_critical": "Real customers will arrive with existing documents, users, matters, emails, and permissions; migration must preserve evidence and avoid leaks.",
+      "research_alignment": ["NIST-SSDF", "CSA-CCM", "NIST-PRIVACY", "AICPA-TSC"],
+      "essential_capabilities": [
+        "source scan",
+        "mapping proposal",
+        "dry run",
+        "permission mapping",
+        "hash receipt",
+        "rollback plan"
+      ],
+      "safety_gates": [
+        "migration dry run precedes import",
+        "source permissions are mapped or blocked",
+        "document digests are recorded",
+        "PII handling is declared",
+        "import can be reconciled and rolled back"
+      ],
+      "mandatory_artifacts": [
+        "contracts/migration-platform-contract.json",
+        "packages/migration/src/source-scan.js",
+        "packages/migration/src/import-run.js"
+      ],
+      "hermes_gate": "H25",
+      "claude_gate": "C25"
+    },
+    {
+      "id": "RP26",
+      "title": "Enterprise SaaS Hardening",
+      "tier": "enterprise_security_root",
+      "why_critical": "Enterprise customers require tenant isolation, SSO, MFA, SCIM, dedicated resources, secure operations, and provable controls.",
+      "research_alignment": ["OWASP-ASVS", "NIST-CSF-2", "CSA-CCM", "AICPA-TSC", "NIST-SSDF"],
+      "essential_capabilities": [
+        "SSO",
+        "MFA",
+        "SCIM",
+        "dedicated resource routing",
+        "key management",
+        "rate limiting",
+        "security monitoring"
+      ],
+      "safety_gates": [
+        "tenant resources cannot cross-route",
+        "admin roles require strong auth",
+        "SCIM deprovision disables access",
+        "secrets are not stored in code or logs",
+        "security events are observable and actionable"
+      ],
+      "mandatory_artifacts": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/src/sso.js",
+        "packages/enterprise/src/scim.js"
+      ],
+      "hermes_gate": "H26",
+      "claude_gate": "C26"
+    },
+    {
+      "id": "RP29",
+      "title": "Commercial Readiness",
+      "tier": "production_release_root",
+      "why_critical": "A SaaS product is not commercially ready until CI/CD, observability, incident response, compliance reports, and release approval are evidence-backed.",
+      "research_alignment": ["NIST-SSDF", "NIST-CSF-2", "AICPA-TSC", "CSA-CCM", "OTEL"],
+      "essential_capabilities": [
+        "CI/CD validation",
+        "release candidate evidence",
+        "observability review",
+        "incident response runbook",
+        "SOC2/ISMS-P evidence packet",
+        "production release approval"
+      ],
+      "safety_gates": [
+        "release cannot proceed without validation evidence",
+        "security findings have severity and owner",
+        "observability covers critical workflows",
+        "rollback plan exists",
+        "compliance claims map to evidence"
+      ],
+      "mandatory_artifacts": [
+        "contracts/commercial-readiness-contract.json",
+        "docs/release-readiness.md",
+        "docs/compliance-evidence-map.md"
+      ],
+      "hermes_gate": "H29",
+      "claude_gate": "C29"
+    }
+  ]
+}

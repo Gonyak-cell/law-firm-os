@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M08.S01",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T11:10:46Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "be544075-1552-400b-84aa-50a168f87c92",
+    "uuid": "691c641b-e8be-48be-8152-d896e944b65f",
+    "duration_ms": 142875,
+    "total_cost_usd": 0.8739105,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 11598,
+        "cache_read_input_tokens": 587270,
+        "cache_creation_input_tokens": 46138,
+        "cost_usd": 0.8729324999999999
+      },
+      "claude-haiku-4-5-20251001": {
+        "output_tokens": 20,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cost_usd": 0.000978
+      }
+    }
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS",
+        "summary": "Actual Claude CLI final re-review verified h00_preflight_scope_inventory is bound to RP00.P00.M08.S01, defines H00 preflight field scope only, includes all required fields, documents command_receipts -> commands and the two evidence_summary nested aliases, preserves metadata-only/no-real-data/writes_product_state=false/no-RP00-closeout/C00-dependency/human-approval/next-boundary controls, and makes no production mutation or real-data claims."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Prior nested-alias P3 note is resolved",
+        "file": "contracts/control-plane-contract.json",
+        "line": 2245,
+        "details": "field_aliases now documents command_receipts -> commands and the two evidence_summary nested fields for claude_review_dependency and human_approval_boundary. The validator enforces logical_field, artifact_field, status, and rationale for all three.",
+        "recommendation": "No action required."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Recorded weighted-ledger generator-alignment deferral remains open",
+        "file": "contracts/control-plane-contract.json",
+        "line": 706,
+        "details": "RP00.P00.M08.S01 carries deferred_generator_alignment to RP00.P00.M10.S01 because the weighted ledger generator uses generic P00 profile labels while IDs, source_micro_phase_id, requirement refs, and gate refs remain authoritative.",
+        "recommendation": "Carry the deferral forward to RP00.P00.M10.S01 as already recorded; no change needed for this subphase."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m08-s01/packet.json",
+      "docs/goal-closeout/rp00-p00-m08-s01/command-evidence.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Actual claude-opus-4-8 max read-only CLI final re-review completed with PASS and no P0/P1/P2 findings. Earlier P3 findings for command_receipts aliasing and nested claude_review_dependency/human_approval_boundary locations were fixed before this final re-review. The remaining generator-alignment P3 is a recorded non-blocking deferral."
+  }
+}

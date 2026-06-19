@@ -1,0 +1,142 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M06.S03",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Tenant scope field",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T04:50:14Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "failed_tooling_attempts_not_counted_as_completed_review": 0,
+    "completed_diff_based_reviews_counted": 1
+  },
+  "tooling_attempts": [],
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "pasted_git_diff_and_validation_summary",
+    "session_id": "bf8c0502-6b85-45b8-8197-0c0dd04c6eb6",
+    "uuid": "b198bd0b-2ffc-4df0-8eb7-132b2af556c4",
+    "duration_ms": 394439,
+    "duration_api_ms": 0,
+    "terminal_reason": "completed",
+    "total_cost_usd": 1.56006775
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "bf8c0502-6b85-45b8-8197-0c0dd04c6eb6",
+    "uuid": "b198bd0b-2ffc-4df0-8eb7-132b2af556c4",
+    "duration_ms": 394439,
+    "duration_api_ms": 0,
+    "total_cost_usd": 1.56006775,
+    "permission_denials": []
+  },
+  "review_summary_text": "Claude found the S03 tenant-scope implementation scope-compliant with no blocking findings. It confirmed same-tenant enforcement, no-real-data/no-write boundaries, and RP00.P01.M07.S01 handoff. Four P3 notes were recorded: disposition convention could not be independently verified from the diff, redundant prefix guard retained for error clarity, a dead gated S02 registry-nextSubphase branch could be removed for clarity, and an uppercase test nuance remains adequately covered by other canonical-pattern cases.",
+  "verdict": "PASS_WITH_FINDINGS",
+  "go_no_go": "go_after_adjudication",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "FS-S03-001",
+        "severity": "P3_NOTE",
+        "title": "Disposition status consistency could not be verified from diff",
+        "details": "Claude could not independently verify the validator disposition convention and asked to confirm it after evidence lands.",
+        "recommendation": "Run final RP00 validator after closeout evidence creation.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "final_validation_rerun_required_and_recorded"
+      },
+      {
+        "id": "FS-S03-002",
+        "severity": "P3_NOTE",
+        "title": "Redundant prefix guard",
+        "details": "Claude noted the startsWith lfos_ check is logically subsumed by the anchored tenant-id regex.",
+        "recommendation": "No action required; retain for clearer error messages and consistency with existing identifier and tenant normalizers.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_intentional_error_message_clarity"
+      },
+      {
+        "id": "FS-S03-003",
+        "severity": "P3_NOTE",
+        "title": "Dead gated S02 registry-nextSubphase branch",
+        "details": "Claude noted the historical S02 registry-nextSubphase assertion is now gated false after advancing currentContractSubphaseId to S03.",
+        "recommendation": "No action required for closeout; retaining historical invariant shape is acceptable and non-blocking.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_nonblocking_historical_invariant_check"
+      },
+      {
+        "id": "FS-S03-004",
+        "severity": "P3_NOTE",
+        "title": "Uppercase test nuance",
+        "details": "Claude noted LFOS_demo_tenant_layout trips the prefix guard rather than the lowercase pattern path.",
+        "recommendation": "No action required; double-underscore and other invalid cases exercise pattern rejection and coverage is adequate for this slice.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_adequate_negative_coverage"
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "P3": [
+      {
+        "id": "FS-S03-001",
+        "title": "Disposition status consistency could not be verified from diff",
+        "status": "fixed_by_closeout_evidence"
+      },
+      {
+        "id": "FS-S03-002",
+        "title": "Redundant prefix guard",
+        "status": "not_applicable_after_adjudication"
+      },
+      {
+        "id": "FS-S03-003",
+        "title": "Dead gated S02 registry-nextSubphase branch",
+        "status": "not_applicable_after_adjudication"
+      },
+      {
+        "id": "FS-S03-004",
+        "title": "Uppercase test nuance",
+        "status": "not_applicable_after_adjudication"
+      }
+    ]
+  },
+  "criteria_checks": {
+    "tenant_scope_policy_bound": "PASS",
+    "tenant_field_required": "PASS",
+    "stable_prefix_enforced": "PASS",
+    "canonical_pattern_enforced": "PASS",
+    "tenant_normalization_executable": "PASS",
+    "same_tenant_assertion_executable": "PASS",
+    "cross_tenant_fixture_set_rejected": "PASS",
+    "synthetic_fixture_tenant_scope_validates": "PASS",
+    "identifier_record_matches": "PASS",
+    "tenant_record_matches": "PASS",
+    "no_real_data": "PASS",
+    "no_product_state_writes": "PASS",
+    "next_subphase_boundary_recorded": "PASS",
+    "evidence_sufficiency_after_closeout_files": "PASS_AFTER_FINAL_VALIDATION"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ]
+}

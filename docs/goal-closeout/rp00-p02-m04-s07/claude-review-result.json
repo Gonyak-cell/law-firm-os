@@ -1,0 +1,131 @@
+{
+  "subphase_id": "RP00.P02.M04.S07",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Primary happy path",
+  "created_at": "2026-06-05T19:35:28Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s07-claude-review.json",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s07-review-packet.diff",
+  "session_id": "0a751d0a-f9b9-4526-9faa-0d52cf2d54a6",
+  "uuid": "b1804990-83fb-48bb-b493-18a0ed8dd969",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.9251062499999998,
+  "usage": {
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 111415,
+    "cache_read_input_tokens": 1317855,
+    "output_tokens": 22757,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 111415,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 4767,
+        "cache_read_input_tokens": 146446,
+        "cache_creation_input_tokens": 2237,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2237
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "GO",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    "P3: happy_path_receipt_fields is a required-subset (10 of 13 receipt keys); all 13 keys are nonetheless fully validated by the result assertion — consistent with the S06 audit_hint_fields pattern; no fix needed.",
+    "P3: contract future_subphases.review_required_routing (S14) is unenforced roadmap metadata carried forward from S06; no fix needed.",
+    "Informational: the result/receipt does not strictly reject EXTRA receipt keys, but the producer freezes the object with exactly the expected keys and the fixture matches; consistent with prior subphases.",
+    "Informational: validator self-runs the full S01->S07 precheck chain plus firm-level and negative cases, providing strong executable coverage beyond static field checks."
+  ],
+  "review_text": "I've completed a thorough static review of the entire diff plus the surrounding repository context. Let me confirm my findings before producing the verdict.\n\nKey verifications performed:\n- **S06 dependency** (`service.js:2289+`): `precheckControlPlaneClaudeReviewPrimaryHappyPath` requires `audit_hint_precheck_subphase_id === \"RP00.P02.M04.S06\"`, a present `audit_hint` object, a nonblank `audit_event_ref`, carried `audit_hint_decision === \"allow_metadata_only\"` + `audit_event_ref_satisfied === true`, and re-runs `assertControlPlaneClaudeReviewAuditHintPrecheckResult` for defense-in-depth. The S06 producer (`service.js:2218-2287`) emits exactly those markers, so the chain binds correctly.\n- **Metadata-only / no side effects**: the new function is pure — validate → reject claims → build frozen receipt+result → assert → return. No runtime Claude call, no queue/audit/AuthZ/permission-engine/service/route/product writes; all 12 capability flags forced `false` and `no_real_data: true`, enforced in policy, prechecker, result validator, fixture, and contract.\n- **Fail-closed claims**: any non-`false` value (including falsy `0`) on a forbidden claim throws; any unknown claim throws. Wrong entrypoint/model/effort/read-only/marker/missing hint/missing ref/denied/unsatisfied all throw.\n- **Alignment**: contract definition, policy module, prechecker, validators, README, fixture, and `validate-rp00-control-plane-contract.mjs` all updated consistently; the validator runs an end-to-end S01→S07 chain plus negative cases and reuses `expected*`/`claudeReviewAuditHintPrecheckPolicyModule` variables defined in the S06 block (no ReferenceError).\n- **S08 handoff**: `next_subphase`/`secondaryWorkflowPath` = `RP00.P02.M04.S08` everywhere; `completesSourceMicroPhase: false`; `does_not_complete_RP00_P02_M04`/`RP00_P02`/`close_RP00`. `future_subphases.review_required_routing: \"RP00.P02.M04.S14\"` matches the established S06 pattern.\n\nNo P0/P1/P2 issues found.\n\n```json\n{\n  \"verdict\": \"GO\",\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"file\": \"packages/control-plane/src/service.js\",\n      \"line\": 1087,\n      \"issue\": \"happy_path_receipt is built with 13 keys (tenant_id, actor_id, action_id, object_id, matter_id, permission_decision_ref, audit_event_ref, audit_hint_precheck_ref, audit_hint_policy_ref, decision_reason, working_product_behavior_ref, effect, next_subphase) but happy_path_receipt_fields / policy.requiredHappyPathReceiptFields enumerate only 10 (matter_id, audit_hint_policy_ref, decision_reason are omitted). The '_fields' list is a required-subset, not an exhaustive key listing.\",\n      \"recommendation\": \"No action required. This mirrors the established S06 audit_hint / audit_hint_fields convention, and assertControlPlaneClaudeReviewPrimaryHappyPathResult independently asserts all 13 receipt keys (validators.js ~1411-1429), so there is no validation gap. Noted only for transparency.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"file\": \"contracts/control-plane-contract.json\",\n      \"line\": 370,\n      \"issue\": \"control_plane_claude_review_primary_happy_path_definition.future_subphases carries review_required_routing: 'RP00.P02.M04.S14', which is not present on the runtime policy module (CONTROL_PLANE_CLAUDE_REVIEW_PRIMARY_HAPPY_PATH_POLICY.futureSubphases only carries secondaryWorkflowPath) and is not enforced by the validator.\",\n      \"recommendation\": \"No action required. This roadmap pointer is carried forward verbatim from the S06 definition (which used the same review_required_routing: 'RP00.P02.M04.S14'), so it is consistent with the established convention. The validator intentionally enforces only secondary_workflow_path = S08.\"\n    }\n  ],\n  \"required_fixes\": [],\n  \"deferred_or_informational\": [\n    \"P3: happy_path_receipt_fields is a required-subset (10 of 13 receipt keys); all 13 keys are nonetheless fully validated by the result assertion — consistent with the S06 audit_hint_fields pattern; no fix needed.\",\n    \"P3: contract future_subphases.review_required_routing (S14) is unenforced roadmap metadata carried forward from S06; no fix needed.\",\n    \"Informational: the result/receipt does not strictly reject EXTRA receipt keys, but the producer freezes the object with exactly the expected keys and the fixture matches; consistent with prior subphases.\",\n    \"Informational: validator self-runs the full S01->S07 precheck chain plus firm-level and negative cases, providing strong executable coverage beyond static field checks.\"\n  ],\n  \"review_summary\": \"RP00.P02.M04.S07 implements a metadata-only Claude review Primary happy path that strictly consumes the S06 audit hint precheck result and emits a synthetic success receipt. precheckControlPlaneClaudeReviewPrimaryHappyPath is a pure function: it validates the S06 input (entrypoint=claude_review, audit_hint_precheck_subphase_id=RP00.P02.M04.S06, present audit_hint, nonblank audit_event_ref, carried allow_metadata_only decision + satisfied audit_event_ref, and a full re-assertion of the S06 result), rejects every forbidden and unknown happy-path claim (fail-closed on any non-false value, including falsy 0), then returns a frozen receipt+result with all runtime/write capabilities forced false and no_real_data=true. The S06 dependency is correctly bound and re-verified for defense-in-depth. No runtime Claude invocation, no review queue/assignment/notification writes, no audit ledger/event writes, no AuthZ evaluator or permission-engine/runtime-permission execution, no service logic, no runtime route, and no product-state writes are permitted at any layer (policy, prechecker, result validator, fixture, contract). Policy, prechecker, validators (assertControlPlaneClaudeReviewPrimaryHappyPathPolicy/Result), README, synthetic fixture, contract definition (with subphase_closeouts entry, current_subphase pointer, acceptance-gate flag control_plane_claude_review_primary_happy_path_verified, and construction-inspection gate), and the contract validator are all aligned; the validator additionally executes the full S01->S07 chain plus firm-level and negative cases, and reuses variables already defined in the closed S06 block (no ReferenceError). S08 handoff is recorded consistently (next_subphase/secondaryWorkflowPath=RP00.P02.M04.S08), with completesSourceMicroPhase=false and RP00.P02.M04 / RP00.P02 / RP00 explicitly left open. Only two P3 informational observations (a required-subset receipt-fields list and an unenforced roadmap pointer), both consistent with the established S06 convention and requiring no changes. Verdict: GO.\"\n}\n```",
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "0a751d0a-f9b9-4526-9faa-0d52cf2d54a6",
+    "uuid": "b1804990-83fb-48bb-b493-18a0ed8dd969",
+    "total_cost_usd": 1.9251062499999998,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s07-claude-review.json",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s07-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3_INFORMATIONAL",
+        "title": "happy_path_receipt is built with 13 keys (tenant_id, actor_id, action_id, object_id, matter_id, permission_decision_ref, audit_event_ref, audit_hint_precheck_ref, audit_hint_policy_ref, decision_reason, working_product_behavior_ref, effect, next_subphase) but happy_path_receipt_fields / policy.requiredHappyPathReceiptFields enumerate only 10 (matter_id, audit_hint_policy_ref, decision_reason are omitted). The '_fields' list is a required-subset, not an exhaustive key listing.",
+        "body": "No action required. This mirrors the established S06 audit_hint / audit_hint_fields convention, and assertControlPlaneClaudeReviewPrimaryHappyPathResult independently asserts all 13 receipt keys (validators.js ~1411-1429), so there is no validation gap. Noted only for transparency.",
+        "file": "packages/control-plane/src/service.js",
+        "line": 1087,
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3_INFORMATIONAL",
+        "title": "control_plane_claude_review_primary_happy_path_definition.future_subphases carries review_required_routing: 'RP00.P02.M04.S14', which is not present on the runtime policy module (CONTROL_PLANE_CLAUDE_REVIEW_PRIMARY_HAPPY_PATH_POLICY.futureSubphases only carries secondaryWorkflowPath) and is not enforced by the validator.",
+        "body": "No action required. This roadmap pointer is carried forward verbatim from the S06 definition (which used the same review_required_routing: 'RP00.P02.M04.S14'), so it is consistent with the established convention. The validator intentionally enforces only secondary_workflow_path = S08.",
+        "file": "contracts/control-plane-contract.json",
+        "line": 370,
+        "status": "deferred_with_explicit_boundary"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T19:35:28Z",
+  "production_ready": true
+}

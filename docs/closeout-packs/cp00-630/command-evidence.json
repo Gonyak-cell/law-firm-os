@@ -1,0 +1,97 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-630",
+  "subphase_id": "RP20.P06.M02.S18",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": []
+  },
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/data-room/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/data-room/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/data-room/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp20:data-room-vdr-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/data-room/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp05:matter-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-630 remains descriptor-only and synthetic-only.",
+    "Full CP00-630 final command matrix reran after queue regeneration and all recorded commands exited 0.",
+    "Attempt 01 Claude review is preserved as closeout-ineligible because it reported the precondition that the final command matrix was not yet recorded; the canonical receipt is the refreshed closeout-eligible attempt with P0/P1/P2 counts at 0."
+  ]
+}

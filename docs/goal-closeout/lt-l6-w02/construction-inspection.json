@@ -1,0 +1,24 @@
+{
+  "work_package_id": "LT-L6-W02",
+  "inspected_at": "2026-06-18T14:53:52Z",
+  "verdict": "BLOCKED_SUPPORT_CHANNEL_PERMISSION_DEMO_AND_TRAINING_SOURCE_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "procedure_steps": 4,
+    "faq_rows": 12,
+    "onboarding_steps": 8,
+    "permission_demo_steps": 4,
+    "internal_link_targets_existing": true,
+    "support_channel_opened": false,
+    "permission_request_demo_performed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "live_permission_change_claimed": false,
+    "support_channel_claim_synthesized": false,
+    "training_published": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

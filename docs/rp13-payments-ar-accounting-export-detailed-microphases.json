@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP13",
+  "program_title": "Payments AR Accounting Export",
+  "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+  "ai_owner": "Codex",
+  "hermes_gate": "H13",
+  "claude_gate": "C13",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP13.P00.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Payment matching, AR aging, journal entry, VAT export requirements and identify misallocated payment, unbalanced journal, and VAT export error as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Payments AR Accounting Export contract shape for Payment, PaymentMatch, ARAgingBucket, JournalEntry, VATExport, Receipt.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns Payment, PaymentMatch, and ARAgingBucket, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for payment import, invoice matching, and AR aging.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Payments AR Accounting Export records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Payments AR Accounting Export behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Payments AR Accounting Export examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Payments AR Accounting Export planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H13 preflight",
+      "objective": "Define the fields Hermes records before Payments AR Accounting Export implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C13 design brief",
+      "objective": "Prepare Claude Code questions around misallocated payment, unbalanced journal, VAT export error, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P00.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP13.P00 handoff",
+      "objective": "Hand off a contract-first Payments AR Accounting Export implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "contracts/payments-contract.json",
+        "packages/payments/README.md",
+        "contracts/payments-ar-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/payments.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement Payment model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for Payment.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement PaymentMatch model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for PaymentMatch.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement ARAgingBucket model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for ARAgingBucket.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement JournalEntry model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for JournalEntry.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement VATExport model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for VATExport.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among Payment, PaymentMatch, ARAgingBucket, JournalEntry, VATExport, Receipt and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Payments AR Accounting Export model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P01.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Payments AR Accounting Export model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/model.js",
+        "packages/payments/src/states.js",
+        "packages/payments/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for payment import, invoice matching, and AR aging.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement payment import",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for payment import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement invoice matching",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for invoice matching.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement AR aging",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for AR aging.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement journal export",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for journal export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement VAT export",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for VAT export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for misallocated payment, unbalanced journal, and VAT export error.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Payments AR Accounting Export operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H13.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Payments AR Accounting Export outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P02.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Payments AR Accounting Export services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/service.js",
+        "packages/payments/src/policies.js",
+        "packages/payments/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Payments AR Accounting Export models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define payment import API",
+      "objective": "Lock request, response, permission, audit, and error shape for payment import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define invoice matching API",
+      "objective": "Lock request, response, permission, audit, and error shape for invoice matching.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define AR aging API",
+      "objective": "Lock request, response, permission, audit, and error shape for AR aging.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define journal export API",
+      "objective": "Lock request, response, permission, audit, and error shape for journal export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define VAT export API",
+      "objective": "Lock request, response, permission, audit, and error shape for VAT export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Payments AR Accounting Export API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for misallocated payment, unbalanced journal, VAT export error, duplicate receipt, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H13 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C13 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P03.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Payments AR Accounting Export public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/index.js",
+        "packages/payments/src/api-contract.js",
+        "packages/payments/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/payments/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify payment matching queue, AR aging dashboard, journal export panel, and receipt detail in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan payment matching queue",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for payment matching queue.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan AR aging dashboard",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for AR aging dashboard.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan journal export panel",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for journal export panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan receipt detail",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for receipt detail.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Payments AR Accounting Export outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Payments AR Accounting Export rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Payments AR Accounting Export context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Payments AR Accounting Export service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P04.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp13-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define payment matched golden case",
+      "objective": "Create a synthetic golden case proving payment matched.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define partial payment allocated golden case",
+      "objective": "Create a synthetic golden case proving partial payment allocated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define AR aging updated golden case",
+      "objective": "Create a synthetic golden case proving AR aging updated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define journal export balanced golden case",
+      "objective": "Create a synthetic golden case proving journal export balanced.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define misallocated payment failure fixture",
+      "objective": "Create a synthetic failing case that proves misallocated payment is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define unbalanced journal failure fixture",
+      "objective": "Create a synthetic failing case that proves unbalanced journal is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define VAT export error failure fixture",
+      "objective": "Create a synthetic failing case that proves VAT export error is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Payments AR Accounting Export fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Payments AR Accounting Export appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P05.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Payments AR Accounting Export fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/fixtures.js",
+        "packages/payments/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/payments/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for payment import, invoice matching, AR aging, and journal export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Payments AR Accounting Export view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Payments AR Accounting Export mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Payments AR Accounting Export export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Payments AR Accounting Export where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Payments AR Accounting Export obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H13 audit evidence",
+      "objective": "Record which Payments AR Accounting Export decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P06.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Payments AR Accounting Export cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/src/security-contract.js",
+        "packages/payments/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define misallocated payment failure",
+      "objective": "Fail closed or require review when misallocated payment appears in Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define unbalanced journal failure",
+      "objective": "Fail closed or require review when unbalanced journal appears in Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define VAT export error failure",
+      "objective": "Fail closed or require review when VAT export error appears in Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define duplicate receipt failure",
+      "objective": "Fail closed or require review when duplicate receipt appears in Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Payments AR Accounting Export operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Payments AR Accounting Export operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Payments AR Accounting Export micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P07.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Payments AR Accounting Export ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "packages/payments/test/failure-cases.test.js",
+        "docs/rp13-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/payments/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H13 command matrix",
+      "objective": "Record exact product commands Hermes should run for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H13 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H13 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H13 no-real-data evidence",
+      "objective": "Record that Payments AR Accounting Export fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H13 blocked-claim evidence",
+      "objective": "Record unsafe Payments AR Accounting Export claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H13 Claude dependency",
+      "objective": "Mark C13 review mandatory before Payments AR Accounting Export closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H13 human approval note",
+      "objective": "Record what the human must approve for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H13 command availability",
+      "objective": "Ensure npm scripts required by H13 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H13 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Payments AR Accounting Export implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H13 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H13.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P08.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Payments AR Accounting Export behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp13-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M00",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP13 architecture review questions",
+      "objective": "Ask whether Payments AR Accounting Export module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M01",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP13 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M02",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP13 bypass review questions",
+      "objective": "Ask Claude to find misallocated payment, unbalanced journal, VAT export error, duplicate receipt, and undefined bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M03",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP13 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Payments AR Accounting Export.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M04",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP13 downstream readiness questions",
+      "objective": "Ask whether Payments AR Accounting Export is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M05",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP13 risk register",
+      "objective": "List unresolved Payments AR Accounting Export risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M06",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Payments AR Accounting Export findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M07",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Payments AR Accounting Export closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M08",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP13.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M09",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Payments AR Accounting Export can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP13.P09.M10",
+      "program_id": "RP13",
+      "program_title": "Payments AR Accounting Export",
+      "program_scope": "Payment matching, AR aging, journal entry, VAT export",
+      "phase_id": "RP13.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP13 detailed plan",
+      "objective": "Confirm Payments AR Accounting Export is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H13",
+      "claude_gate": "C13",
+      "target_files": [
+        "docs/rp13-claude-cross-validation-brief.md",
+        "docs/rp13-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H13 evidence or blocked reason can be recorded.",
+        "Claude C13 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

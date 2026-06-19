@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-853",
+  "subphase_id": "RP28.P02.M07.S13",
+  "verdict": "PASS",
+  "production_ready": true,
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2,
+    "p2_status": "fixed_or_deferred"
+  },
+  "marketplace_evidence_review_packet_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-853 is production_ready after exactly one valid hardened read-only Claude review receipt; the next explicit CP boundary is CP00-854 / RP28.P02.M09.S09. Runtime marketplace behavior, connector runtime loading, custom AI app execution, app submissions, install receipts, permission decisions, audit writes, Hermes runtime receipts, fixture/test execution, rollback/retry execution, integration smoke execution, real client data, credentials, secrets, prompt/completion payloads, and enterprise-trust authority remain closed. P3 findings are non-blocking and closed by review reconciliation plus full validation before commit.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt.json",
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "CP853-invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-invalid-attempt-01.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-invalid-attempt-01.json",
+      "valid_review": false,
+      "counted_as_pack_level_review": false
+    },
+    {
+      "attempt_id": "CP853-invalid-attempt-02",
+      "status": "invalid_not_accepted",
+      "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-invalid-attempt-02.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-invalid-attempt-02.json",
+      "valid_review": false,
+      "counted_as_pack_level_review": false
+    },
+    {
+      "attempt_id": "CP853-invalid-attempt-03",
+      "status": "invalid_not_accepted",
+      "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-invalid-attempt-03.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-invalid-attempt-03.json",
+      "valid_review": false,
+      "counted_as_pack_level_review": false
+    },
+    {
+      "attempt_id": "CP853-invalid-attempt-04",
+      "status": "invalid_not_accepted",
+      "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-invalid-attempt-04.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-invalid-attempt-04.json",
+      "valid_review": false,
+      "counted_as_pack_level_review": false
+    },
+    {
+      "attempt_id": "CP853-invalid-attempt-05",
+      "status": "invalid_not_accepted",
+      "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-invalid-attempt-05.json",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-invalid-attempt-05.json",
+      "valid_review": false,
+      "counted_as_pack_level_review": false
+    }
+  ],
+  "quarantined_valid_reviews": [
+    {
+      "attempt_id": "CP853-closeout-ineligible-review-01",
+      "status": "valid_review_not_accepted_for_closeout",
+      "reason": "closeout_eligible false because review classified post-review full validation sequencing as P2",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-closeout-ineligible-review-01.not-counted",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-closeout-ineligible-review-01.json",
+      "valid_review": true,
+      "closeout_eligible": false,
+      "counted_as_pack_level_review": false
+    },
+    {
+      "attempt_id": "CP853-closeout-ineligible-review-02",
+      "status": "valid_review_not_accepted_for_closeout",
+      "reason": "closeout_eligible false because review classified post-review full validation sequencing as P2",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-853/review-receipt-closeout-ineligible-review-02.not-counted",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-853/raw-output-closeout-ineligible-review-02.json",
+      "valid_review": true,
+      "closeout_eligible": false,
+      "counted_as_pack_level_review": false
+    }
+  ]
+}

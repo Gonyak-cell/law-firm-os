@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-038",
+  "subphase_id": "RP00.P02.M07.S10",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_non_review_cli_outputs_not_counted": [
+    {
+      "command_output_ref": "/tmp/cp00-038-claude-review-output.json",
+      "reason": "CLI output ended before a verdict or findings were returned and is not counted as a valid pack-level review."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "1569df7f-efad-4f55-a3f1-bf3e7e095218",
+    "uuid": "1569df7f-efad-4f55-a3f1-bf3e7e095218",
+    "command_output_ref": "/tmp/cp00-038-claude-review-output-valid.json",
+    "total_cost_usd": 1.6313475000000002,
+    "duration_ms": 335780,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "raw_verdict": "pass",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": [],
+    "summary": "CP00-038 RP00.P02.M07.S10 idempotency key handling is correct and internally consistent. The prechecker consumes only the S09 state-transition result (validates S09 subphase marker, test_and_golden_case_set entrypoint, state_transition_receipt presence, non-blank audit_event_ref, and carried allow_metadata_only + applied), then emits a frozen metadata-only idempotency receipt with all 62 result fields and 20 receipt fields. Unsafe claims fail closed via 35 forbidden claims plus an unknown-claim catch-all rejecting any truthy value (only synthetic idempotency_key whitelisted, pattern-validated). All runtime/test/golden/audit/permission/storage/idempotency-store/lock permitted flags are false with matching doesNot* assertions across policy, prechecker, contract definition, and fixture. M07 stays open (completesSourceMicroPhase false, weighted boundary terminal false) and hands off to RP00.P02.M07.S11. Validator additions cross-check definition, policy/prechecker modules, fixture, live precheck-vs-fixture equality, explicit-key acceptance, and negative paths; tests mirror these. S09 added to requiredClosedSubphases and current subphase advanced to S10. No defects found.",
+    "boundary_checks": {
+      "consume_only_s09": "pass",
+      "metadata_only_receipt": "pass",
+      "no_test_or_golden_execution": "pass",
+      "no_audit_or_permission_runtime": "pass",
+      "no_product_or_idempotency_store_write": "pass",
+      "handoff_to_s11": "pass"
+    }
+  }
+}

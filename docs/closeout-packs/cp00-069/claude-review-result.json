@@ -1,0 +1,156 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-069",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-069-review-prompt.txt > /tmp/cp00-069-claude-review-output.json",
+    "output_ref": "/tmp/cp00-069-claude-review-output.json",
+    "session_id": "0ca9b2f5-8a37-4335-a05b-bf1fc178c360",
+    "uuid": "9161a55a-8d7b-4dad-bc72-56d2161c2291",
+    "total_cost_usd": 0.9009674999999999,
+    "duration_ms": 205419,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 0
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "findings": [
+      {
+        "id": "CP00-069-F1",
+        "source_id": "F1",
+        "severity": "P3",
+        "area": "test_coverage",
+        "title": "Untested upstream-bootstrap boundary failure branch",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "assembleControlPlanePermissionAuditAccessContext throws 'requires completed CP00-068 bootstrap boundary' when permission_matrix_rows_bound / view_decision_binding_bound / search_decision_binding_bound / mutation_decision_binding_bound / no_raw_permission_policy / no_internal_audit_payload are not true or ldip_implementation_allowed is not false, but no negative test flips any of these. Drift tests cover only pack_id and next_subphase.",
+        "recommendation": "Add a case that sets one bootstrap binding flag false on the upstream input and asserts the 'completed CP00-068 bootstrap boundary' throw."
+      },
+      {
+        "id": "CP00-069-F2",
+        "source_id": "F2",
+        "severity": "P3",
+        "area": "test_coverage",
+        "title": "Untested non-object boundaryClaims guard",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "The guard rejecting array/string/non-object boundaryClaims ('boundary claims must be an object when provided') is not exercised by a test.",
+        "recommendation": "Add a throws-case passing an array or string as boundaryClaims; low priority."
+      },
+      {
+        "id": "CP00-069-F3",
+        "source_id": "F3",
+        "severity": "P3",
+        "area": "consistency",
+        "title": "forbiddenBoundarySuiteClaims reused-by-reference, not asserted equal to contract list",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "policy.forbiddenBoundarySuiteClaims aliases CONTROL_PLANE_PERMISSION_AUDIT_INTEGRATION_BOOTSTRAP_POLICY.forbiddenBoundarySuiteClaims rather than the contract's explicit forbidden_boundary_suite_claims; the policy validator only checks it is non-empty, not that it matches the contract enumeration. Risk is non-exploitable because the assembler rejects ANY truthy claim (forbidden -> 'cannot claim', otherwise -> 'cannot accept unknown claim'), so an incomplete forbidden list cannot weaken the fail-closed boundary; it only changes which error message fires.",
+        "recommendation": "Optionally assert the policy/contract forbidden lists are equal to keep documented and enforced lists from drifting; not required for closeout."
+      },
+      {
+        "id": "CP00-069-F4",
+        "source_id": "F4",
+        "severity": "P3",
+        "area": "provenance",
+        "title": "requested_pack_id lags one pack (CP00-068)",
+        "file": null,
+        "line": null,
+        "blocking": false,
+        "details": "requested_pack_id=CP00-068 while planned_pack_id/pack_id=CP00-069 with deviation_from_plan=false and correction_reason 'shifted to CP00-069 by live sequential cursor'. This matches the established live-cursor pattern from prior packs (CP00-068 requested CP00-067) and is accepted by the validator; informational only.",
+        "recommendation": "No action; confirm orchestrator cursor semantics are intended."
+      }
+    ],
+    "residual_risks": [
+      "Low. Boundary is metadata-only and maximally fail-closed (all write/permission/authz/audit/security-trimming flags pinned false across policy, module, fixture, contract, and result assertion; every truthy boundary claim rejected; upstream CP00-068 result and RP00.P06.M02.S05 handoff verified; LDIP implementation blocked). Remaining risk is limited to two untested defensive branches and a documentation-vs-enforcement list duplication, none of which can relax the runtime boundary. Diff-level review only: existence/contents of referenced cp00-068 evidence files and the per-subphase construction-inspection.json artifacts (now required by the validator to carry control_plane_permission_audit_access_context_matrix_verified=true) were not verifiable from the diff and should be confirmed present at closeout."
+    ],
+    "overall_summary": "CP00-069 'Permission Audit Access Context Matrix' (Risk A, RP00.P06.M02.S05-RP00.P06.M03.S03, 10 units) is a planning/metadata-only pack that is internally consistent and fully fail-closed. The assembler constructs a frozen descriptive matrix from policy constants, verifies the upstream CP00-068 bootstrap result (pack id, RP00.P06.M02.S05 handoff, prior bindings, no raw policy/internal audit payload, LDIP not allowed), and rejects every truthy boundary claim via a catch-all (forbidden -> 'cannot claim', anything else -> 'cannot accept unknown claim'). All runtime/permission/authz/security-trimming/audit-write/db/storage/product-state/idempotency/lock flags are pinned false in policy, module, fixture, contract, and result assertion; LDIP stays planning-only (ldip_implementation_allowed=false, ldip_implementation_claim fail-closed). Contract closeouts, fixture, policy result_fields, validators, tests, and the contract-validator script are mutually consistent (4 access rows, 1 primary impl row, 5 decision bindings, unit_count 10, next_subphase RP00.P06.M03.S04, M02 completed / M03 open). No P0/P1/P2 issues; only minor non-blocking test-coverage and provenance observations."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 205419,
+    "duration_api_ms": 207471,
+    "ttft_ms": 177975,
+    "num_turns": 1,
+    "result": "Read-only review complete; no files modified. Verdict and findings below.\n\n```json\n{\n  \"verdict\": \"approve\",\n  \"summary\": \"CP00-069 'Permission Audit Access Context Matrix' (Risk A, RP00.P06.M02.S05-RP00.P06.M03.S03, 10 units) is a planning/metadata-only pack that is internally consistent and fully fail-closed. The assembler constructs a frozen descriptive matrix from policy constants, verifies the upstream CP00-068 bootstrap result (pack id, RP00.P06.M02.S05 handoff, prior bindings, no raw policy/internal audit payload, LDIP not allowed), and rejects every truthy boundary claim via a catch-all (forbidden -> 'cannot claim', anything else -> 'cannot accept unknown claim'). All runtime/permission/authz/security-trimming/audit-write/db/storage/product-state/idempotency/lock flags are pinned false in policy, module, fixture, contract, and result assertion; LDIP stays planning-only (ldip_implementation_allowed=false, ldip_implementation_claim fail-closed). Contract closeouts, fixture, policy result_fields, validators, tests, and the contract-validator script are mutually consistent (4 access rows, 1 primary impl row, 5 decision bindings, unit_count 10, next_subphase RP00.P06.M03.S04, M02 completed / M03 open). No P0/P1/P2 issues; only minor non-blocking test-coverage and provenance observations.\",\n  \"findings\": [\n    {\n      \"id\": \"CP00-069-F1\",\n      \"severity\": \"P3\",\n      \"blocking\": false,\n      \"area\": \"test_coverage\",\n      \"title\": \"Untested upstream-bootstrap boundary failure branch\",\n      \"description\": \"assembleControlPlanePermissionAuditAccessContext throws 'requires completed CP00-068 bootstrap boundary' when permission_matrix_rows_bound / view_decision_binding_bound / search_decision_binding_bound / mutation_decision_binding_bound / no_raw_permission_policy / no_internal_audit_payload are not true or ldip_implementation_allowed is not false, but no negative test flips any of these. Drift tests cover only pack_id and next_subphase.\",\n      \"evidence\": [\"packages/control-plane/src/service.js (assembleControlPlanePermissionAuditAccessContext upstream-binding guard)\", \"packages/control-plane/test/service.test.js (\\\"fails closed on drift and unsafe claims\\\")\"],\n      \"recommendation\": \"Add a case that sets one bootstrap binding flag false on the upstream input and asserts the 'completed CP00-068 bootstrap boundary' throw.\"\n    },\n    {\n      \"id\": \"CP00-069-F2\",\n      \"severity\": \"P3\",\n      \"blocking\": false,\n      \"area\": \"test_coverage\",\n      \"title\": \"Untested non-object boundaryClaims guard\",\n      \"description\": \"The guard rejecting array/string/non-object boundaryClaims ('boundary claims must be an object when provided') is not exercised by a test.\",\n      \"evidence\": [\"packages/control-plane/src/service.js (boundaryClaims typeof/Array check)\"],\n      \"recommendation\": \"Add a throws-case passing an array or string as boundaryClaims; low priority.\"\n    },\n    {\n      \"id\": \"CP00-069-F3\",\n      \"severity\": \"P3\",\n      \"blocking\": false,\n      \"area\": \"consistency\",\n      \"title\": \"forbiddenBoundarySuiteClaims reused-by-reference, not asserted equal to contract list\",\n      \"description\": \"policy.forbiddenBoundarySuiteClaims aliases CONTROL_PLANE_PERMISSION_AUDIT_INTEGRATION_BOOTSTRAP_POLICY.forbiddenBoundarySuiteClaims rather than the contract's explicit forbidden_boundary_suite_claims; the policy validator only checks it is non-empty, not that it matches the contract enumeration. Risk is non-exploitable because the assembler rejects ANY truthy claim (forbidden -> 'cannot claim', otherwise -> 'cannot accept unknown claim'), so an incomplete forbidden list cannot weaken the fail-closed boundary; it only changes which error message fires.\",\n      \"evidence\": [\"packages/control-plane/src/policies.js (CONTROL_PLANE_PERMISSION_AUDIT_ACCESS_CONTEXT_POLICY.forbiddenBoundarySuiteClaims)\", \"packages/control-plane/src/validators.js (assertControlPlanePermissionAuditAccessContextPolicy)\", \"contracts/control-plane-contract.json (forbidden_boundary_suite_claims)\"],\n      \"recommendation\": \"Optionally assert the policy/contract forbidden lists are equal to keep documented and enforced lists from drifting; not required for closeout.\"\n    },\n    {\n      \"id\": \"CP00-069-F4\",\n      \"severity\": \"P3\",\n      \"blocking\": false,\n      \"area\": \"provenance\",\n      \"title\": \"requested_pack_id lags one pack (CP00-068)\",\n      \"description\": \"requested_pack_id=CP00-068 while planned_pack_id/pack_id=CP00-069 with deviation_from_plan=false and correction_reason 'shifted to CP00-069 by live sequential cursor'. This matches the established live-cursor pattern from prior packs (CP00-068 requested CP00-067) and is accepted by the validator; informational only.\",\n      \"evidence\": [\"contracts/control-plane-contract.json (control_plane_permission_audit_access_context_matrix_definition)\", \"packages/control-plane/src/validators.js (correctionReason includes 'shifted to CP00-069')\"],\n      \"recommendation\": \"No action; confirm orchestrator cursor semantics are intended.\"\n    }\n  ],\n  \"severity_counts\": { \"P0\": 0, \"P1\": 0, \"P2\": 0, \"P3\": 4 },\n  \"blocking_findings\": [],\n  \"required_fixes\": [],\n  \"deferred_or_informational\": [\n    \"CP00-069-F1: add negative test for upstream bootstrap-binding failure branch\",\n    \"CP00-069-F2: add negative test for non-object boundaryClaims guard\",\n    \"CP00-069-F3: optionally assert policy/contract forbidden-claim lists are equal\",\n    \"CP00-069-F4: confirm intended live-cursor requested_pack_id lag (informational)\"\n  ],\n  \"residual_risk\": \"Low. Boundary is metadata-only and maximally fail-closed (all write/permission/authz/audit/security-trimming flags pinned false across policy, module, fixture, contract, and result assertion; every truthy boundary claim rejected; upstream CP00-068 result and RP00.P06.M02.S05 handoff verified; LDIP implementation blocked). Remaining risk is limited to two untested defensive branches and a documentation-vs-enforcement list duplication, none of which can relax the runtime boundary. Diff-level review only: existence/contents of referenced cp00-068 evidence files and the per-subphase construction-inspection.json artifacts (now required by the validator to carry control_plane_permission_audit_access_context_matrix_verified=true) were not verifiable from the diff and should be confirmed present at closeout.\"\n}\n```\n\nNo P0/P1/P2 findings — CP00-069 may proceed to closeout; the four P3 items are optional follow-ups.",
+    "stop_reason": "end_turn",
+    "session_id": "0ca9b2f5-8a37-4335-a05b-bf1fc178c360",
+    "total_cost_usd": 0.9009674999999999,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 61166,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 19034,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 61166,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 19034,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 61166,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 61166
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 41196,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.041296000000000006,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 19034,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 61166,
+        "webSearchRequests": 0,
+        "costUSD": 0.8596714999999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "9161a55a-8d7b-4dad-bc72-56d2161c2291"
+  }
+}

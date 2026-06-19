@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-PRE-W02",
+  "title": "runtime/mixed pack interleave decision",
+  "created_at": "2026-06-18T14:39:45Z",
+  "status": "blocked_missed_cp_interleave_window",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W02-T01",
+  "artifacts": [
+    "docs/launch/runtime-mixed-interleave-decision-brief.md",
+    "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "docs/closeout-pack-plan/next-pack-queue.json",
+    "docs/closeout-pack-plan/implementation-layer-ledger.json"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w02/packet.json",
+    "docs/goal-closeout/lt-pre-w02/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w02/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w02/adjudication.md",
+    "docs/goal-closeout/lt-pre-w02/construction-inspection.json"
+  ],
+  "current_status": {
+    "closeout_complete": true,
+    "remaining_rp25_26_29_pack_count": 0,
+    "closed_rp25_26_29_pack_count": 88,
+    "runtime_ready_pack_count": 0,
+    "decision_record_present": false,
+    "decision_value_present": false,
+    "policy_referral_applicable": false,
+    "pre_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

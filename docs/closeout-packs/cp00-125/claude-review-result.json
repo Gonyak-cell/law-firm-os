@@ -1,0 +1,112 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-125",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "5086b2d8-9883-4210-a545-e736ebe18baa",
+    "uuid": "d865e475-a3ab-48a6-b9b4-f11cbd623e0a",
+    "total_cost_usd": 0.768443,
+    "duration_ms": 220804,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "CP00-125 README section ends with stale CP00-124 handoff bullet; omits its own CP00-126 handoff",
+        "file": "packages/authz/README.md",
+        "evidence": "The new '## CP00-125 ...' section is inserted directly above the pre-existing bullet '- Handoff is fixed to CP00-125 / `RP02.P07.M03.S11`.' (a CP00-124 context line, no '+'). That bullet now trails the CP00-125 section, so the docs read as if CP00-125 hands off to itself at S11. The authoritative code/contract are correct: PERMISSION_KERNEL_CP125_PACK_BINDING.next_pack_id='CP00-126', next_subphase_id='RP02.P07.M03.S21' (failure-taxonomy-risk-boundary.js) and contract failure_taxonomy_risk_boundary_pack.next_pack_id='CP00-126'.",
+        "recommendation": "Keep the 'Handoff is fixed to CP00-125 / RP02.P07.M03.S11' bullet under the CP00-124 section and add a CP00-125 handoff bullet pointing to CP00-126 / RP02.P07.M03.S21. Documentation-only; does not affect runtime, contract, or no-write guarantees."
+      }
+    ],
+    "blocks_pack_closeout": false,
+    "recommendation": "Approve CP00-125 closeout. The pack closes all 10 planned Risk A failure-taxonomy units (RP02.P07.M03.S11-S20), inherits CP124 behavior, and preserves synthetic-only/metadata-only no-write boundaries. The single P3 is a README-only inaccuracy that may be corrected opportunistically and is not a closeout blocker.",
+    "rationale": "Scope verification against the staged diff: (1) All 10 deliverables are present and typed in CP125_UNITS — lock conflict (S11), retry exhaustion (S12), rollback expectation (S13), compensation expectation (S14), blocked-claim receipt (S15), failure fixture (S16), failure unit test (S17), failure integration smoke (S18), audit failure hint (S19), Hermes failure evidence (S20); deliverable counts (failure_recovery 3, implementation 1, hermes_evidence 2, fixture 1, test 2, security_audit 1) match manifest and validator. (2) CP124 inheritance is wired via imports of PERMISSION_KERNEL_CP124_PERMISSION_FIXTURE_FAILURE_TAXONOMY_CONTRACT and runPermissionKernelCp124...Case, asserting inherited_failure_taxonomy_result_count=61, lock status 'blocked_lock_conflict', retry status 'retry_exhausted_no_retry_execution'. (3) freezeNoWriteResult forces all execution/write flags false AFTER spreading inputs, so no case can override them; lock_policy.lock_acquired/lock_token_persisted=false, retry_policy.retry_executed=false, rollback_policy/compensation_policy.*_executed=false with *_expected isolated inside policy objects (no top-level execution). (4) blocked_claim_receipt.preview_only=true & emitted_to_hermes_runtime=false; audit_failure_hint.emitted_to_audit_ledger=false & hidden_fields_rendered=false; hermes_failure_evidence.reference_only=true & writes_hermes_runtime=false. (5) failure_fixture.contains_real_data=false, failure_test_binding.deterministic=true & runs_against_synthetic_metadata_only=true; replay anchors/command_anchors are inert static strings, never executed (no fs/db/network/route code in the new module). (6) No runtime UI/API route, policy mutation, audit/product/database write, idempotency persistence, lock acquisition, retry/rollback/compensation execution, external share/export, AI/analytics, LDIP, or HRX split is added — runtime_*_route_added=false, hrx_embedded_boundary='embedded_people_hr_evidence_module_inside_law_firm_os', and the full no_write_attestation (19 flags) is false in both source and contract. (7) Contract/exports/hidden-fields/validator are mutually consistent (11 public_exports match the module's exports; current_pack flips to CP00-125 risk A, 10 units, flag 'permission_kernel_failure_taxonomy_risk_boundary_verified'); index.js re-export and the validation script's CP125 assertions align with the source. Note: the inherited CP124 values (61, the two case IDs/statuses) and plan-binding (closeout-pack-plan CP00-125 entry / cp00-125 manifest) live outside this diff and are assumed present/correct; both are self-checked by the validator and tests, so divergence would fail closeout rather than slip through. No P0/P1/P2 issues and no security concerns (no real client data, no injection sink, hidden_source_fields are names-only used for negative assertions)."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 220804,
+    "duration_api_ms": 222581,
+    "ttft_ms": 198463,
+    "num_turns": 1,
+    "result": "Read-only review complete. The CP00-125 diff is a clean, additive, metadata-only continuation of the established RP02 pattern; all no-write/boundary guarantees hold. One low-severity README documentation inconsistency. Verdict below.\n\n```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": [\n    {\n      \"severity\": \"p3\",\n      \"title\": \"CP00-125 README section ends with stale CP00-124 handoff bullet; omits its own CP00-126 handoff\",\n      \"file\": \"packages/authz/README.md\",\n      \"evidence\": \"The new '## CP00-125 ...' section is inserted directly above the pre-existing bullet '- Handoff is fixed to CP00-125 / `RP02.P07.M03.S11`.' (a CP00-124 context line, no '+'). That bullet now trails the CP00-125 section, so the docs read as if CP00-125 hands off to itself at S11. The authoritative code/contract are correct: PERMISSION_KERNEL_CP125_PACK_BINDING.next_pack_id='CP00-126', next_subphase_id='RP02.P07.M03.S21' (failure-taxonomy-risk-boundary.js) and contract failure_taxonomy_risk_boundary_pack.next_pack_id='CP00-126'.\",\n      \"recommendation\": \"Keep the 'Handoff is fixed to CP00-125 / RP02.P07.M03.S11' bullet under the CP00-124 section and add a CP00-125 handoff bullet pointing to CP00-126 / RP02.P07.M03.S21. Documentation-only; does not affect runtime, contract, or no-write guarantees.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Approve CP00-125 closeout. The pack closes all 10 planned Risk A failure-taxonomy units (RP02.P07.M03.S11-S20), inherits CP124 behavior, and preserves synthetic-only/metadata-only no-write boundaries. The single P3 is a README-only inaccuracy that may be corrected opportunistically and is not a closeout blocker.\",\n  \"rationale\": \"Scope verification against the staged diff: (1) All 10 deliverables are present and typed in CP125_UNITS — lock conflict (S11), retry exhaustion (S12), rollback expectation (S13), compensation expectation (S14), blocked-claim receipt (S15), failure fixture (S16), failure unit test (S17), failure integration smoke (S18), audit failure hint (S19), Hermes failure evidence (S20); deliverable counts (failure_recovery 3, implementation 1, hermes_evidence 2, fixture 1, test 2, security_audit 1) match manifest and validator. (2) CP124 inheritance is wired via imports of PERMISSION_KERNEL_CP124_PERMISSION_FIXTURE_FAILURE_TAXONOMY_CONTRACT and runPermissionKernelCp124...Case, asserting inherited_failure_taxonomy_result_count=61, lock status 'blocked_lock_conflict', retry status 'retry_exhausted_no_retry_execution'. (3) freezeNoWriteResult forces all execution/write flags false AFTER spreading inputs, so no case can override them; lock_policy.lock_acquired/lock_token_persisted=false, retry_policy.retry_executed=false, rollback_policy/compensation_policy.*_executed=false with *_expected isolated inside policy objects (no top-level execution). (4) blocked_claim_receipt.preview_only=true & emitted_to_hermes_runtime=false; audit_failure_hint.emitted_to_audit_ledger=false & hidden_fields_rendered=false; hermes_failure_evidence.reference_only=true & writes_hermes_runtime=false. (5) failure_fixture.contains_real_data=false, failure_test_binding.deterministic=true & runs_against_synthetic_metadata_only=true; replay anchors/command_anchors are inert static strings, never executed (no fs/db/network/route code in the new module). (6) No runtime UI/API route, policy mutation, audit/product/database write, idempotency persistence, lock acquisition, retry/rollback/compensation execution, external share/export, AI/analytics, LDIP, or HRX split is added — runtime_*_route_added=false, hrx_embedded_boundary='embedded_people_hr_evidence_module_inside_law_firm_os', and the full no_write_attestation (19 flags) is false in both source and contract. (7) Contract/exports/hidden-fields/validator are mutually consistent (11 public_exports match the module's exports; current_pack flips to CP00-125 risk A, 10 units, flag 'permission_kernel_failure_taxonomy_risk_boundary_verified'); index.js re-export and the validation script's CP125 assertions align with the source. Note: the inherited CP124 values (61, the two case IDs/statuses) and plan-binding (closeout-pack-plan CP00-125 entry / cp00-125 manifest) live outside this diff and are assumed present/correct; both are self-checked by the validator and tests, so divergence would fail closeout rather than slip through. No P0/P1/P2 issues and no security concerns (no real client data, no injection sink, hidden_source_fields are names-only used for negative assertions).\"\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "5086b2d8-9883-4210-a545-e736ebe18baa",
+    "total_cost_usd": 0.768443,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 34568,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 21174,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 34568,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 21174,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 34568,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 34568
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 21404,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.021509,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 21174,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 34568,
+        "webSearchRequests": 0,
+        "costUSD": 0.746934,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "d865e475-a3ab-48a6-b9b4-f11cbd623e0a"
+  }
+}

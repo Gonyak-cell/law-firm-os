@@ -1,0 +1,121 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-025",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "49c8155c-50c4-450e-bdc8-e40d6eb849d8",
+    "uuid": "4b4b04ea-f2c7-4328-ad85-4838ed8da5ec",
+    "duration_ms": 246840,
+    "duration_api_ms": 248503,
+    "total_cost_usd": 1.0837685000000001,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 49627,
+        "outputTokens": 29,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.049772,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 22766,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 74130,
+        "webSearchRequests": 0,
+        "costUSD": 1.0339965000000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_P3_FINDINGS_ADJUDICATED",
+    "claude_reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "CP00-025-RAW-P3-01",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/src/service.js:4372",
+        "title": "from/to normalization relies on a shared helper not defined in this changeset",
+        "details": "The helper is pre-existing and the immediately following strict equality against the single allowed transition prevents bypass. node --check and 467/467 service tests confirm the helper resolves and the transition is enforced.",
+        "recommendation": "No source action required.",
+        "adjudication_status": "accepted_nonblocking_existing_helper",
+        "adjudication_detail": "Behavior is covered by passing tests, result validator equality, and explicit invalid-transition rejection in the service test and RP00 validator."
+      },
+      {
+        "id": "CP00-025-RAW-P3-02",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/src/service.js:4388",
+        "title": "state_transition_receipt carries four fields beyond required_state_transition_receipt_fields",
+        "details": "The receipt field list is treated as the minimum required set, consistent with S07/S08. The validator pins the full receipt object and fixture equality covers every emitted field.",
+        "recommendation": "No source action required.",
+        "adjudication_status": "deferred_nonblocking_schema_clarity",
+        "adjudication_detail": "The minimum-field convention is preserved; a future schema clarity pack may rename or expand receipt field manifests consistently."
+      },
+      {
+        "id": "CP00-025-RAW-P3-03",
+        "severity": "P3",
+        "blocking": false,
+        "location": "contracts/control-plane-contract.json:17",
+        "title": "Closeout evidence pack docs/closeout-packs/cp00-025 not yet present",
+        "details": "The evidence directory was missing during read-only review, which was the expected pre-evidence closeout state.",
+        "recommendation": "Generate the CP00-025 evidence pack before final validation.",
+        "adjudication_status": "resolved_by_evidence_generation",
+        "adjudication_detail": "The CP00-025 evidence pack is generated with manifest, command evidence, Claude review, adjudication, and construction inspection containing the required production-ready flag."
+      }
+    ],
+    "security_notes": [
+      "Claude found the S09 metadata-only no-write guarantee holds.",
+      "Claude found no P0/P1/P2 issues and no production_ready blocker after evidence generation."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 467/467 before evidence generation.",
+      "CP00-025 records one valid pack-level Claude Opus 4.8 max read-only review."
+    ],
+    "summary": "Claude reported three nonblocking P3 findings. Existing-helper and receipt-field notes are accepted/deferred as nonblocking; the missing evidence note is resolved by generating CP00-025 evidence before final validation. Unresolved P0/P1/P2/P3 after adjudication is 0."
+  },
+  "raw_review_text": "{\n  \"review_id\": \"CP00-025\",\n  \"model\": \"claude-opus-4-8\",\n  \"effort\": \"max\",\n  \"read_only\": true,\n  \"summary\": \"CP00-025 implements RP00.P02.M06.S09 (Synthetic Fixture Set State transition enforcement) as a deterministic, metadata-only precheck that consumes the S08 secondary-workflow-path result and emits a frozen state_transition receipt for the secondary_workflow_path_ready -> state_transition_enforced transition (rule synthetic_fixture_set.secondary_workflow_path_ready_to_state_transition_enforced). The slice is pure and read-only: every *_permitted flag, runtime_route_created, and writes_product_state are hard-false, no_real_data is true, and all identifiers use synthetic namespaces (tenant.synthetic.*, user.synthetic.*, matter.synthetic.*, fs_, perm.synthetic.*, audit.synthetic.*), so the no-write and no-real-data guarantees hold. Fail-closed behavior is strong: the claims loop default-denies any key other than state_transition_from/to whose value is not undefined/null/false (forbidden -> reject, otherwise unknown -> reject), and the only accepted from/to values are pinned by strict equality to the single allowed transition; missing/denied/wrong-entrypoint/wrong-subphase-marker/missing-receipt/missing-audit-event upstream inputs all throw. The result hard-codes decision allow_metadata_only and all boundary flags, and the validator independently re-asserts all of them plus the 14 required receipt fields, the 29 forbidden claims, and the 20 fail-closed reasons, giving defense-in-depth against drift. Contract definition, fixture precheck_result, policy, prechecker, validators, README, the weighted-ledger boundary (terminal=false, next=RP00.P02.M06.S10), the closeout verified flag, and scripts/validate-rp00-control-plane-contract.mjs are mutually consistent and cross-checked; current_subphase advances to S09 and S08 joins requiredClosedSubphases. node --check passed and node --test passed 467/467. The sole outstanding item is generation of the docs/closeout-packs/cp00-025 evidence pack, which is the expected post-review closeout step and the only reason the end-to-end RP00 validator currently fails. No correctness, security, no-write, no-real-data, or consistency defects were found.\",\n  \"findings\": [\n    {\n      \"severity\": \"P3\",\n      \"title\": \"from/to normalization relies on a shared helper not defined in this changeset\",\n      \"file\": \"packages/control-plane/src/service.js\",\n      \"line\": 4372,\n      \"details\": \"precheckControlPlaneSyntheticFixtureSetStateTransitionEnforcement calls normalizeOptionalStateTransitionClaim(...) for state_transition_from and state_transition_to. That helper is pre-existing (not introduced here). Any non-canonical from/to value is still rejected by the immediately following strict equality against policy.allowedStateTransitions[0] (secondary_workflow_path_ready -> state_transition_enforced), so there is no bypass surface, and the passing node --check plus node --test (467/467) confirm the helper resolves and behaves. Noted only because the helper's behavior is not visible within this diff.\",\n      \"recommendation\": \"No action required; behavior is confirmed by the passing suite and the downstream strict-equality guard.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"title\": \"state_transition_receipt carries four fields beyond required_state_transition_receipt_fields\",\n      \"file\": \"packages/control-plane/src/service.js\",\n      \"line\": 4388,\n      \"details\": \"The emitted receipt includes matter_id, fixture_file_ref, secondary_workflow_path_behavior_ref, and decision_reason in addition to the 14 entries enumerated in required_state_transition_receipt_fields. This matches the established S07/S08 receipt convention where the list denotes the required minimum, not an exhaustive key set. The result validator pins all 18 receipt entries by explicit equality and the fixture mirrors them via full JSON comparison, so there is no drift risk.\",\n      \"recommendation\": \"No action required; consistent with prior subphase receipt conventions and fully pinned by the validator and fixture.\"\n    },\n    {\n      \"severity\": \"P3\",\n      \"title\": \"Closeout evidence pack docs/closeout-packs/cp00-025 not yet present\",\n      \"file\": \"contracts/control-plane-contract.json\",\n      \"line\": 17,\n      \"details\": \"current_subphase.evidence_root and closeout_state_policy reference docs/closeout-packs/cp00-025 and closeout_pack_ref CP00-025, and the validator's construction-inspection gate requires control_plane_synthetic_fixture_set_state_transition_enforcement_verified === true in that pack. The evidence directory does not exist yet, which is the only reason the end-to-end RP00 contract validator does not pass. All code, contract, fixture, policy, prechecker, validators, README, weighted-ledger boundary, and tests are in place and self-consistent; this is a closeout-readiness state, not a code defect.\",\n      \"recommendation\": \"Generate the CP00-025 evidence pack (including the construction-inspection verified flag) as the post-review closeout step; no source changes are needed for the reviewed slice.\"\n    }\n  ],\n  \"blocking_findings\": [],\n  \"p0_p1_count\": 0,\n  \"p2_count\": 0,\n  \"verdict\": \"pass\"\n}",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude raw P3 findings were adjudicated without running a second valid review: existing helper behavior is covered by tests and strict equality, receipt-field exhaustiveness is deferred as nonblocking schema clarity, and evidence-pack absence is resolved by CP00-025 evidence generation plus final validation. Unresolved P0/P1/P2/P3 after adjudication is 0."
+}

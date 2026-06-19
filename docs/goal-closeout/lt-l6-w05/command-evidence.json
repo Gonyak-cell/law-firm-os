@@ -1,0 +1,124 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L6-W05",
+  "title": "Change management and rollback operating model",
+  "phase": "L6",
+  "gate": "L6-EXIT",
+  "status": "t01_runbook_t02_tabletop_scaffold_blocked_pending_real_change_pipeline_deploy_regression_and_rollback_evidence",
+  "recorded_at": "2026-06-18T12:35:00Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L6-W05-T01",
+      "title": "Change management and rollback runbook drafts",
+      "status": "draft_blocked_pending_l3_w02_cicd_deploy_rollback_pipeline",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/runbooks/change-management.md",
+        "docs/launch/runbooks/rollback-runbook.md",
+        "docs/goal-closeout/lt-l6-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "policy_change_equals_code_deploy": true,
+        "change_steps": 4,
+        "regression_map_rows": 7,
+        "cp_gate_rows": 7,
+        "rollback_decision_rows": 4,
+        "rollback_verification_rows": 6,
+        "real_change_processed": false,
+        "rollback_executed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count CM-STEP, REG-CHANGE, CP-GATE, RR-DECISION, RR-VERIFY rows and blocked execution markers ... NODE",
+          "exit_code": 0,
+          "output": "{\"change_steps\":4,\"regression_rows\":7,\"cp_gate_rows\":7,\"rollback_decision_rows\":4,\"rollback_verify_rows\":6,\"policy_change_equals_code_deploy\":true,\"real_change_processed\":false,\"rollback_executed\":false}",
+          "purpose": "Verify change-management and rollback drafts include required procedures without claiming real change or rollback execution"
+        },
+        {
+          "command": "grep -c \"^| CM-STEP-\" docs/launch/runbooks/change-management.md && grep -c \"^| REG-CHANGE-\" docs/launch/runbooks/change-management.md && grep -c \"^| RR-VERIFY-\" docs/launch/runbooks/rollback-runbook.md",
+          "exit_code": 0,
+          "output": "4\n7\n6",
+          "purpose": "Verify row counts for change steps, regression map, and rollback verification"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an operating procedure draft only; no CI/CD pipeline, deployment, rollback, real change, approval row, or product state was created.",
+        "LT-L6-W05 remains open because LT-L3-W02 pipeline evidence and LT-L6-W05-T02 change/rollback tabletop evidence are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L6-W05-T02",
+      "title": "Change processing and rollback tabletop scaffold",
+      "status": "tabletop_scaffold_blocked_pending_real_change_ci_deploy_regression_and_pipeline_rollback",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/runbooks/rehearsal/change-rollback-demo.md",
+        "docs/launch/runbooks/change-management.md",
+        "docs/launch/runbooks/rollback-runbook.md",
+        "docs/goal-closeout/lt-l6-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "procedure_evidence_slots": 5,
+        "timestamp_order_rows": 5,
+        "rollback_tabletop_scenarios": 3,
+        "rollback_verification_rows": 6,
+        "gap_rows": 4,
+        "real_change_processed": false,
+        "approval_evidence_present": false,
+        "ci_green_log_present": false,
+        "deployment_log_present": false,
+        "regression_evidence_present": false,
+        "rollback_executed": false,
+        "tabletop_conducted": false
+      },
+      "commands": [
+        {
+          "command": "grep -c \"^| CM-DEMO-\" docs/launch/runbooks/rehearsal/change-rollback-demo.md && grep -c \"^| CM-ORDER-\" docs/launch/runbooks/rehearsal/change-rollback-demo.md && grep -c \"^| RR-TABLETOP-\" docs/launch/runbooks/rehearsal/change-rollback-demo.md",
+          "exit_code": 0,
+          "output": "5\n5\n3",
+          "purpose": "Verify change demo evidence slots, expected procedure order, and rollback tabletop scenario rows"
+        },
+        {
+          "command": "grep -c \"^| RR-CHECK-\" docs/launch/runbooks/rehearsal/change-rollback-demo.md && grep -c \"^| CM-GAP-\" docs/launch/runbooks/rehearsal/change-rollback-demo.md",
+          "exit_code": 0,
+          "output": "6\n4",
+          "purpose": "Verify rollback verification and gap rows"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a tabletop scaffold only; no real change, CI, deployment, regression, rollback execution, or product-state write occurred.",
+        "LT-L6-W05-T02 remains open until a real owner-approved low-risk change is processed through the full procedure and a conducted rollback tabletop is recorded.",
+        "The scaffold preserves the required evidence classes and procedure order for later reconciliation."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L6-W05, LT-L6-W05-T01, or LT-L6-W05-T02 is complete.",
+    "This record does not execute CI, deploy, rollback, or process a real change.",
+    "This record does not grant production deployment or rollback authority.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

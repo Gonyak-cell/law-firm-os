@@ -1,0 +1,133 @@
+{
+  "subphase_id": "RP00.P02.M04.S06",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Audit hint precheck",
+  "created_at": "2026-06-05T19:09:08Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s06-claude-review.json",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s06-review-packet.diff",
+  "session_id": "9956a445-a0bb-43ef-8a9d-fa3012e9ed6e",
+  "uuid": "dbdf8729-62ef-44e3-b8be-0867081ff1fe",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.58992575,
+  "usage": {
+    "input_tokens": 17,
+    "cache_creation_input_tokens": 129997,
+    "cache_read_input_tokens": 579575,
+    "output_tokens": 19464,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 129997,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1806,
+        "cache_read_input_tokens": 116065,
+        "cache_creation_input_tokens": 16626,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 16626
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "GO",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    "Bulk forbidden-claim and result-drift tests use Error-constructor matcher for some cases; highest-value cases have regex assertions and this matches existing codebase style.",
+    "Combined model/effort/read-only and audit_event_ref type/blank branches are not decomposed into every per-branch unit test; behavior is fail-closed and revalidated by the S05 result assertion.",
+    "Closeout evidence files were outside the review packet; this review is one input to those files."
+  ],
+  "review_text": "Confirmed — the packet is 2137 lines and I've reviewed all of it.\n\n# GO\n\nRead-only review of `/tmp/lfos-rp00-p02-m04-s06-review-packet.diff` only. No files written, no commands run, no repository/product state mutated. Conducted under the claude-opus-4-8 effort=max contract.\n\n## Summary of what the diff does\nS06 adds `precheckControlPlaneClaudeReviewAuditHint` plus its policy, prechecker, result-field freeze, two validators, getter, fixture, README line, contract definition, and contract-validator coverage. The precheck consumes a validated S05 permission result, requires a nonblank carried `audit_event_ref`, emits a frozen metadata-only audit-hint receipt, allows both Matter-scoped and firm-level (`matter_id: null` → `object_id: \"firm_level_claude_review\"`) synthetic metadata, and fails closed otherwise. Current subphase → S06 (`production_ready`), `next_subphase`/handoff → S07, M04 left open.\n\n## Findings\n\n**P0:** none\n\n**P1:** none\n\n**P2:** none\n\nThe implementation matches the stated intent precisely:\n- Fail-closed coverage is complete and verified by the result assertion + tests + contract validator: missing/invalid S05 object, wrong `permission_precheck_subphase_id`, wrong entrypoint, wrong model/effort/non-read-only, missing/blank `audit_event_ref`, non-`allow_metadata_only`/unpassed permission, unsatisfied `permission_decision_ref`, every forbidden audit claim (incl. falsy-non-false like `0` treated as a positive claim), unknown truthy claims, audit-bypass/ledger/event-write, runtime-Claude/review-queue, runtime-permission/AuthZ/permission-engine, review-gate-bypass, and source-completion claims (`service.js:965`, `validators.js:1250`).\n- No side effects: pure function returning `Object.freeze`d result; all write/runtime/audit/AuthZ flags emitted `false` and asserted `false`, `no_real_data: true`, `writes_product_state: false` (`service.js:1023`, nested `audit_hint` no-write flags validated at `validators.js:1334`).\n- Boundary preserved: `completesSourceMicroPhase: false`, `next_subphase`/handoff `RP00.P02.M04.S07` consistent across policy, prechecker, fixture, contract, and `requiredClosedSubphases` only advances to include S05 (`scripts/validate-rp00-control-plane-contract.mjs:1798`).\n- Cross-artifact consistency enforced: result fields, required-input fields (= canonical S05 result fields), review-context/evidence/gate arrays, forbidden-claim and fail-closed lists are JSON-equality-checked across policy module, contract definition, and fixture; drift is caught. Tests exercise the real S02→S03→S04→S05→S06 chain rather than hand-built stubs (not validation theater).\n\n## P3 observations (non-blocking)\n- The 21 bulk forbidden-claim cases and 9 result-drift overrides use the `Error`-constructor matcher with a descriptive label rather than per-message regexes, so a throw for an unintended reason would still pass; the highest-value cases (missing result, `append_audit_ledger`, unknown claim, wrong markers/entrypoint/model, blank `audit_event_ref`, denied/failed/unsatisfied) do have regex assertions. Matches existing codebase style (`service.test.js:1609`).\n- The combined model/effort/read-only check and the `audit_event_ref` `typeof`/blank check aren't decomposed into per-branch unit tests (only `model_id` and empty-string are directly exercised); behavior is still fail-closed and the full input is independently re-validated by `assertControlPlaneClaudeReviewPermissionPrecheckResult` (`service.js:976`).\n- The closeout evidence files the contract references (`docs/goal-closeout/rp00-p02-m04-s06/*`) are outside this packet and cannot be verified from the diff; this review is itself one of those inputs.\n\n## Production readiness\nAfter adjudication, with no P0/P1/P2 findings present, the S06 audit-hint-precheck slice is **production_ready** — contingent only on the out-of-packet closeout evidence under `docs/goal-closeout/rp00-p02-m04-s06/` existing as the contract asserts (H00 validators passing, command evidence, adjudication, construction inspection).\n\n## Required-review qualification\n**Yes** — this is a single, completed, read-only Claude review of the S06 diff packet under model `claude-opus-4-8`, effort=max, with no mutations, and so qualifies as the one required read-only Claude review for RP00.P02.M04.S06.",
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "9956a445-a0bb-43ef-8a9d-fa3012e9ed6e",
+    "uuid": "dbdf8729-62ef-44e3-b8be-0867081ff1fe",
+    "total_cost_usd": 1.58992575,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s06-claude-review.json",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s06-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Bulk forbidden-claim and result-drift tests use Error-constructor matcher for some cases",
+        "body": "Bulk forbidden-claim and result-drift tests use Error-constructor matcher for some cases; highest-value cases have regex assertions and this matches existing codebase style.",
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Combined model/effort/read-only and audit_event_ref type/blank branches are not decomposed into every per-branch unit test",
+        "body": "Combined model/effort/read-only and audit_event_ref type/blank branches are not decomposed into every per-branch unit test; behavior is fail-closed and revalidated by the S05 result assertion.",
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3_INFORMATIONAL",
+        "title": "Closeout evidence files were outside the review packet",
+        "body": "Closeout evidence files were outside the review packet; this review is one input to those files.",
+        "status": "deferred_with_explicit_boundary"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T19:10:06Z",
+  "production_ready": true
+}

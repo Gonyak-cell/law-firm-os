@@ -1,0 +1,85 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M07.S02",
+  "source_micro_phase_id": "RP00.P00.M07",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Define acceptance gates for validation command matrix evidence, including H00 command id subset checks and executed command mapping.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m07-s02/packet.json",
+    "docs/goal-closeout/rp00-p00-m07-s02/command-evidence.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal-closeout-protocol-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-spec-requirement-ledger.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-full-microphase-plan.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs",
+    "packages/domain/test/domain.test.js",
+    "packages/authz/test/authz.test.js",
+    "packages/audit/test/audit.test.js"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids",
+    "docs/goal-closeout/rp00-p00-m07-s02/command-evidence.json"
+  ],
+  "requirement_refs": [],
+  "risk_focus": [
+    "command_evidence_without_exit_zero",
+    "h00_command_id_not_in_h00_gate",
+    "h00_command_id_without_executed_command",
+    "generation_command_used_as_closeout_evidence",
+    "claude_review_metadata_missing",
+    "construction_inspection_missing"
+  ],
+  "claude_questions": [
+    "Does validation_command_matrix_acceptance_gate_definition bind to RP00.P00.M07.S02 and define acceptance gates only, without claiming all M07 completion?",
+    "Does it require command rows, package scripts, no-write validation, command evidence exit_code 0, H00 command id subset checks, executed H00 command mapping, generation command exclusion, no-real-data attestation, actual Claude CLI metadata, and construction inspection?",
+    "Does scripts/validate-rp00-control-plane-contract.mjs now enforce command-evidence hermes_gate.command_ids as a subset of H00 validation_command_ids and map each id to an executed exit_code 0 command?",
+    "Does it preserve H00 Hermes evidence, C00 Claude review, human approval boundaries, no-real-data, and next boundary RP00.P00.M07.S03?",
+    "Does it avoid production mutation, generation output approval, real-data import, and RP00 completion claims?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run spec:requirements:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run fullplan:validate",
+    "npm run goal:closeout:validate",
+    "npm test"
+  ]
+}

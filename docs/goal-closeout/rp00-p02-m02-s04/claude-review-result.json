@@ -1,0 +1,59 @@
+{
+  "subphase_id": "RP00.P02.M02.S04",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": false,
+    "permission_mode": "dontAsk",
+    "session_id": "5c9201d7-c15f-41cb-b17d-260668c5d8c1",
+    "uuid": "7b9f3d99-7190-4094-b39e-e2f15d0ca857",
+    "total_cost_usd": 1.7651595000000002,
+    "duration_ms": 580196,
+    "duration_api_ms": 583064,
+    "num_turns": 1,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "session_continuation_used_to_complete_review": false,
+    "raw_result_path": "codex_exec_output:claude-rp00-p02-m02-s04-session-5c9201d7",
+    "reviewed_input": "Provided the RP00.P02.M02.S04 git diff through stdin with Claude tools disabled by --tools \"\" and a read-only C00 review prompt."
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0_or_p1": true,
+    "findings": [
+      {
+        "id": "S04-P2-01",
+        "severity": "P2",
+        "title": "matter_tenant_missing and matter_tenant_mismatch deny paths have no functional test",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude noted that S04 declared Matter tenant missing and mismatch blocked refs, but the reviewed tests only exercised the matter_required_missing denial path.",
+        "recommendation": "Add tests for the missing/mismatched Matter tenant paths, or document that S03 already rejects those invalid shapes before S04 can accept them.",
+        "status": "fixed",
+        "disposition": "S04 intentionally accepts only an S03 allow_metadata_only tenant-boundary result. S03 result validation rejects matter_id with null matter_tenant_id and mismatched matter_tenant_id before S04 can allow or create a Matter trace result. The service test now explicitly asserts S04 rejects those S03 Matter tenant precondition drifts, the RP00 validator repeats the executable checks, and the S04 contract now records the s03_matter_tenant_precondition_drift_rejected acceptance gate."
+      },
+      {
+        "id": "S04-P3-01",
+        "severity": "P3",
+        "title": "failClosedOn policy field is decorative",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "description": "Claude noted failClosedOn was present in the policy but was not mirrored in the contract or asserted by validators.",
+        "recommendation": "Pin failClosedOn in the policy validator and contract validator, or remove it.",
+        "status": "fixed",
+        "disposition": "The contract now includes fail_closed_on, assertControlPlaneAIImplementationHandoffMatterTracePrecheckPolicy validates every failClosedOn reason, and scripts/validate-rp00-control-plane-contract.mjs pins both the contract and policy arrays and rejects missing fail-closed reasons."
+      }
+    ],
+    "summary": "Claude returned PASS_WITH_FINDINGS from one completed read-only tools-disabled review. It found no P0/P1. The P2 was resolved by explicit S03 precondition drift tests and contract/validator acceptance-gate coverage. The P3 was resolved by pinning failClosedOn in the contract and validators. No second Claude review was run.",
+    "residual_risk": "Low for S04 because it remains synthetic, no-write, no-runtime, no-service-execution, no implementation handoff drafting, and requires S03 tenant-boundary pass before applying Matter trace metadata. Runtime side-effect enforcement remains an explicit future-slice responsibility."
+  },
+  "production_ready": true
+}

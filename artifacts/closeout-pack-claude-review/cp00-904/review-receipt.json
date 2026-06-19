@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-904",
+  "normalized_at": "2026-06-17T15:58:11.072Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-904/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-904/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-904/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-904/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d42f4cd6-53c2-45dc-b0b2-3e651536731c",
+    "uuid": "4965bfa2-eeb3-41da-bdce-3de38df1a609",
+    "total_cost_usd": 2.47011975,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6701,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-904 is a descriptor-only RP30 embedded-HRX continuation (range RP30.P01.M08.S04-RP30.P01.M10.S03, 10 units, risk A) binding HRDocument tail rows, EmploymentContract rows, and CompensationRecord rows. Read-only inspection confirms the pack's descriptor-bridge claim is supported: the CP904 binding/requirements in packages/hrx/src/registry.js match the live plan (closeout-pack-plan.json packs[0]), the manifest plan_binding_snapshot, and the generated contract (HRDocument:2/EmploymentContract:5/CompensationRecord:3 = 10 implementation units). packages/hrx/src/validators.js enforces every boundary at both row and descriptor level (no document body, contract text, compensation amount/currency, payroll/execution/signature/AI-judgment runtime, permission/audit/product-state writes, real employee/candidate/payroll/document data, credentials/secrets, or separate-product claim), and packages/hrx/test/model.test.js exercises binding/coverage/descriptor/contract-projection paths against the real plan and manifest. The generated contracts/hrx-people-contract.json is consistent (current/latest pack CP00-904, descriptor HrxCp904DocumentContractCompensationBridgeDescriptor) and carries no_write_attestation with all boundary flags false; scripts/validate-rp30-hrx-people-contract.mjs is read-only (readFile only) and the package source has no fs/network/db writes. Authority boundary is preserved: authority_boundary.claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, the Hermes packet is review-evidence-only (emits_runtime_receipt=false, not embedded product runtime), and manifest production_ready/runtime_ready are honestly false (descriptor_only=true). No PII, salary amounts, or secrets appear in any changed file. The readiness-report auth preflight is valid (exit 0, parseable JSON result, non-zero stdout), so the review-evidence chain shows no auth failure, 0-byte stdout, malformed/fenced JSON, or tool-call-shaped output. The manifest/construction-inspection/adjudication/claude-review-result are in the expected pending_review placeholder state for this gating review. One non-blocking P3: command-evidence.json records only the initial HRX-specific validation subset and explicitly defers the full closeout validation ladder to post-review. No P0/P1/P2 findings; nothing blocks pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP904-R01",
+        "severity": "P3",
+        "title": "Closeout validation ladder deferred; command-evidence records only the initial HRX validation subset at review time",
+        "file": "docs/closeout-packs/cp00-904/command-evidence.json",
+        "line": 51,
+        "details": "command-evidence.json (status \"pending\", gate_outcome \"pending_pack_evidence_creation\") records six initial HRX-specific commands, all exit_code 0: node --check on registry.js/validators.js/validate-rp30-hrx-people-contract.mjs, node --test packages/hrx/test/*.test.js, npm run rp30:hrx:validate, npm run rp30:validate, npm run hrx:requirements:validate, and npm run hrx:weighted:validate. The broader closeout ladder named in the review prompt (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet evidenced in the pack; line 51 explicitly states the full validation ladder must be re-run after review normalization, adjudication update, and queue regeneration. This is consistent with the pending_review state of the manifest, construction-inspection.json (verdict PENDING), adjudication.md, and claude-review-result.json (status pending_review). The HRX-specific commands that directly exercise the CP904 registry/validators/contract all pass, so the implementation itself is validated; only the broader ladder evidence is outstanding.",
+        "recommendation": "Before flipping production_ready_flag / construction-inspection verdict and closing the pack, re-run and capture the full closeout validation ladder (notably npm test, closeout-pack:validate, goal:closeout:validate, rp00:control-plane:validate, and git diff --check) in the pack command-evidence so the closed pack retains end-to-end validation evidence rather than only the HRX subset.",
+        "post_review_disposition": "Non-blocking; the deferral is explicit and consistent with pending_review status, the HRX validations that directly exercise CP904 pass, and the deferred ladder runs during the post-review closeout step."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

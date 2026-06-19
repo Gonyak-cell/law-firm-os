@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP04",
+  "program_title": "Master Data",
+  "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+  "ai_owner": "Codex",
+  "hermes_gate": "H04",
+  "claude_gate": "C04",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP04.P00.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract Entity, Person, Organization, Relationship, Client Group requirements and identify duplicate identity, relationship direction error, and client group leakage as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Master Data contract shape for Entity, Person, Organization, ClientGroup, Relationship, ContactPoint, BillingProfile.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns Entity, Person, and Organization, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for entity creation, client grouping, and relationship mapping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Master Data records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Master Data behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Master Data examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Master Data planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H04 preflight",
+      "objective": "Define the fields Hermes records before Master Data implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C04 design brief",
+      "objective": "Prepare Claude Code questions around duplicate identity, relationship direction error, client group leakage, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P00.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP04.P00 handoff",
+      "objective": "Hand off a contract-first Master Data implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "contracts/master-data-contract.json",
+        "packages/master-data/README.md",
+        "contracts/master-data-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/master-data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement Entity model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for Entity.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement Person model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for Person.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement Organization model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for Organization.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement ClientGroup model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for ClientGroup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement Relationship model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for Relationship.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among Entity, Person, Organization, ClientGroup, Relationship, ContactPoint, BillingProfile and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Master Data model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P01.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Master Data model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/model.js",
+        "packages/master-data/src/states.js",
+        "packages/master-data/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for entity creation, client grouping, and relationship mapping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement entity creation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for entity creation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement client grouping",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for client grouping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement relationship mapping",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for relationship mapping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement contact normalization",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for contact normalization.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement duplicate review",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for duplicate review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for duplicate identity, relationship direction error, and client group leakage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Master Data operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H04.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Master Data outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P02.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Master Data services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/service.js",
+        "packages/master-data/src/policies.js",
+        "packages/master-data/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Master Data models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define entity creation API",
+      "objective": "Lock request, response, permission, audit, and error shape for entity creation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define client grouping API",
+      "objective": "Lock request, response, permission, audit, and error shape for client grouping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define relationship mapping API",
+      "objective": "Lock request, response, permission, audit, and error shape for relationship mapping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define contact normalization API",
+      "objective": "Lock request, response, permission, audit, and error shape for contact normalization.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define duplicate review API",
+      "objective": "Lock request, response, permission, audit, and error shape for duplicate review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Master Data API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for duplicate identity, relationship direction error, client group leakage, billing identity mismatch, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H04 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C04 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P03.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Master Data public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/index.js",
+        "packages/master-data/src/api-contract.js",
+        "packages/master-data/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/master-data/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify entity profile, client group view, relationship graph, and duplicate review queue in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan entity profile",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for entity profile.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan client group view",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for client group view.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan relationship graph",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for relationship graph.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan duplicate review queue",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for duplicate review queue.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Master Data outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Master Data rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Master Data context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Master Data service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P04.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp04-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define organization client created golden case",
+      "objective": "Create a synthetic golden case proving organization client created.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define person relationship linked golden case",
+      "objective": "Create a synthetic golden case proving person relationship linked.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define duplicate candidate flagged golden case",
+      "objective": "Create a synthetic golden case proving duplicate candidate flagged.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define client group consolidated golden case",
+      "objective": "Create a synthetic golden case proving client group consolidated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define duplicate identity failure fixture",
+      "objective": "Create a synthetic failing case that proves duplicate identity is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define relationship direction error failure fixture",
+      "objective": "Create a synthetic failing case that proves relationship direction error is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define client group leakage failure fixture",
+      "objective": "Create a synthetic failing case that proves client group leakage is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Master Data fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Master Data appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P05.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Master Data fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/fixtures.js",
+        "packages/master-data/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/master-data/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for entity creation, client grouping, relationship mapping, and contact normalization.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Master Data view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Master Data mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Master Data export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Master Data where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Master Data obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H04 audit evidence",
+      "objective": "Record which Master Data decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P06.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Master Data cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/src/security-contract.js",
+        "packages/master-data/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define duplicate identity failure",
+      "objective": "Fail closed or require review when duplicate identity appears in Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define relationship direction error failure",
+      "objective": "Fail closed or require review when relationship direction error appears in Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define client group leakage failure",
+      "objective": "Fail closed or require review when client group leakage appears in Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define billing identity mismatch failure",
+      "objective": "Fail closed or require review when billing identity mismatch appears in Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Master Data operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Master Data operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Master Data micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P07.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Master Data ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "packages/master-data/test/failure-cases.test.js",
+        "docs/rp04-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/master-data/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H04 command matrix",
+      "objective": "Record exact product commands Hermes should run for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H04 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H04 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H04 no-real-data evidence",
+      "objective": "Record that Master Data fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H04 blocked-claim evidence",
+      "objective": "Record unsafe Master Data claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H04 Claude dependency",
+      "objective": "Mark C04 review mandatory before Master Data closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H04 human approval note",
+      "objective": "Record what the human must approve for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H04 command availability",
+      "objective": "Ensure npm scripts required by H04 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H04 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Master Data implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H04 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H04.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P08.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Master Data behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp04-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M00",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP04 architecture review questions",
+      "objective": "Ask whether Master Data module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M01",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP04 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M02",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP04 bypass review questions",
+      "objective": "Ask Claude to find duplicate identity, relationship direction error, client group leakage, billing identity mismatch, and undefined bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M03",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP04 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Master Data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M04",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP04 downstream readiness questions",
+      "objective": "Ask whether Master Data is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M05",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP04 risk register",
+      "objective": "List unresolved Master Data risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M06",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Master Data findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M07",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Master Data closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M08",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP04.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M09",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Master Data can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP04.P09.M10",
+      "program_id": "RP04",
+      "program_title": "Master Data",
+      "program_scope": "Entity, Person, Organization, Relationship, Client Group",
+      "phase_id": "RP04.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP04 detailed plan",
+      "objective": "Confirm Master Data is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H04",
+      "claude_gate": "C04",
+      "target_files": [
+        "docs/rp04-claude-cross-validation-brief.md",
+        "docs/rp04-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H04 evidence or blocked reason can be recorded.",
+        "Claude C04 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

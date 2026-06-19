@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L5-W07",
+  "title": "Failure scenario rehearsal",
+  "created_at": "2026-06-18T14:23:38Z",
+  "status": "blocked_pending_dr_runbooks_staging_rehearsals_rpo_rto_audit_verify_and_index_resync_evidence",
+  "phase": "L5",
+  "gate_binding": [
+    "G4",
+    "L5-EXIT"
+  ],
+  "terminal_tuw": "LT-L5-W07-T03",
+  "artifacts": [
+    "docs/launch/l5/dr-rehearsal-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l5-w07/packet.json",
+    "docs/goal-closeout/lt-l5-w07/command-evidence.json",
+    "docs/goal-closeout/lt-l5-w07/claude-review-result.json",
+    "docs/goal-closeout/lt-l5-w07/adjudication.md",
+    "docs/goal-closeout/lt-l5-w07/construction-inspection.json"
+  ],
+  "current_status": {
+    "db_failure_rehearsal_exists": false,
+    "restore_rehearsal_exists": false,
+    "index_resync_rehearsal_exists": false,
+    "rehearsal_evidence_map_exists": false,
+    "rpo_rto_measurements_exists": false,
+    "notification_receipts_exist": false,
+    "audit_chain_verify_after_recovery_passed": false,
+    "permission_trimming_diff_zero_verified": false,
+    "g4_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

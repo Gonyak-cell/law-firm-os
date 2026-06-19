@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP24",
+  "program_title": "Korean Legal Depth",
+  "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+  "ai_owner": "Codex",
+  "hermes_gate": "H24",
+  "claude_gate": "C24",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP24.P00.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract HWPX, Korean clauses, litigation, corporate documents requirements and identify HWPX parse loss, wrong legal deadline, and Korean clause hallucination as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Korean Legal Depth contract shape for HWPXDocument, KoreanClause, LitigationCase, CorporateFiling, CourtDeadline, KoreanTemplate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns HWPXDocument, KoreanClause, and LitigationCase, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for HWPX import, Korean clause search, and litigation deadline tracking.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Korean Legal Depth records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Korean Legal Depth behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Korean Legal Depth examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Korean Legal Depth planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H24 preflight",
+      "objective": "Define the fields Hermes records before Korean Legal Depth implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C24 design brief",
+      "objective": "Prepare Claude Code questions around HWPX parse loss, wrong legal deadline, Korean clause hallucination, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P00.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP24.P00 handoff",
+      "objective": "Hand off a contract-first Korean Legal Depth implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "contracts/korean-legal-contract.json",
+        "packages/korean-legal/README.md",
+        "contracts/korean-legal-depth-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/korean-legal.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement HWPXDocument model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for HWPXDocument.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement KoreanClause model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for KoreanClause.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement LitigationCase model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for LitigationCase.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement CorporateFiling model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for CorporateFiling.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement CourtDeadline model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for CourtDeadline.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among HWPXDocument, KoreanClause, LitigationCase, CorporateFiling, CourtDeadline, KoreanTemplate and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Korean Legal Depth model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P01.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Korean Legal Depth model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/model.js",
+        "packages/korean-legal/src/states.js",
+        "packages/korean-legal/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for HWPX import, Korean clause search, and litigation deadline tracking.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement HWPX import",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for HWPX import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement Korean clause search",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for Korean clause search.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement litigation deadline tracking",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for litigation deadline tracking.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement corporate document assembly",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for corporate document assembly.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement court filing prep",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for court filing prep.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for HWPX parse loss, wrong legal deadline, and Korean clause hallucination.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Korean Legal Depth operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H24.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Korean Legal Depth outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P02.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Korean Legal Depth services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/service.js",
+        "packages/korean-legal/src/policies.js",
+        "packages/korean-legal/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Korean Legal Depth models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define HWPX import API",
+      "objective": "Lock request, response, permission, audit, and error shape for HWPX import.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define Korean clause search API",
+      "objective": "Lock request, response, permission, audit, and error shape for Korean clause search.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define litigation deadline tracking API",
+      "objective": "Lock request, response, permission, audit, and error shape for litigation deadline tracking.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define corporate document assembly API",
+      "objective": "Lock request, response, permission, audit, and error shape for corporate document assembly.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define court filing prep API",
+      "objective": "Lock request, response, permission, audit, and error shape for court filing prep.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Korean Legal Depth API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for HWPX parse loss, wrong legal deadline, Korean clause hallucination, filing template drift, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H24 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C24 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P03.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Korean Legal Depth public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/index.js",
+        "packages/korean-legal/src/api-contract.js",
+        "packages/korean-legal/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify HWPX preview, Korean clause library, litigation timeline, and corporate document wizard in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan HWPX preview",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for HWPX preview.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan Korean clause library",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for Korean clause library.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan litigation timeline",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for litigation timeline.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan corporate document wizard",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for corporate document wizard.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Korean Legal Depth outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Korean Legal Depth rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Korean Legal Depth context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Korean Legal Depth service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P04.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp24-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define HWPX parsed golden case",
+      "objective": "Create a synthetic golden case proving HWPX parsed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define clause matched golden case",
+      "objective": "Create a synthetic golden case proving clause matched.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define court deadline calculated golden case",
+      "objective": "Create a synthetic golden case proving court deadline calculated.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define corporate template assembled golden case",
+      "objective": "Create a synthetic golden case proving corporate template assembled.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define HWPX parse loss failure fixture",
+      "objective": "Create a synthetic failing case that proves HWPX parse loss is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define wrong legal deadline failure fixture",
+      "objective": "Create a synthetic failing case that proves wrong legal deadline is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define Korean clause hallucination failure fixture",
+      "objective": "Create a synthetic failing case that proves Korean clause hallucination is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Korean Legal Depth fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Korean Legal Depth appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P05.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Korean Legal Depth fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/fixtures.js",
+        "packages/korean-legal/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for HWPX import, Korean clause search, litigation deadline tracking, and corporate document assembly.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Korean Legal Depth view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Korean Legal Depth mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Korean Legal Depth export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Korean Legal Depth where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Korean Legal Depth obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H24 audit evidence",
+      "objective": "Record which Korean Legal Depth decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P06.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Korean Legal Depth cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/src/security-contract.js",
+        "packages/korean-legal/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define HWPX parse loss failure",
+      "objective": "Fail closed or require review when HWPX parse loss appears in Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define wrong legal deadline failure",
+      "objective": "Fail closed or require review when wrong legal deadline appears in Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define Korean clause hallucination failure",
+      "objective": "Fail closed or require review when Korean clause hallucination appears in Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define filing template drift failure",
+      "objective": "Fail closed or require review when filing template drift appears in Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define undefined failure",
+      "objective": "Fail closed or require review when undefined appears in Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Korean Legal Depth operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Korean Legal Depth operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Korean Legal Depth micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P07.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Korean Legal Depth ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "packages/korean-legal/test/failure-cases.test.js",
+        "docs/rp24-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/korean-legal/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H24 command matrix",
+      "objective": "Record exact product commands Hermes should run for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H24 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H24 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H24 no-real-data evidence",
+      "objective": "Record that Korean Legal Depth fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H24 blocked-claim evidence",
+      "objective": "Record unsafe Korean Legal Depth claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H24 Claude dependency",
+      "objective": "Mark C24 review mandatory before Korean Legal Depth closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H24 human approval note",
+      "objective": "Record what the human must approve for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H24 command availability",
+      "objective": "Ensure npm scripts required by H24 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H24 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Korean Legal Depth implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H24 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H24.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P08.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Korean Legal Depth behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp24-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M00",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP24 architecture review questions",
+      "objective": "Ask whether Korean Legal Depth module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M01",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP24 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M02",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP24 bypass review questions",
+      "objective": "Ask Claude to find HWPX parse loss, wrong legal deadline, Korean clause hallucination, filing template drift, and undefined bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M03",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP24 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Korean Legal Depth.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M04",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP24 downstream readiness questions",
+      "objective": "Ask whether Korean Legal Depth is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M05",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP24 risk register",
+      "objective": "List unresolved Korean Legal Depth risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M06",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Korean Legal Depth findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M07",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Korean Legal Depth closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M08",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP24.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M09",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Korean Legal Depth can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP24.P09.M10",
+      "program_id": "RP24",
+      "program_title": "Korean Legal Depth",
+      "program_scope": "HWPX, Korean clauses, litigation, corporate documents",
+      "phase_id": "RP24.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP24 detailed plan",
+      "objective": "Confirm Korean Legal Depth is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H24",
+      "claude_gate": "C24",
+      "target_files": [
+        "docs/rp24-claude-cross-validation-brief.md",
+        "docs/rp24-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H24 evidence or blocked reason can be recorded.",
+        "Claude C24 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

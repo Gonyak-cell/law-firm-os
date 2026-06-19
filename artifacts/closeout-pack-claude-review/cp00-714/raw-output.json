@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-714",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T04:42:12.878Z",
+  "finished_at": "2026-06-15T04:47:37.804Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":324295,\"duration_api_ms\":325333,\"ttft_ms\":3299,\"num_turns\":46,\"result\":\"Review complete — **PASS** with zero findings.\\n\\nCP00-714 is a correctly-constructed descriptor-only pack. Everything reconciles across the manifest, registry binding, requirements, generated contract, tests, command-evidence, plan, and queue: 10 units over RP23.P07.M05.S15–RP23.P07.M06.S02, exact deliverable/micro-title distributions, comprehensive no-write attestation, preserved authority boundaries (Claude read-only and non-final; human approval required for any runtime opening at CP00-715), and Hermes used only as a deterministic evidence-packet label rather than product runtime. The pack makes no `production_ready`/`runtime_ready`/enterprise-trust claim, so neither pack nor this-CP goal closeout is blocked, and the human-final-approval boundary stays outside this receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"01e48207-512c-4302-97d8-9d66b3c99152\",\"total_cost_usd\":2.8379372499999995,\"usage\":{\"input_tokens\":66,\"cache_creation_input_tokens\":151553,\"cache_read_input_tokens\":2663352,\"output_tokens\":22299,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":151553,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":284,\"cache_read_input_tokens\":148757,\"cache_creation_input_tokens\":3181,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3181},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1145,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00125,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":66,\"outputTokens\":22299,\"cacheReadInputTokens\":2663352,\"cacheCreationInputTokens\":151553,\"webSearchRequests\":0,\"costUSD\":2.8366872499999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-714 is a clean descriptor-only continuation of the RP23 External Integrations II finance-integrations lineage (CP00-694..CP00-713), bridging the P07 Permission And Audit Binding evidence/fixture/test/review tail (8 units, RP23.P07.M05.S15-S22) into the Synthetic Fixture Set head (2 units, RP23.P07.M06.S01-S02). Independent read-only inspection confirms: (1) pack identity, risk class A, unit_count 10, and range are consistent across manifest, registry binding, baseline, contract current_pack/latest_pack, plan live_state, and next-pack-queue; (2) deliverable_distribution {hermes_evidence:2,fixture:1,test:2,security_audit:1,claude_review:1,implementation:1,failure_recovery:2} and micro_title_distribution {Permission And Audit Binding:8,Synthetic Fixture Set:2} match exactly in registry REQUIREMENTS, manifest included_units, and the generated contract cp714 coverage summary; (3) implementation is genuinely descriptor-only -- createCaseSet/createDescriptor emit declarative structures carrying a comprehensive NO_WRITE_ATTESTATION, and validateDescriptor enforces descriptor_only rows, no runtime execution, no financial/credential/raw payloads, no permission-decision or audit-event-body leakage, and no real data; (4) authority boundaries are preserved (claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false, runtime_opening_pack_id=CP00-715; Claude packet read_only=true, promotes_claude_to_final_approval=false); (5) Hermes is used only as a deterministic control-plane evidence-packet identifier (receipt_shape descriptor_only_finance_integrations_no_write, emits_runtime_receipt=false), not embedded as product runtime; (6) model.test.js covers CP00-714 binding/coverage, runtime-closed packets, and contract-projection-latest, and the contract validation block reports cp714 coverage and descriptor both valid with empty errors and overall valid=true; (7) command-evidence shows all 25 commands (node --check, node --test, all required validate gates, git diff --check, build) exiting 0, and the readiness auth preflight passed with a well-formed JSON result (no auth failure, no 0-byte/malformed/fenced/tool-shaped output); (8) the review scaffolding is hardened -- read-only tools only, no full diff/source embedded in the prompt, summary-only prohibited due to security/review deliverables, so full source inspection was performed via Read/Grep/Glob. The pack correctly does NOT claim production_ready or runtime_ready (both false) and makes no enterprise-trust claim, so the human-final-approval boundary remains outside this receipt. A defensive sweep for secrets/real financial data found none. No P0/P1/P2/P3 findings; the pack is eligible to record this passing hardened read-only review and advance toward closeout, with final human/enterprise-trust approval remaining out of scope for this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"fb1dea4d-aa39-48f3-bb9f-3b6032691cad\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5398,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "01e48207-512c-4302-97d8-9d66b3c99152",
+    "uuid": "fb1dea4d-aa39-48f3-bb9f-3b6032691cad",
+    "total_cost_usd": 2.8379372499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

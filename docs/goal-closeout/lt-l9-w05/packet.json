@@ -1,0 +1,33 @@
+{
+  "work_package_id": "LT-L9-W05",
+  "title": "Wave 3 opening gate",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_wave3_gate_definition_and_verdict_recorded",
+  "artifacts": [
+    "docs/launch/wave3-opening-gate.md",
+    "docs/launch/wave3-gate-verdict.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l9-w05/packet.json",
+    "docs/goal-closeout/lt-l9-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l9-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l9-w05/adjudication.md",
+    "docs/goal-closeout/lt-l9-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "definition_created": true,
+    "feature_group_count": 5,
+    "feature_rejudgment_present": false,
+    "owner_signoff_present": false,
+    "wave3_enabled": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false
+  },
+  "terminal_tuw": "LT-L9-W05-T02",
+  "gate_binding": [
+    "L9-EXIT"
+  ],
+  "phase": "L9"
+}

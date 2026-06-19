@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-181",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-09T17:26:05.663Z",
+  "finished_at": "2026-06-09T17:35:43.319Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":577063,\"duration_api_ms\":576856,\"ttft_ms\":2360,\"num_turns\":44,\"result\":\"Review verdict emitted for CP00-181: **PASS_WITH_FINDINGS** (0 P0 / 0 P1 / 0 P2 / 1 P3), non-blocking for both pack and goal closeout.\\n\\nBasis: the pack is honestly pre-closeout (all `production_ready` flags false, gates pending), descriptor-only/no-write/no-real-data boundaries hold, Claude is confirmed read-only (not final approver), Hermes patterns are review-packet-only, distributions reconcile to 150, and review-evidence hardening passes. The lone P3 is the `descriptorRefFor` precedence chain (service.js:238) where `matter_id` short-circuits the other id branches — benign under `runtime_dispatch_enabled:false`, flagged to fix only before any future runtime-dispatch pack. This review is one input to the C05 gate, not final approval.\",\"stop_reason\":\"end_turn\",\"session_id\":\"4de06429-1e0c-4436-8894-a93c6cb0b98a\",\"total_cost_usd\":3.84007625,\"usage\":{\"input_tokens\":58,\"cache_creation_input_tokens\":153373,\"cache_read_input_tokens\":3226366,\"output_tokens\":30979,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":153373,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":456,\"cache_read_input_tokens\":69767,\"cache_creation_input_tokens\":2953,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2953},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1170,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001275,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":2119,\"outputTokens\":44183,\"cacheReadInputTokens\":3391225,\"cacheCreationInputTokens\":164483,\"webSearchRequests\":0,\"costUSD\":3.83880125,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Read-only independent review of CP00-181 (RP05 Matter Core descriptor-only API/interface + early UI state bridge, risk_class C, 150 units) via Read/Grep/Glob only. The pack is honestly pre-closeout: production_ready=false with all gates pending across manifest, construction-inspection, command-evidence, and claude-review-result, so there is no unsupported production-ready or enterprise-trust claim to refute. Descriptor-only/no-write/no-real-data boundaries verified (all no-write attestation flags false; descriptor_only:true, runtime_dispatch_enabled:false; no fs/network/db/graph I/O; serialized result omits raw payload/descriptor body; synthetic_only:true, no_real_client_data:true). Claude is confirmed read-only reviewer and NOT final approver, with enterprise trust not claimed from local validation; Hermes patterns are review-packet/receipt only and not embedded in product runtime. Deliverable/phase/micro distributions all reconcile to 150 and match the validators; the manifest plan_binding_snapshot fallback is sound. Review-evidence hardening passes: readiness auth preflight returned non-empty valid JSON (not auth-fail/0-byte/malformed/fenced+prose/tool-call-shaped); raw-output and receipt are correctly absent. Unrelated dirty/untracked files were not inferred into pack scope. Verdict PASS_WITH_FINDINGS with a single non-blocking P3 (descriptor_ref id-precedence) and no P0/P1/P2; this review is one input to the C05 gate and is not final approval.\",\"findings\":[{\"id\":\"CP00-181-P3-001\",\"severity\":\"P3\",\"title\":\"descriptor_ref precedence resolves to matter_id for all non-Matter model types, making the other id branches unreachable and descriptor_ref non-unique per entity\",\"file\":\"packages/matter/src/service.js\",\"line\":238,\"details\":\"descriptorRefFor (service.js:235-249) builds primaryId via the null-coalescing chain descriptor.matter_id ?? member_id ?? task_id ?? section_id ?? edge_id ?? node_id ?? wiki_id. Because matter_id is a required field on every non-Matter Matter Core type (member, task, section, edge, node, wiki), descriptor.matter_id is always populated and short-circuits the chain, so the subsequent branches are dead code. The resulting descriptor_ref is `${model_type}:${matter_id}` rather than `${model_type}:${entity_own_id}`, so two entities of the same model_type under the same matter (e.g. two MatterMember rows) collide on an identical descriptor_ref instead of being distinguished by their own primary id. This is benign in the current pack because descriptor_only:true and runtime_dispatch_enabled:false (service.js:371-372): descriptor_ref is a never-write reference/display hint and is not used for any persistence, lookup, permission, audit, or dispatch path, and the serialized API result omits the descriptor body. No correctness, security, or no-write-boundary impact under the current descriptor-only architecture.\",\"recommendation\":\"Before any future pack enables runtime dispatch or uses descriptor_ref for entity identity/lookup, reorder the precedence so each model_type resolves to its own primary id (e.g. select by model_type, or place the entity-specific id ahead of matter_id), or remove the unreachable branches to make the matter-scoped intent explicit. No change required for CP00-181 closeout.\",\"post_review_disposition\":\"open_non_blocking\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e5b3deed-5afd-4678-8257-82be316e562b\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5748,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "4de06429-1e0c-4436-8894-a93c6cb0b98a",
+    "uuid": "e5b3deed-5afd-4678-8257-82be316e562b",
+    "total_cost_usd": 3.84007625,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-013",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "c98afbb1-1003-4164-9271-d10f29d6c1c8",
+    "uuid": "c98afbb1-1003-4164-9271-d10f29d6c1c8",
+    "duration_ms": 278965,
+    "total_cost_usd": 2.09763375,
+    "permission_denials": [],
+    "structured_output_model_field": "claude",
+    "structured_output_effort_field": "high",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 58320,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.05842,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 4,
+        "outputTokens": 25682,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 223543,
+        "webSearchRequests": 0,
+        "costUSD": 2.03921375,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 0
+    },
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "Duplicate entries in forbidden_rollback_behavior_claims (inherited, harmless)",
+        "file": "contracts/control-plane-contract.json",
+        "line": 31490,
+        "details": "Within the added control_plane_permission_audit_binding_rollback_behavior_definition.forbidden_rollback_behavior_claims array, 'write_human_approval_record' and 'write_human_approval' each appear twice (once in the review/Claude section, again in the approval section). This is inherited from concatenating the upstream review-required + approval-required + blocked-claim forbidden lists (via CONTROL_PLANE_PERMISSION_AUDIT_BINDING_BLOCKED_CLAIM_OUTPUT_POLICY.forbiddenBlockedClaimOutputClaims spread in policies.js) and is faithfully mirrored by the policy, so there is no contract/policy drift and the strict JSON.stringify equality check still passes. It is functionally harmless because precheckControlPlanePermissionAuditBindingRollbackBehavior builds a Set from the list before checking. Non-blocking; only worth de-duplicating for list hygiene. Line number is approximate (inside the large added contract block)."
+      }
+    ],
+    "non_blocking_notes": [
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Scope confirmed metadata-only Risk A: precheck returns a frozen receipt, every *_permitted/*_write_permitted flag is false, and it fails closed on any truthy known-forbidden OR unknown claim (Object.entries loop throws on non-false values)."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "No-write / no-runtime guarantees hold: no rollback/retry/compensation execution, no operator/customer notification, no incident-trace, observability, audit, database, storage, product-state, permission-engine/AuthZ, review/approval/blocked-output, or Claude-runtime writes are produced; forbidden-claim and fail_closed_on lists enumerate all of these."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Input guards are correct: requires permission_audit_binding entrypoint, blocked_claim_output_subphase_id === RP00.P02.M05.S16, present blocked_claim_output_receipt + non-empty audit_event_ref, and full assertControlPlanePermissionAuditBindingBlockedClaimOutputResult re-check before deriving S17 metadata."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Double-application is implicitly prevented: an S17 output fed back as input fails the embedded S16 re-validation because next_subphase (S18) and working_product_behavior_ref differ from S16 expectations."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Drift checks clean: RESULT_FIELDS (policies.js) == contract result_fields == fixture result_fields; rollback_strategy_refs/entries, required receipt fields, decision/scope values, and required_input_fields (== S16 result fields) are identical across policy, contract definition, fixture, and validator-script expectations; object_id fallback ('firm_level_permission_audit_binding') matches between precheck and assert."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Validator-script wiring verified: weighted boundary (non-terminal, next S18), closeout_requirements flag control_plane_permission_audit_binding_rollback_behavior_verified, closeout_state_policy CP00-013/docs/closeout-packs/cp00-013, requiredClosedSubphases advanced to include S16, current subphase S17, plus README/test text anchors all asserted."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Security/goal boundary: synthetic-only tenant/actor/matter with tenant-consistent ids, no_real_data true, additive change does not touch G00-G30/HRX goal boundary; human_approval_boundary_preserved gate retained."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Missing CP00-013 manifest/command-evidence/claude-review-result/adjudication/construction-inspection are expected pre-review state; the RP00 validator's strict JSON.stringify(result)==fixture.precheck_result equality must already be passing since the script is reported to fail only on those missing evidence files, corroborating fixture/result parity."
+      },
+      {
+        "severity": "note",
+        "title": "Claude review note",
+        "description": "Minor observation (not a finding): assertControlPlanePermissionAuditBindingRollbackBehaviorResult has no direct negative unit test for a tampered result (e.g. a flipped *_permitted flag), though it is exercised on the happy path via the precheck and the validator script; risk is low since such a result cannot be produced by the precheck."
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-013.",
+    "Claude returned PASS_WITH_FINDINGS with zero P0 and zero P1 findings.",
+    "The single raw P2 duplicate-forbidden-claim hygiene finding is explicitly deferred because the runtime prechecker uses a Set, the contract mirrors the policy, and changing implementation after this completed review would alter the reviewed diff without reducing a blocking risk.",
+    "The expected pre-evidence RP00 failure is resolved by creating this CP00-013 evidence and rerunning final validation."
+  ]
+}

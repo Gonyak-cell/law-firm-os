@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-587",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-587/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-587/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "021d19e2-829a-4dcc-94d9-b9d2c2117f95",
+    "uuid": "8e0282fb-ffe5-4241-89c4-5e59e389ea9c",
+    "total_cost_usd": 2.4230809999999994,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-587 is a descriptor-only RP19 Client Portal closeout pack (150 units, RP19.P02.M06.S13-RP19.P03.M05.S06, risk C) that passes independent read-only review. Scope and distributions are consistent across closeout-pack-plan.json (packs[0], ledger sha 13c7ed65...), contracts/client-portal-core-contract.json (current_pack=CP00-587), the registry/service/validators, the manifest delivery_counts, README, and the validator-backed node:test suite. The pack does not over-claim readiness: manifest production_ready=false, runtime_ready=false, status=implemented_pending_review; the production_ready_flag is only a descriptor-verification marker, supported by command-evidence (all listed commands exit 0) and by static inspection of validateClientPortalCoreCp587Coverage / ...FoundationDescriptor. No-write/no-real-data boundaries hold (freeze + no_write_attestation flags all false; tests assert descriptor_only/runtime_execution=false). Authority boundary is intact: Claude is read-only (Read/Grep/Glob) and not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false, no enterprise-trust-from-local-validation). Review-hardening holds: auth preflight passed (exit 0, 1228-byte stdout), forbidden_review_evidence enumerated, no invalid attempts for this pack, and the manifest contains no pre-fabricated review verdict. Hermes patterns are confined to deterministic evidence-packet/receipt descriptors (emits_hermes_runtime_receipt=false). Two P3 informational observations only; nothing blocks pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP587-P3-01",
+        "severity": "P3",
+        "title": "CP587 descriptor validator lacks row-type-specific no-leak assertions for permission/audit rows",
+        "file": "packages/client-portal/src/validators.js",
+        "line": 867,
+        "details": "validateClientPortalCoreCp587P02CloseoutP03FoundationDescriptor asserts only the generic per-row guards (descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false). Unlike the CP583/CP584 validators (which add row-type-specific assertions such as permission_baseline_note.permission_decision_detail_included=false and audit_baseline_note.audit_event_body_included=false), the new CP587 security_audit rows (Permission precheck/annotation, Audit hint precheck/annotation) carry no specialized leak assertion because their row keys do not match the inherited CP583 ROW_EXTRAS. The no-leak posture is still declared via required_no_leak_guards and enforced at the descriptor result level by freezeCp587Result (writes_permission_decision=false, appends_audit_trace=false, exposes_permission_decision_detail=false, exposes_audit_event_body=false, evaluates_runtime_permission=false), which the model.test.js / validator suite verifies. No actual leak path exists; this is a defense-in-depth symmetry gap only.",
+        "recommendation": "Optionally, in a future RP19 pack, add row-level assertions for permission/audit rows for parity with CP583/CP584. Not required for this descriptor-only pack.",
+        "post_review_disposition": "Non-blocking. Result-level attestation plus passing tests cover the no-leak posture; does not affect the descriptor-only production_ready_flag and does not block closeout."
+      },
+      {
+        "id": "CP587-P3-02",
+        "severity": "P3",
+        "title": "Manifest per-unit evidence_refs forward-reference post-review artifacts not yet present",
+        "file": "docs/closeout-packs/cp00-587/manifest.json",
+        "line": 1588,
+        "details": "Each unit's evidence_refs lists docs/closeout-packs/cp00-587/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in that directory. This is consistent with the documented hardened_review_sequence (read_only_claude_run -> receipt_normalization -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit) and command-evidence notes that those gated artifacts are produced from the accepted review and recorded before commit. Importantly, the manifest does not embed any pre-decided review verdict, so reviewer independence is preserved.",
+        "recommendation": "Ensure the post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are generated and present before the closeout commit, as the sequence specifies.",
+        "post_review_disposition": "Expected staging behavior; informational. Verified no pre-fabricated verdict is present. Does not block closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

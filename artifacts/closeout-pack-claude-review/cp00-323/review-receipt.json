@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-323",
+  "normalized_at": "2026-06-11T06:16:40.854Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-323/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-323/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-323/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-323/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "3fb22461-30c0-494e-bf43-bbff7c20f932",
+    "uuid": "81032983-69eb-4316-aeda-a0af871fd4b6",
+    "total_cost_usd": 1.71482325,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4891,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-323 is a clean descriptor-only intake-core service slice (RP10.P02.M07.S07-RP10.P02.M09.S02, 40 units, risk B). Verified via Read/Grep/Glob: (1) Coverage exact — counting deliverable_type across the 40 baseline included_units yields implementation 16, ui 6, claude_review 2, failure_recovery 4, test 8, contract 2, security_audit 2, matching the prompt distribution; micro-title distribution (Test And Golden Case Set 16, Hermes Evidence Packet 22, Claude Review Packet 2) also matches. registry.js, closeout-pack-plan.json packs[CP00-323], and contract current_pack/historical_pack_bindings agree on risk B, unit_count 40, range, upstream CP00-322, next CP00-324. (2) Boundaries — service.js freezeCp323Result and registry no_write_attestation set writes_product_state/creates_database_rows/writes_state_transition/emits_hermes_runtime_receipt/executes_unit_test_runtime_paths all false and no_real_data true; validators.js enforces descriptor_only rows plus permission/audit/lock/validation leak guards; index.js exports all 7 required CP323 functions, exercised by model.test.js and validate-rp10-intake-core-contract.mjs. (3) Authority — contract and descriptors consistently set claude_is_final_approval false and local_validation_claims_enterprise_trust false; production_enterprise_trust_claim is a forbidden review-evidence blocker; Hermes is used only as the H10 deterministic evidence gate, not product runtime. (4) production_ready claim — manifest and command-evidence both report production_ready:false (status implemented_pending_review / pending_final_closeout), an appropriately conservative non-over-claim; descriptor-level production_ready_candidate is a gated local coverage signal only. (5) Review hardening — readiness auth preflight passed (exit 0, 1469-byte valid-JSON stdout); validation-report confirms no forbidden tools, prompt under size limit, and summary-only review correctly prohibited for Risk B. command-evidence shows all expected validation commands (rp05/rp10/closeout-pack-plan/weighted/spec/fullplan/goal/control-plane/test/validate/build/git-diff) at exit 0. Post-review evidence (claude-review-result.json, adjudication.md, construction-inspection.json) is not yet present, which is expected since this review run produces it in the hardened sequence; unrelated dirty/untracked files were correctly kept out of pack scope. No P0/P1/P2/P3 defects found. Claude remains read-only reviewer; human final approval still required and not claimed.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

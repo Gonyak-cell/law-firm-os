@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M05.S04",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Matter trace reference",
+  "entity": "HumanApproval",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T01:02:04Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "failed_api_attempts_not_counted_as_completed_review": 1
+  },
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "stdin_compact_git_diff_and_closeout_prompt",
+    "session_id": "d20cf2a7-9825-492c-9b1e-2bbacc805a61",
+    "uuid": "fdd192cb-eeb8-4fef-91eb-68f05cbd175f",
+    "duration_ms": 193045,
+    "duration_api_ms": 195721,
+    "ttft_ms": 158015,
+    "stop_reason": "end_turn",
+    "terminal_reason": "completed",
+    "total_cost_usd": 0.7049225,
+    "service_tier": "standard"
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "d20cf2a7-9825-492c-9b1e-2bbacc805a61",
+    "uuid": "fdd192cb-eeb8-4fef-91eb-68f05cbd175f",
+    "duration_ms": 193045,
+    "duration_api_ms": 195721,
+    "total_cost_usd": 0.7049225,
+    "permission_denials": []
+  },
+  "verdict": "approve_implementation_pending_closeout_receipts",
+  "go_no_go": "go_conditional",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "p2-string-context-cross-tenant-bypass",
+        "severity": "P2_SHOULD_FIX_OR_DEFER",
+        "title": "Cross-tenant Matter enforcement is skipped for bare-string Matter contexts",
+        "status": "fixed"
+      },
+      {
+        "id": "p3-requiredwhen-declarative-only",
+        "severity": "P3_NON_BLOCKING",
+        "title": "requiredWhen conditions are declarative, not enforced",
+        "status": "deferred_to_S05_plus_scope_evidence"
+      },
+      {
+        "id": "p3-indentation",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Cosmetic indentation drift on construction-inspection gate",
+        "status": "accepted_non_blocking"
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "p2-string-context-cross-tenant-bypass",
+        "title": "Cross-tenant Matter enforcement is skipped for bare-string Matter contexts",
+        "status": "fixed",
+        "disposition": "implemented_without_claude_rerun_per_single_review_policy",
+        "evidence": "assertHumanApprovalMatterTrace now requires matter-scoped contexts to be full Matter context objects with tenant_id. Focused tests and contract validator reject string contexts and object contexts without tenant_id."
+      }
+    ],
+    "P3": [
+      {
+        "id": "p3-requiredwhen-declarative-only",
+        "title": "requiredWhen conditions are declarative, not enforced",
+        "status": "deferred",
+        "disposition": "explicit_defer_to_lifecycle_and_scope_evidence_slices",
+        "evidence": "S04 is a trace-reference-only slice. Conditional approval scope enforcement remains deferred to RP00.P01.M05.S05 and later HumanApproval scope/lifecycle slices."
+      },
+      {
+        "id": "p3-indentation",
+        "title": "Cosmetic indentation drift on construction-inspection gate",
+        "status": "accepted_non_blocking",
+        "disposition": "no_code_change_required",
+        "evidence": "JSON parse and validators pass; no functional impact."
+      }
+    ]
+  },
+  "criteria_checks": {
+    "nullable_firm_level_matter_id": "PASS",
+    "canonical_matter_validation": "PASS",
+    "stored_whitespace_rejection": "PASS",
+    "matter_context_mismatch_fail_closed": "PASS",
+    "cross_tenant_matter_rejection": "PASS after P2 fix",
+    "registry_human_approval_future_null": "PASS",
+    "lifecycle_s05_deferral": "PASS",
+    "no_approval_synthesis": "PASS",
+    "no_writes_no_real_data": "PASS",
+    "evidence_sufficiency": "PASS after post-review closeout evidence recording and local validation"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p01-m05-s04/packet.json",
+    "docs/goal-closeout/rp00-p01-m05-s04/command-evidence.json"
+  ],
+  "required_fixes_before_production_ready": [
+    "Fix or adjudicate P2 string-context cross-tenant bypass.",
+    "Record actual claude-opus-4-8 effort=max read-only review.",
+    "Record adjudication with no unresolved P0/P1 and P2 fixed or deferred.",
+    "Record construction inspection with human_approval_matter_trace_verified true.",
+    "Promote S04 contract, model policy, registry, packet, and evidence to production_ready.",
+    "Rerun final validation matrix."
+  ],
+  "raw_result_excerpt": "Implementation is sound and internally consistent; no P0/P1 blockers. The one substantive code note is the P2 string-context cross-tenant bypass."
+}

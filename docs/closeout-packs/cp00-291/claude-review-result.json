@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-291",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-291/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-291/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "499a089a-a8fd-48a6-85e7-9281a6026993",
+    "uuid": "583a7380-581b-4277-b172-3d3cfbc34b72",
+    "total_cost_usd": 2.16588475,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-291 is a descriptor-only closeout pack covering the 10 RP08.P07.M05 \"Permission And Audit Binding\" failure-slice units (RP08.P07.M05.S05-S14; 8 failure_recovery, 1 security_audit, 1 implementation). Independent read-only inspection (Read/Grep/Glob; source_inspection_basis read_tools_used, satisfying the summary-only prohibition triggered by the security_audit deliverable) of contracts/email-dms-core-contract.json, packages/email-dms/src/{registry,service,validators}.js, test/model.test.js, scripts/validate-rp08-email-dms-core-contract.mjs, README.md, the live closeout-pack-plan, and the review artifacts confirms the pack-level readiness claim is supported and all boundaries hold. (1) Pack binding (EMAIL_DMS_CORE_CP291_PACK_BINDING) matches the plan pack and baseline exactly: id CP00-291, risk A, unit_count 10, range RP08.P07.M05.S05-RP08.P07.M05.S14, upstream CP00-290, next CP00-292/RP08.P07.M05.S15. required_section_rows enumerate exactly the 10 planned row titles; deliverable_counts (failure_recovery 8, security_audit 1, implementation 1) and micro_title count (10) match the prompt distributions. (2) Boundaries: freezeCp291Result and the persisted contract failure_slice_descriptor set every runtime/write/leak flag false (no email/office/sync/filing/AI runtime, no permission/audit eval, no DB/object-storage, no command runtime, no rollback/retry runtime, no lock acquisition, no hermes runtime receipt); row extras enforce deny-over-allow, cross_tenant_access_allowed=false, permission_decision_detail excluded, lock_token excluded, performs_rollback/retry_runtime=false, customer_safe_errors_only=true; all six no_leak_guards present. (3) Authority: validateEmailDmsCoreCp291FailureSliceDescriptor and the contract assert claude_is_final_approval=false and claims_enterprise_trust_from_local_validation=false; no_write_attestation inherits promotes_claude_to_final_approval=false. Hermes appears only as a deterministic H08 evidence/gate descriptor (receipt_shape descriptor_only..._no_write, emits_hermes_runtime_receipt=false) - not embedded product runtime. (4) Tests/validation: model.test.js and the rp08 validator deep-equal the persisted contract to code constants and gate production_ready_candidate on real coverage+slice validity; command-evidence shows all pre-review gates passing exit 0 (node --check/--test, rp05/rp06/rp07/rp08 validators, closeout-pack-plan, weighted, spec:requirements, rp00 control-plane, goal:closeout, fullplan, npm test/validate/build, git diff --check); readiness auth-preflight passed with well-formed non-empty JSON (no auth failure, 0-byte, malformed/fenced JSON, tool-call-shaped, or missing-field evidence). (5) Scope hygiene: index.js uses wildcard re-exports so CP291 functions are auto-exported (consistent with it being an implementation ref but not git-modified); unrelated dirty/untracked files (the .docx, ldip c-ldip-01-invalid-attempt, new-session-handoff) are correctly classified out of pack scope. production_ready remains false with status implemented_pending_review, correctly deferring final/enterprise-trust approval to humans. No P0/P1/P2/P3 findings; post-review adjudication/construction-inspection/claude-review-result artifacts are produced later in the hardening sequence and their current absence is expected, not a defect.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "none",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

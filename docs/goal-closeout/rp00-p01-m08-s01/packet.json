@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M08.S01",
+  "source_micro_phase_id": "RP00.P01.M08",
+  "title": "Package directory layout",
+  "status": "production_ready",
+  "created_at": "2026-06-04T08:21:47.000Z",
+  "implemented_surface": "ControlPlaneHermesEvidencePacket",
+  "implemented_slice": "package_directory_layout",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m08-s01/packet.json",
+    "docs/goal-closeout/rp00-p01-m08-s01/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m08-s01/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m08-s01/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m08-s01/construction-inspection.json"
+  ],
+  "implementation_summary": [
+    "Added CONTROL_PLANE_HERMES_EVIDENCE_PACKET_LAYOUT for RP00.P01.M08.S01.",
+    "Added assertControlPlaneHermesEvidencePacketLayout for fail-closed layout checks.",
+    "Declared command receipt fields, evidence summary fields, required packet fields, relationship targets, and evidence root template.",
+    "Recorded explicit deferrals for packet identifier to RP00.P01.M08.S02 and tenant scope to RP00.P01.M08.S03.",
+    "Exposed the layout through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY and advanced nextSubphase to RP00.P01.M08.S02."
+  ],
+  "scope_boundaries": {
+    "implements_only_control_plane_hermes_evidence_packet_layout": true,
+    "does_not_complete_packet_identifier": true,
+    "does_not_complete_tenant_scope": true,
+    "does_not_mutate_entity_registry": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_create_ui": true
+  },
+  "gates": {
+    "hermes": "H00",
+    "claude": "C00",
+    "claude_review_count": 1,
+    "claude_review_session_continued_to_complete_result": true,
+    "construction_inspection": "PASS",
+    "next_subphase": "RP00.P01.M08.S02"
+  }
+}

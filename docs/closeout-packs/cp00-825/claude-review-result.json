@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-825",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-825/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-825/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "9a58e002-1c89-459c-8398-9090f0ea3dd1",
+    "uuid": "d323bca2-e979-4520-9894-b5d31508f571",
+    "total_cost_usd": 2.484024,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 12527,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-825 (Platform Extensibility \"Permission And Audit Binding\" tail, Risk A, 10 units, RP27.P02.M05.S13-RP27.P02.M05.S22) is a descriptor-only pack and its claims are supported by source inspected via Read/Grep/Glob. The manifest declares production_ready:false, runtime_ready:false, status:in_progress, implementation_layer:\"descriptor\", descriptor_only:true, writes_product_state:false, no_real_data:true, and production_ready_descriptor_verified:false, so there is no production/runtime overclaim at this snapshot. registry.js defines PLATFORM_EXTENSIBILITY_CP825_PACK_BINDING (CP00-825, Risk A, 10 units, S13-S22, upstream CP00-824, next CP00-826/RP27.P02.M06.S01) and CP825 requirements whose deliverable_counts {implementation:2,claude_review:1,ui:1,failure_recovery:2,test:4} and required_section_rows RP27.P02.M05 = SERVICE_ROWS.slice(12) reproduce exactly the prompt's deliverable_distribution and the 10 tail rows (Validation error mapping...Integration smoke case). createPlatformExtensibilityCp825PermissionAuditTailDescriptor (source_descriptor CP824) spreads the all-false PLATFORM_EXTENSIBILITY_NO_WRITE_ATTESTATION and sets authority_boundary {claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true}; the Hermes packet sets emits_runtime_receipt:false and the Claude packet sets read_only:true / promotes_claude_to_final_approval:false; closeout_handoff routes to CP00-826/RP27.P02.M06.S01. validators.js enforces coverage (plan/risk/unit/first/last/dup/RP27-only/deliverable/phase/micro/title/section rows), descriptor (type, source, program id, authority boundary, per-row descriptor_only + runtime_execution:false + no API-key/webhook/workflow secrets + no real client data/permission detail/audit body, no runtime opening via api_key_issued/webhook_delivered/workflow_executed, no permission/audit/product-state writes, Hermes/Claude packet, handoff, model registry), and contract (schema, RP27, latest_pack CP00-825, latest_projection descriptor, validation.valid, mandatory artifacts, no-leak guards). index.js re-exports registry+validators via export *, so the required CP825 public exports are transitively available to the validator script and tests. model.test.js adds three CP825 tests asserting empty coverage/descriptor errors, deliverable counts, api_key_issued/webhook_delivered/workflow_executed=false, source descriptor, handoff, and contract currency. The committed contracts/platform-extensibility-contract.json has current_pack/latest_pack CP00-825, latest_projection PlatformExtensibilityCp825PermissionAuditTailDescriptor (source CP824), historical_packs CP820-824, and validation.valid:true with an all-false no_write_attestation. The live closeout-pack-plan.json contains CP00-825 as the first pack with deviation_from_plan:false and the same source_ledger_sha (13c7ed65...) as the manifest plan_binding_snapshot, and next-pack-queue.json shows live_latest_pack_id CP00-824 / live_next_unit_id RP27.P02.M05.S13, confirming CP00-825 is the live next pack with no plan drift. No API-key/secret/real-data patterns were found in packages/platform/src. Review hardening checks pass: auth preflight exit 0 with a 1432-byte well-formed JSON result (non-zero, not malformed, not fenced/prose, not tool-call-shaped), forbidden_tools_present:false, review schema present, summary_only review correctly disallowed (review-evidence deliverables present) and not used, and active_untracked_implementation_files_omitted empty. Claude remains a read-only independent reviewer and not the final approver, and Hermes patterns are used only for deterministic review packet/receipt handling (runner + hardening lib) and descriptor-only evidence packets, not product runtime. Three non-blocking P3 boundary notes: (1) downstream closeout artifacts (command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json) are not yet present and, as a read-only reviewer without Bash, I could not independently execute the 10 validation commands, so this PASS is conditioned on the deterministic closeout producing passing command-evidence and on human final approval before any runtime/enterprise-trust opening; (2) the production_ready_flag string label could be misread as an assertion while production_ready is false; (3) changed-file-scope.json classifies docs/closeout-pack-plan/new-session-handoff.md as both an untracked implementation file and an unrelated preserved file. blocks_goal_closeout is false because the pack claims neither runtime nor enterprise trust (runtime_ready:false; enterprise trust closed); that authority boundary is acknowledged as external to this receipt.",
+    "findings": [
+      {
+        "id": "CP825-REV-01",
+        "severity": "P3",
+        "title": "Downstream closeout artifacts pending; 10 validation commands not independently executable by read-only reviewer",
+        "file": "docs/closeout-packs/cp00-825/manifest.json",
+        "line": 225,
+        "details": "required_pack_artifacts lists manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but docs/closeout-packs/cp00-825/ currently contains only manifest.json (the closed pack CP00-824 has all five). This is the expected pre-closeout state: this Claude review precedes adjudication/inspection and produces claude-review-result.json downstream; pack_level_claude_review.status is pending_review with empty valid_review_receipts. Because the review is read-only with no Bash, I could not independently execute the 10 expected validation commands (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check); I verified binding, validator logic, tests, live plan/queue, and the contract projection by inspection only. The manifest still shows status:in_progress and production_ready:false / production_ready_descriptor_verified:false, so no claim is overstated at this point.",
+        "recommendation": "Before flipping production_ready and committing, ensure the deterministic closeout pipeline produces command-evidence.json capturing passing results for all 10 validation commands, plus adjudication.md and construction-inspection.json, and that human final approval is recorded prior to any runtime/enterprise-trust opening. Treat this PASS as conditioned on that command-evidence.",
+        "post_review_disposition": "Non-blocking. Expected pre-closeout state confirmed against the closed CP00-824 pattern; does not block pack or goal closeout. Surfaced to bound the scope of a read-only review."
+      },
+      {
+        "id": "CP825-REV-02",
+        "severity": "P3",
+        "title": "production_ready_flag label may read as an assertion while production_ready is false",
+        "file": "docs/closeout-packs/cp00-825/manifest.json",
+        "line": 141,
+        "details": "production_ready_flag is set to \"platform_extensibility_permission_audit_tail_descriptor_verified\" while production_ready:false (line 6) and implementation_summary.production_ready_descriptor_verified:false (line 161). The adjacent _descriptor_verified:false and top-level production_ready:false make the true state unambiguous, and the *_flag string is a stable per-pack identifier (consistent with the CP820-CP825 bindings in registry.js and the contract current_pack/latest_pack), not an assertion of readiness. A future reader skimming only the flag name could nonetheless misinterpret it as a verified claim.",
+        "recommendation": "Optionally clarify (naming or a comment) that production_ready_flag is a descriptor label, not a readiness assertion, and that production_ready / production_ready_descriptor_verified are authoritative. No code or data change required.",
+        "post_review_disposition": "Non-blocking readability nit. State is internally disambiguated by production_ready:false and production_ready_descriptor_verified:false."
+      },
+      {
+        "id": "CP825-REV-03",
+        "severity": "P3",
+        "title": "changed-file-scope.json lists new-session-handoff.md as both untracked implementation file and unrelated preserved file",
+        "file": "artifacts/closeout-pack-claude-review/cp00-825/changed-file-scope.json",
+        "line": 144,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 144) and unrelated_dirty_files_preserved (line 150), which are semantically opposed categories. This is immaterial to the active pack boundary: the active scope is defined by active_pack_implementation_refs (the 5 modified RP27 files: contracts/platform-extensibility-contract.json, packages/platform/src/registry.js, packages/platform/src/validators.js, packages/platform/test/model.test.js, scripts/validate-rp27-platform-extensibility-contract.mjs) plus active_pack_required_untracked_files (docs/closeout-packs/cp00-825), neither of which includes new-session-handoff.md, and active_untracked_implementation_files_omitted is empty, so no required active file is dropped. scripts/progress-control-room-data.mjs and tools/progress-control-room/index.html are correctly kept out of the active refs and listed as unrelated dirty files.",
+        "recommendation": "Optionally tighten the changed-file-scope generator so a preserved/unrelated file is not simultaneously emitted under untracked_implementation_files, to keep provenance auditing unambiguous. No impact on the pack deliverables.",
+        "post_review_disposition": "Non-blocking provenance bookkeeping note in the review tooling artifact (not a pack deliverable). Active pack scope remains correctly bounded."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  },
+  "invalid_review_attempts": []
+}

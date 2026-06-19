@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-726",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T06:59:41.490Z",
+  "finished_at": "2026-06-15T07:04:21.334Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":279243,\"duration_api_ms\":279264,\"ttft_ms\":3582,\"num_turns\":37,\"result\":\"Verdict: **PASS** — no findings. CP00-726 is a clean descriptor-only closeout pack: distribution counts match exactly, the implementation/tests/contract correctly extend the CP722–725 pattern, all no-write/no-real-data/runtime-closed boundaries hold (0 leak markers across the 985KB contract), Claude stays read-only and non-final, Hermes is used only for deterministic control-plane review packet/receipt handling, and the pack does not over-claim (production_ready=false, pending exactly this review). The only caveat surfaced is provenance: the validation-ladder exit codes are agent-reported and not re-run, since this review is read-only.\",\"stop_reason\":\"end_turn\",\"session_id\":\"77b31d5a-dd26-4771-9194-e8689488adc7\",\"total_cost_usd\":1.6751752500000001,\"usage\":{\"input_tokens\":5621,\"cache_creation_input_tokens\":101465,\"cache_read_input_tokens\":998188,\"output_tokens\":20503,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":101465,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":275,\"cache_read_input_tokens\":98270,\"cache_creation_input_tokens\":3589,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3589},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1140,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001245,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":5621,\"outputTokens\":20503,\"cacheReadInputTokens\":998188,\"cacheCreationInputTokens\":101465,\"webSearchRequests\":0,\"costUSD\":1.6739302500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-726 (RP24.P02.M03.S01-RP24.P02.M04.S18, Risk B, 40 units) is a descriptor-only Korean Legal Depth closeout pack that extends the established CP00-722..CP00-725 pattern. Verified directly via Read/Grep/Glob: (1) the 40 units in review-baseline.json hand-count to exactly the declared deliverable_distribution {contract:2,implementation:18,security_audit:4,ui:6,claude_review:2,failure_recovery:4,test:4} and micro_title_distribution {Primary:22,Secondary:18}, matching KOREAN_LEGAL_CP726_REQUIREMENTS; (2) registry.js/service.js/validators.js/index.js add the CP726 binding (next CP00-727 / RP24.P02.M04.S19), requirements, case-set, descriptor, Hermes/Claude packets, handoff, and coverage/descriptor validators consistent with prior packs; (3) model.test.js adds CP00-726 binding+coverage, runtime-closed descriptor (runtime_opening_pack_id CP00-727, all runtime flags false), and contract-latest-projection tests; (4) the regenerated 985KB contract sets current_pack/latest_pack=CP00-726 with CP722..725 historical, and a grep for leak markers (real_client_data/raw_payload/legal_source_payload/external_credential/emits_runtime_receipt/writes_product_state = true) returned zero matches. Boundaries hold: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false, Claude packet read_only=true, Hermes packets emits_runtime_receipt=false (deterministic control-plane only, not product runtime). No over-claim: manifest, construction-inspection, command-evidence, adjudication, and claude-review-result all report production_ready=false / runtime_ready=false / status=pending_review, correctly gated on exactly one valid hardened read-only Claude review (this receipt). Review-hardening posture is present: forbidden_review_evidence enumerates not_logged_in/malformed_json/usage_limit/tool_call_shaped_output/zero_byte_stdout/fenced_json_with_prose; the readiness auth-preflight passed (exit 0, 1446-byte valid JSON, non-zero stdout); no prior invalid/contaminated review attempts exist. Plan live_state and next-pack-queue both pin CP00-726 as latest with next CP00-727, consistent with the registry binding. Claude remains a read-only, non-final reviewer; the human/enterprise-trust approval authority is closed outside this receipt, so it does not block this CP closeout goal. Provenance caveat: the validation-ladder exit codes in command-evidence.json (npm run closeout-pack-plan:validate, closeout-pack:validate, test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check — all 0) are agent-reported; this review is strictly read-only (no Bash) and did not independently re-execute them. No P0/P1/P2/P3 findings; the pack is internally consistent and supports its descriptor-verified (not production-runtime) closeout claim.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"43a8db2f-1df6-4ddd-87db-dd8490ee49dd\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5253,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "77b31d5a-dd26-4771-9194-e8689488adc7",
+    "uuid": "43a8db2f-1df6-4ddd-87db-dd8490ee49dd",
+    "total_cost_usd": 1.6751752500000001,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

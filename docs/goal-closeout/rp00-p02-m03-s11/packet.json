@@ -1,0 +1,70 @@
+{
+  "subphase_id": "RP00.P02.M03.S11",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Lock acquisition rule",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T10:03:40Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S11 Hermes Validation Lock acquisition rule surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S10 allow_metadata_only Idempotency key handling results, requires the hermes_validation entrypoint, the S10 subphase marker, a carried idempotency_receipt, audit_event_ref, idempotency key, and idempotency_key_handling_applied marker, emits a frozen metadata-only lock rule receipt for the synthetic lock scope, records fail-closed contention and ownership policy without acquiring runtime locks or persisting lock records, carries S02 through S10, M00 refs, TEN-001 through TEN-008 trace refs, validation context IDs, and acceptance gate IDs, rejects unsafe lock, runtime, AuthZ, Hermes execution/evidence, audit write, idempotency-store write, lock-store write, UI, tenant lifecycle mutation, requirement trace bypass, real-data, product-write, state transition bypass, and review-bypass claims fail-closed, and hands off to RP00.P02.M03.S12 without completing RP00.P02.M03, appending audit ledgers, writing audit events, creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, evaluating runtime permissions, calling AuthZ, running a permission engine, replacing human approval, using real data, persisting idempotency records, acquiring locks, persisting lock records, creating UI, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "weighted_ledger_boundary": {
+    "split_count": 20,
+    "order": 11,
+    "terminal": false,
+    "next_subphase": "RP00.P02.M03.S12"
+  },
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_valid_review_run": true,
+    "invalid_partial_attempts": 0,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "46bd9a77-c218-4de0-8191-c0286b08db7b",
+    "uuid": "f7ae61f9-23ad-4cac-a028-6115b46baf09",
+    "verdict_reported_by_claude": "FAIL",
+    "go_no_go_reported_by_claude": "NO_GO",
+    "verdict_after_adjudication": "PASS_WITH_FINDINGS",
+    "go_no_go_after_adjudication": "GO",
+    "p0_p1_count_initial": 1,
+    "p2_count_initial": 1,
+    "p3_count_initial": 1,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {
+    "P0_false_M03_closeout_and_M04_handoff": {
+      "status": "fixed",
+      "reason": "S11 policy, service result, validator, fixture, README, contract, tests, and RP00 validator now mark source_micro_phase_completed false and next_subphase RP00.P02.M03.S12."
+    },
+    "P2_weighted_ledger_successor_guard": {
+      "status": "fixed",
+      "reason": "scripts/validate-rp00-control-plane-contract.mjs now derives the S11 terminal flag and successor from docs/weighted-implementation-ledger.json and fails if S11 is treated as the terminal M03 boundary."
+    },
+    "P3_tests_locked_bad_boundary": {
+      "status": "fixed",
+      "reason": "S11 tests now assert the non-terminal S12 handoff and fixture parity confirms the corrected live result."
+    }
+  },
+  "production_ready": true,
+  "source_micro_phase_completed": false,
+  "next_subphase": "RP00.P02.M03.S12"
+}

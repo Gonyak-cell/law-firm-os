@@ -1,0 +1,66 @@
+{
+  "subphase_id": "RP00.P02.M03.S12",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Persistence boundary",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T10:29:47Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S12 Hermes Validation Persistence boundary surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S11 allow_metadata_only Lock acquisition rule results, requires the hermes_validation entrypoint, the S11 subphase marker, a carried lock receipt, audit_event_ref, lock rule reference, lock scope, and lock_acquisition_rule_applied marker, emits a frozen metadata-only persistence boundary receipt for the synthetic persistence scope, records the no product-state/database/storage persistence boundary without writing persistence records, carries S02 through S11, M00 refs, TEN-001 through TEN-008 trace refs, validation context IDs, and acceptance gate IDs, rejects unsafe persistence, database, storage, product-state, runtime, AuthZ, Hermes execution/evidence, audit write, idempotency-store write, lock-store write, UI, tenant lifecycle mutation, requirement trace bypass, real-data, product-write, state transition bypass, and review-bypass claims fail-closed, and hands off to RP00.P02.M03.S13 without completing RP00.P02.M03, appending audit ledgers, writing audit events, creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, evaluating runtime permissions, calling AuthZ, running a permission engine, replacing human approval, using real data, persisting idempotency records, acquiring locks, persisting lock records, writing databases, writing storage, persisting product state, writing persistence records, creating UI, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "weighted_ledger_boundary": {
+    "split_count": 20,
+    "order": 12,
+    "terminal": false,
+    "next_subphase": "RP00.P02.M03.S13"
+  },
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_valid_review_run": true,
+    "invalid_partial_attempts": 0,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "1ac314a5-13fb-48ee-b4f4-b6e500990f6d",
+    "uuid": "208f3a8c-5911-4073-bf89-632ef2d6907f",
+    "verdict_reported_by_claude": "PASS",
+    "go_no_go_reported_by_claude": "GO",
+    "verdict_after_adjudication": "PASS_WITH_FINDINGS",
+    "go_no_go_after_adjudication": "GO",
+    "p0_p1_count_initial": 0,
+    "p2_count_initial": 1,
+    "p3_count_initial": 1,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {
+    "P2_closeout_evidence_directory_absent": {
+      "status": "fixed_by_closeout_evidence",
+      "reason": "This closeout bundle now includes packet.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json under docs/goal-closeout/rp00-p02-m03-s12."
+    },
+    "P3_readme_prose_guard": {
+      "status": "deferred_with_explicit_boundary",
+      "reason": "The validator already guards the S12 export names, contract definition, policy, service, fixture, tests, and live precheck behavior. README prose-only guard expansion is optional and deferred to avoid unrelated validator churn in this subphase."
+    }
+  },
+  "production_ready": true,
+  "source_micro_phase_completed": false,
+  "next_subphase": "RP00.P02.M03.S13"
+}

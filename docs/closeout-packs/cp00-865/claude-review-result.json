@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-865",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-865/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-865/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "78a57bfe-ba79-425d-a4ba-fb4294e793c0",
+    "uuid": "5ec5a5c7-0668-46b3-b306-ed9bad4c6f5a",
+    "total_cost_usd": 2.6948024999999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7807,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-865 is a faithful descriptor-only RP28 Marketplace failure-recovery bridge (RP28.P07.M05.S15-RP28.P07.M06.S02) and its pack-level claims are supported by read-only inspection. Pack metadata is internally consistent across the registry binding (registry.js:394), manifest plan_binding_snapshot, review-baseline.json, and closeout-pack-plan.json:396 (CP00-865, risk A, 10 units, next CP00-866/RP28.P07.M06.S03, ledger SHA 13c7ed65, upstream CP00-864). Deliverable distribution (hermes_evidence 2, fixture 1, test 2, security_audit 1, claude_review 1, implementation 1, failure_recovery 2 = 10) and micro-title distribution (Permission And Audit Binding 8 / Synthetic Fixture Set 2) match the prompt; FAILURE_RECOVERY_ROWS.slice(14,22)+slice(0,2) row titles map 1:1 onto the unit titles. Descriptor-only/no-write/no-real-data boundaries are enforced both in data (createRow stamps ~22 false safety flags on every row; NO_WRITE_ATTESTATION spread into the descriptor) and in validation (validateMarketplaceCp865...Descriptor at validators.js:2539 rejects runtime execution, permission/audit/product writes, secrets/tokens/payloads, and real data, and requires Hermes emits_runtime_receipt:false, Claude read_only:true, handoff to CP00-866, 6 models, and contract pack match). No writeFile/fetch/child_process/env access exists in packages/marketplace/src. The authority boundary holds (Claude not final approver; human approval required for runtime opening; local validation does not claim enterprise trust) and Hermes is used only for deterministic evidence packets, not product runtime. The pack is honestly marked production_ready:false / runtime_ready:false / in_progress, the contract was regenerated to latest_pack CP00-865 (validation.valid:true), and the 0-byte placeholder claude-review-result.json is correctly NOT counted as a valid review (exactly_one_valid_pack_level_claude_review_run:false; auth preflight passed). No P0/P1/P2 defects. Two P3 informational notes are recorded: (1) verification was by static inspection only since the reviewer is read-only, and the full validation suite remains pending_full_validation and must pass before commit; (2) the descriptor's runtime_opening_pack_id forward-points to the next pack by convention and should not be read as a commitment that CP00-866 opens runtime. This review does not block this CP's pack or goal closeout; the harness must still record this valid review and pass the full validation suite before the closeout commit.",
+    "findings": [
+      {
+        "id": "CP865-P3-01",
+        "severity": "P3",
+        "title": "Read-only provenance: full validation suite pending, verified by static inspection only",
+        "file": "docs/closeout-packs/cp00-865/command-evidence.json",
+        "line": 5,
+        "details": "The reviewer operated read-only (Read/Grep/Glob) and did not execute any validation commands. command-evidence.json records status 'pending_full_validation' with only two passing commands (npm run rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0). The expected closeout suite (closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet recorded. All CP865 verification in this review is therefore from source/metadata inspection, which is internally consistent and would satisfy the validator logic read, but is not a substitute for executing the mechanical gate.",
+        "recommendation": "Run the full validation suite and record exit codes before the closeout commit; ensure the harness records this read-only review as the single valid pack-level review in addition to (not instead of) the validation gate.",
+        "post_review_disposition": "Informational; expected pre-closeout sequencing, not a pack defect. Does not block closeout. Documented for the closeout record and provenance transparency."
+      },
+      {
+        "id": "CP865-P3-02",
+        "severity": "P3",
+        "title": "runtime_opening_pack_id forward-points to the next pack by convention",
+        "file": "packages/marketplace/src/registry.js",
+        "line": 3368,
+        "details": "The CP865 descriptor sets authority_boundary.runtime_opening_pack_id to MARKETPLACE_CP865_PACK_BINDING.next_pack_id (CP00-866). Every prior pack (CP845-CP864) made the identical forward claim while itself remaining descriptor-only, so this field is a placeholder pointer rather than evidence that the next pack opens runtime. CP865 itself stays fully runtime-closed (NO_WRITE_ATTESTATION spread; human_final_approval_required_for_runtime_opening:true; all row and validator no-write checks pass).",
+        "recommendation": "Keep verifying each subsequent pack's descriptor-only/runtime boundary independently at its own review; require explicit human approval evidence on any pack that actually opens runtime rather than relying on this forward pointer.",
+        "post_review_disposition": "Informational; benign and gated. Does not block closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "invalid_review_attempts": []
+}

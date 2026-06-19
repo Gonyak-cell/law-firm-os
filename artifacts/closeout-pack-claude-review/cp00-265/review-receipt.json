@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-265",
+  "normalized_at": "2026-06-10T18:41:38.072Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-265/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-265/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-265/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-265/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "ab22276a-2ee0-4c9a-a9ee-c3f217e3df3b",
+    "uuid": "ba360181-bbb9-4e69-9ef9-fec3900d0b24",
+    "total_cost_usd": 2.3835212500000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6266,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-265 is a descriptor-only RP07 search-core closeout pack (40 units, RP07.P08.M02.S15-RP07.P08.M04.S12) that honestly claims production_ready=false / implemented_pending_review. Coverage and bindings match the baseline exactly (20 hermes_evidence, 16 implementation, 2 test, 2 claude_review; micro-phase counts M02:6, M03:22, M04:12), and are cross-guarded by deep-equality assertions in scripts/validate-rp07-search-core-contract.mjs and by unit tests in packages/search/test/model.test.js. All section rows are descriptor_only with runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false; freezeCp265Result and the CP265 no-write attestation assert no command/AI/search/OCR/index/embedding runtime, no state/audit/object-storage writes, no real data, and no permission/audit/blocked-claim/hermes-body/raw-payload leakage. Authority boundary holds: Claude is a read-only reviewer (read_only=true; tools Read/Grep/Glob only) and not the final approver (descriptor authority_boundary.claude_is_final_approval=false; validators reject any Claude-final-approval or enterprise-trust-from-local-validation claim; human_final_approval_required=true). Hermes (H07) is used only for deterministic review packet/receipt descriptors (receipt_shape descriptor_only_*, emits_hermes_runtime_receipt=false), not product runtime. CP178+ review hardening is in place: readiness auth-preflight passed with non-empty valid JSON, validation-report confirms allowed tools / prompt size / schema present and prohibits summary-only review, and forbidden_review_evidence enumerates auth-failure, zero-byte, malformed-JSON, fenced-JSON, tool-call-shaped, disabled-tools, missing-reference, and final-approval/mutation/enterprise-trust cases. No P0/P1/P2 issues found. One P3 informational note: post-review evidence artifacts are referenced but not yet present, which is the expected pre-commit state under the documented hardened_review_sequence.",
+    "findings": [
+      {
+        "id": "CP265-OBS-01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts referenced but not yet present (expected, gated by hardened review sequence)",
+        "file": "docs/closeout-packs/cp00-265/manifest.json",
+        "line": 466,
+        "details": "Per-unit evidence_refs in the manifest and the review_hardening block in command-evidence.json reference claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, and review-receipt.json, none of which exist yet in docs/closeout-packs/cp00-265/ or artifacts/closeout-pack-claude-review/cp00-265/. This is consistent with the pack's status (implemented_pending_review, production_ready=false) and the documented hardened_review_sequence (read_only_claude_run_with_raw_capture -> receipt_normalization -> receipt_validation -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit): these artifacts are produced from this very review run and the subsequent gated steps. It is not a defect, but the human approver should confirm the post-review gated commands generate and validate these artifacts before commit.",
+        "recommendation": "Before committing CP00-265, run the post-review gated commands (closeout-pack:review:run/normalize/receipt:validate, closeout-pack-plan:generate, closeout-pack:validate, git diff --check --cached) so the referenced evidence artifacts are produced and validated. Do not flip production_ready to true or treat the enterprise trust claim as closed without human final approval, per the authority boundary.",
+        "post_review_disposition": "expected_by_design_not_a_defect"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-082",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "5be0ff75-9e04-4464-b7db-4a1ad386f0c3",
+    "uuid": "f439150c-ef66-4aa4-b436-cfbe1b3920fe",
+    "duration_ms": 214390,
+    "duration_api_ms": 216825,
+    "total_cost_usd": 1.136601,
+    "permission_denials": []
+  },
+  "invalid_claude_attempts": [
+    {
+      "source": "claude_cli_sandbox",
+      "session_id": "efbc66c1-1fd5-4fc1-8967-77979cae91ad",
+      "uuid": "2ed27740-61f0-4db8-9b85-4e6c7ac48cc7",
+      "result": "Not logged in - Please run /login",
+      "counted_as_valid_pack_review": false
+    }
+  ],
+  "parsed_review": {
+    "review": "Law Firm OS Closeout Pack CP00-082 - Failure Edge Recovery Typed Primary Binding (Claude C00 read-only)",
+    "scope_confirmed": [
+      "contracts/control-plane-contract.json",
+      "packages/control-plane/README.md",
+      "packages/control-plane/fixtures/synthetic-control-plane.json",
+      "packages/control-plane/src/policies.js",
+      "packages/control-plane/src/service.js",
+      "packages/control-plane/src/validators.js",
+      "packages/control-plane/test/service.test.js",
+      "scripts/validate-rp00-control-plane-contract.mjs"
+    ],
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Metadata-only typed/primary failure-edge binding is internally consistent across policy, assembler, validators, fixture, contract, README, and validation script. Counts/ranges align, runtime/write/LDIP boundaries remain false, no P0/P1 issues.",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "CP00-082-F1",
+        "severity": "P3",
+        "title": "New assembler upstream-drift guards may be effectively untested due to redundancy plus loose regex assertions",
+        "evidence": "Pack-local upstream guards overlapped with assertControlPlaneFailureEdgeRecoveryOpeningResult and loose regex tests.",
+        "recommended_action": "Add targeted tests or tighten regexes; non-blocking.",
+        "status_after_adjudication": "fixed"
+      },
+      {
+        "id": "CP00-082-F2",
+        "severity": "P3",
+        "title": "Nested frozen contract arrays in assembled result not asserted immutable in tests",
+        "evidence": "Tests asserted result and included_unit_ids freezing but not nested contract arrays/objects.",
+        "recommended_action": "Add nested immutability assertions; non-blocking.",
+        "status_after_adjudication": "fixed"
+      },
+      {
+        "id": "CP00-082-F3",
+        "severity": "P3",
+        "title": "production_ready status on a purely declarative metadata pack convention note",
+        "evidence": "All 30 subphase closeouts are production_ready while runtime/write flags remain false.",
+        "recommended_action": "No change required; ensure construction-inspection verifies control_plane_failure_edge_recovery_typed_primary_verified=true.",
+        "status_after_adjudication": "adjudicated_not_blocking"
+      }
+    ],
+    "production_ready_assessment": "Acceptable for this gate. production_ready denotes metadata-only contract/planning artifact readiness, not runtime failure recovery."
+  }
+}

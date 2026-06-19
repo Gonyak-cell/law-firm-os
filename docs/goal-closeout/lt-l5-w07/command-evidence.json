@@ -1,0 +1,131 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L5-W07",
+  "title": "Failure scenario rehearsal",
+  "phase": "L5",
+  "gate": "G4, L5-EXIT",
+  "created_at": "2026-06-18T14:23:38Z",
+  "status": "blocked_pending_dr_runbooks_staging_rehearsals_rpo_rto_audit_verify_and_index_resync_evidence",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L3-W05": {
+      "status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L3-W06": {
+      "status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L5-W05": {
+      "status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "db_failure_rehearsal_exists": false,
+    "restore_rehearsal_exists": false,
+    "index_resync_rehearsal_exists": false,
+    "rehearsal_evidence_map_exists": false,
+    "rpo_rto_measurements_exists": false,
+    "notification_receipts_exist": false,
+    "g4_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L5-W07-T01",
+      "title": "Run DB failure recovery rehearsal",
+      "status": "blocked_waiting_on_l3_w05_dr_runbook_l3_w06_alerting_and_staging_failure_injection_window",
+      "acceptance": {
+        "db_failure_rehearsal_record_exists": false,
+        "failure_injection_to_alert_to_recovery_to_green_timestamps_recorded": false,
+        "post_recovery_audit_chain_verify_exit_zero": false,
+        "data_loss_within_agreed_rpo": false,
+        "runbook_deviations_zero_or_revision_diff_exists": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W07-T02",
+      "title": "Run backup restore rehearsal and measure RPO/RTO",
+      "status": "blocked_waiting_on_l3_w05_backup_restore_runbook_approved_backup_artifact_and_staging_restore_window",
+      "acceptance": {
+        "restore_rehearsal_record_exists": false,
+        "rpo_measured_within_agreed_value": false,
+        "rto_measured_within_agreed_value": false,
+        "restored_record_count_reconciliation_passed": false,
+        "restored_audit_chain_verify_passed": false,
+        "runbook_step_match_or_revision_recorded": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W07-T03",
+      "title": "Run index resync rehearsal and assemble W07 DR evidence",
+      "status": "blocked_waiting_on_t01_t02_l3_w04_worm_store_index_runtime_and_search_permission_diff_harness",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "all_three_tuw_ids_present_in_command_evidence": true,
+        "index_resync_rehearsal_record_exists": false,
+        "document_count_reconciliation_100_percent": false,
+        "permission_trimming_search_diff_zero": false,
+        "resync_elapsed_time_recorded": false,
+        "required_rehearsal_record_count": 3,
+        "required_rehearsal_records_present": 0,
+        "g4_satisfied": false,
+        "l5_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L3-W05\" or .wp_id==\"LT-L3-W06\" or .wp_id==\"LT-L5-W05\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L3-W05\tt01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal\tcommand_evidence_only_blocked",
+        "LT-L3-W06\tt01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test\tcommand_evidence_only_blocked",
+        "LT-L5-W05\tblocked_pending_worm_audit_chain_operational_store_and_mutation_tests\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W07 predecessor state before claiming blocked evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in docs/launch/dr/db-failure-rehearsal.md docs/launch/dr/restore-rehearsal.md docs/launch/dr/index-resync-rehearsal.md docs/launch/dr/rehearsal-evidence-map.md docs/launch/dr/rpo-rto-measurements.json docs/launch/dr/notification-receipts.md; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent docs/launch/dr/db-failure-rehearsal.md",
+        "absent docs/launch/dr/restore-rehearsal.md",
+        "absent docs/launch/dr/index-resync-rehearsal.md",
+        "absent docs/launch/dr/rehearsal-evidence-map.md",
+        "absent docs/launch/dr/rpo-rto-measurements.json",
+        "absent docs/launch/dr/notification-receipts.md"
+      ],
+      "purpose": "Verify required W07 DR rehearsal artifacts are absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L5-W07.",
+    "This record does not inject a DB failure or execute recovery.",
+    "This record does not restore a backup or measure RPO/RTO.",
+    "This record does not run index resynchronization or permission-trimming diff checks.",
+    "This record does not prove alert receipt, health-check green, audit-chain verify, or document-count reconciliation.",
+    "This record does not access staging, production, real matters, or real HR-sensitive files.",
+    "This record does not satisfy G4 or L5-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

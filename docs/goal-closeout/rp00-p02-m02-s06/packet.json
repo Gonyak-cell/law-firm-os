@@ -1,0 +1,62 @@
+{
+  "subphase_id": "RP00.P02.M02.S06",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "title": "Audit hint precheck",
+  "micro_title": "AI Implementation Handoff",
+  "status": "production_ready",
+  "evidence_root": "docs/goal-closeout/rp00-p02-m02-s06",
+  "implemented_surface": "ControlPlaneAIImplementationHandoffAuditHintPrecheck",
+  "implemented_slice": "ai_implementation_handoff_audit_hint_precheck",
+  "summary": "RP00.P02.M02.S06 consumes the S05 ai_implementation_handoff Permission precheck result, pins the RP00.P00.M05.S01 permission/audit baseline, requires audit_event_ref, records a metadata-only audit hint receipt, rejects denied or wrong-source S05 inputs, rejects audit bypass, audit ledger append, audit event write, runtime permission, AuthZ evaluator, service execution, write, review bypass, real-data, implementation handoff drafting, and unknown audit claims, and hands off to RP00.P02.M02.S07 primary happy path.",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "required_exports": [
+    "CONTROL_PLANE_AI_IMPLEMENTATION_HANDOFF_AUDIT_HINT_PRECHECK_POLICY",
+    "CONTROL_PLANE_AI_IMPLEMENTATION_HANDOFF_AUDIT_HINT_PRECHECK_RESULT_FIELDS",
+    "CONTROL_PLANE_AI_IMPLEMENTATION_HANDOFF_AUDIT_HINT_PRECHECKER",
+    "getControlPlaneAIImplementationHandoffAuditHintPrecheckPolicy",
+    "precheckControlPlaneAIImplementationHandoffAuditHint",
+    "assertControlPlaneAIImplementationHandoffAuditHintPrecheckPolicy",
+    "assertControlPlaneAIImplementationHandoffAuditHintPrecheckResult"
+  ],
+  "upstream_dependencies": [
+    "RP00.P02.M02.S01",
+    "RP00.P02.M02.S02",
+    "RP00.P02.M02.S03",
+    "RP00.P02.M02.S04",
+    "RP00.P02.M02.S05",
+    "RP00.P00.M05.S01"
+  ],
+  "next_subphase": "RP00.P02.M02.S07",
+  "completes_source_micro_phase": false,
+  "boundary": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "service_logic_execution_permitted": false,
+    "runtime_route_created": false,
+    "runtime_permission_engine_executed": false,
+    "authz_evaluator_called": false,
+    "audit_ledger_appended": false,
+    "audit_event_written": false,
+    "implementation_handoff_drafted": false,
+    "registry_mutated": false,
+    "human_approval_replaced": false,
+    "hermes_bypassed": false,
+    "claude_review_bypassed": false
+  },
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m02-s06/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m02-s06/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m02-s06/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m02-s06/construction-inspection.json"
+  ],
+  "production_ready": true
+}

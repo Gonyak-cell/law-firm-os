@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M06.S01",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Package directory layout",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "inspected_at": "2026-06-04T04:06:07Z",
+  "verdict": "PASS",
+  "status": "PASS",
+  "production_ready": true,
+  "control_plane_synthetic_fixture_set_layout_verified": true,
+  "fixture_directory_verified": "packages/control-plane/fixtures",
+  "target_files_verified": true,
+  "target_tests_verified": true,
+  "fixture_files_verified": true,
+  "required_fixture_markers_verified": [
+    "schema_version",
+    "synthetic",
+    "no_real_data",
+    "fixture_id",
+    "tenant"
+  ],
+  "allowed_namespace_prefixes_verified": [
+    "lfos_demo_",
+    "synthetic_",
+    "fake_"
+  ],
+  "allowed_domains_verified": [
+    "example.test",
+    "lawfirm-os.invalid"
+  ],
+  "synthetic_only_policy_referenced": "RP00.P00.M06.S01",
+  "future_fixture_subphases_deferred": [
+    "RP00.P01.M06.S02",
+    "RP00.P01.M06.S03"
+  ],
+  "synthetic_fixture_layout_record_verified": true,
+  "registry_exposes_fixture_set_layout": true,
+  "next_subphase_verified": "RP00.P01.M06.S02",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "does_not_create_real_fixture_data": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "Next boundary recorded as RP00.P01.M06.S02; no sensitive production action approved by this layout-only subphase.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "none",
+    "findings": [
+      {
+        "id": "FS-S01-001",
+        "severity": "P2",
+        "title": "Remove unreachable HumanApproval registry-nextSubphase check",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      },
+      {
+        "id": "FS-S01-002",
+        "severity": "P2",
+        "title": "Strengthen unit/helper parity for fixture set layout fields",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy"
+      }
+    ]
+  }
+}

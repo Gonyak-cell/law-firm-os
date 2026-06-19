@@ -1,0 +1,120 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-157",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "29294a4e-8846-4848-9bd8-b20bb1b8b9b4",
+    "uuid": "f2c6a115-92f1-4681-951b-b11cdd343dfd",
+    "duration_ms": 181741,
+    "duration_api_ms": 184520,
+    "total_cost_usd": 0.637718,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-157-claude-review-output-escalated.json"
+  },
+  "invalid_review_attempts": [
+    {
+      "reason": "Not logged in · Please run /login",
+      "command_shape": "claude -p read-only review executed before full-access environment could read local auth state",
+      "counted_as_valid_review": false,
+      "raw_output_ref": "/tmp/cp00-157-claude-review-output.json",
+      "session_id": "a3ce4d96-39f4-4110-aa05-91c879ac65e0",
+      "uuid": "6d038ef2-47d7-4689-908b-d79efc5f64fd"
+    }
+  ],
+  "review_packet": {
+    "review_id": "C04.CP00-157.master_data_service_logic_boundary",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-157-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-157 adds descriptor-only Master Data service request normalization, prechecks, primary/secondary workflow descriptors, review/approval/blocked routing, idempotency/lock descriptors, and H04/C04 packets while preserving the CP00-156 foundation and all no-write attestations. Boundaries hold (no DB/product writes, no permission evaluation, no audit append, no API/network), main outcome paths are tested, and the contract/registry/validator wiring is internally consistent. Findings are quality/clarity items (untested negative branches, static 'checked' evidence, naming-vs-behavior) and do not block pack or goal closeout.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "cp156_foundation_preserved": true,
+      "notes": "permission_precheck/audit_hint_precheck are presence-only checks (descriptor_ref != null), not evaluation; action_preview is built via createMasterDataRecord which returns a frozen synthetic descriptor (creates_database_rows:false asserted and tested); lock_key is declared-only with acquires_runtime_lock:false. Main happy/review/approval/blocked paths are tested."
+    },
+    "findings": [
+      {
+        "id": "CP157-F1",
+        "severity": "P2",
+        "title": "Several service-level blocked-claim routes have no test coverage",
+        "evidence": "MASTER_DATA_SERVICE_BOUNDARY.blocked_claims enumerates unsupported_service_operation, tenant_scope_missing, tenant_boundary_mismatch, and idempotency_key_required, plus the defensive service_factory_descriptor_error path in executeMasterDataServiceWorkflow. model.test.js and validate-rp04-master-data-contract.mjs only exercise relationship_direction_error, client_group_leakage, missing_matter_trace, permission_precheck_required, and audit_hint_precheck_required. The new service-only branches (precheck tenant/operation/idempotency logic in service.js:executeMasterDataServicePrechecks) are validated by inspection only.",
+        "recommended_action": "Add service tests: an unsupported operation, a request missing tenant_id, an explicit expected_tenant_id/payload tenant_id mismatch, and (if isolable) idempotency_key_required, asserting outcome:'blocked' and the specific blocked_claims.",
+        "post_review_disposition": "fixed: added unsupported operation, missing tenant, tenant mismatch, idempotency, and factory/error route-adjacent blocked path tests in packages/master-data/test/model.test.js"
+      },
+      {
+        "id": "CP157-F2",
+        "severity": "P2",
+        "title": "Precheck 'checked' field is a static constant and overstates executed checks",
+        "evidence": "executeMasterDataServicePrechecks always returns checked: Object.freeze(MASTER_DATA_SERVICE_BOUNDARY.prechecks) (all six). The validateMasterDataRecord delegation (source of state_transition_enforcement) is gated by 'if (operationDefinition && normalized.model_type && normalized.payload)', so for an unsupported operation that record-level enforcement is skipped while 'checked' still claims state_transition_enforcement and matter-record checks ran. This is descriptor evidence that does not reflect actual execution.",
+        "recommended_action": "Either derive 'checked' from the prechecks actually run, or rename/document the field as a declared-capability list distinct from an executed-checks attestation so the H04/C04 evidence is not misread.",
+        "post_review_disposition": "fixed: executeMasterDataServicePrechecks now returns executed checked entries and declared_prechecks separately"
+      },
+      {
+        "id": "CP157-F3",
+        "severity": "P3",
+        "title": "'execute*' verbs imply side effects but functions are pure descriptor builders (production_ready/integration risk)",
+        "evidence": "executeMasterDataServiceWorkflow / executeMasterDataServicePrechecks / executeMasterData*Workflow only return frozen descriptors (synthetic_only:true, writes_product_state:false). The verb 'execute' plus production_ready_flag 'master_data_service_logic_boundary_verified' could lead a future CP00-158 consumer to wire these expecting real persistence/enforcement.",
+        "recommended_action": "Add a doc/JSDoc note (or descriptor-suffixed alias) clarifying these are preview builders, and ensure CP00-158 runtime wiring does not treat the descriptor return as an applied effect. Mitigated today by the embedded attestation flags.",
+        "post_review_disposition": "fixed: added descriptor-builder note in service.js and README boundary text"
+      },
+      {
+        "id": "CP157-F4",
+        "severity": "P3",
+        "title": "state_transition_enforcement realized only as lifecycle-status validity, not a transition matrix",
+        "evidence": "The contract/intent reference 'state transition routing' and a state_transition_enforcement precheck, but there is no from->to transition logic; invalid_lifecycle_status comes solely from validateMasterDataRecord's status-value check. No current->next transition is evaluated.",
+        "recommended_action": "Clarify in README/contract that S06-S10 covers status-value validity only, deferring true transition enforcement to the CP00-158 lock/persistence tail, so the precheck name does not overstate behavior.",
+        "post_review_disposition": "fixed: contract and README clarify lifecycle-status-only state transition scope with matrix enforcement deferred"
+      },
+      {
+        "id": "CP157-F5",
+        "severity": "P3",
+        "title": "Declared retry_behavior/rollback_behavior are not exercised by any test",
+        "evidence": "service_logic.retry_behavior ('same_idempotency_key_returns_same_descriptor_shape') and rollback_behavior ('descriptor_noop') are asserted in the contract. Descriptors are deterministic by construction (no Date/random), but no test calls the workflow twice with identical input to confirm idempotent descriptor shape.",
+        "recommended_action": "Add a determinism test invoking executeMasterDataServiceWorkflow twice with the same request and deepEqual-asserting the returned descriptor (and stable idempotency_key/lock_key).",
+        "post_review_disposition": "fixed: added deterministic retry/rollback descriptor deepEqual test"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "reported_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 2,
+      "p3": 3
+    },
+    "p2_status": "fixed_or_deferred",
+    "p3_disposition": "all three P3 findings fixed through documentation or deterministic descriptor tests",
+    "post_review_validation": {
+      "focused_master_data_tests": "12 pass",
+      "full_workspace_tests": "1180 pass",
+      "rp04_master_data_validate": "passed",
+      "closeout_pack_plan_validate": "passed",
+      "product_validate": "passed",
+      "build": "passed"
+    }
+  }
+}

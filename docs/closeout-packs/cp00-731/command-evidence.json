@@ -1,0 +1,240 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-command-evidence.v0.1",
+  "pack_id": "CP00-731",
+  "subphase_id": "RP24.P03.M06.S12",
+  "status": "passed",
+  "production_ready": true,
+  "writes_product_state": false,
+  "no_real_data": true,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-731 remains descriptor-only and synthetic-evidence only.",
+    "CP00-731 keeps HWPX, Korean clause, litigation, court filing, corporate document, permission decision, audit body, Hermes runtime, and product-state writes closed.",
+    "Exactly one valid hardened read-only Claude review receipt exists for CP00-731 with no P0/P1/P2/P3 findings."
+  ],
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.605Z",
+      "finished_at": "2026-06-15T08:01:13.635Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/registry.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.635Z",
+      "finished_at": "2026-06-15T08:01:13.665Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/service.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.666Z",
+      "finished_at": "2026-06-15T08:01:13.694Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/validators.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.694Z",
+      "finished_at": "2026-06-15T08:01:13.722Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/index.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.722Z",
+      "finished_at": "2026-06-15T08:01:13.752Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.752Z",
+      "finished_at": "2026-06-15T08:01:13.780Z"
+    },
+    {
+      "command": "node --check scripts/validate-rp24-korean-legal-depth-contract.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.780Z",
+      "finished_at": "2026-06-15T08:01:13.810Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:13.811Z",
+      "finished_at": "2026-06-15T08:01:14.053Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:14.053Z",
+      "finished_at": "2026-06-15T08:01:15.503Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:15.503Z",
+      "finished_at": "2026-06-15T08:01:16.758Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:16.758Z",
+      "finished_at": "2026-06-15T08:01:24.541Z"
+    },
+    {
+      "command": "npm run rp24:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:24.542Z",
+      "finished_at": "2026-06-15T08:01:24.735Z"
+    },
+    {
+      "command": "npm run rp24:korean-legal-depth:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:24.735Z",
+      "finished_at": "2026-06-15T08:01:24.973Z"
+    },
+    {
+      "command": "node --test packages/korean-legal/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:24.973Z",
+      "finished_at": "2026-06-15T08:01:25.160Z"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:25.161Z",
+      "finished_at": "2026-06-15T08:01:25.348Z"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:25.348Z",
+      "finished_at": "2026-06-15T08:01:26.243Z"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:26.243Z",
+      "finished_at": "2026-06-15T08:01:27.127Z"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:27.127Z",
+      "finished_at": "2026-06-15T08:01:27.322Z"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:27.323Z",
+      "finished_at": "2026-06-15T08:01:27.516Z"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:27.517Z",
+      "finished_at": "2026-06-15T08:01:29.519Z"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:29.519Z",
+      "finished_at": "2026-06-15T08:01:29.579Z"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:29.579Z",
+      "finished_at": "2026-06-15T08:01:35.838Z"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:35.839Z",
+      "finished_at": "2026-06-15T08:01:37.134Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:50.245Z",
+      "finished_at": "2026-06-15T08:01:50.540Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:50.541Z",
+      "finished_at": "2026-06-15T08:01:53.704Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:01:53.705Z",
+      "finished_at": "2026-06-15T08:06:41.709Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:06:41.710Z",
+      "finished_at": "2026-06-15T08:06:41.954Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:06:41.954Z",
+      "finished_at": "2026-06-15T08:06:42.159Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:13.949Z",
+      "finished_at": "2026-06-15T08:08:14.209Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-731",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:14.210Z",
+      "finished_at": "2026-06-15T08:08:14.409Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:14.409Z",
+      "finished_at": "2026-06-15T08:08:15.951Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:15.951Z",
+      "finished_at": "2026-06-15T08:08:17.323Z"
+    },
+    {
+      "command": "npm run rp24:korean-legal-depth:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:17.323Z",
+      "finished_at": "2026-06-15T08:08:17.598Z"
+    },
+    {
+      "command": "node --test packages/korean-legal/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:17.599Z",
+      "finished_at": "2026-06-15T08:08:17.834Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:17.835Z",
+      "finished_at": "2026-06-15T08:08:26.127Z"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-15T08:08:26.127Z",
+      "finished_at": "2026-06-15T08:08:26.199Z"
+    }
+  ]
+}

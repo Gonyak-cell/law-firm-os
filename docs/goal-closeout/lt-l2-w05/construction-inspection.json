@@ -1,0 +1,25 @@
+{
+  "work_package_id": "LT-L2-W05",
+  "inspected_at": "2026-06-18T13:09:27Z",
+  "verdict": "BLOCKED_RISK_CONTROL_RUNTIME_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "permission_sync_checker_exists": false,
+    "qc_gate_exists": false,
+    "filing_control_exists": false,
+    "ethical_wall_runtime_exists": false,
+    "ethical_wall_override_exists": false,
+    "hr_guardrail_runtime_exists": false,
+    "risk_control_realization_matrix_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "risk_control_runtime_opened": false,
+    "owner_decision_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

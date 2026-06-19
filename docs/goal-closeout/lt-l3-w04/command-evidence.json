@@ -1,0 +1,163 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L3-W04",
+  "title": "WORM audit store and persistent store family",
+  "phase": "L3",
+  "gate": "G4, L3-EXIT",
+  "created_at": "2026-06-18T13:19:50Z",
+  "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L1-W06": {
+      "status": "decision_brief_blocked_pending_owner_hosting_decision",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L2-W01": {
+      "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W02": {
+      "status": "blocked_pending_remote_repo_ci_container_staging_and_rollback_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W03": {
+      "status": "blocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "store_worm_infra_file_count": 0,
+    "worm_config_exists": false,
+    "worm_rp03_precheck_exists": false,
+    "data_layer_responsibility_map_exists": false,
+    "store_smoke_script_count": 0,
+    "audit_ledger_storage": "in_memory",
+    "operational_worm_store_provisioned": false,
+    "persistent_store_family_provisioned": false,
+    "rp03_operational_measurement_exists": false,
+    "seven_row_data_layer_map_exists": false,
+    "g4_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L3-W04-T01",
+      "title": "Provision WORM audit log store with immutability settings",
+      "status": "blocked_waiting_on_l1_w06_l2_w01_l3_w02_and_worm_store_configuration"
+    },
+    {
+      "tuw_id": "LT-L3-W04-T02",
+      "title": "Measure RP03 audit gates on operational storage",
+      "status": "blocked_waiting_on_t01_operational_worm_store_and_staging_sample"
+    },
+    {
+      "tuw_id": "LT-L3-W04-T03",
+      "title": "Provision relational DB, ledger, search/vector, and object cache stores",
+      "status": "blocked_waiting_on_l1_w06_l3_w02_l3_w03_and_store_infra"
+    },
+    {
+      "tuw_id": "LT-L3-W04-T04",
+      "title": "Assemble W04 persistence and WORM evidence bundle",
+      "status": "blocked_waiting_on_t01_t02_t03_outputs_and_data_layer_map",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_four_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "worm_policy_verified": false,
+        "rp03_precheck_passed": false,
+        "persistent_store_smokes_green": false,
+        "g4_satisfied": false,
+        "l3_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L1-W06\" or .wp_id==\"LT-L2-W01\" or .wp_id==\"LT-L3-W02\" or .wp_id==\"LT-L3-W03\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L1-W06\tdecision_brief_blocked_pending_owner_hosting_decision\tcommand_evidence_only_blocked",
+        "LT-L2-W01\tblocked_pending_l1_w06_hosting_decision_and_persistence_implementation\tstandard_five_blocked",
+        "LT-L3-W02\tblocked_pending_remote_repo_ci_container_staging_and_rollback_evidence\tstandard_five_blocked",
+        "LT-L3-W03\tblocked_pending_proxy_tls_cors_vault_and_staging_boundary_evidence\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W04 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "store_worm_infra_file_count",
+      "command": "find infra -maxdepth 4 -type f \\( -path '*/stores/*' -o -name '*worm*' -o -name '*ledger-store*' -o -name '*search*vector*' -o -name '*object-cache*' \\) 2>/dev/null | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no WORM or persistent store infra files exist."
+    },
+    {
+      "id": "w04_required_docs_presence",
+      "command": "test -f docs/launch/l3/worm-config.md; printf '%s\\n' $?; test -f docs/launch/l3/worm-rp03-precheck.md; printf '%s\\n' $?; test -f docs/launch/l3/data-layer-responsibility-map.md; printf '%s\\n' $?",
+      "exit_code": 0,
+      "output": [
+        "1",
+        "1",
+        "1"
+      ],
+      "purpose": "Verify WORM config, RP03 precheck, and data-layer responsibility map docs are absent."
+    },
+    {
+      "id": "audit_ledger_in_memory_markers",
+      "command": "rg -n \"const events = \\[\\]|eventByTenantIdempotencyKey|createAuditLedger|verifyHashChain\" packages/audit/src/append-only-ledger.js",
+      "exit_code": 0,
+      "output": [
+        "packages/audit/src/append-only-ledger.js:3:export function createAuditLedger() {",
+        "packages/audit/src/append-only-ledger.js:4:  const events = [];",
+        "packages/audit/src/append-only-ledger.js:6:  const eventByTenantIdempotencyKey = new Map();",
+        "packages/audit/src/append-only-ledger.js:10:      const existing = eventByTenantIdempotencyKey.get(idempotencyKey);",
+        "packages/audit/src/append-only-ledger.js:16:      eventByTenantIdempotencyKey.set(idempotencyKey, event);",
+        "packages/audit/src/append-only-ledger.js:29:      return verifyHashChain(tenantScopedEvents(events, tenant_id));",
+        "packages/audit/src/append-only-ledger.js:34:export function verifyHashChain(events, { maxClockSkewMs = 5 * 60 * 1000 } = {}) {"
+      ],
+      "purpose": "Verify current audit ledger is in-memory, not an operational WORM store."
+    },
+    {
+      "id": "downstream_docs_worm_blockers",
+      "command": "rg -n \"WORM audit store|Not provisioned|Audit restore target|LT-L3-W04\" docs/launch/l3/rpo-rto-decision.md docs/launch/l3/monitoring-stack-decision.md docs/launch/l3/slo-definition.md docs/launch/l3/operations-dashboard-definition.md docs/goal-closeout/lt-l2-w01/command-evidence.json",
+      "exit_code": 0,
+      "output_summary": [
+        "RPO/RTO decision draft states LT-L3-W04 WORM audit store is not provisioned.",
+        "Monitoring and SLO drafts depend on LT-L3-W04 WORM store and audit job.",
+        "L2-W01 evidence records audit ledger storage as in-memory and DB/WORM prerequisites as owner decision required."
+      ],
+      "purpose": "Verify downstream L3/L2 docs already depend on unprovisioned WORM storage."
+    },
+    {
+      "id": "store_smoke_script_count",
+      "command": "find packages scripts apps -maxdepth 4 -type f \\( -name '*store*smoke*' -o -name '*worm*smoke*' -o -name '*ledger*smoke*' -o -name '*cache*smoke*' -o -name '*vector*smoke*' \\) -print | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no store smoke scripts exist for W04 operational checks."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L3-W04.",
+    "This record does not provision WORM audit storage or persistent store infrastructure.",
+    "This record does not prove immutability, overwrite denial, append success, RP03 measurement, or store smoke tests.",
+    "This record does not update the audit ledger from in-memory to durable storage.",
+    "This record does not create or validate the seven-row data-layer responsibility map.",
+    "This record does not satisfy G4 or L3-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

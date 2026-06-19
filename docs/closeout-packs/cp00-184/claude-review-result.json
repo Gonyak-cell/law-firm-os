@@ -1,0 +1,69 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-184",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "session_id": "a42e4ddc-be93-4052-b251-dd82dbdca7dd",
+    "uuid": "94b70ff4-4cfb-41a0-8d60-cd56971ee060",
+    "duration_ms": null,
+    "duration_api_ms": null,
+    "total_cost_usd": 2.8123904999999993,
+    "permission_denials": [],
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-184/raw-output.json"
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-184/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-184/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C05.CP00-184.matter_core_fixture_evidence_terminal_entry",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "artifacts/closeout-pack-claude-review/cp00-184/prompt.txt",
+    "request_ref": "artifacts/closeout-pack-claude-review/cp00-184/review-request.json",
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-184/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-184/readiness-report.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Independent read-only review of CP00-184 (RP05 Matter Core, Risk C, 150 units, RP05.P04.M06.S16–RP05.P05.M05.S13). The pack-level production_ready_candidate claim is supported and correctly gated: implementation is descriptor-only with no-write/no-real-data boundaries embedded at code level (freeze helpers in service.js) and enforced by validator assertions (validators.js createMatterCoreCp184* family) and 4 CP184 tests; the local validator (scripts/validate-rp05-matter-core-contract.mjs) and all 7 command-evidence commands exit 0 (node --check x5, node --test, npm run rp05:matter-core:validate), asserting the fixture-evidence terminal descriptor (132 P05 entry cases across 6 surfaces x 22 case types, 12 golden, 24 failure, 30 fixtures) with all six no-leak guards true and handoff to CP00-185/RP05.P05.M05.S14. Crucially, production_ready is false everywhere (manifest, command-evidence, construction-inspection, adjudication) with only production_ready_candidate true — the pack does NOT prematurely claim production readiness or enterprise trust. CP178+ review hardening preconditions hold: readiness auth_preflight passed (stdout 1457 bytes, valid JSON result, not 0-byte/auth-failure/malformed), validation-report shows prompt within size limit, no forbidden tools, no omitted active untracked implementation files, and review schema present; this review used only Read/Grep/Glob and emits schema-conformant JSON. Claude remains a read-only independent reviewer and not the final approver (promotes_claude_to_final_approval=false, claude_not_final_approver=true, claims_enterprise_trust_from_local_validation=false). Hermes patterns are used only for deterministic control-plane evidence/packet/receipt handling (hermes_ui_evidence descriptors, hermes_gate H05, createMatterCore*HermesEvidencePacket) and never for product-runtime execution (no_loop_engine, no_citation_ledger_runtime, no_graph_provider_runtime all true). No P0 or P1 issues found. One P3 cosmetic observation: case_type 'failure_test' is grouped into the failure-case set while its per-case fixture outcome derives to 'passed'. AUTHORITY BOUNDARY: this PASS is an independent review signal only; per the pack authority boundary (claude_is_final_approver=false, human_final_approval_required_for_enterprise_trust_claim=true), final closeout still requires the deterministic Hermes H05 gate and human final approval — those gates remain open and are out of scope for this read-only review.",
+    "findings": [
+      {
+        "id": "CP184-P3-001",
+        "severity": "P3",
+        "title": "case_type 'failure_test' grouped in failure-case set but its per-case fixture outcome derives to 'passed'",
+        "file": "packages/matter/src/service.js",
+        "line": 724,
+        "details": "In the P05 entry fixture-case builder (p05EntryFixtureCase, ~line 724), the per-case outcome is computed as denied?'blocked':reviewRequired?'review_required':'passed'. The case_type 'failure_test' is neither a denied nor review-required type, so its individual outcome resolves to 'passed', yet 'failure_test' is included in the failureCases grouping (filter over ['denied_case','cross_tenant_case','missing_context_case','failure_test']) used to derive the failure_count of 24 in createMatterCoreFixtureEvidenceTerminalDescriptor. This is an internal naming/grouping nuance only: the aggregate invariants the validator and tests assert (132 total P05 cases, 12 golden, 24 failure, 30 fixtures, all six no-leak guards true) are all consistent and pass, and no leak-safety, no-write, or authority-boundary property is affected.",
+        "recommendation": "Non-blocking. Optionally either (a) rename the 'failure_test' case_type to clarify it is a fixture/test-harness case rather than an outcome-failure case, or (b) add a one-line comment at the outcome derivation noting that grouping membership (failure_case_set) is intentionally independent of the derived per-case outcome. No change is required for closeout.",
+        "post_review_disposition": "Acknowledged as cosmetic and non-blocking. Does not affect finding_counts gating, does not block pack or goal closeout, and leaves no unresolved P0/P1. May be deferred to a future RP05.P05 entry pack or left as-is."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

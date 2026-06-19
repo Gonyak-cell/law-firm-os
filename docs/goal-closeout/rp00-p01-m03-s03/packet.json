@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M03.S03",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Implement the HermesGate tenant scope field only, using canonical lfos_ tenant_id values and same-tenant context checks before Matter trace and full HermesGate model behavior are implemented.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m03-s03/packet.json",
+    "docs/goal-closeout/rp00-p01-m03-s03/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M03.S03 in implemented state.",
+    "Adds HERMES_GATE_TENANT_SCOPE_POLICY for the HermesGate tenant_id field with required canonical lfos_ tenant IDs, same-tenant invariant, cross-tenant failure mode, forbidden forms, no-real-data/no-write boundaries, and next boundary RP00.P01.M03.S04.",
+    "Adds normalizeHermesGateTenantId, validateHermesGateTenantId, and assertHermesGateTenantScope exports with fail-closed tenant handling.",
+    "Exposes hermesGateTenantScopePolicy through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY while keeping the HermesGate entity implementedInFutureSubphase=true and implementedSubphase=null.",
+    "Extends the synthetic fixture with hermes_gate_tenant_scope evidence bound to gate_id hg_rp00_h00_control_plane and tenant_id lfos_demo_tenant_layout.",
+    "Extends the RP00 validator and README with machine checks for the HermesGate tenant scope field slice."
+  ],
+  "non_goals": [
+    "Does not implement HermesGate Matter trace reference, lifecycle status enum, ownership metadata, reference relationship map, required/optional field registry, state transition map, validation helper, factory, or full HermesGate model.",
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not weaken or re-open ProductContract, AIControlRule, HermesGate package-layout, or HermesGate identifier production_ready slices.",
+    "Does not implement ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M03.S04."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M03.S04"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M03.S03 implement only the HermesGate tenant scope field and avoid claiming full HermesGate model completion?",
+    "Does HERMES_GATE_TENANT_SCOPE_POLICY enforce tenant_id, lfos_ stable prefix, lowercase snake-case canonical pattern, same-tenant checks, no-real-data/no-write boundaries, and next boundary RP00.P01.M03.S04?",
+    "Do normalizeHermesGateTenantId, validateHermesGateTenantId, and assertHermesGateTenantScope accept same-tenant fixture context, reject stored whitespace, and reject noncanonical or cross-tenant values?",
+    "Does CONTROL_PLANE_DOMAIN_MODEL_REGISTRY expose hermesGateTenantScopePolicy while keeping the HermesGate entity future-only with implementedSubphase=null?",
+    "Does the synthetic fixture record hermes_gate_tenant_scope with gate_id=hg_rp00_h00_control_plane, tenant_id=lfos_demo_tenant_layout, policy_ref=HERMES_GATE_TENANT_SCOPE_POLICY, no_real_data=true, writes_product_state=false, and next_subphase=RP00.P01.M03.S04?",
+    "Does the validator enforce S03 exports, fixture evidence, cross-tenant rejection, no-write policy, actual Claude dependency, construction inspection, and next-boundary evidence before production_ready?"
+  ],
+  "risk_focus": [
+    "Accidentally claiming HermesGate full model completion from a tenant-scope-only slice.",
+    "Accepting noncanonical or cross-tenant tenant IDs that would weaken evidence, command, blocked-claim, and closeout isolation.",
+    "Advancing Matter trace or model validation before RP00.P01.M03.S04-S11.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

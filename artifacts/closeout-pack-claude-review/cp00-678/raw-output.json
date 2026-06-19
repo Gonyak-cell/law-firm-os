@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-678",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T12:14:57.033Z",
+  "finished_at": "2026-06-14T12:19:53.302Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":295697,\"duration_api_ms\":296292,\"ttft_ms\":4859,\"num_turns\":45,\"result\":\"Review complete: **PASS**, no findings (P0/P1/P2/P3 all 0), does not block pack or goal closeout.\\n\\nCP00-678 is a descriptor-only, no-write, no-real-data, runtime-closed RP22 External Integrations I permission/audit + synthetic fixture bridge. Implementation (registry/service/validators/tests/contracts/validator) is internally consistent, coverage matches the baseline exactly, the authority boundary holds (Claude read-only and non-final; Hermes control-plane only), and evidence is honest (`production_ready=false`, `in_progress`, pending this review). The validation matrix (22/22 exit 0) and auth preflight were statically inspected from the evidence artifacts rather than re-executed, consistent with the read-only reviewer role.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e1bc718a-2add-400f-8ad5-22d52513cb73\",\"total_cost_usd\":1.8824984999999999,\"usage\":{\"input_tokens\":44,\"cache_creation_input_tokens\":112920,\"cache_read_input_tokens\":1315491,\"output_tokens\":20702,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":112920,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":308,\"cache_read_input_tokens\":108351,\"cache_creation_input_tokens\":4999,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4999},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1133,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001233,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":44,\"outputTokens\":20702,\"cacheReadInputTokens\":1315491,\"cacheCreationInputTokens\":112920,\"webSearchRequests\":0,\"costUSD\":1.8812654999999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-678 (RP22 External Integrations I permission/audit binding tail + synthetic fixture boundary, Risk A, 10 units RP22.P04.M05.S17-RP22.P04.M06.S04) passes hardened read-only review with no findings. Source inspection via Read/Grep/Glob confirms the pack is descriptor-only, no-write, no-real-data, and runtime-closed. registry.js EXTERNAL_INTEGRATIONS_I_CP678_PACK_BINDING/REQUIREMENTS (1991-2060), service.js freezeCp678Result (436-449) and createExternalIntegrationsICp678PermissionAuditFixtureBoundaryDescriptor + Hermes/Claude/handoff factories (2641-2703), and validators.js validateExternalIntegrationsICp678Coverage (680-701) / validateExternalIntegrationsICp678PermissionAuditFixtureBoundaryDescriptor (1555-1593) are internally consistent and enforce synthetic_only=true, no_real_data=true, descriptor_only=true, runtime_execution=false, raw_payload_included=false, unauthorized_count_included=false, golden_case_payload_included=false, and all external-api/oauth/sync/credential/permission/audit/UI/Hermes/fixture/test/persistence runtime boundaries=false; no fs/network/child_process/process.env usage exists in packages/integrations-core/src. Coverage matches the baseline and prompt exactly (test:1, hermes_evidence:1, claude_review:1, implementation:3, ui:4 = 10; Permission And Audit Binding:6 / Synthetic Fixture Set:4; RP22.P04:10, M05:6, M06:4; first RP22.P04.M05.S17, last RP22.P04.M06.S04). model.test.js asserts CP678 coverage (336-346) and descriptor no-runtime behavior (613-633): pack_id CP00-678, descriptor-only flags, unauthorized_count_included=false, ui/external-api runtime closed, Hermes runtime_receipt_emitted=false, Claude read_only=true and promotes_claude_to_final_approval=false, and handoff to CP00-679 / RP22.P04.M06.S05; the projection test (635-663) confirms both contract files project CP00-678 as current_pack, pass validateExternalIntegrationsICoreContractProjection, and deep-equal cp678_requirements and cp678_no_write_attestation. Both contract files carry generated_from_pack_id/current_pack CP00-678 (integrations-core-contract.json 69-84; external-integrations-i-contract.json 3, 25003+), and scripts/validate-rp22-external-integrations-i-contract.mjs rebuilds the projection and compares it to the committed contracts read-only (writes gated behind --write). Authority boundary holds: Claude is a read-only independent reviewer and not final approver (descriptor authority_boundary claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true; claude_packet read_only=true), and Hermes is used only as a deterministic control-plane review-packet/receipt pattern (hermes_runtime_opened=false, runtime_receipt_emitted=false, emits_hermes_runtime_receipt=false, command_result pending_until_closeout_pack_validation) — not product runtime. Evidence is honest and not over-claimed: manifest, adjudication, and construction-inspection report production_ready=false, runtime_ready=false, status in_progress, pending exactly one valid hardened review; the production_ready_flag external_integrations_i_permission_audit_fixture_boundary_descriptor_verified is correctly gated on this review. Provenance note: command-evidence records 22/22 validation commands at exit 0 with writes_product_state=false and no_real_data=true, and readiness auth_preflight passed (exit 0, 1432-byte valid-JSON stdout, no 0-byte/malformed/fenced/tool-call-shaped/auth-failure evidence) — these were statically inspected from the evidence artifacts, not independently re-executed in this read-only review. No prior invalid review attempts exist (invalid_review_attempts=[]; no raw-output.json/review-receipt.json present yet — this is the first and only review). The changed-file scope is correct: active refs are the integrations-core package, both contracts, the RP22 validator, and the cp00-678 docs, while unrelated dirty/untracked files (closeout-pack-plan/next-pack-queue, new-session-handoff, LDIP results, workbook matter docs, progress-control-room) are preserved and not inferred into the pack (active_untracked_implementation_files_omitted=[]). This PASS receipt does not constitute final human/enterprise-trust approval, which remains outside this receipt and is not claimed by the pack; blocks_goal_closeout is false for this CP closeout goal only.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"a2c9e977-9cf2-47a7-bd13-ee3697568a53\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6800,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e1bc718a-2add-400f-8ad5-22d52513cb73",
+    "uuid": "a2c9e977-9cf2-47a7-bd13-ee3697568a53",
+    "total_cost_usd": 1.8824984999999999,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

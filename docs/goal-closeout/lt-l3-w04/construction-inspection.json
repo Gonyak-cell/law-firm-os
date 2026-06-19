@@ -1,0 +1,28 @@
+{
+  "work_package_id": "LT-L3-W04",
+  "inspected_at": "2026-06-18T13:19:50Z",
+  "verdict": "BLOCKED_WORM_AND_PERSISTENT_STORES_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "store_worm_infra_file_count": 0,
+    "worm_config_exists": false,
+    "worm_rp03_precheck_exists": false,
+    "data_layer_responsibility_map_exists": false,
+    "store_smoke_script_count": 0,
+    "audit_ledger_storage": "in_memory",
+    "operational_worm_store_provisioned": false,
+    "persistent_store_family_provisioned": false,
+    "rp03_operational_measurement_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "storage_provisioned": false,
+    "audit_ledger_migrated": false,
+    "owner_decision_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

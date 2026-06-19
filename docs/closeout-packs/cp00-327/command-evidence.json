@@ -1,0 +1,88 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-327",
+  "subphase_id": "RP10.P04.M06.S15",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp10:intake-core:validate",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was loaded, written, or exposed.",
+    "Descriptor-only CP00-327 evidence binds planned RP10 rows without opening runtime UI, API, AI, permission, audit, or storage execution.",
+    "Claude review was waived by explicit owner instruction for this run and is not counted as valid review evidence."
+  ],
+  "review_hardening": {
+    "baseline_ref": null,
+    "readiness_ref": null,
+    "raw_output_ref": null,
+    "receipt_ref": null,
+    "invalid_attempts_preserved": [],
+    "review_waived_by_user": true,
+    "waiver": {
+      "applies_to_pack_id": "CP00-327",
+      "date": "2026-06-11",
+      "owner_instruction": "클로드 리뷰 일단은 생략하고 전체 완료까지 골로 설정하고 327부터 진행",
+      "reason": "User explicitly instructed this run to skip Claude review for now.",
+      "not_counted_as_valid_review": true,
+      "future_precedent": false
+    }
+  }
+}

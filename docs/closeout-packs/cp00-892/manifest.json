@@ -1,0 +1,437 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-892",
+  "planned_pack_id": "CP00-892",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "opens_runtime": false,
+    "writes_product_state": false,
+    "uses_real_client_data": false,
+    "summary": "CP00-892 closes the RP29 Commercial Readiness P08 Hermes evidence type/shape semantics slice across RP29.P08.M02.S08-RP29.P08.M02.S17. It binds audit-summary, no-real-data, Claude-dependency, human-approval, PASS, PASS_WITH_FINDINGS, BLOCK, evidence-template, validation-command, and harness-boundary rows as descriptor-only evidence with no workflow execution, command execution, runtime receipt emission, permission write, audit write, product-state write, credentials, secrets, or real client payloads.",
+    "source_refs": [
+      "packages/commercial/README.md",
+      "packages/commercial/src/registry.js",
+      "packages/commercial/src/validators.js",
+      "packages/commercial/src/model.js",
+      "packages/commercial/src/states.js",
+      "packages/commercial/src/policies.js",
+      "packages/commercial/src/service.js",
+      "packages/commercial/src/interface.js",
+      "packages/commercial/src/ui.js",
+      "packages/commercial/test/model.test.js",
+      "packages/commercial/test/service.test.js",
+      "contracts/commercial-readiness-contract.json",
+      "contracts/commercial-contract.json",
+      "scripts/validate-rp29-commercial-readiness-contract.mjs",
+      "package.json",
+      "packages/commercial/src/index.js",
+      "packages/commercial/package.json"
+    ]
+  },
+  "program_id": "RP29",
+  "risk_class": "A",
+  "planned_risk_class": "A",
+  "unit_count": 10,
+  "planned_unit_count": 10,
+  "primary_subphase_id": "RP29.P08.M02.S08",
+  "next_subphase": "RP29.P08.M02.S18",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "production_ready_flag": "commercial_readiness_hermes_semantics_descriptor_verified",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-892",
+    "planned_pack_id": "CP00-892",
+    "title": "CP00-892 RP29.P08.M02.S08-RP29.P08.M02.S17 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP29.P08.M02.S08",
+      "last_unit_id": "RP29.P08.M02.S17",
+      "description": "RP29.P08.M02.S08-RP29.P08.M02.S17"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP29.P08.M02.S08",
+        "title": "Audit summary receipt",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP29.P08.M02.S09",
+        "title": "No-real-data receipt",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP29.P08.M02.S10",
+        "title": "Claude dependency marker",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP29.P08.M02.S11",
+        "title": "Human approval marker",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P08.M02.S12",
+        "title": "PASS semantics",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P08.M02.S13",
+        "title": "PASS_WITH_FINDINGS semantics",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P08.M02.S14",
+        "title": "BLOCK semantics",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P08.M02.S15",
+        "title": "Evidence template",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP29.P08.M02.S16",
+        "title": "Validation command check",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P08.M02.S17",
+        "title": "Harness boundary note",
+        "source_micro_phase_id": "RP29.P08.M02",
+        "program_id": "RP29",
+        "phase_id": "RP29.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP29.P08.M02.S08",
+      "title": "Audit summary receipt",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S09",
+      "title": "No-real-data receipt",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S10",
+      "title": "Claude dependency marker",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "docs/closeout-packs/cp00-892/claude-review-result.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S11",
+      "title": "Human approval marker",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S12",
+      "title": "PASS semantics",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S13",
+      "title": "PASS_WITH_FINDINGS semantics",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S14",
+      "title": "BLOCK semantics",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S15",
+      "title": "Evidence template",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S16",
+      "title": "Validation command check",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P08.M02.S17",
+      "title": "Harness boundary note",
+      "source_micro_phase_id": "RP29.P08.M02",
+      "program_id": "RP29",
+      "phase_id": "RP29.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-892/manifest.json",
+        "docs/closeout-packs/cp00-892/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-892/manifest.json",
+    "docs/closeout-packs/cp00-892/command-evidence.json",
+    "docs/closeout-packs/cp00-892/claude-review-result.json",
+    "docs/closeout-packs/cp00-892/adjudication.md",
+    "docs/closeout-packs/cp00-892/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-892/review-receipt.json",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-892/review-receipt.json"
+    ],
+    "invalid_review_attempts": []
+  },
+  "commit_policy": {
+    "required": true,
+    "status": "pending_commit_after_validation"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "subphase_id": "RP00.P02.M03.S02",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Request normalization",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T05:41:05Z",
+  "exactly_one_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "95395d2d-6a06-4a63-af8d-f0f6953409a4",
+    "uuid": "3227fdb4-ccd8-405f-b439-e73eb54c6190",
+    "duration_ms": 521388,
+    "duration_api_ms": 523303,
+    "total_cost_usd": 1.66280025,
+    "permission_denials": [],
+    "write_tools_granted": false
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s02-claude-prompt.txt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s02-claude-review.json",
+    "duration_ms": 521388,
+    "duration_api_ms": 523303,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "3227fdb4-ccd8-405f-b439-e73eb54c6190",
+    "session_id": "95395d2d-6a06-4a63-af8d-f0f6953409a4"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS_WITH_FINDINGS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "C00-S02-001",
+        "severity": "P3",
+        "title": "closeout_requirements.production_ready_requires swaps the stale S11 lock-acquisition verification key directly for the S02 normalization key, skipping any S01 verification key.",
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "accepted_deferred_cleanup",
+        "rationale": "The diff shows that immediately before S02 the array still carried control_plane_ai_implementation_handoff_lock_acquisition_rule_verified (S11) and never carried an S01-specific verification key. This indicates the array is not enforced to contain each subphase's own construction-inspection flag; actual enforcement lives in the per-subphase inspection checks in scripts/validate-rp00-control-plane-contract.mjs. The S02 change itself is correct, but the array's apparent role as a reliable per-subphase closeout checklist is weaker than it looks. Non-blocking and not a boundary violation. Accept as-is for S02 (the control_plane_hermes_validation_request_normalization_verified entry is correct and matches the new inspection check). Optionally, in a later cleanup, decide whether production_ready_requires should hold a stable generic gate set rather than rotating one subphase-specific key, since per-subphase enforcement is already handled by the construction-inspection checks."
+      }
+    ],
+    "boundary_assessment": {
+      "metadata_only_preserved": true,
+      "no_runtime_route_preserved": true,
+      "no_hermes_execution_preserved": true,
+      "no_evidence_creation_preserved": true,
+      "tenant_matter_permission_audit_deferred": true,
+      "single_review_sufficient_for_closeout": true
+    },
+    "summary": "S02 implements only Hermes Validation request normalization: it consumes an M00 S03 allow_metadata_only tenant-boundary precheck result for entrypoint hermes_validation, emits a frozen metadata-only normalized request carrying the S01 validation contexts, TEN-001..TEN-008 trace refs, and S01 acceptance gates, and defers tenant/Matter/permission/audit prechecks to S03-S06. Fail-closed guards reject non-hermes entrypoints, denied/wrong-marker prechecks, service-execution permission, real-data/write prechecks, and every forbidden or unknown input claim (product-write, service execution, runtime route, tenant-lifecycle mutation, Hermes execution/evidence, and requirement-trace/human-approval/tenant-boundary/Hermes-gate/Claude-review bypass), with the output asserting all execution and route flags false and no_real_data true. Policy/normalizer/validator, the synthetic fixture, the contract definition, and the standalone validator are mutually cross-checked and the test suite exercises the happy path, frozen-array immutability, and 18 fail-closed cases. H00/C00 and human-approval boundaries are preserved. Only a single P3 documentation-level observation on the production_ready_requires array; no P0/P1/P2 findings, so the single read-only C00 review is sufficient for closeout once the S02 production_ready evidence files are written."
+  },
+  "adjudicated_findings": {
+    "p0": [],
+    "p1": [],
+    "p2": [],
+    "p3": [
+      {
+        "id": "C00-S02-001",
+        "severity": "P3",
+        "finding": "closeout_requirements.production_ready_requires swaps the stale S11 lock-acquisition verification key directly for the S02 normalization key, skipping any S01 verification key.",
+        "disposition": "accepted_deferred_cleanup",
+        "rationale": "S02 correctly requires control_plane_hermes_validation_request_normalization_verified in both closeout requirements and the per-subphase construction inspection validator. The generic production_ready_requires rotation is a documentation/checklist cleanup concern outside the S02 request-normalization behavior and does not weaken the executable gate.",
+        "blocks_subphase_closeout": false
+      }
+    ]
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "num_turns": 1,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s02-claude-review.json",
+    "summary": "Claude returned PASS_WITH_FINDINGS, blocks_subphase_closeout false, blocks_goal_closeout false, with one P3 finding and no P0/P1/P2 findings."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

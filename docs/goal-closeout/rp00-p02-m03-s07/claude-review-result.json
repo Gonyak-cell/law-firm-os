@@ -1,0 +1,93 @@
+{
+  "subphase_id": "RP00.P02.M03.S07",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Primary happy path",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T07:53:26Z",
+  "exactly_one_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "07e70fa6-7e45-4207-86ab-334cd09d315f",
+    "uuid": "ae5e2fec-03bb-4c21-a03d-cc0d8bc4d090",
+    "duration_ms": 264383,
+    "duration_api_ms": 266606,
+    "total_cost_usd": 1.0983735000000001,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s07-claude-prompt.txt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s07-claude-review.json",
+    "parsed_output_file": "/tmp/lfos-rp00-p02-m03-s07-claude-review-parsed.json",
+    "duration_ms": 264383,
+    "duration_api_ms": 266606,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "ae5e2fec-03bb-4c21-a03d-cc0d8bc4d090",
+    "session_id": "07e70fa6-7e45-4207-86ab-334cd09d315f"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [],
+    "required_followups": [
+      "Create docs/goal-closeout/rp00-p02-m03-s07 closeout evidence so npm run rp00:control-plane:validate passes; this is the normal post-review closeout step, not a code defect."
+    ],
+    "review_notes": [
+      "Scope is respected: the only executable behavior is precheckControlPlaneHermesValidationPrimaryHappyPath, a pure function with no I/O, no Hermes execution, no audit/ledger writes, and no product-state mutation.",
+      "Defense-in-depth on claims rejects every forbidden claim by name and rejects unknown truthy claims.",
+      "Input integrity rejects non-object/array input, non-hermes_validation entrypoint, non-S06 marker, denied audit_hint_decision, unsatisfied audit_event_ref, and re-runs assertControlPlaneHermesValidationAuditHintPrecheckResult.",
+      "Contract/fixture/module parity is independently enforced by validate-rp00-control-plane-contract.mjs and service tests, including firm-level null Matter handling and rejection scenarios."
+    ],
+    "summary": "RP00.P02.M03.S07 correctly implements a deterministic, metadata-only Hermes Validation Primary happy path that consumes the S06 audit hint precheck result, emits a frozen receipt, preserves every required carry-forward, and hands off to S08. All prohibited actions are enforced via hard-coded false flags plus fail-closed rejection of truthy claims. Policy/result/prechecker/fixture/contract are mutually consistent and thoroughly tested. No P0/P1/P2 findings."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s07-claude-review.json",
+    "summary": "Claude returned PASS with no findings; only required follow-up was normal S07 closeout evidence creation."
+  },
+  "overall_verdict": "PASS"
+}

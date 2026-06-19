@@ -1,0 +1,171 @@
+{
+  "schema_version": "law-firm-os.command-evidence.v0.1",
+  "subphase_id": "RP00.P01.M05.S11",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Validation helper",
+  "entity": "HumanApproval",
+  "status": "passed",
+  "recorded_at": "2026-06-04T03:46:01Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "cannot_synthesize_human_approval": true,
+  "hermes_gate_evidence": {
+    "gate_id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "result": "passed"
+  },
+  "commands": [
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "purpose": "Control-plane contract and synthetic fixture JSON parse check"
+    },
+    {
+      "command": "node --check packages/control-plane/src/model.js",
+      "exit_code": 0,
+      "purpose": "Control-plane model syntax check"
+    },
+    {
+      "command": "node --check packages/control-plane/src/registry.js",
+      "exit_code": 0,
+      "purpose": "Control-plane registry syntax check"
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "RP00 contract validator syntax check"
+    },
+    {
+      "command": "node --test packages/control-plane/test/model.test.js",
+      "exit_code": 0,
+      "purpose": "Focused control-plane model tests after S11 implementation and post-Claude P2 hardening",
+      "test_count": 40,
+      "pass_count": 40
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "227 requirement ledger validation",
+      "requirement_count": 227
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "Weighted implementation ledger validation",
+      "implementation_subphase_count": 54355
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "Full microphase plan validation",
+      "micro_phase_count": 3300,
+      "release_program_count": 30
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "Law Firm OS product contract validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "Global goal closeout protocol validation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "Full repo test suite before closeout evidence creation",
+      "test_count": 63,
+      "pass_count": 63
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "purpose": "Whitespace and patch hygiene check"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Hermes H00 control-plane contract validation after S11 closeout evidence recording"
+    }
+  ],
+  "pre_closeout_expected_failure": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "result": "failed only because docs/goal-closeout/rp00-p01-m05-s11 evidence files were not yet recorded"
+  },
+  "post_claude_finding_validation": [
+    {
+      "command": "node --check packages/control-plane/src/model.js",
+      "exit_code": 0,
+      "purpose": "Validate model syntax after adding explicit HumanApproval tenant-scope helper enforcement"
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "Validate RP00 validator syntax after adding terminal-status negative check"
+    },
+    {
+      "command": "node --test packages/control-plane/test/model.test.js",
+      "exit_code": 0,
+      "purpose": "Validate focused HumanApproval validation-helper tests after single completed Claude review",
+      "test_count": 40,
+      "pass_count": 40
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was imported, read from production, or written by this subphase.",
+    "All validation commands are no-write evidence commands; this subphase only defines HumanApproval validation helper behavior and registry completion metadata.",
+    "Claude review is limited to one completed claude-opus-4-8 max read-only review; post-review fixes are validated locally and through Hermes without rerunning Claude.",
+    "The HumanApproval model slice is complete for RP00.P01.M05 and the next boundary is RP00.P01.M06.S01."
+  ],
+  "final_validation_rerun": {
+    "recorded_at": "2026-06-04T03:48:31Z",
+    "commands": [
+      {
+        "command": "npm run rp00:control-plane:validate",
+        "exit_code": 0,
+        "result": "RP00 control-plane contract validation passed; subphase RP00.P01.M05.S11 status production_ready"
+      },
+      {
+        "command": "npm run spec:requirements:validate",
+        "exit_code": 0,
+        "requirement_count": 227
+      },
+      {
+        "command": "npm run validate",
+        "exit_code": 0,
+        "modules": "9/9",
+        "principles": "9/9",
+        "invariants": "7/7"
+      },
+      {
+        "command": "npm run weighted:validate",
+        "exit_code": 0,
+        "implementation_subphase_count": 54355
+      },
+      {
+        "command": "npm run fullplan:validate",
+        "exit_code": 0,
+        "micro_phase_count": 3300,
+        "release_program_count": 30
+      },
+      {
+        "command": "npm run goal:closeout:validate",
+        "exit_code": 0,
+        "claude": "claude-opus-4-8 effort=max read-only"
+      },
+      {
+        "command": "npm test",
+        "exit_code": 0,
+        "test_count": 63,
+        "pass_count": 63
+      }
+    ]
+  }
+}

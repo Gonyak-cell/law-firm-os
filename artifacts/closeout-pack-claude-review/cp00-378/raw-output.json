@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-378",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T21:09:27.995Z",
+  "finished_at": "2026-06-11T21:15:18.624Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":349669,\"duration_api_ms\":350340,\"ttft_ms\":3152,\"num_turns\":45,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** — CP00-378 is a consistent descriptor-only pack with all boundaries intact (no-write/no-real-data, read-only non-final-approver authority, Hermes used only for review evidence). No P0/P1/P2 defects; one non-blocking P3 noting the post-review artifacts are pending by design and that `production_ready` correctly stays `false`. Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"6fa1ee5b-b277-4f35-a534-b29e8fea3e0b\",\"total_cost_usd\":1.943707,\"usage\":{\"input_tokens\":46,\"cache_creation_input_tokens\":94964,\"cache_read_input_tokens\":1362154,\"output_tokens\":26708,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":94964,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":196,\"cache_read_input_tokens\":99872,\"cache_creation_input_tokens\":3487,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3487},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1075,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001175,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":46,\"outputTokens\":26708,\"cacheReadInputTokens\":1362154,\"cacheCreationInputTokens\":94964,\"webSearchRequests\":0,\"costUSD\":1.942532,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-378 is a clean, internally consistent descriptor-only pack for the RP12.P05 implementation slice (10 units, RP12.P05.M03.S09-S18, risk A). Verified via Read/Grep/Glob only — no commands run, no writes.\\n\\nScope & distribution: pack_id, risk_class A, unit_count 10, range, upstream CP00-377, next CP00-379, next_subphase S19 all agree across manifest, closeout-pack-plan.json, review-baseline, registry binding (BILLING_CORE_CP378_PACK_BINDING), and contract current_pack. Deliverable distribution implementation:3, security_audit:2, fixture:1, test:3, hermes_evidence:1 (=10) is identical in prompt, manifest delivery_counts, cp378_requirements.deliverable_counts, and the plan's included_units. The 10 row titles (Cross-tenant case … Claude missing-test prompt) map exactly to S09-S18 and match registry required_section_rows, contract, and the service case-set.\\n\\nImplementation: service.js defines the case-set and descriptor builders; validators.js defines coverage, slice, Hermes evidence, Claude review packet, and closeout handoff — following the established CP377 pattern. All 7 required_public_exports are present and auto re-exported through index.js (`export *`), so the unmodified index.js is correct. model.test.js asserts coverage.valid, slice.valid, descriptor-only rows (descriptor_only=true, runtime_execution=false), authority boundary, handoff target/subphase, and no-write attestation flags. command-evidence.json records node --check/--test, rp12:billing-core:validate, npm test, validate, fullplan/goal/control-plane validates, build, and git diff --check all at exit 0; Hermes gate H12 passed.\\n\\nBoundaries: extensive no-write/no-real-data attestations (descriptor_only, no billing/proforma/invoice/write-down runtime, no DB/object-storage/audit writes, no real fixture data, no Hermes runtime receipt, no leak guards). Authority boundary preserved — claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, promotes_claude_to_final_approval=false. Hermes patterns appear only as a deterministic descriptor evidence packet (H12.CP00-378…/receipt shape), not product runtime. production_ready and runtime_ready are correctly false; the pack does not over-claim readiness.\\n\\nReview hardening (CP178+): auth preflight passed (exit 0, valid JSON, is_error=false, 1434-byte stdout); prompt 2173 bytes < 25600; tools limited to Read/Grep/Glob (no forbidden tools); summary-only review correctly prohibited due to security/audit deliverables, so source was inspected directly; forbidden_review_evidence list (auth failure, 0-byte, malformed/fenced JSON, tool-call-shaped, missing fields) is encoded in requirements.\\n\\nNo P0/P1/P2 defects found. One non-blocking P3 note that the post-review artifacts are still pending by design. Claude remains a read-only independent reviewer; final enterprise-trust/runtime approval remains a human gate and is not asserted here.\",\"findings\":[{\"id\":\"CP378-P3-01\",\"severity\":\"P3\",\"title\":\"Post-review evidence artifacts pending by design; production_ready correctly remains false\",\"file\":\"docs/closeout-packs/cp00-378/manifest.json\",\"line\":6,\"details\":\"manifest.required_pack_artifacts and each unit's evidence_refs list claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in docs/closeout-packs/cp00-378/. This is expected at the read_only_claude_run_raw_capture stage of the hardening_sequence: those artifacts are produced downstream from this review (normalize -> finding_adjudication -> construction_inspection). Consistent with this, manifest status is 'implemented_pending_review', pack_level_claude_review.status is 'pending', production_ready=false, and runtime_ready=false. command-evidence.json notes the post-review gated commands (closeout-pack:review:run/normalize/receipt:validate, closeout-pack-plan:generate, closeout-pack:validate, git diff --check --cached) are still to be executed before commit. Not a defect in the implementation under review.\",\"recommendation\":\"Generate the three post-review artifacts from this accepted review, run the post-review gated validation commands, and keep production_ready=false and runtime_ready=false until human final approval opens runtime in a later pack. No change to the descriptor implementation is required.\",\"post_review_disposition\":\"Expected/by-design at the read_only review stage; non-blocking. Confirms the pack is not over-claiming readiness and that Claude is not acting as final approver.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"4df63587-6edc-4688-8f53-48df18c28c63\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6633,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "6fa1ee5b-b277-4f35-a534-b29e8fea3e0b",
+    "uuid": "4df63587-6edc-4688-8f53-48df18c28c63",
+    "total_cost_usd": 1.943707,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

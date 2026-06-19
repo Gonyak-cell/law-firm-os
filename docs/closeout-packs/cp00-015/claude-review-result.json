@@ -1,0 +1,117 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-015",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "cfb0b707-adeb-4464-96b5-a4d6efdfc856",
+    "uuid": "aa16576f-bb2e-421a-9ac1-0d70be0d705e",
+    "duration_ms": 204505,
+    "duration_api_ms": 205852,
+    "total_cost_usd": 1.89587225,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "Moderate. Full analysis of the unified diff across 8 files plus the S19 contract/fixture snapshots, cross-checking policy/module/validator/fixture/test consistency and scope-boundary flags. No local file-read tools were available, so verification leaned on the provided diff and the pre-review command evidence (node --check, node --test 413/413, contract validator).",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 49589,
+        "outputTokens": 22,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.049699,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 7,
+        "outputTokens": 17974,
+        "cacheReadInputTokens": 232239,
+        "cacheCreationInputTokens": 204907,
+        "webSearchRequests": 0,
+        "costUSD": 1.84617325,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "file": "packages/control-plane/src/validators.js",
+        "line": 8364,
+        "title": "Policy assert uses inclusion-only checks for several arrays (no length/exact-match guard)",
+        "description": "assertControlPlanePermissionAuditBindingUnitTestHappyPathPolicy enforces exact length only for requiredInputFields and testedSubphaseIds. For testedExports, goldenAssertions, fixtureIntegrityRules, bindingContextIds, and acceptanceGateIds it uses requireArrayIncludesAll (inclusion only), so extra/appended entries in those arrays would not be caught by the policy assertion itself. Drift is still caught by the contract validator's JSON.stringify equality and the test-file deepEquals, and this mirrors the established pattern in prior M05 subphases, so risk is low.",
+        "recommendation": "Defer. Optionally add length or exact-equality guards for the remaining arrays in a future consistency pass to make the policy assertion self-sufficient."
+      },
+      {
+        "severity": "P3",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": 14082,
+        "title": "Golden chain test asserts S02-S18 refs explicitly but not the S01 entrypoint contract ref",
+        "description": "The 'validates S01 through S18 golden chain' test explicitly asserts the per-subphase refs for S02 through S18 and entrypoint_id, but does not explicitly assert service_entrypoint_contract_ref === 'RP00.P02.M05.S01'. S01 coverage is transitive via assertControlPlanePermissionAuditBindingRetryBehaviorResult(result) and the fixture deepEqual in the adjacent fixture test, so the chain is still fully verified.",
+        "recommendation": "Defer. Optionally add an explicit assert.equal(result.service_entrypoint_contract_ref, 'RP00.P02.M05.S01') so the test name's S01 claim is asserted directly."
+      },
+      {
+        "severity": "P3",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 42613,
+        "title": "Live-mirror check depends on JSON.stringify key-order equality",
+        "description": "The validator compares the fixture golden_result to the live precheckControlPlanePermissionAuditBindingRetryBehavior output via JSON.stringify equality, which is sensitive to key ordering. It passes today (the fixture was authored to match emission order), but it is a brittle coupling if the precheck object's key order ever changes. This is a pre-existing pattern reused across all M05 subphases, not introduced or worsened by S19.",
+        "recommendation": "Defer. If revisited project-wide, switch to an order-insensitive deep-equality comparison for the golden_result mirror."
+      }
+    ],
+    "security_notes": [
+      "Fixture is synthetic-only: tenant.synthetic.lawfirm, user.synthetic.permission-audit, matter.synthetic.control-plane; fixture_integrity_rules enforce synthetic_only / no_real_client_data / no_real_matter_data / no_credentials_or_secrets.",
+      "No secrets, credentials, or real client/matter data present in the diff.",
+      "No runtime I/O introduced: only readFile of the local synthetic fixture inside tests; no DB/storage/audit/retry writes, no network, no eval/dynamic code, no shell — no injection surface.",
+      "Product boundary intact: diff is confined to packages/control-plane, the control-plane contract, the validator script, and the README; no product runtime, HRX, or G30 code touched.",
+      "All write/execution capabilities are explicitly denied at the data level (every *_permitted flag false), reinforcing the metadata-only boundary."
+    ],
+    "test_notes": [
+      "Pre-review evidence: node --test packages/control-plane/test/service.test.js PASS 413/413; node --check PASS on all five touched JS files; git diff --check PASS.",
+      "Four new S19 tests: policy binding, S01-S18 golden chain, fixture golden-proof + synthetic integrity, and module no-write flags.",
+      "Golden proof is legitimate for a happy-path deliverable: proof_type golden_unit_test, failing_then_passing_or_golden=golden; deterministic result construction asserted against the synthetic fixture golden_result via deepEqual.",
+      "Contract validator adds an S19 coverage block: weighted boundary (terminal false, next S20), closeout flag, definition field/array checks, policy+module object checks, function-export checks, fixture checks, live precheck mirror, and README/test source-text presence; construction-inspection gate requires control_plane_permission_audit_binding_unit_test_happy_path_verified for the S19 closeout.",
+      "rp00:control-plane:validate currently fails only on the not-yet-created docs/closeout-packs/cp00-015/* evidence files (expected); that the run reports only those errors confirms prior-subphase fixture variables referenced in the new block (fixturePermissionAuditBindingRollbackBehavior / RetryBehavior) resolve correctly.",
+      "Minor: the 'S01 through S18' test does not explicitly assert the S01 entrypoint contract ref (covered transitively); see P3 finding."
+    ],
+    "summary": "CP00-015 (RP00.P02.M05.S19 'Unit test: happy path') is a clean, scope-compliant, test/metadata-only pack. It adds a frozen policy, a metadata module + getter, a pure validator, four tests, and a synthetic fixture, plus contract/script/README wiring. No P0/P1/P2 issues. S19 correctly does NOT claim RP00.P02.M05 completion and forbids all runtime/write/retry/audit/Hermes execution (all *_permitted flags false, all doesNot* flags true); M05 stays open and hands off to S20 (denied path) consistently across contract, policy, module, fixture, and weighted ledger. The S01-S18 golden chain is proven via deterministic result construction, full-object assertion, and a live-vs-fixture deepEqual mirror; the contract validator cross-checks definition, policy/module objects, fixture, source/README text, weighted boundary, and construction-inspection. Pre-review evidence (node --check PASS; node --test 413/413 PASS; contract validator passing except for the deliberately-uncreated pack files) corroborates internal consistency. Approve as production-ready once the standard CP00-015 evidence files (manifest, command-evidence, claude-review-result, adjudication, construction-inspection) are generated. Three P3 observations are noted for deferral."
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-015.",
+    "Claude returned approve with zero P0, zero P1, and zero P2 findings.",
+    "Three P3 findings are explicitly deferred because they are low-risk consistency hardening items and do not block production_ready under the pack policy.",
+    "The expected pre-evidence RP00 failure is resolved by creating this CP00-015 evidence and rerunning final validation."
+  ]
+}

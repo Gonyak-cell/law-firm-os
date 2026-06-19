@@ -1,0 +1,97 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-815",
+  "subphase_id": "RP26.P07.M05.S21",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data used; CP00-815 uses descriptor-only RP26 enterprise SaaS failure-recovery permission/audit closeout handoff evidence."
+  ],
+  "commands": [
+    {
+      "id": "closeout_pack_plan_validate",
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "validate_closeout_pack_script_syntax",
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_validate_all",
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_test",
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_validate",
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "weighted_validate",
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "fullplan_validate",
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "goal_closeout_validate",
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "critical_rps_validate",
+      "command": "npm run critical-rps:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp26_validate",
+      "command": "npm run rp26:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp26_enterprise_saas_validate",
+      "command": "npm run rp26:enterprise-saas:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "build",
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "id": "git_diff_check",
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

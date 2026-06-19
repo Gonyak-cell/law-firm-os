@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-L1-W06",
+  "title": "hosting stack and RP26 scoping decisions",
+  "created_at": "2026-06-18T14:46:00Z",
+  "status": "decision_brief_blocked_pending_owner_hosting_decision",
+  "phase": "L1",
+  "gate_binding": [
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W06-T03",
+  "artifacts": [
+    "docs/launch/hosting-stack-rp26-decision-brief.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w06/packet.json",
+    "docs/goal-closeout/lt-l1-w06/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w06/adjudication.md",
+    "docs/goal-closeout/lt-l1-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "stack_component_rows": 7,
+    "rp26_scoping_rows": 12,
+    "decision_register_rows_added": 0,
+    "l3_entry_condition_satisfied": false,
+    "human_decision_synthesized": false,
+    "hosting_decision_present": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.launch-deferral-decision-register-template.validation.v0.1",
+  "generated_at": "2026-06-18T16:53:25.939Z",
+  "source_refs": [
+    "docs/launch/launch-deferral-decision-register-template.json",
+    "docs/launch/launch-deferral-decision-register-template.md",
+    "docs/launch/launch-deferral-resolution-lanes-audit.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "template_row_count": 117,
+    "source_missing_deferral_target_count": 117,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "placeholder_row_count": 117,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "validates_template_structure_only": true,
+    "go_live_approved_by_validation": false,
+    "owner_deferrals_approved_by_validation": false,
+    "launch_decision_register_modified_by_validation": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "findings": []
+}

@@ -1,0 +1,31 @@
+{
+  "work_package_id": "LT-L3-W10",
+  "inspected_at": "2026-06-18T13:29:40Z",
+  "verdict": "BLOCKED_SSO_MFA_EMPLOYEE_MAPPING_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "conditional_access_policy_export_exists": false,
+    "mfa_login_attempt_record_exists": false,
+    "sso_e2e_report_exists": false,
+    "protected_api_200_verified": false,
+    "unauthenticated_401_403_verified": false,
+    "expired_token_401_verified": false,
+    "cross_tenant_rejection_verified": false,
+    "user_employee_mapping_report_exists": false,
+    "mapping_reconciliation_mismatch_zero_verified": false,
+    "mapping_write_audit_count_match_verified": false,
+    "sso_descriptor_only": true,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "m365_admin_action_executed": false,
+    "entra_login_executed": false,
+    "employee_mapping_loaded": false,
+    "audit_events_written": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-754",
+  "subphase_id": "RP24.P09.M06.S12",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data used.",
+    "Descriptor-only Korean Legal Depth evidence; no HWPX, court filing, litigation deadline, corporate document, Hermes runtime, or product-state write opened."
+  ],
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.449Z",
+      "finished_at": "2026-06-15T12:27:03.480Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/registry.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.480Z",
+      "finished_at": "2026-06-15T12:27:03.505Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/service.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.506Z",
+      "finished_at": "2026-06-15T12:27:03.531Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/validators.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.531Z",
+      "finished_at": "2026-06-15T12:27:03.556Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/src/index.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.556Z",
+      "finished_at": "2026-06-15T12:27:03.580Z"
+    },
+    {
+      "command": "node --check packages/korean-legal/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.580Z",
+      "finished_at": "2026-06-15T12:27:03.609Z"
+    },
+    {
+      "command": "node --check scripts/validate-rp24-korean-legal-depth-contract.mjs",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.609Z",
+      "finished_at": "2026-06-15T12:27:03.633Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.633Z",
+      "finished_at": "2026-06-15T12:27:03.830Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:03.831Z",
+      "finished_at": "2026-06-15T12:27:04.932Z"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:04.933Z",
+      "finished_at": "2026-06-15T12:27:06.017Z"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:06.018Z",
+      "finished_at": "2026-06-15T12:27:12.921Z"
+    },
+    {
+      "command": "npm run rp24:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:12.922Z",
+      "finished_at": "2026-06-15T12:27:13.109Z"
+    },
+    {
+      "command": "npm run rp24:korean-legal-depth:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:13.109Z",
+      "finished_at": "2026-06-15T12:27:14.000Z"
+    },
+    {
+      "command": "node --test packages/korean-legal/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:14.001Z",
+      "finished_at": "2026-06-15T12:27:14.960Z"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:14.960Z",
+      "finished_at": "2026-06-15T12:27:15.142Z"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:15.142Z",
+      "finished_at": "2026-06-15T12:27:15.927Z"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:15.927Z",
+      "finished_at": "2026-06-15T12:27:16.684Z"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:16.684Z",
+      "finished_at": "2026-06-15T12:27:16.879Z"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:16.879Z",
+      "finished_at": "2026-06-15T12:27:17.053Z"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:17.053Z",
+      "finished_at": "2026-06-15T12:27:18.754Z"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:18.755Z",
+      "finished_at": "2026-06-15T12:27:18.809Z"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:18.809Z",
+      "finished_at": "2026-06-15T12:27:24.478Z"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:27:24.479Z",
+      "finished_at": "2026-06-15T12:27:25.563Z"
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:28:43.021Z",
+      "completed_at": "2026-06-15T12:28:43.316Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:review:baseline\n> node scripts/generate-closeout-pack-claude-review-baseline.mjs CP00-754\n\nGenerated CP00-754 Claude review baseline.\noutput: artifacts/closeout-pack-claude-review/cp00-754\nprompt_bytes: 2400",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:28:43.317Z",
+      "completed_at": "2026-06-15T12:28:48.626Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:review:ready\n> node scripts/validate-closeout-pack-claude-review-readiness.mjs CP00-754\n\nCloseout pack Claude review readiness passed for CP00-754.\nreadiness: artifacts/closeout-pack-claude-review/cp00-754/readiness-report.json",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:28:59.262Z",
+      "completed_at": "2026-06-15T12:35:25.064Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:review:run\n> node scripts/run-closeout-pack-claude-review.mjs CP00-754\n\nClaude raw review output written for CP00-754.\nraw_output: artifacts/closeout-pack-claude-review/cp00-754/raw-output.json\nNormalize before using this as review evidence.",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:35:34.482Z",
+      "completed_at": "2026-06-15T12:35:34.667Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:review:normalize\n> node scripts/normalize-closeout-pack-claude-review-receipt.mjs CP00-754\n\nNormalized valid Claude review receipt for CP00-754.\nreceipt: artifacts/closeout-pack-claude-review/cp00-754/review-receipt.json",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:35:34.668Z",
+      "completed_at": "2026-06-15T12:35:34.837Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:review:receipt:validate\n> node scripts/validate-closeout-pack-claude-review-receipt.mjs CP00-754\n\nCloseout pack Claude review receipt validation passed for CP00-754.",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:03.232Z",
+      "finished_at": "2026-06-15T12:37:03.427Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:validate\n> node scripts/validate-closeout-pack.mjs CP00-754\n\nCloseout Pack validation passed.\npacks: CP00-754",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-754",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:03.428Z",
+      "finished_at": "2026-06-15T12:37:03.597Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:review:receipt:validate\n> node scripts/validate-closeout-pack-claude-review-receipt.mjs CP00-754\n\nCloseout pack Claude review receipt validation passed for CP00-754.",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:03.597Z",
+      "finished_at": "2026-06-15T12:37:04.678Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack-plan:generate\n> node scripts/generate-closeout-pack-plan.mjs\n\nGenerated docs/closeout-pack-plan/closeout-pack-plan.json with 233 packs and 11099 units.\nGenerated docs/closeout-pack-plan/next-pack-queue.json with 1 generated preview next-queue packs.",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:04.678Z",
+      "finished_at": "2026-06-15T12:37:05.767Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack-plan:validate\n> node scripts/validate-closeout-pack-plan.mjs\n\nCloseout pack plan validation passed: 233 packs, 11099 units, queue starts after CP00-754.",
+      "stderr": ""
+    },
+    {
+      "command": "npm run rp24:korean-legal-depth:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:05.767Z",
+      "finished_at": "2026-06-15T12:37:06.670Z",
+      "stdout": "> law-firm-os@0.1.0 rp24:korean-legal-depth:validate\n> node scripts/validate-rp24-korean-legal-depth-contract.mjs\n\nRP24 Korean Legal Depth contract validation passed.\npack: CP00-754\nnext: CP00-755 / RP24.P09.M06.S13",
+      "stderr": ""
+    },
+    {
+      "command": "node --test packages/korean-legal/test/model.test.js",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:06.670Z",
+      "finished_at": "2026-06-15T12:37:07.610Z",
+      "stdout": "TAP version 13\n# Subtest: CP00-722 binding and coverage\nok 1 - CP00-722 binding and coverage\n  ---\n  duration_ms: 7.158458\n  type: 'test'\n  ...\n# Subtest: CP00-722 descriptor and packets stay runtime-closed\nok 2 - CP00-722 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 1.211833\n  type: 'test'\n  ...\n# Subtest: CP00-723 binding and coverage\nok 3 - CP00-723 binding and coverage\n  ---\n  duration_ms: 5.014167\n  type: 'test'\n  ...\n# Subtest: CP00-723 descriptor and packets stay runtime-closed\nok 4 - CP00-723 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 1.321708\n  type: 'test'\n  ...\n# Subtest: CP00-724 binding and coverage\nok 5 - CP00-724 binding and coverage\n  ---\n  duration_ms: 5.014333\n  type: 'test'\n  ...\n# Subtest: CP00-724 descriptor and packets stay runtime-closed\nok 6 - CP00-724 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 1.615708\n  type: 'test'\n  ...\n# Subtest: CP00-725 binding and coverage\nok 7 - CP00-725 binding and coverage\n  ---\n  duration_ms: 5.070334\n  type: 'test'\n  ...\n# Subtest: CP00-725 descriptor and packets stay runtime-closed\nok 8 - CP00-725 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 2.270875\n  type: 'test'\n  ...\n# Subtest: CP00-726 binding and coverage\nok 9 - CP00-726 binding and coverage\n  ---\n  duration_ms: 4.799416\n  type: 'test'\n  ...\n# Subtest: CP00-726 descriptor and packets stay runtime-closed\nok 10 - CP00-726 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 3.062833\n  type: 'test'\n  ...\n# Subtest: CP00-727 binding and coverage\nok 11 - CP00-727 binding and coverage\n  ---\n  duration_ms: 4.50425\n  type: 'test'\n  ...\n# Subtest: CP00-727 descriptor and packets stay runtime-closed\nok 12 - CP00-727 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 3.223916\n  type: 'test'\n  ...\n# Subtest: CP00-728 binding and coverage\nok 13 - CP00-728 binding and coverage\n  ---\n  duration_ms: 6.509167\n  type: 'test'\n  ...\n# Subtest: CP00-728 descriptor and packets stay runtime-closed\nok 14 - CP00-728 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 4.265042\n  type: 'test'\n  ...\n# Subtest: CP00-729 binding and coverage\nok 15 - CP00-729 binding and coverage\n  ---\n  duration_ms: 4.574583\n  type: 'test'\n  ...\n# Subtest: CP00-729 descriptor and packets stay runtime-closed\nok 16 - CP00-729 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 5.0805\n  type: 'test'\n  ...\n# Subtest: CP00-730 binding and coverage\nok 17 - CP00-730 binding and coverage\n  ---\n  duration_ms: 4.575375\n  type: 'test'\n  ...\n# Subtest: CP00-730 descriptor and packets stay runtime-closed\nok 18 - CP00-730 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 6.070792\n  type: 'test'\n  ...\n# Subtest: CP00-731 binding and coverage\nok 19 - CP00-731 binding and coverage\n  ---\n  duration_ms: 4.904041\n  type: 'test'\n  ...\n# Subtest: CP00-731 descriptor and packets stay runtime-closed\nok 20 - CP00-731 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 6.664709\n  type: 'test'\n  ...\n# Subtest: CP00-732 binding and coverage\nok 21 - CP00-732 binding and coverage\n  ---\n  duration_ms: 4.941333\n  type: 'test'\n  ...\n# Subtest: CP00-732 descriptor and packets stay runtime-closed\nok 22 - CP00-732 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 7.551958\n  type: 'test'\n  ...\n# Subtest: CP00-733 binding and coverage\nok 23 - CP00-733 binding and coverage\n  ---\n  duration_ms: 4.761584\n  type: 'test'\n  ...\n# Subtest: CP00-733 descriptor and packets stay runtime-closed\nok 24 - CP00-733 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 8.922292\n  type: 'test'\n  ...\n# Subtest: CP00-734 binding and coverage\nok 25 - CP00-734 binding and coverage\n  ---\n  duration_ms: 4.763542\n  type: 'test'\n  ...\n# Subtest: CP00-734 descriptor and packets stay runtime-closed\nok 26 - CP00-734 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 10.67375\n  type: 'test'\n  ...\n# Subtest: CP00-735 binding and coverage\nok 27 - CP00-735 binding and coverage\n  ---\n  duration_ms: 4.835333\n  type: 'test'\n  ...\n# Subtest: CP00-735 descriptor and packets stay runtime-closed\nok 28 - CP00-735 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 11.980834\n  type: 'test'\n  ...\n# Subtest: CP00-736 binding and coverage\nok 29 - CP00-736 binding and coverage\n  ---\n  duration_ms: 5.234666\n  type: 'test'\n  ...\n# Subtest: CP00-736 descriptor and packets stay runtime-closed\nok 30 - CP00-736 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 13.760958\n  type: 'test'\n  ...\n# Subtest: CP00-737 binding and coverage\nok 31 - CP00-737 binding and coverage\n  ---\n  duration_ms: 4.535792\n  type: 'test'\n  ...\n# Subtest: CP00-737 descriptor and packets stay runtime-closed\nok 32 - CP00-737 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 15.339584\n  type: 'test'\n  ...\n# Subtest: CP00-738 binding and coverage\nok 33 - CP00-738 binding and coverage\n  ---\n  duration_ms: 4.538\n  type: 'test'\n  ...\n# Subtest: CP00-738 descriptor and packets stay runtime-closed\nok 34 - CP00-738 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 16.598333\n  type: 'test'\n  ...\n# Subtest: CP00-739 binding and coverage\nok 35 - CP00-739 binding and coverage\n  ---\n  duration_ms: 4.671\n  type: 'test'\n  ...\n# Subtest: CP00-739 descriptor and packets stay runtime-closed\nok 36 - CP00-739 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 18.489459\n  type: 'test'\n  ...\n# Subtest: CP00-740 binding and coverage\nok 37 - CP00-740 binding and coverage\n  ---\n  duration_ms: 4.650958\n  type: 'test'\n  ...\n# Subtest: CP00-740 descriptor and packets stay runtime-closed\nok 38 - CP00-740 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 20.520541\n  type: 'test'\n  ...\n# Subtest: CP00-741 binding and coverage\nok 39 - CP00-741 binding and coverage\n  ---\n  duration_ms: 5.014333\n  type: 'test'\n  ...\n# Subtest: CP00-741 descriptor and packets stay runtime-closed\nok 40 - CP00-741 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 22.465083\n  type: 'test'\n  ...\n# Subtest: CP00-742 binding and coverage\nok 41 - CP00-742 binding and coverage\n  ---\n  duration_ms: 4.643375\n  type: 'test'\n  ...\n# Subtest: CP00-742 descriptor and packets stay runtime-closed\nok 42 - CP00-742 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 24.190458\n  type: 'test'\n  ...\n# Subtest: CP00-743 binding and coverage\nok 43 - CP00-743 binding and coverage\n  ---\n  duration_ms: 4.582167\n  type: 'test'\n  ...\n# Subtest: CP00-743 descriptor and packets stay runtime-closed\nok 44 - CP00-743 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 26.452666\n  type: 'test'\n  ...\n# Subtest: CP00-744 binding and coverage\nok 45 - CP00-744 binding and coverage\n  ---\n  duration_ms: 4.666375\n  type: 'test'\n  ...\n# Subtest: CP00-744 descriptor and packets stay runtime-closed\nok 46 - CP00-744 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 28.388292\n  type: 'test'\n  ...\n# Subtest: CP00-745 binding and coverage\nok 47 - CP00-745 binding and coverage\n  ---\n  duration_ms: 5.10875\n  type: 'test'\n  ...\n# Subtest: CP00-745 descriptor and packets stay runtime-closed\nok 48 - CP00-745 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 32.2135\n  type: 'test'\n  ...\n# Subtest: CP00-746 binding and coverage\nok 49 - CP00-746 binding and coverage\n  ---\n  duration_ms: 4.575917\n  type: 'test'\n  ...\n# Subtest: CP00-746 descriptor and packets stay runtime-closed\nok 50 - CP00-746 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 33.879334\n  type: 'test'\n  ...\n# Subtest: CP00-747 binding and coverage\nok 51 - CP00-747 binding and coverage\n  ---\n  duration_ms: 4.680666\n  type: 'test'\n  ...\n# Subtest: CP00-747 descriptor and packets stay runtime-closed\nok 52 - CP00-747 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 36.209583\n  type: 'test'\n  ...\n# Subtest: CP00-748 binding and coverage\nok 53 - CP00-748 binding and coverage\n  ---\n  duration_ms: 4.473\n  type: 'test'\n  ...\n# Subtest: CP00-748 descriptor and packets stay runtime-closed\nok 54 - CP00-748 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 38.383458\n  type: 'test'\n  ...\n# Subtest: CP00-749 binding and coverage\nok 55 - CP00-749 binding and coverage\n  ---\n  duration_ms: 5.191333\n  type: 'test'\n  ...\n# Subtest: CP00-749 descriptor and packets stay runtime-closed\nok 56 - CP00-749 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 40.738333\n  type: 'test'\n  ...\n# Subtest: CP00-750 binding and coverage\nok 57 - CP00-750 binding and coverage\n  ---\n  duration_ms: 5.038042\n  type: 'test'\n  ...\n# Subtest: CP00-750 descriptor and packets stay runtime-closed\nok 58 - CP00-750 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 44.346333\n  type: 'test'\n  ...\n# Subtest: CP00-751 binding and coverage\nok 59 - CP00-751 binding and coverage\n  ---\n  duration_ms: 4.8175\n  type: 'test'\n  ...\n# Subtest: CP00-751 descriptor and packets stay runtime-closed\nok 60 - CP00-751 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 47.192083\n  type: 'test'\n  ...\n# Subtest: CP00-752 binding and coverage\nok 61 - CP00-752 binding and coverage\n  ---\n  duration_ms: 5.301\n  type: 'test'\n  ...\n# Subtest: CP00-752 descriptor and packets stay runtime-closed\nok 62 - CP00-752 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 51.254583\n  type: 'test'\n  ...\n# Subtest: CP00-753 binding and coverage\nok 63 - CP00-753 binding and coverage\n  ---\n  duration_ms: 4.781375\n  type: 'test'\n  ...\n# Subtest: CP00-753 descriptor and packets stay runtime-closed\nok 64 - CP00-753 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 54.065041\n  type: 'test'\n  ...\n# Subtest: CP00-754 binding and coverage\nok 65 - CP00-754 binding and coverage\n  ---\n  duration_ms: 4.868084\n  type: 'test'\n  ...\n# Subtest: CP00-754 descriptor and packets stay runtime-closed\nok 66 - CP00-754 descriptor and packets stay runtime-closed\n  ---\n  duration_ms: 55.656458\n  type: 'test'\n  ...\n# Subtest: CP00-754 contract projection is latest while CP00-722 through CP00-753 stay historical\nok 67 - CP00-754 contract projection is latest while CP00-722 through CP00-753 stay historical\n  ---\n  duration_ms: 5.004541\n  type: 'test'\n  ...\n1..67\n# tests 67\n# suites 0\n# pass 67\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 911.482041",
+      "stderr": ""
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:07.610Z",
+      "finished_at": "2026-06-15T12:37:14.579Z",
+      "stdout": "> law-firm-os@0.1.0 closeout-pack:validate\n> node scripts/validate-closeout-pack.mjs\n\nCloseout Pack validation passed.\npacks: CP00-001, CP00-002, CP00-003, CP00-004, CP00-005, CP00-006, CP00-007, CP00-008, CP00-009, CP00-010, CP00-011, CP00-012, CP00-013, CP00-014, CP00-015, CP00-016, CP00-017, CP00-018, CP00-019, CP00-020, CP00-021, CP00-022, CP00-023, CP00-024, CP00-025, CP00-026, CP00-027, CP00-028, CP00-029, CP00-030, CP00-031, CP00-032, CP00-033, CP00-034, CP00-035, CP00-036, CP00-037, CP00-038, CP00-039, CP00-040, CP00-041, CP00-042, CP00-043, CP00-044, CP00-045, CP00-046, CP00-047, CP00-048, CP00-049, CP00-050, CP00-051, CP00-052, CP00-053, CP00-054, CP00-055, CP00-056, CP00-057, CP00-058, CP00-059, CP00-060, CP00-061, CP00-062, CP00-063, CP00-064, CP00-065, CP00-066, CP00-067, CP00-068, CP00-069, CP00-070, CP00-071, CP00-072, CP00-073, CP00-074, CP00-075, CP00-076, CP00-077, CP00-078, CP00-079, CP00-080, CP00-081, CP00-082, CP00-083, CP00-084, CP00-085, CP00-086, CP00-087, CP00-088, CP00-089, CP00-090, CP00-091, CP00-092, CP00-093, CP00-094, CP00-095, CP00-096, CP00-097, CP00-098, CP00-099, CP00-100, CP00-101, CP00-102, CP00-103, CP00-104, CP00-105, CP00-106, CP00-107, CP00-108, CP00-109, CP00-110, CP00-111, CP00-112, CP00-113, CP00-114, CP00-115, CP00-116, CP00-117, CP00-118, CP00-119, CP00-120, CP00-121, CP00-122, CP00-123, CP00-124, CP00-125, CP00-126, CP00-127, CP00-128, CP00-129, CP00-130, CP00-131, CP00-132, CP00-133, CP00-134, CP00-135, CP00-136, CP00-137, CP00-138, CP00-139, CP00-140, CP00-141, CP00-142, CP00-143, CP00-144, CP00-145, CP00-146, CP00-147, CP00-148, CP00-149, CP00-150, CP00-151, CP00-152, CP00-153, CP00-154, CP00-155, CP00-156, CP00-157, CP00-158, CP00-159, CP00-160, CP00-161, CP00-162, CP00-163, CP00-164, CP00-165, CP00-166, CP00-167, CP00-168, CP00-169, CP00-170, CP00-171, CP00-172, CP00-173, CP00-174, CP00-175, CP00-176, CP00-177, CP00-178, CP00-179, CP00-180, CP00-181, CP00-182, CP00-183, CP00-184, CP00-185, CP00-186, CP00-187, CP00-188, CP00-189, CP00-190, CP00-191, CP00-192, CP00-193, CP00-194, CP00-195, CP00-196, CP00-197, CP00-198, CP00-199, CP00-200, CP00-201, CP00-202, CP00-203, CP00-204, CP00-205, CP00-206, CP00-207, CP00-208, CP00-209, CP00-210, CP00-211, CP00-212, CP00-213, CP00-214, CP00-215, CP00-216, CP00-217, CP00-218, CP00-219, CP00-220, CP00-221, CP00-222, CP00-223, CP00-224, CP00-225, CP00-226, CP00-227, CP00-228, CP00-229, CP00-230, CP00-231, CP00-232, CP00-233, CP00-234, CP00-235, CP00-236, CP00-237, CP00-238, CP00-239, CP00-240, CP00-241, CP00-242, CP00-243, CP00-244, CP00-245, CP00-246, CP00-247, CP00-248, CP00-249, CP00-250, CP00-251, CP00-252, CP00-253, CP00-254, CP00-255, CP00-256, CP00-257, CP00-258, CP00-259, CP00-260, CP00-261, CP00-262, CP00-263, CP00-264, CP00-265, CP00-266, CP00-267, CP00-268, CP00-269, CP00-270, CP00-271, CP00-272, CP00-273, CP00-274, CP00-275, CP00-276, CP00-277, CP00-278, CP00-279, CP00-280, CP00-281, CP00-282, CP00-283, CP00-284, CP00-285, CP00-286, CP00-287, CP00-288, CP00-289, CP00-290, CP00-291, CP00-292, CP00-293, CP00-294, CP00-295, CP00-296, CP00-297, CP00-298, CP00-299, CP00-300, CP00-301, CP00-302, CP00-303, CP00-304, CP00-305, CP00-306, CP00-307, CP00-308, CP00-309, CP00-310, CP00-311, CP00-312, CP00-313, CP00-314, CP00-315, CP00-316, CP00-317, CP00-318, CP00-319, CP00-320, CP00-321, CP00-322, CP00-323, CP00-324, CP00-325, CP00-326, CP00-327, CP00-328, CP00-329, CP00-330, CP00-331, CP00-332, CP00-333, CP00-334, CP00-335, CP00-336, CP00-337, CP00-338, CP00-339, CP00-340, CP00-341, CP00-342, CP00-343, CP00-344, CP00-345, CP00-346, CP00-347, CP00-348, CP00-349, CP00-350, CP00-351, CP00-352, CP00-353, CP00-354, CP00-355, CP00-356, CP00-357, CP00-358, CP00-359, CP00-360, CP00-361, CP00-362, CP00-363, CP00-364, CP00-365, CP00-366, CP00-367, CP00-368, CP00-369, CP00-370, CP00-371, CP00-372, CP00-373, CP00-374, CP00-375, CP00-376, CP00-377, CP00-378, CP00-379, CP00-380, CP00-381, CP00-382, CP00-383, CP00-384, CP00-385, CP00-386, CP00-387, CP00-388, CP00-389, CP00-390, CP00-391, CP00-392, CP00-393, CP00-394, CP00-395, CP00-396, CP00-397, CP00-398, CP00-399, CP00-400, CP00-401, CP00-402, CP00-403, CP00-404, CP00-405, CP00-406, CP00-407, CP00-408, CP00-409, CP00-410, CP00-411, CP00-412, CP00-413, CP00-414, CP00-415, CP00-416, CP00-417, CP00-418, CP00-419, CP00-420, CP00-421, CP00-422, CP00-423, CP00-424, CP00-425, CP00-426, CP00-427, CP00-428, CP00-429, CP00-430, CP00-431, CP00-432, CP00-433, CP00-434, CP00-435, CP00-436, CP00-437, CP00-438, CP00-439, CP00-440, CP00-441, CP00-442, CP00-443, CP00-444, CP00-445, CP00-446, CP00-447, CP00-448, CP00-449, CP00-450, CP00-451, CP00-452, CP00-453, CP00-454, CP00-455, CP00-456, CP00-457, CP00-458, CP00-459, CP00-460, CP00-461, CP00-462, CP00-463, CP00-464, CP00-465, CP00-466, CP00-467, CP00-468, CP00-469, CP00-470, CP00-471, CP00-472, CP00-473, CP00-474, CP00-475, CP00-476, CP00-477, CP00-478, CP00-479, CP00-480, CP00-481, CP00-482, CP00-483, CP00-484, CP00-485, CP00-486, CP00-487, CP00-488, CP00-489, CP00-490, CP00-491, CP00-492, CP00-493, CP00-494, CP00-495, CP00-496, CP00-497, CP00-498, CP00-499, CP00-500, CP00-501, CP00-502, CP00-503, CP00-504, CP00-505, CP00-506, CP00-507, CP00-508, CP00-509, CP00-510, CP00-511, CP00-512, CP00-513, CP00-514, CP00-515, CP00-516, CP00-517, CP00-518, CP00-519, CP00-520, CP00-521, CP00-522, CP00-523, CP00-524, CP00-525, CP00-526, CP00-527, CP00-528, CP00-529, CP00-530, CP00-531, CP00-532, CP00-533, CP00-534, CP00-535, CP00-536, CP00-537, CP00-538, CP00-539, CP00-540, CP00-541, CP00-542, CP00-543, CP00-544, CP00-545, CP00-546, CP00-547, CP00-548, CP00-549, CP00-550, CP00-551, CP00-552, CP00-553, CP00-554, CP00-555, CP00-556, CP00-557, CP00-558, CP00-559, CP00-560, CP00-561, CP00-562, CP00-563, CP00-564, CP00-565, CP00-566, CP00-567, CP00-568, CP00-569, CP00-570, CP00-571, CP00-572, CP00-573, CP00-574, CP00-575, CP00-576, CP00-577, CP00-578, CP00-579, CP00-580, CP00-581, CP00-582, CP00-583, CP00-584, CP00-585, CP00-586, CP00-587, CP00-588, CP00-589, CP00-590, CP00-591, CP00-592, CP00-593, CP00-594, CP00-595, CP00-596, CP00-597, CP00-598, CP00-599, CP00-600, CP00-601, CP00-602, CP00-603, CP00-604, CP00-605, CP00-606, CP00-607, CP00-608, CP00-609, CP00-610, CP00-611, CP00-612, CP00-613, CP00-614, CP00-615, CP00-616, CP00-617, CP00-618, CP00-619, CP00-620, CP00-621, CP00-622, CP00-623, CP00-624, CP00-625, CP00-626, CP00-627, CP00-628, CP00-629, CP00-630, CP00-631, CP00-632, CP00-633, CP00-634, CP00-635, CP00-636, CP00-637, CP00-638, CP00-639, CP00-640, CP00-641, CP00-642, CP00-643, CP00-644, CP00-645, CP00-646, CP00-647, CP00-648, CP00-649, CP00-650, CP00-651, CP00-652, CP00-653, CP00-654, CP00-655, CP00-656, CP00-657, CP00-658, CP00-659, CP00-660, CP00-661, CP00-662, CP00-663, CP00-664, CP00-665, CP00-666, CP00-667, CP00-668, CP00-669, CP00-670, CP00-671, CP00-672, CP00-673, CP00-674, CP00-675, CP00-676, CP00-677, CP00-678, CP00-679, CP00-680, CP00-681, CP00-682, CP00-683, CP00-684, CP00-685, CP00-686, CP00-687, CP00-688, CP00-689, CP00-690, CP00-691, CP00-692, CP00-693, CP00-694, CP00-695, CP00-696, CP00-697, CP00-698, CP00-699, CP00-700, CP00-701, CP00-702, CP00-703, CP00-704, CP00-705, CP00-706, CP00-707, CP00-708, CP00-709, CP00-710, CP00-711, CP00-712, CP00-713, CP00-714, CP00-715, CP00-716, CP00-717, CP00-718, CP00-719, CP00-720, CP00-721, CP00-722, CP00-723, CP00-724, CP00-725, CP00-726, CP00-727, CP00-728, CP00-729, CP00-730, CP00-731, CP00-732, CP00-733, CP00-734, CP00-735, CP00-736, CP00-737, CP00-738, CP00-739, CP00-740, CP00-741, CP00-742, CP00-743, CP00-744, CP00-745, CP00-746, CP00-747, CP00-748, CP00-749, CP00-750, CP00-751, CP00-752, CP00-753, CP00-754",
+      "stderr": ""
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "started_at": "2026-06-15T12:37:14.580Z",
+      "finished_at": "2026-06-15T12:37:14.637Z",
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-754/review-receipt.json",
+  "command_count": 36,
+  "failed_command_count": 0,
+  "updated_at": "2026-06-15T12:37:14.638Z"
+}

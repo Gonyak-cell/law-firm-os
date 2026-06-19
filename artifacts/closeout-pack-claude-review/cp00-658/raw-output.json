@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-658",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T01:19:21.964Z",
+  "finished_at": "2026-06-14T01:23:26.326Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":243645,\"duration_api_ms\":244530,\"ttft_ms\":3066,\"num_turns\":45,\"result\":\"Review complete. CP00-658 receives a **PASS** with no findings.\\n\\nThe pack is a descriptor-only RP21 Admin Console failure-receipt/escalation slice that honestly reports itself as `production_ready: false` pending this review — no premature claim. Implementation, tests, validators, contract projection, command evidence, and review-hardening preconditions are all consistent and enforce the descriptor-only / no-write / no-real-data boundaries. Claude's read-only, non-final-approver role is preserved, and Hermes patterns stay confined to deterministic packet/receipt handling. Nothing blocks pack or CP-goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"58c16995-3fe5-4c3f-9f9e-94265a84ff2e\",\"total_cost_usd\":2.1185644999999997,\"usage\":{\"input_tokens\":64,\"cache_creation_input_tokens\":105684,\"cache_read_input_tokens\":2048453,\"output_tokens\":17290,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":105684,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":214,\"cache_read_input_tokens\":101999,\"cache_creation_input_tokens\":4410,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4410},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1143,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001243,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":64,\"outputTokens\":17290,\"cacheReadInputTokens\":2048453,\"cacheCreationInputTokens\":105684,\"webSearchRequests\":0,\"costUSD\":2.1173215,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-658 (RP21 Admin Console failure receipt/escalation descriptor slice, risk A, 10 units, RP21.P07.M03.S15-RP21.P07.M04.S02) passes hardened read-only review. The pack-level production_ready posture is correctly gated, not overclaimed: manifest, adjudication, construction-inspection, and command-evidence all report production_ready=false/runtime_ready=false pending this Claude review, while local evidence supports the descriptor-only completion claim. Implementation across packages/admin/src/{registry,service,validators}.js exposes all six required exports (ADMIN_CONSOLE_CP658_PACK_BINDING, ADMIN_CONSOLE_CP658_REQUIREMENTS, createAdminConsoleCp658FailureReceiptEscalationDescriptor/CaseSet, validateAdminConsoleCp658FailureReceiptEscalationDescriptor/Coverage) and forces descriptor-only/no-write/no-real-data flags via freezeCp658Result and freezeCp658Validation. Deliverable distribution (hermes_evidence:2, fixture:1, test:2, security_audit:1, claude_review:1, implementation:1, failure_recovery:2) and micro-title split (8 Primary, 2 Secondary) match the baseline and are enforced by validateAdminConsoleCp658Coverage. The descriptor validator's falseFlags list rejects any runtime/write/audit/leak flag flip; Hermes and Claude packets stay descriptor-only (runtime_receipt_emitted=false, hermes_runtime_opened=false, read_only=true, promotes_claude_to_final_approval=false), confirming Hermes control-plane patterns are used only for deterministic packet/receipt handling and not product runtime. model.test.js covers coverage, descriptor-only rows, evidence packets, handoff, and historical projection; the validator script deep-equals contract sections against generated descriptors; contract runtime_opened=false. Review-hardening preconditions are met: auth preflight passed with 1434-byte non-empty stdout, review-schema present, tools restricted to Read/Grep/Glob, prompt 2499<25600 bytes, no forbidden tools, and no malformed/fenced/0-byte/tool-call-shaped review evidence. All ten expected validation commands plus npm test are recorded at exit 0. Claude's read-only, non-final-approval role and the human/enterprise-trust approval boundary are preserved; the pack claims neither runtime nor enterprise trust, so this CP closeout goal is not blocked. Queue state is consistent (live_latest CP00-658, next CP00-659 at RP21.P07.M04.S03). Unrelated dirty/untracked files were correctly excluded from pack scope per changed-file-scope.json. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"816faf1a-2602-41dd-8802-bf4f4a947953\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4795,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "58c16995-3fe5-4c3f-9f9e-94265a84ff2e",
+    "uuid": "816faf1a-2602-41dd-8802-bf4f4a947953",
+    "total_cost_usd": 2.1185644999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,261 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L7-W01",
+  "title": "Inventory and mapping",
+  "phase": "L7",
+  "gate": "G8, L7-EXIT",
+  "created_at": "2026-06-18T14:25:08Z",
+  "status": "blocked_pending_l7_entry_preflight_production_data_policy_l5_l6_security_and_inventory_mapping_sources",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "real_data_boundary": {
+    "source_originals_commit_allowed": false,
+    "allowed_repo_material": "aggregate summaries, hashes, reconciliation outputs, and blocker records only",
+    "real_data_accessed_in_this_packet": false
+  },
+  "dependency_state": {
+    "LT-L1-W04": {
+      "status": "t01_t02_passed_wp_open_pending_human_ratification",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L3-W07": {
+      "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W08": {
+      "status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W10": {
+      "status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L5-W01": {
+      "status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L5-W05": {
+      "status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L6-W01": {
+      "status": "t01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal",
+      "classification": "command_evidence_only_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "preflight_readiness_report_exists": false,
+    "inventory_fileserver_summary_exists": false,
+    "inventory_sharepoint_summary_exists": false,
+    "inventory_mailbox_summary_exists": false,
+    "inventory_matter_register_summary_exists": false,
+    "matter_id_filename_rule_exists": false,
+    "mapping_matter_client_owner_summary_exists": false,
+    "mapping_acl_summary_exists": false,
+    "exclusion_judgment_exists": false,
+    "gl_mig_01_package_exists": false,
+    "g8_satisfied": false,
+    "l7_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L7-W01-T01",
+      "title": "Confirm real-data entry preconditions in the real environment",
+      "status": "blocked_waiting_on_l5_security_l5_worm_l6_operating_model_l1_w04_policy_effectiveness_and_real_environment_preflight",
+      "acceptance": {
+        "production_data_policy_effective_record_exists": false,
+        "production_round_trip_audit_chain_verified": false,
+        "real_environment_matter_id_two_issue_no_duplicate": false,
+        "l5_security_signoff_linked": false,
+        "l6_operating_evidence_linked": false,
+        "unsatisfied_items_zero": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T02",
+      "title": "Build file-server source inventory",
+      "status": "blocked_waiting_on_t01_l7_entry_and_read_only_secure_store_file_server_inventory",
+      "acceptance": {
+        "summary_exists": false,
+        "six_required_fields_complete": false,
+        "summary_matches_original_counts_and_size": false,
+        "excluded_areas_listed_with_reasons": false,
+        "sample_20_hashes_recorded": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T03",
+      "title": "Build existing SharePoint source inventory",
+      "status": "blocked_waiting_on_t01_l7_entry_ext_m365_admin_graph_read_scope_and_sharepoint_inventory",
+      "acceptance": {
+        "summary_exists": false,
+        "site_library_item_counts_recorded": false,
+        "external_and_anonymous_link_counts_recorded": false,
+        "version_statistics_recorded": false,
+        "summary_matches_original": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T04",
+      "title": "Build Outlook mailbox source inventory",
+      "status": "blocked_waiting_on_t01_l7_entry_ext_m365_admin_graph_read_scope_and_mailbox_inventory",
+      "acceptance": {
+        "summary_exists": false,
+        "target_mailbox_list_finalized": false,
+        "mail_counts_attachment_counts_and_volume_recorded": false,
+        "matter_related_sample_rate_estimated": false,
+        "summary_matches_original": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T05",
+      "title": "Inventory and reconcile legacy matter register",
+      "status": "blocked_waiting_on_t01_l7_entry_and_legacy_matter_register_extract",
+      "acceptance": {
+        "summary_exists": false,
+        "all_rows_structured": false,
+        "missing_required_field_rates_recorded": false,
+        "duplicate_merge_candidates_recorded": false,
+        "open_closed_counts_recorded": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T06",
+      "title": "Finalize Matter ID and document filename rule",
+      "status": "blocked_waiting_on_t02_t05_inventory_and_human_oq_012_decision",
+      "acceptance": {
+        "rule_document_exists": false,
+        "decision_register_oq_012_owner_decision_basis_date_exists": false,
+        "matter_id_regex_defined": false,
+        "legacy_filename_conversion_rule_defined": false,
+        "sample_50_conflicts_all_resolved": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T07",
+      "title": "Build matter-client-owner mapping",
+      "status": "blocked_waiting_on_t05_t06_inventory_rule_and_human_sample_confirmation",
+      "acceptance": {
+        "summary_exists": false,
+        "all_register_rows_mapped_or_excluded": false,
+        "matter_ids_all_pass_regex": false,
+        "sample_30_attorney_signed": false,
+        "employee_user_mapping_conflict_zero": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T08",
+      "title": "Map existing access rights to matter ACL and verify permission sync checker",
+      "status": "blocked_waiting_on_t02_t03_t07_acl_mapping_staging_checker_and_m365_storage_decision",
+      "acceptance": {
+        "summary_exists": false,
+        "all_source_groups_mapped_or_excluded": false,
+        "permission_sync_checker_exit_zero": false,
+        "intentional_mismatch_detected": false,
+        "sensitive_matter_acl_minimum_privilege_review_recorded": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T09",
+      "title": "Judge excluded data including HR-sensitive data",
+      "status": "blocked_waiting_on_t02_t03_t04_t05_inventory_and_human_exclusion_judgment",
+      "acceptance": {
+        "exclusion_judgment_exists": false,
+        "category_counts_reasons_signer_date_recorded": false,
+        "hr_sensitive_pattern_scan_output_exists": false,
+        "migration_target_hr_sensitive_items_zero": false,
+        "retention_policy_conflicts_zero": false
+      }
+    },
+    {
+      "tuw_id": "LT-L7-W01-T10",
+      "title": "Assemble GL-MIG-01 package and verify count equation",
+      "status": "blocked_waiting_on_t04_t08_t09_all_inventory_mapping_rule_and_exclusion_artifacts",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "all_ten_tuw_ids_present_in_command_evidence": true,
+        "gl_mig_01_package_exists": false,
+        "required_artifact_links": 8,
+        "required_artifact_links_present": 0,
+        "broken_links_zero": false,
+        "source_inventory_minus_exclusions_equals_migration_target": false,
+        "g8_evidence_index_updated": false,
+        "g8_satisfied": false,
+        "l7_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L5-W01\" or .wp_id==\"LT-L5-W05\" or .wp_id==\"LT-L6-W01\" or .wp_id==\"LT-L1-W04\" or .wp_id==\"LT-L3-W07\" or .wp_id==\"LT-L3-W08\" or .wp_id==\"LT-L3-W10\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L1-W04\tt01_t02_passed_wp_open_pending_human_ratification\tcommand_evidence_only_blocked",
+        "LT-L3-W07\tblocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent\tstandard_five_blocked",
+        "LT-L3-W08\tblocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning\tstandard_five_blocked",
+        "LT-L3-W10\tblocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence\tstandard_five_blocked",
+        "LT-L5-W01\tblocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff\tstandard_five_blocked",
+        "LT-L5-W05\tblocked_pending_worm_audit_chain_operational_store_and_mutation_tests\tstandard_five_blocked",
+        "LT-L6-W01\tt01_runbook_t02_sla_oncall_decision_brief_blocked_pending_owner_approval_staffing_monitoring_and_rehearsal\tcommand_evidence_only_blocked"
+      ],
+      "purpose": "Verify W01 L7 entry and M365/identity/security predecessors before claiming blocked evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in docs/goal-closeout/lt-l7-w01/preflight-readiness-report.md docs/goal-closeout/lt-l7-w01/inventory-fileserver-summary.md docs/goal-closeout/lt-l7-w01/inventory-sharepoint-summary.md docs/goal-closeout/lt-l7-w01/inventory-mailbox-summary.md docs/goal-closeout/lt-l7-w01/inventory-matter-register-summary.md docs/goal-closeout/lt-l7-w01/matter-id-filename-rule.md docs/goal-closeout/lt-l7-w01/mapping-matter-client-owner-summary.md docs/goal-closeout/lt-l7-w01/mapping-acl-summary.md docs/goal-closeout/lt-l7-w01/exclusion-judgment.md docs/goal-closeout/lt-l7-w01/gl-mig-01-package.md; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent docs/goal-closeout/lt-l7-w01/preflight-readiness-report.md",
+        "absent docs/goal-closeout/lt-l7-w01/inventory-fileserver-summary.md",
+        "absent docs/goal-closeout/lt-l7-w01/inventory-sharepoint-summary.md",
+        "absent docs/goal-closeout/lt-l7-w01/inventory-mailbox-summary.md",
+        "absent docs/goal-closeout/lt-l7-w01/inventory-matter-register-summary.md",
+        "absent docs/goal-closeout/lt-l7-w01/matter-id-filename-rule.md",
+        "absent docs/goal-closeout/lt-l7-w01/mapping-matter-client-owner-summary.md",
+        "absent docs/goal-closeout/lt-l7-w01/mapping-acl-summary.md",
+        "absent docs/goal-closeout/lt-l7-w01/exclusion-judgment.md",
+        "absent docs/goal-closeout/lt-l7-w01/gl-mig-01-package.md"
+      ],
+      "purpose": "Verify required LT-L7-W01 summary, decision, mapping, exclusion, and package artifacts are absent."
+    },
+    {
+      "id": "source_policy_scan",
+      "command": "rg -n \"production-data-policy|실데이터|L7 진입조건|M365|Graph|OQ-012|Matter ID|HR 민감|인벤토리|mapping|ACL\" workbook/matter-post-cp-launch-plan.md workbook/launch-tuw/18_L7.md workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md -S",
+      "exit_code": 0,
+      "output_summary": [
+        "18_L7.md encodes L7 entry conditions: LT-L5-W01, LT-L5-W05, LT-L6-W01, and LT-L1-W04 effective production-data-policy.",
+        "18_L7.md requires source originals to remain outside the repo and only aggregate summaries, hashes, and reconciliation results in goal-closeout.",
+        "W01 requires inventories for file server, SharePoint, mailbox, and matter register plus OQ-012, matter/client/owner mapping, ACL mapping, HR-sensitive exclusion, and GL-MIG-01 package.",
+        "23_Risk_Register_Open_Questions.md keeps RISK-003 and OQ-012 open inputs relevant to W01."
+      ],
+      "purpose": "Verify W01 blocker survey follows L7 real-data boundary and migration requirements."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L7-W01.",
+    "This record does not access production, staging real data, file servers, SharePoint, Outlook mailboxes, or legacy matter registers.",
+    "This record does not create or commit real-data-derived inventory originals or mapping originals.",
+    "This record does not prove production-data-policy effectiveness or L7 entry readiness.",
+    "This record does not resolve OQ-012 or synthesize a human Matter ID/file naming decision.",
+    "This record does not create ACL mappings or run permission sync checker.",
+    "This record does not perform HR-sensitive exclusion judgment.",
+    "This record does not assemble GL-MIG-01 or satisfy G8/L7-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

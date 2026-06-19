@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-683",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T13:33:21.970Z",
+  "finished_at": "2026-06-14T13:38:25.801Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":302871,\"duration_api_ms\":302591,\"ttft_ms\":4659,\"num_turns\":44,\"result\":\"Review complete. **PASS** — CP00-683 closes cleanly with zero P0–P3 findings.\\n\\nThe pack's descriptor-only / no-write / no-real-data / runtime-closed claims are all supported by the implementation (`freezeCp683Result` attestations), validators (`assertFalse` on every runtime/leak/final-approval flag), tests, and the consistent manifest/adjudication/inspection state. Claude is held as a read-only, non-final reviewer; Hermes is deterministic evidence only, not product runtime. Auth preflight and review-hardening checks are clean, and the 22 recorded validation commands all exit 0 (reported evidence — not re-run, since this review is read-only). The receipt does not block this CP's pack or goal closeout; final human/enterprise-trust approval correctly remains outside this read-only review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"0c025e62-b192-461b-8e1b-d997001d03ff\",\"total_cost_usd\":2.237096,\"usage\":{\"input_tokens\":52,\"cache_creation_input_tokens\":115740,\"cache_read_input_tokens\":1928434,\"output_tokens\":21920,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115740,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":413,\"cache_read_input_tokens\":108251,\"cache_creation_input_tokens\":7899,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7899},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1139,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001244,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":52,\"outputTokens\":21920,\"cacheReadInputTokens\":1928434,\"cacheCreationInputTokens\":115740,\"webSearchRequests\":0,\"costUSD\":2.2358519999999995,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-683 is a Risk-B, 40-unit descriptor bridge pack (RP22.P06.M07.S07-RP22.P06.M09.S02) covering the External Integrations I P06 Test And Golden Case Set tail (16), Hermes Evidence Packet (22), and Claude Review Packet head (2). Through read-only source inspection (Read/Grep/Glob) I confirmed the pack's production_ready claim and boundaries hold: (1) Implementation - service.js createExternalIntegrationsICp683* descriptor/Hermes/Claude/handoff factories are frozen via freezeCp683Result, which stamps synthetic_only, no_real_data, writes_product_state:false, no access/refresh-token or secret persistence, emits_hermes_runtime_receipt:false, customer_safe_errors_only:true, leak_detected:false. (2) Validators - validators.js coverage + descriptor validators enforce descriptor-only rows, no runtime opening (permission/audit/ai-retrieval/analytics/hermes/claude/fixture/test/ui/persistence/command all false), no cross-tenant access, no missing-context fallback, no real/fixture/golden payloads, and assertFalse on claude_is_final_approval. (3) Distribution - implementation 12 / security_audit 10 / ui 8 / claude_review 2 / test 8 = 40, and micro counts M07=16 / M08=22 / M09=2, match the prompt baseline, manifest plan_binding_snapshot, registry requirements, and model.test.js deepEqual assertions. (4) Authority - Claude packet read_only:true and promotes_claude_to_final_approval:false; descriptor authority_boundary has claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true. (5) Hermes - used only for deterministic descriptor evidence (receipt_shape descriptor_only_..._no_write, hermes_runtime_opened:false, command_result pending_until_closeout_pack_validation), not product runtime. (6) Manifest/adjudication/inspection are mutually consistent: status in_progress, production_ready:false, runtime_ready:false, descriptor_only:true, runtime_opened:false, pack_level_claude_review pending_review with empty receipts; the pack does not prematurely claim runtime or enterprise trust. (7) Review hardening - readiness-report auth_preflight passed (exit_code 0, stdout 1446 bytes, valid JSON result); no auth-failure/0-byte/malformed/fenced-with-prose/tool-call-shaped evidence; claude-review-result correctly records exactly_one_valid_pack_level_claude_review_run:false with no prior invalid attempts; no pre-existing raw-output/receipt to reject. Recorded command-evidence shows all 22 commands at exit_code 0 (node --check x5, closeout-pack(-plan):validate, rp22 external-integrations-i validate, node --test model.test.js, rp22/weighted/spec/fullplan/validate/goal:closeout/rp00 control-plane validate, git diff --check, npm test, npm build); these are reported evidence I did not re-run (read-only, no Bash). Index re-exports (index.js export * from registry/service/validators) resolve all five required_public_exports. Queue confirms live_latest_pack_id CP00-683, next CP00-684. Unrelated dirty files (plan/queue, progress-control-room, workbook/*, LDIP invalid-attempt) are correctly segregated as unrelated_dirty_files_preserved with active_untracked_implementation_files_omitted empty. No P0-P3 findings. This receipt does not block CP00-683 pack or goal closeout; final human/enterprise-trust approval remains outside this read-only review.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"1b926b44-380c-420d-ad23-17b4e79e40da\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5833,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "0c025e62-b192-461b-8e1b-d997001d03ff",
+    "uuid": "1b926b44-380c-420d-ad23-17b4e79e40da",
+    "total_cost_usd": 2.237096,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "law-firm-os.launch-decision-register-owner-evidence-audit.v0.1",
+  "generated_at": "2026-06-18T17:14:11.647Z",
+  "source_refs": [
+    "docs/launch/launch-decision-register.md",
+    "docs/launch/launch-decision-register-validation.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "validates_owner_evidence_quality_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "launch_decision_register_modified_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "decision_register_total_rows": 0,
+    "owner_evidence_row_count": 0,
+    "owner_evidence_quality_pass_count": 0,
+    "owner_evidence_quality_blocked_count": 0,
+    "local_signature_ref_resolves_count": 0,
+    "external_signature_ref_declared_count": 0,
+    "weak_owner_evidence_row_count": 0,
+    "agent_inferred_owner_evidence_row_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "owner_evidence_rows": [],
+  "findings": []
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-632",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "bc13e8e0-05e1-4750-a380-eaa04c8ee5db",
+    "uuid": "b752f281-69c9-48fd-a91d-bb994d588dda",
+    "total_cost_usd": 2.7146622500000004,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-632/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-632/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-632 (RP20 Data Room/VDR, risk A, 10 units, RP20.P06.M04.S15-RP20.P06.M05.S02: P06 secondary workflow tail + permission/audit binding head) is a clean descriptor-only pack and is supported for closeout. Verified via Read/Grep/Glob only: pack identity, range, upstream/next, and next_subphase are identical across registry.js (CP632_PACK_BINDING), contracts/data-room-vdr-core-contract.json (head, projections cp632_pack_binding/cp632_requirements/cp632_no_write_attestation, and embedded descriptor), the manifest, review-baseline, README#cp00-632, plan live_state, and next-pack-queue. Row composition matches the baseline exactly: M04 Secondary Workflow Slice = 8 rows (Approval-required route, Security trimming proof, Audit event expectation, Permission fixture, Allowed/Denied/Cross-tenant/Leak prevention tests) continuing cleanly from CP631 slice(0,14); M05 Permission And Audit Binding = 2 rows (Permission matrix row, View decision binding). Deliverable distribution ui:1/security_audit:4/test:4/implementation:1 confirmed through the dataRoomVdrCoreDeliverableType title-set mapping. No-write/no-runtime/no-real-data boundaries are strongly enforced: freezeCp632Result chains all dispatch/execute/write flags to false, CP632_NO_WRITE_ATTESTATION adds p06 secondary tail / permission-audit-binding head / approval route / security trimming / audit event runtime_opened:false, and validateDataRoomVdrCoreCp632...Descriptor asserts ~30 negative invariants plus synthetic_only and no_real_data. Authority boundary is correct: claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true; Hermes is descriptor-only (emits_hermes_runtime_receipt:false, receipt_shape descriptor_only...no_write) used solely for review packet/receipt handling, not product runtime. Review hardening is encoded (forbidden_review_evidence covers auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, missing fields, claude_final_approval_claim, enterprise_trust_claim); readiness auth-preflight passed with valid JSON and no invalid attempts are preserved. command-evidence records the full validation matrix (node --check, rp20 validate, node --test, weighted/spec/fullplan/validate/goal:closeout/rp00:control-plane/rp05:matter-core/closeout-pack(-plan)/test/build, git diff --check) all exiting 0. production_ready is correctly false across manifest/command-evidence/construction-inspection pending this review; the validator reports only production_ready_candidate:true. The pending adjudication.md and construction-inspection.json verdicts and the review_pending claude-review-result.json are the expected pre-normalization placeholders, not defects. No P0/P1/P2 issues found. One non-blocking P3 provenance note on plan-array resolution. Human final approval remains required for the enterprise trust claim; Claude is a read-only reviewer, not the final approver.",
+    "findings": [
+      {
+        "id": "CP632-P3-01",
+        "severity": "P3",
+        "title": "CP00-632 plan cross-check resolves via manifest snapshot fallback, not live plan packs[]",
+        "file": "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "line": 402,
+        "details": "The live closeout-pack-plan.json packs[] array begins at CP00-633 (line 404); CP00-632 is recorded only under live_state (line 36). Consequently the validator (scripts/validate-rp20-data-room-vdr-core-contract.mjs:273-274) and the test (packages/data-room/test/model.test.js:312-313) resolve cp632PlanPack through the `?? cp632Manifest?.plan_binding_snapshot` fallback rather than the live plan packs array. This is by design after the queue regenerated forward to CP00-633 once CP00-632's command matrix ran, and the manifest plan_binding_snapshot is an internally consistent evidence source (pack_id, unit_count, and range.description match the binding). It is noted only for traceability: the plan-vs-binding cross-check for this pack is validated against the manifest snapshot, not the live plan packs[].",
+        "recommendation": "No change required for closeout. Optionally retain the manifest plan_binding_snapshot as the authoritative per-pack plan record once a pack leaves the live packs[] queue, and keep documenting queue regeneration in command-evidence (already present) so the snapshot-based cross-check remains auditable.",
+        "post_review_disposition": "Acceptable as-is (by design); non-blocking. Manifest snapshot fallback preserves a consistent plan-vs-binding cross-check after queue regeneration."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "user_waiver": null
+}

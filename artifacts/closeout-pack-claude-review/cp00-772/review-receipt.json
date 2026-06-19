@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-772",
+  "normalized_at": "2026-06-15T16:14:02.223Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-772/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-772/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-772/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-772/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "7b063a6c-3e6e-42d2-b04b-633d16bb125e",
+    "uuid": "f1d45d73-9343-44ab-b6c1-9d737993c096",
+    "total_cost_usd": 2.349380499999999,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5525,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-772 (RP25.P05.M06.S09-S18, risk A, 10 units, all \"Synthetic Fixture Set\") is a descriptor-only Migration Platform pack and passes hardened read-only review. Baseline consistency: the deliverable distribution {implementation:3, security_audit:2, fixture:1, test:3, hermes_evidence:1} and unit titles match across prompt, manifest plan_binding_snapshot, registry MIGRATION_PLATFORM_CP772_REQUIREMENTS (FIXTURE_ROWS.slice(8,18)), and review baseline. Implementation: service.js:1170-1225 adds the CP772 descriptor/case-set (section_count 1)/Hermes+Claude packets/CP00-772->CP00-773 handoff through shared deep-frozen helpers that embed MIGRATION_PLATFORM_NO_WRITE_ATTESTATION; index.js re-exports via export *. Validation logic: validators.js:1442-1512 enforces descriptor_only rows and blocks source-system runtime opening (file_server/sharepoint/drive/imanage/import), cross-tenant access, raw/source/credential/real-client payloads, unverified knowledge creation, Claude-final-approval, and local-validation enterprise-trust claims. Tests/commands: model.test.js:621-674 adds 3 passing CP772 tests and the contract validator includes the cp772 entry; command-evidence.json records all 10 required validation commands plus npm test and git diff --check at exit_code 0 (no non-zero codes), and the regenerated contract has validation.valid:true with latest_projection MigrationPlatformCp772SyntheticFixtureTailDescriptor and no \"valid\":false anywhere. Boundaries: Hermes is used only for deterministic descriptor evidence (emits_runtime_receipt:false, writes_product_state:false); Claude remains read-only and non-final (review-request read_only:true, tools Read/Grep/Glob; descriptor authority_boundary claude_is_final_approval:false, human_final_approval_required:true). The manifest honestly reports production_ready:false / runtime_ready:false with no runtime or enterprise-trust over-claim, and adjudication/construction-inspection correctly sit in PENDING_REVIEW awaiting this verdict (expected closeout sequence). Scope hygiene verified: unrelated dirty files (progress-control-room, workbook/*, the v2.0.docx, and docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json from a different workstream) are correctly excluded; active_untracked_implementation_files_omitted is empty; the cosmetic double-listing of the pack's own docs/closeout-packs/cp00-772/ dir in unrelated_dirty_files_preserved is a systemic scope-file convention also present at the already-closed CP00-771, and the authoritative manifest worktree_transition_policy/commit_policy classifies pack scope correctly. Review-evidence hardening: readiness auth-preflight passed with valid JSON (exit 0, 1445-byte stdout) and there are no recorded invalid/malformed prior review attempts to reject. No P0/P1/P2/P3 findings; this PASS is the signal to finalize adjudication/inspection and flip the descriptor-verified gate. Final human approval for any future runtime/enterprise-trust opening remains outside this receipt, as expected.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

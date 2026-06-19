@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-094",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "183510db-43e0-43e8-848d-eedc26566b91",
+    "uuid": "a99edbb9-26f9-4628-b4e0-6eeb166069b7",
+    "total_cost_usd": 0.3294505,
+    "permission_denials": [],
+    "duration_ms": 117433,
+    "invalid_attempt_counted_as_valid": false,
+    "terminal_reason": "completed",
+    "cli_type": "result",
+    "cli_subtype": "success",
+    "cli_is_error": false
+  },
+  "invalid_attempts": [],
+  "parsed_review": {
+    "pack_id": "CP00-094",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "CP00-094-P3-01",
+          "title": "requested_pack_id (CP00-093) differs from planned/actual pack_id (CP00-094)",
+          "detail": "Header lists requested_pack_id CP00-093 while planned_pack_id and pack_id are CP00-094. CP00-093 is already closed (recent commit 'Close CP00-093 review closeout finding routing map pack') and is bound here strictly as the consumed upstream. The planner correctly advanced to the terminal pack CP00-094; the assembler fail-closes on CP00-093 pack drift and missing CP00-093 finding-routing completion, so the upstream is consumed, not re-closed.",
+          "resolution": "Reconciled, informational only. No action required; recommend recording the request->plan advance in docs/closeout-packs/cp00-094/manifest.json for traceability.",
+          "blocking": false
+        }
+      ]
+    },
+    "explicit_checks": {
+      "risk_sized_pack_scope": {
+        "status": "pass",
+        "evidence": "Single C-class closeout pack binds all 24 planned units across RP00.P09.M06-M10 (range RP00.P09.M06.S01-RP00.P09.M10.S01) via terminal_unit_matrix + micro_phase_closeout_map; override_reason 'RP00 terminal closeout C pack' present; no 1-unit fragmentation. Contract marks the same 24 CP00-094 units production_ready and validator adds those 24 to requiredClosedSubphases."
+      },
+      "metadata_only_no_write_boundary": {
+        "status": "pass",
+        "evidence": "Policy forbids runtime Claude review, review-queue/assignment/notification writes, human-approval synth/write/bypass, runtime permission/AuthZ/security-trimming, audit/event writes, Hermes/command-evidence writes, DB/storage/product-state/idempotency/lock writes, LDIP impl, HRX split, and premature product completion. Assembler fail-closes on unsafe-forbidden and unknown-truthy claims; validators assert no-write/no-runtime flags; module-no-write test plus 6/6 'Review Closeout Terminal Handoff' tests pass; node --check exit 0 on all sources."
+      },
+      "upstream_cp00_093_enforced": {
+        "status": "pass",
+        "evidence": "Policy binds CP00-093 required input fields and CP00-093 evidence refs; assembler fail-closes on CP00-093 pack drift and on missing CP00-093 finding-routing completion before emitting the handoff; policy-binding and fail-closed-upstream tests cover this path."
+      },
+      "rp00_to_rp01_handoff_not_product_completion": {
+        "status": "pass",
+        "evidence": "rp00_closeout_contract sets next RP01.P00.M00.S01; policy forbids premature product-candidate completion; assembler fail-closes on next_subphase drift; contract current_subphase and validator cursor both set to terminal RP00.P09.M10.S01 (RP00 boundary), not a final-product/goal-complete state."
+      },
+      "hrx_ldip_boundaries": {
+        "status": "pass",
+        "evidence": "rp00_closeout_contract preserves 54,355 Law Firm OS + 901 embedded HRX = 55,256 expanded total and LDIP as internal planning-gated capability; policy forbids HRX product split and LDIP implementation; contract-mirror test validates these invariants. Arithmetic checks out (54,355 + 901 = 55,256)."
+      },
+      "fixture_contract_validator_consistency": {
+        "status": "pass",
+        "evidence": "Fixture control_plane_review_closeout_terminal_handoff is generated from the assembler; contract adds CP00-094 definition/result and 24 production_ready units; validator adds the 24 units to requiredClosedSubphases, moves cursor to RP00.P09.M10.S01, maps CP00-094 construction inspection to terminal S01, and requires control_plane_review_closeout_terminal_handoff_verified; fixture-mirror and contract-mirror tests pass; all node --check exit 0. The npm run rp00:control-plane:validate exit 1 is the expected pre-evidence state (only missing docs/closeout-packs/cp00-094/{manifest,command-evidence,claude-review-result,adjudication,construction-inspection} artifacts that this review and its siblings produce), not a code/consistency defect."
+      }
+    },
+    "summary": "CP00-094 is a correctly risk-sized terminal RP00 closeout pack binding all 24 planned units (RP00.P09.M06-M10) as one C-class pack rather than arbitrary 1-unit closeouts. It preserves the metadata-only/no-write/no-runtime boundary via an explicit forbid list, fail-closed assembler, and no-write/no-runtime validators (6/6 tests pass, all node --check exit 0). Upstream CP00-093 finding-routing completion is enforced (fail-close on pack drift and missing completion) before the handoff. RP00 completion is scoped to the RP00->RP01 terminal handoff with next_subphase RP01.P00.M00.S01 and explicit forbidding of premature product completion, not final product/goal closeout. HRX-embedded (901, no split) and LDIP planning-gated (no implementation) boundaries are preserved, and fixture/contract/validator are mutually consistent. No P0/P1/P2 findings; one P3 informational note that requested_pack_id CP00-093 differs from planned/actual CP00-094 (reconciled: CP00-093 is the already-closed upstream consumed here). The sole validate failure is the expected missing docs/closeout-packs/cp00-094/* evidence artifacts this review produces; it does not block closeout once written. Verdict PASS_WITH_FINDINGS; does not block pack or goal closeout."
+  },
+  "raw_result_excerpt": "{\n  \"pack_id\": \"CP00-094\",\n  \"overall_verdict\": \"PASS_WITH_FINDINGS\",\n  \"blocks_pack_closeout\": false,\n  \"blocks_goal_closeout\": false,\n  \"no_unresolved_p0\": true,\n  \"no_unresolved_p1\": true,\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 1 },\n  \"findings\": {\n    \"p0\": [],\n    \"p1\": [],\n    \"p2\": [],\n    \"p3\": [\n      {\n        \"id\": \"CP00-094-P3-01\",\n        \"title\": \"requested_pack_id (CP00-093) differs from planned/actual pack_id (CP00-094)\",\n        \"detail\": \"Header lists requested_pack_id CP00-093 while planned_pack_id and pack_id are CP00-094. CP00-093 is already closed (recent commit 'Close CP00-093 review closeout finding routing map pack') and is bound here strictly as the consumed upstream. The planner correctly advanced to the terminal pack CP00-094; the assembler fail-closes on CP00-093 pack drift and missing CP00-093 finding-routing completion, so the upstream is consumed, not re-closed.\",\n        \"resolution\": \"Reconciled, informational only. No action required; recommend recording the request->plan advance in docs/closeout-packs/cp00-094/manifest.json for traceability.\",\n        \"blocking\": false\n      }\n    ]\n  },\n  \"explicit_checks\": {\n    \"risk_sized_pack_scope\": {\n      \"status\": \"pass\",\n      \"evidence\": \"Single C-class closeout pack binds all 24 planned units across RP00.P09.M06-M10 (range RP00.P09.M06.S01-RP00.P09.M10.S01) via terminal_unit_matrix + micro_phase_closeout_map; override_reason 'RP00 terminal closeout C pack' present; no 1-unit fragmentation. Contract marks the same 24 CP00-094 units production_ready and validator adds those 24 to requiredClosedSubphases.\"\n    },\n    \"metadata_only_no_write_boundary\": {\n      \"status\": \"pass\",\n      \"evidence\": \"Policy forbids runtime Claude review, review-queue/assignment/notification writes, human-approval synth/write/bypass, runtime permission/AuthZ/security-trimming, audit/event writes, Hermes/command-evidence writes, DB/storage/product-state/idempotency/lock writes, LDIP impl, HRX split, and premature product completion. Assembler fail-closes on unsafe-forbidden and unknown-truthy claims; validators assert no-write/no-runtime flags; module-no-write test plus 6/6 'Review Closeout Terminal Handoff' tests pass; node --check exit 0 on all sources.\"\n    },\n    \"upstream_cp00_093_enforced\": {\n      \"status\": \"pass\",\n      \"evidence\": \"Policy binds CP00-093 required input fields and CP00-093 evidence refs; assembler fail-closes on CP00-093 pack drift and on missing CP00-093 finding-routing completion before emitting the handoff; policy-binding and fail-closed-upstream tests cover this path.\"\n    },\n    \"rp00_to_rp01_handoff_not_product_completion\": {\n      \"status\": \"pass\",\n      \"evidence\": \"rp00_closeout_contract sets next RP01.P00.M00.S01; policy forbids premature product-candidate completion; assembler fail-closes on next_subphase drift; contract current_subphase and validator cursor both set to terminal RP00.P09.M10.S01 (RP00 boundary), not a final-product/goal-complete state.\"\n    },\n    \"hrx_ldip_boundaries\": {\n      \"status\": \"pass\",\n      \"evidence\": \"rp00_closeout_contract preserves 54,355 Law Firm OS + 901 embedded HRX = 55,256 expanded total and LDIP as internal planning-gated capability; policy forbids HRX product split and LDIP implementation; contract-mirror test validates these invariants. Arithmetic checks out (54,355 + 901 = 55,256).\"\n    },\n    \"fixture_contract_validator_consistency\": {\n      \"status\": \"pass\",\n      \"evidence\": \"Fixture control_plane_review_closeout_terminal_handoff is generated from the assembler; contract adds CP00-094 definition/result and 24 production_ready units; validator adds the 24 units to requiredClosedSubphases, moves cursor to RP00.P09.M10.S01, maps CP00-094 construction inspection to terminal S01, and requires control_plane_review_closeout_terminal_handoff_verified; fixture-mirror and contract-mirror tests pass; all node --check exit 0. The npm run rp00:control-plane:validate exit 1 is the expected pre-evidence state (only missing docs/closeout-packs/cp00-094/{manifest,command-evidence,claude-review-result,adjudication,construction-inspection} artifacts that this review and its siblings produce), not a code/consistency defect.\"\n    }\n  },\n  \"summary\": \"CP00-094 is a correctly risk-sized terminal RP00 closeout pack binding all 24 planned units (RP00.P09.M06-M10) as one C-class pack rather than arbitrary 1-unit closeouts. It preserves the metadata-only/no-write/no-runtime boundary via an explicit forbid list, fail-closed assembler, and no-write/no-runtime validators (6/6 tests pass, all node --check exit 0). Upstream CP00-093 finding-routing completion is enforced (fail-close on pack drift and missing completion) before the handoff. RP00 completion is scoped to the RP00->RP01 terminal handoff with next_subphase RP01.P00.M00.S01 and explicit forbidding of premature product completion, not final product/goal closeout. HRX-embedded (901, no split) and LDIP planning-gated (no implementation) boundaries are preserved, and fixture/contract/validator are mutually consistent. No P0/P1/P2 findings; one P3 informational note that requested_pack_id CP00-093 differs from planned/actual CP00-094 (reconciled: CP00-093 is the already-closed upstream consumed here). The sole validate failure is the expected missing docs/closeout-packs/cp00-094/* evidence artifacts this review produces; it does not block closeout once written. Verdict PASS_WITH_FINDINGS; does not block pack or goal closeout.\"\n}"
+}

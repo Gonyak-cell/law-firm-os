@@ -1,0 +1,536 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-192",
+  "planned_pack_id": "CP00-192",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "matter_core_failure_fixture_entry_boundary_verified",
+  "program_id": "RP05",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP05.P07.M06.S08",
+  "next_subphase": "RP05.P07.M06.S09",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-192",
+    "planned_pack_id": "CP00-192",
+    "title": "CP00-192 RP05.P07.M05.S21-RP05.P07.M06.S08 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP05.P07.M05.S21",
+      "last_unit_id": "RP05.P07.M06.S08",
+      "description": "RP05.P07.M05.S21-RP05.P07.M06.S08"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP05.P07.M05.S21",
+        "title": "Claude edge-case prompt",
+        "source_micro_phase_id": "RP05.P07.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP05.P07.M05.S22",
+        "title": "Human escalation note",
+        "source_micro_phase_id": "RP05.P07.M05",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP05.P07.M06.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP05.P07.M06.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP05.P07.M06",
+        "program_id": "RP05",
+        "phase_id": "RP05.P07",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "security_audit"
+      }
+    ]
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "included_units": [
+    {
+      "id": "RP05.P07.M05.S21",
+      "title": "Claude edge-case prompt",
+      "source_micro_phase_id": "RP05.P07.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M05.S22",
+      "title": "Human escalation note",
+      "source_micro_phase_id": "RP05.P07.M05",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP05.P07.M06.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP05.P07.M06",
+      "program_id": "RP05",
+      "phase_id": "RP05.P07",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "implementation_refs": [
+        "contracts/matter-core-contract.json",
+        "packages/matter/README.md",
+        "packages/matter/src/registry.js",
+        "packages/matter/src/service.js",
+        "packages/matter/src/validators.js",
+        "packages/matter/test/model.test.js",
+        "scripts/validate-rp05-matter-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-192/manifest.json",
+        "docs/closeout-packs/cp00-192/command-evidence.json",
+        "docs/closeout-packs/cp00-192/claude-review-result.json",
+        "docs/closeout-packs/cp00-192/adjudication.md",
+        "docs/closeout-packs/cp00-192/construction-inspection.json"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-192/manifest.json",
+    "docs/closeout-packs/cp00-192/command-evidence.json",
+    "docs/closeout-packs/cp00-192/claude-review-result.json",
+    "docs/closeout-packs/cp00-192/adjudication.md",
+    "docs/closeout-packs/cp00-192/construction-inspection.json"
+  ],
+  "implementation_summary": {
+    "summary": "CP00-192 binds the RP05 Matter Core review/escalation tail and initial synthetic failure fixture rows as a Risk A descriptor-only boundary.",
+    "source_refs": [
+      "contracts/matter-core-contract.json",
+      "packages/matter/README.md",
+      "packages/matter/src/registry.js",
+      "packages/matter/src/service.js",
+      "packages/matter/src/validators.js",
+      "packages/matter/test/model.test.js",
+      "scripts/validate-rp05-matter-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "no_real_data_loading": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_runtime_api_handler_execution": true,
+    "no_live_dom_rendering": true,
+    "no_raw_payload_exposure": true,
+    "no_real_document_content_loading": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_event_body_leak": true,
+    "no_unauthorized_count_leak": true,
+    "no_review_or_approval_dispatch": true,
+    "no_graph_provider_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_failure_recovery_execution": true,
+    "no_loop_engine": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-192/review-receipt.json",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-192/review-receipt.json"
+    ],
+    "exactly_one_valid_pack_review_completed": true
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-192 matter core failure fixture entry boundary pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "closeout_gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "passed",
+    "claude_review": "passed_exactly_one_valid_read_only_review",
+    "finding_adjudication": "passed",
+    "construction_inspection": "passed",
+    "included_units_production_ready": "passed",
+    "final_validation": "passed",
+    "commit": "pending"
+  }
+}

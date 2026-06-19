@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-651",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T17:40:30.209Z",
+  "finished_at": "2026-06-13T17:44:44.489Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":253694,\"duration_api_ms\":254411,\"ttft_ms\":3113,\"num_turns\":43,\"result\":\"Review complete. **Verdict: PASS** — no findings at any severity.\\n\\nCP00-651 is a clean descriptor-only Admin Console UI permission/synthetic-fixture pack that honestly reports `production_ready=false`/`in_progress` and preserves all no-write, no-real-data, runtime-closed, Claude-read-only, Hermes-not-in-runtime, and no-enterprise-trust boundaries. Registry binding, distributions, descriptor enforcement, command evidence (23/23 exit 0), tests, and the generated contract are all internally consistent, and the review-hardening preflight is healthy (valid non-empty JSON, within size limits, no forbidden tools). The review does not block pack or goal closeout; the pending adjudication/inspection placeholders are the expected downstream steps that consume this receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"12793777-87a4-4156-b6e1-57fb5acbac0b\",\"total_cost_usd\":2.2769909999999998,\"usage\":{\"input_tokens\":44,\"cache_creation_input_tokens\":139918,\"cache_read_input_tokens\":1890165,\"output_tokens\":18238,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":139918,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":276,\"cache_read_input_tokens\":137374,\"cache_creation_input_tokens\":3276,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3276},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1151,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001251,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":44,\"outputTokens\":18238,\"cacheReadInputTokens\":1890165,\"cacheCreationInputTokens\":139918,\"webSearchRequests\":0,\"costUSD\":2.27574,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-651 (RP21 Admin Console UI permission & synthetic fixture descriptor, Risk B, 40 units, RP21.P04.M04.S18-RP21.P04.M06.S15) passes hardened read-only review. The pack-level claim is descriptor-only verification with no-write/no-real-data preservation; it correctly reports production_ready=false, runtime_ready=false, status in_progress, and does NOT claim product runtime or enterprise trust. Verification: (1) registry binding (registry.js:103) matches manifest, baseline, and generated contract exactly — risk B, 40 units, upstream CP00-650, next CP00-652/RP21.P04.M06.S16, runtime_opened=false; (2) deliverable distribution (hermes 2/claude 4/impl 11/ui 17/security 4/fixture 1/test 1=40) and micro-title distribution (Secondary Workflow Slice 3/Permission And Audit Binding 22/Synthetic Fixture Set 15) match the prompt baseline and are enforced by validateAdminConsoleCp651Coverage; (3) descriptor-only boundaries enforced — every case-set row descriptor_only=true/runtime_execution=false/raw_payload_included=false, freezeCp651Result pins ~40 runtime/mutation/leak flags false, runtime_boundary and no_write_attestation fully closed; (4) permission/audit slice does not evaluate runtime permission, write permission decisions, or emit/persist audit events, and asserts no_unauthorized_count_leak=true with deny-over-allow and the five required no-leak guards; (5) fixtures synthetic-only (fixture_payload_included=false, real_client_data_loaded=false) — no real tenant/matter/document/billing data; (6) Claude remains read-only independent reviewer (claude_review_plan.read_only=true, promotes_claude_to_final_approval=false, blocks_pack_on_p0_p1_p2=true) and is not final approver; (7) Hermes patterns used only for deterministic descriptor evidence packet/receipt (hermes_runtime_opened=false, runtime_receipt_emitted=false) — not product runtime; (8) review-hardening infrastructure healthy: auth preflight passed (exit 0, 1455-byte valid JSON stdout, not 0-byte/malformed/tool-call-shaped), prompt 2515<25600 bytes, no forbidden tools, summary-only correctly prohibited (Risk B + security/review deliverables), source_inspection_mode=read_tools_used; (9) command-evidence records all 23 commands (incl. every prompt-required validation command, npm test, build, git diff --check) exit 0; (10) tests cover CP651 (4 model.test.js cases + validator deep-equality assertions). The current pending placeholders in claude-review-result/adjudication/construction-inspection are the expected pre-receipt state awaiting this review. blocks_goal_closeout=false because the pack asserts no runtime/enterprise-trust claim and the human/enterprise-trust authority boundary is closed outside this receipt. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"629410f6-03d2-4d85-a74f-775a7720a720\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5202,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "12793777-87a4-4156-b6e1-57fb5acbac0b",
+    "uuid": "629410f6-03d2-4d85-a74f-775a7720a720",
+    "total_cost_usd": 2.2769909999999998,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

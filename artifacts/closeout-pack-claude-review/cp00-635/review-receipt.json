@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-635",
+  "normalized_at": "2026-06-13T12:37:11.145Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-635/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-635/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-635/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-635/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "05288984-d69c-400f-aaf6-ce8735005aff",
+    "uuid": "435954a7-ba71-40e1-a578-3a1c4f9fae4e",
+    "total_cost_usd": 3.313567,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4209,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-635 (RP20.P06.M06.S01-S10, Risk A, 10 units, Synthetic Fixture Set) is a descriptor-only, synthetic-only pack whose pack-level production_ready claim is supported by independent read-only inspection. The contract descriptor (contracts/data-room-vdr-core-contract.json: cp635_p06_synthetic_fixture_head_descriptor) is deep-equal verified against the code-generated descriptor by both the validator script and a dedicated test, giving machine-enforced contract/code parity. The 10 rows match the manifest titles exactly and resolve to the declared 8 implementation + 2 security_audit distribution (Permission matrix row, Audit hint fields), with micro-title Synthetic Fixture Set x10. No-write/no-real-data/no-runtime boundaries are attested in the contract and enforced by validator assertions; deny-over-allow is enforced (deny_over_allow_enforced true, permission_bypass_detected false) and no-leak guards (tenant scope, matter trace, object-storage/audit-body/permission-decision-detail exclusions) are present. The authority boundary is correct: Claude is not the final approver, local validation does not claim enterprise trust, and runtime opening requires human approval (deferred to CP00-636). Hermes is used only as a deterministic descriptor/receipt shape (emits_hermes_runtime_receipt false), not product runtime. command-evidence.json records all expected validation commands plus npm test/build/git diff --check at exit 0, and the readiness auth preflight passed (exit 0, 1436-byte valid JSON; no auth failure, 0-byte, or malformed-output evidence). Plan live_state and next-pack-queue both pin CP00-635 with next unit RP20.P06.M06.S11 / next pack CP00-636, and the README CP00-635 entry is accurate. The manifest, construction-inspection, and adjudication correctly remain production_ready=false/pending pre-review rather than prematurely claiming readiness. No P0/P1/P2/P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

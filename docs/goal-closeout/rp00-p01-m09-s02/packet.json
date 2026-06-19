@@ -1,0 +1,56 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M09.S02",
+  "source_micro_phase_id": "RP00.P01.M09",
+  "title": "Primary entity identifier",
+  "status": "production_ready",
+  "created_at": "2026-06-04T09:31:02.000Z",
+  "implemented_surface": "ControlPlaneExportModelRegistry",
+  "implemented_slice": "primary_entity_identifier",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m09-s02/packet.json",
+    "docs/goal-closeout/rp00-p01-m09-s02/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m09-s02/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m09-s02/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m09-s02/construction-inspection.json"
+  ],
+  "implementation_summary": [
+    "Added CONTROL_PLANE_EXPORT_MODEL_REGISTRY_IDENTIFIER_POLICY for RP00.P01.M09.S02.",
+    "Added normalizeControlPlaneExportModelRegistryId and validateControlPlaneExportModelRegistryId for canonical emr_ registry IDs.",
+    "Recorded normalization parity on the model policy after Claude P3-1.",
+    "Recorded a synthetic control_plane_export_model_registry_identifier fixture for emr_rp00_control_plane_export_model_registry.",
+    "Referenced the S01 layout completion and deferred tenant scope to RP00.P01.M09.S03.",
+    "Exposed the identifier policy through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY and advanced nextSubphase to RP00.P01.M09.S03.",
+    "Kept states.js and the entity registry unchanged."
+  ],
+  "scope_boundaries": {
+    "implements_only_control_plane_export_model_registry_identifier": true,
+    "does_not_complete_tenant_scope": true,
+    "does_not_complete_full_export_model_registry_validation": true,
+    "does_not_mutate_entity_registry": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_create_ui": true,
+    "does_not_create_runtime_export_writer": true
+  },
+  "gates": {
+    "hermes": "H00",
+    "claude": "C00",
+    "claude_review_count": 1,
+    "claude_review_session_continued_to_complete_result": false,
+    "construction_inspection": "PASS",
+    "next_subphase": "RP00.P01.M09.S03"
+  }
+}

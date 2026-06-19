@@ -1,0 +1,142 @@
+{
+  "subphase_id": "RP00.P02.M03.S18",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Retry behavior",
+  "created_at": "2026-06-05T13:23:39Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "test_count": 217,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "test_count": 301,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "requirement_count": 227,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "implementation_subphase_count": 54355,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "release_program_count": 30,
+      "micro_phase_count": 3300,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "Final S18 closeout gate rerun after evidence creation and completion gate text refresh",
+      "writes_product_state": false
+    }
+  ],
+  "production_ready": true,
+  "status": "passed",
+  "recorded_at": "2026-06-05T13:23:39Z",
+  "executed_at": "2026-06-05T13:23:39Z",
+  "micro_title": "Hermes Validation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "All commands are local validation, parser, test, Claude read-only review, or git whitespace checks; none enqueue retry work, execute retry work, write retry queues, write retry attempt records, persist retry schedules, start retry timers, dispatch retry workers, execute rollback behavior, run compensation behavior, write operator escalation, notify customers, write incident traces, append observability events, run Hermes validation as product runtime behavior, create Hermes evidence as product runtime behavior, mutate tenant lifecycle state, append audit ledgers, write audit events, persist idempotency records, acquire locks, write databases, write storage, persist product state, invoke Claude runtime review, write review queues, write human approval records, create UI, replace human approval, or mutate product state.",
+    "Pre-closeout npm run rp00:control-plane:validate failed only because S18 evidence files were intentionally not created yet; this command is rerun after evidence creation as the final gate.",
+    "Claude C00 valid review completed once. Claude rated the S18 implementation GO-quality and reported a closeout NO-GO because evidence files were absent before this closeout ceremony. The P0 is resolved by this evidence packet and the recorded final gate. The P2 completion-gate documentation drift is resolved in contracts/control-plane-contract.json. The P3 note is informational and requires no code change."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "status": "passed"
+  },
+  "pre_closeout_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "docs/goal-closeout/rp00-p02-m03-s18/packet.json",
+      "docs/goal-closeout/rp00-p02-m03-s18/command-evidence.json",
+      "docs/goal-closeout/rp00-p02-m03-s18/claude-review-result.json",
+      "docs/goal-closeout/rp00-p02-m03-s18/adjudication.md",
+      "docs/goal-closeout/rp00-p02-m03-s18/construction-inspection.json"
+    ]
+  },
+  "post_claude_gate_text_adjustment": {
+    "source": "CLAUDE-S18-P2-001",
+    "summary": "Claude found six completion_gates evidence strings still described S17 rollback behavior.",
+    "resolution": "Updated implemented, tests, permission_audit, hermes_validation, claude_cross_validation, and human_approval evidence strings to S18 retry behavior."
+  },
+  "evidence_summary": {
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready",
+    "human_approval_boundary": "Human approval is not required for this synthetic metadata-only retry behavior boundary because no sensitive production mutation, client-facing output, external sharing, finance action, or real data operation occurs.",
+    "retry_behavior": "S18 emits recovery-path, retry attempt policy, backoff schedule, dedupe, retry window, and incident-traceability metadata only; it writes no retry queue, retry attempt record, retry schedule, retry timer, retry worker dispatch, rollback plan, compensation record, operator escalation, customer notification, incident trace, observability event, audit event, Hermes evidence, database, storage, UI, runtime route, or product state."
+  },
+  "retry_strategy_refs": [
+    "RP00.P02.M03.S17.rollback_strategy.retry_metadata_only",
+    "RP00.P02.M03.S18.synthetic_retry_behavior_boundary",
+    "RP00.P02.M03.S18.no_retry_enqueue_timer_worker_or_execution",
+    "RP00.P02.M03.S18.retry_attempt_policy.synthetic_max_attempts",
+    "RP00.P02.M03.S18.retry_schedule.metadata_only_backoff",
+    "RP00.P02.M03.S18.retry_dedupe.idempotency_key_reuse",
+    "RP00.P02.M03.S18.retry_backoff.exponential_jitter_metadata"
+  ],
+  "gate_outcome": "passed_after_evidence_creation"
+}

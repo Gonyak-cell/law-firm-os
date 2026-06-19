@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-849",
+  "normalized_at": "2026-06-16T16:34:57.765Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-849/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-849/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-849/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-849/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f7f7ede2-987b-46ad-bce2-bfbc06c0ff1f",
+    "uuid": "a406c045-bdc0-4d04-a908-03e6b4708464",
+    "total_cost_usd": 1.9042735,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6430,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-849 is a descriptor-only RP28 Marketplace submission-review workflow pack (RP28.P02.M03.S01-RP28.P02.M04.S18, 40 units, risk B). Read-only inspection confirms the pack-level claim is supported and correctly scoped as descriptor-only: manifest holds production_ready=false and runtime_ready=false, and the implementation (registry.js createMarketplaceCp849SubmissionReviewWorkflowDescriptor chaining from CP848), validators (validateMarketplaceCp849... enforcing descriptor-only/no-runtime/no-leak/no-write across all 40 rows), tests (model.test.js CP849 binding+coverage+runtime-closed asserting row_count 40), contract projection (latest_pack_id CP00-849, validation.valid true, no_write_attestation all false), and the RP28 validation script are mutually consistent. Plan alignment verified: live_state.next_subphase RP28.P02.M03.S01 equals CP849 first unit; deliverable_distribution {contract:2,implementation:18,security_audit:4,ui:6,claude_review:2,failure_recovery:4,test:4} and micro_title {Primary 22, Secondary 18} match baseline. No-write/no-real-data boundaries hold: no *_executed/*_written/writes_product_state/runtime_execution true flags anywhere in marketplace source, and command-evidence attests no real data. Authority boundary is correct: Claude is a read-only independent reviewer (not final approver), human approval required for runtime opening, and Hermes packets emit_runtime_receipt=false (deterministic review/evidence only, not embedded product runtime). Review-hardening checks pass: no prior invalid review attempts to reject; readiness auth preflight passed (exit 0, 1224 stdout bytes); the claude-review-result stdout_bytes=0/pending_review is the pre-review placeholder, not a failed attempt; and the unrelated docs/ldip-integration invalid-attempt file is correctly out of pack scope. One informational P3: command-evidence captures only the two marketplace-scoped commands, while the full 10-command closeout suite remains a downstream gate (per construction-inspection.json) that must run before production_ready flips — by-design sequencing, not a defect. Verdict PASS_WITH_FINDINGS with no P0/P1/P2; this review does not block pack or goal closeout. Final production_ready promotion still requires this valid receipt plus the full validation suite, and human final approval for any enterprise-trust/runtime claim remains external to this receipt.",
+    "findings": [
+      {
+        "id": "CP849-P3-01",
+        "severity": "P3",
+        "title": "Full closeout validation suite still pending; command-evidence captures only marketplace-scoped commands",
+        "file": "docs/closeout-packs/cp00-849/command-evidence.json",
+        "line": 20,
+        "details": "command-evidence.json records only two commands as passed: `npm run rp28:marketplace:validate` (exit 0) and `node --test packages/marketplace/test/*.test.js` (exit 0), with gate_outcome=pending_valid_review_and_full_validation. The 10-command closeout validation suite expected before closeout (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet captured. This is consistent with the pack's own gating: construction-inspection.json states CP00-849 is not production_ready until exactly one valid hardened read-only Claude review receipt AND the full validation suite pass. Manifest correctly holds production_ready=false and runtime_ready=false, so there is no over-claim. This is expected pre-review sequencing (review -> full validation -> promote+commit), not a defect in the descriptor implementation.",
+        "recommendation": "Before flipping production_ready and committing, run and capture the full 10-command validation suite alongside this review receipt, as required by construction-inspection.json. No code change required; this is a closeout-automation sequencing checkpoint.",
+        "post_review_disposition": "Informational / non-blocking. By-design gating enforced by closeout automation; tracked so the full validation suite is run before production_ready promotion. Does not block this review, the pack closeout, or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

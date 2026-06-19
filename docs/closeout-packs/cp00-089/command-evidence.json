@@ -1,0 +1,144 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-089",
+  "subphase_id": "RP00.P08.M05.S10",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --test --test-name-pattern \"Hermes Validation Permission Audit Binding\" packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed"
+    }
+  ],
+  "claude_review_command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-089-claude-review-prompt-small.md > /tmp/cp00-089-claude-review-output-valid.json",
+  "invalid_claude_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json --json-schema /tmp/cp00-089-claude-review-schema.json < /tmp/cp00-089-claude-review-prompt.md > /tmp/cp00-089-claude-review-output.json",
+      "outcome": "terminated_after_hung_zero_byte_output",
+      "exit_code": 143,
+      "counted_as_valid_review": false,
+      "output_bytes": 0
+    }
+  ],
+  "evidence_summary": {
+    "implementation_surface": "ControlPlaneHermesValidationPermissionAuditBinding",
+    "included_unit_range": "RP00.P08.M05.S01-S10",
+    "valid_claude_verdict": "PASS_WITH_FINDINGS",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2,
+    "next_subphase": "RP00.P08.M05.S11"
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-089 remains metadata-only and no-write; CP00-090 owns the RP00.P08.M05.S11 human approval marker."
+  ],
+  "hermes_failure_evidence": {
+    "rp00_validator_expected_to_pass_after_pack_evidence_creation": true,
+    "no_runtime_permission_evaluation": true,
+    "no_audit_event_write": true,
+    "no_ldip_implementation": true
+  }
+}

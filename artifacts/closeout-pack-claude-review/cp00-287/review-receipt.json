@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-287",
+  "normalized_at": "2026-06-10T22:52:30.753Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-287/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-287/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-287/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-287/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "528e5b59-fb22-47b9-af08-f0650e262f59",
+    "uuid": "7491809f-996e-41de-992c-03f47f976a93",
+    "total_cost_usd": 3.1147359999999993,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7094,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-287 is a clean, internally consistent descriptor-only closeout pack for RP08.P05.M03.S19–RP08.P06.M00.S06 (150 units, risk C). Independent inspection via Read/Grep/Glob confirms the pack-level posture is correctly conservative: production_ready is false with status implemented_pending_review, and no runtime/enterprise-trust claim is made. The CP287 service code (freezeCp287Result) sets every email/Office/sync/filing/integration/AI runtime, permission-evaluation, audit-write, object-storage, command-runtime, Hermes-runtime-receipt, state-transition, and persistence flag to false, with synthetic_only/no_real_data/customer_safe true; the inherited row extras supply cross-tenant deny, security trimming, no-AI-dispatch, no-test-runtime, no-Hermes-receipt, stable-ID, replay-no-runtime, and deny-over-allow permission decision bindings. Coverage and boundary invariants are enforced by validators.js and the rp08 contract-validate script (which deep-equals the contract projection to source constants) and exercised by model.test.js; deliverable counts (impl 58/fixture 48/claude_review 7/security_audit 13/test 18/hermes_evidence 6) and the nine micro-title row counts each independently reconcile to 150 and match the prompt baseline. The authority boundary holds: claude_is_final_approval/claude_not_final_approver false-for-approval, human final approval required, enterprise trust not claimed from local validation, and Hermes used only for deterministic packet/receipt handling (no_hermes_runtime_receipt true). Review hardening is in place (forbidden_review_evidence covers auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped output, and final-approval claims; readiness auth preflight passed with valid JSON). Command-evidence reports all required validation commands at exit 0. Changed-file scope is correctly segregated, with unrelated dirty/untracked files excluded. No P0/P1/P2 findings; one P3 transparency note on the descriptor-level production_ready_candidate flag. Nothing blocks pack or goal closeout; final enterprise-trust approval correctly remains with a human, not Claude.",
+    "findings": [
+      {
+        "id": "CP287-P3-01",
+        "severity": "P3",
+        "title": "Hermes evidence packet 'production_ready_candidate' flag is descriptor-level only; ensure it is not read as a runtime production-readiness claim",
+        "file": "packages/email-dms/src/validators.js",
+        "line": 3567,
+        "details": "createEmailDmsCoreCp287HermesEvidencePacket emits production_ready_candidate = coverage.valid && foundation.valid (validators.js:3567), and the pack binding carries production_ready_flag = 'email_dms_core_p05_closeout_p06_permission_foundation_descriptor_verified' (registry.js:283). These are descriptor-gate verification markers, not runtime production-readiness assertions. They are correctly bounded: manifest.json production_ready is false (line 6) and command-evidence.json production_ready is false; the manifest and no-write attestation set claude_not_final_approver/claims_enterprise_trust_from_local_validation appropriately, and the authority boundary requires human final approval. The naming superficially resembles a readiness claim but does not overclaim, and is consistent with the established CP272-286 pattern. Surfaced for human-approver awareness only.",
+        "recommendation": "No code change required for CP00-287 closeout. A human approver should treat production_ready_candidate/production_ready_flag as descriptor-gate signals only, distinct from the false pack-level production_ready. Optionally, a future pack could rename the field to descriptor_gates_passed for clarity.",
+        "post_review_disposition": "Acceptable / non-blocking. Verified the marker is bounded by production_ready:false and the claude_not_final_approver + enterprise_trust_not_claimed_from_local_validation attestations; no action required for this pack."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

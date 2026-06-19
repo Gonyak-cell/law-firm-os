@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-097",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --disallowedTools \"Read,Bash,Edit,Write,MultiEdit,Glob,Grep,LS\" --output-format json < staged diff prompt > /tmp/cp00-097-claude-review-output-valid.json",
+    "session_id": "bbb529b2-d2f8-42c2-8c51-60e8702387d8",
+    "uuid": "35e38cc5-d5d1-4e4a-8868-9949289fcdfc",
+    "duration_ms": 111188,
+    "total_cost_usd": 0.38232700000000003,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-omission-flag-hardcoded-failopen",
+        "severity": "P3",
+        "title": "unauthorized_data_omitted is a constant; default visibility is fail-open",
+        "description": "executeCoreDomainApiContract always returns unauthorized_data_omitted:true regardless of whether anything was actually omitted. In serializeCoreDomainApiRecord, an empty allowed_record_ids returns every record, and an empty visible_fields falls back to DEFAULT_VISIBLE_FIELDS (tenant_id, display_name, status, etc.), so the default path is fail-open. Acceptable for RP01 synthetic-only (no real client data, tenant isolation still enforced via assertSameTenant), but the attestation does not reflect actual behavior.",
+        "recommendation": "Derive unauthorized_data_omitted from whether records/fields were actually dropped, and fail closed (empty projection / deny) when no allowlist is supplied, before any non-synthetic or LDIP wiring."
+      },
+      {
+        "id": "P3-pagination-total-postslice",
+        "severity": "P3",
+        "title": "Pagination total_count computed after slicing",
+        "description": "createCoreDomainApiPagination is invoked with filtered.length, where filtered is already .slice(0, limit). total_count can therefore never exceed limit, so next_cursor is always null and returned_count always equals total_count, making pagination metadata inaccurate when records exceed page size. Not a boundary violation; synthetic-only.",
+        "recommendation": "Pass the pre-slice record count as total_count and slice separately for returned data."
+      },
+      {
+        "id": "P3-default-visible-fields-duplicate",
+        "severity": "P3",
+        "title": "DEFAULT_VISIBLE_FIELDS lists matter_id twice",
+        "description": "const DEFAULT_VISIBLE_FIELDS includes 'matter_id' at two positions. Harmless (serialization is idempotent) but indicates a copy mistake.",
+        "recommendation": "Deduplicate the default visible-field list."
+      },
+      {
+        "id": "P3-workflow-endpoint-skips-visibility",
+        "severity": "P3",
+        "title": "workflow.execute branch returns full result without visibility serialization",
+        "description": "The core_domain.workflow.execute branch returns the entire workflow object in data[] and still asserts unauthorized_data_omitted:true without running any omission/allowlist logic for that path. Synthetic-only and no-write, so no data-exposure impact in RP01.",
+        "recommendation": "Apply the same visibility projection (or explicitly document that workflow.execute is exempt) so the omission attestation is consistent across endpoints."
+      }
+    ],
+    "notes": [
+      "No-write boundaries satisfied: no audit writes, no product/database writes, no runtime permission evaluation; all attestation flags false in api.js, golden-cases.js, and contract JSON.",
+      "Synthetic-only enforced: createCoreDomainApiRequest throws on synthetic_only===false; fixtures used by tests/validator.",
+      "Tenant isolation enforced (assertSameTenant over context.records, fail-closed via catch->status:blocked).",
+      "HRX remains embedded and ldip_implemented:false in closeout handoff; review packet scope does not implement LDIP.",
+      "Contract/validator/test alignment is consistent: current_pack->CP00-097 (Risk C, 150 units), prior CP00-096 moved to workflow_pack, schema_version v0.4, ranges match bindings.",
+      "All findings are non-blocking P3 correctness/hardening nits; no P0/P1/P2, so pack and goal closeout are not blocked."
+    ]
+  },
+  "post_review_changes": {
+    "p3_fixed_or_documented": [
+      "P3-omission-flag-hardcoded-failopen",
+      "P3-pagination-total-postslice",
+      "P3-default-visible-fields-duplicate",
+      "P3-workflow-endpoint-skips-visibility"
+    ],
+    "no_second_valid_review_run": true
+  }
+}

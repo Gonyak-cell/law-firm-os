@@ -1,0 +1,652 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-443",
+  "planned_pack_id": "CP00-443",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "settlement_core_p06_permission_slice_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "runtime_ready": false,
+  "program_id": "RP14",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "delivery_counts": {
+    "implementation": 2,
+    "ui": 4,
+    "claude_review": 1,
+    "security_audit": 3
+  },
+  "micro_phase_row_counts": {
+    "RP14.P06.M05": 10
+  },
+  "primary_subphase_id": "RP14.P06.M05.S18",
+  "next_subphase": "RP14.P06.M05.S19",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-443",
+    "planned_pack_id": "CP00-443",
+    "title": "CP00-443 RP14.P06.M05.S09-RP14.P06.M05.S18 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP14.P06.M05.S09",
+      "last_unit_id": "RP14.P06.M05.S18",
+      "description": "RP14.P06.M05.S09-RP14.P06.M05.S18"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP14.P06.M05.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP14.P06.M05.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP14.P06.M05.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP14.P06.M05.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP14.P06.M05.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP14.P06.M05.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP14.P06.M05.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP14.P06.M05.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP14.P06.M05.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP14.P06.M05.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP14.P06.M05",
+        "program_id": "RP14",
+        "phase_id": "RP14.P06",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "security_audit"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP14.P06.M05.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP14.P06.M05.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP14.P06.M05",
+      "program_id": "RP14",
+      "phase_id": "RP14.P06",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/settlement-core-contract.json",
+        "packages/settlement/README.md",
+        "packages/settlement/src/index.js",
+        "packages/settlement/src/registry.js",
+        "packages/settlement/src/service.js",
+        "packages/settlement/src/validators.js",
+        "packages/settlement/test/model.test.js",
+        "scripts/validate-rp14-settlement-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-443/manifest.json",
+        "docs/closeout-packs/cp00-443/command-evidence.json",
+        "docs/closeout-packs/cp00-443/claude-review-result.json",
+        "docs/closeout-packs/cp00-443/adjudication.md",
+        "docs/closeout-packs/cp00-443/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-443 implements descriptor-only coverage of the RP14.P06 permission slice: ten consecutive M05 Permission And Audit Binding rows as a single descriptor-only section over 10 planned rows with Hermes evidence (H14), Claude review packet (C14), and CP00-444 handoff, without opening settlement, origination, allocation, or working credit runtime or any other closed runtime surface.",
+    "source_refs": [
+      "contracts/settlement-core-contract.json",
+      "packages/settlement/README.md",
+      "packages/settlement/src/index.js",
+      "packages/settlement/src/registry.js",
+      "packages/settlement/src/service.js",
+      "packages/settlement/src/validators.js",
+      "packages/settlement/test/model.test.js",
+      "scripts/validate-rp14-settlement-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_settlement_runtime": true,
+    "no_origination_runtime": true,
+    "no_allocation_runtime": true,
+    "no_working_credit_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_api_handler_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_unauthorized_count_leak": true,
+    "no_permission_bypass_detected": true,
+    "no_leak_detected": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_lock_token_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-443/manifest.json",
+    "docs/closeout-packs/cp00-443/command-evidence.json",
+    "docs/closeout-packs/cp00-443/claude-review-result.json",
+    "docs/closeout-packs/cp00-443/adjudication.md",
+    "docs/closeout-packs/cp00-443/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-443/manifest.json",
+    "docs/closeout-packs/cp00-443/command-evidence.json",
+    "docs/closeout-packs/cp00-443/claude-review-result.json",
+    "docs/closeout-packs/cp00-443/adjudication.md",
+    "docs/closeout-packs/cp00-443/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "\"workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-443/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-443/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "c5835533-a4f3-45e2-b65b-3b61fbded39d",
+      "uuid": "20e831c1-ea0c-4b94-b810-648a5efe7477",
+      "total_cost_usd": 1.8436887499999999,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-443 settlement-core P06 permission-slice descriptor pack passes independent read-only review with no P0/P1/P2 defects; descriptor-only, no-write/no-real-data, read-only-reviewer, and no-Hermes-runtime boundaries are all verified consistent across plan, manifest, source, contract, and validation script. Two non-blocking P3 informational notes recorded.",
+      "findings": [
+        {
+          "id": "CP00-443-P3-01",
+          "severity": "P3",
+          "title": "Downstream review-evidence artifacts not yet present (expected at this stage)",
+          "file": "docs/closeout-packs/cp00-443/manifest.json",
+          "line": 505,
+          "details": "required_pack_artifacts lists claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in docs/closeout-packs/cp00-443/. Per the hardened_review_sequence and the command-evidence.json notes, these are post-review-gated artifacts produced after this read-only Claude run (finding_adjudication and construction_inspection steps). Consequently the 'adjudication' and 'inspection' evidence legs named in the review focus cannot be independently verified at this point; they remain to be produced downstream.",
+          "recommendation": "No action required by this review. Treat as by-design: the human/final approver should confirm the downstream adjudication, construction-inspection, and final closeout validation are completed (and human final approval recorded) before the pack is treated as closed and before any enterprise-trust claim.",
+          "post_review_disposition": "expected_by_design_non_blocking"
+        },
+        {
+          "id": "CP00-443-P3-02",
+          "severity": "P3",
+          "title": "production_ready_candidate must not be read as runtime/production readiness",
+          "file": "packages/settlement/src/validators.js",
+          "line": 3226,
+          "details": "createSettlementCoreCp443HermesEvidencePacket sets production_ready_candidate:true when coverage.valid && slice.valid. This reflects only descriptor coverage and slice-shape validity. Pack-level production_ready is false and runtime_ready is false (manifest.json), and the descriptor explicitly defers runtime opening to CP00-444 with human_final_approval_required_for_runtime_opening:true. The naming could be misread as production readiness.",
+          "recommendation": "No code change required. Ensure downstream tooling and the human approver interpret production_ready_candidate strictly as descriptor-validity, not runtime/production readiness; the production_ready gate must remain false until runtime is explicitly opened with human approval.",
+          "post_review_disposition": "informational_guard_non_blocking"
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 2,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 2
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-443 settlement core p06 permission slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-443/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-443/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-443/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-443/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "production_ready_at": "2026-06-12T05:13:15.849Z"
+}

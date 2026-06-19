@@ -1,0 +1,33 @@
+{
+  "subphase_id": "RP00.P02.M03.S08",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Secondary workflow path",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T08:22:50Z",
+  "control_plane_hermes_validation_secondary_workflow_path_verified": true,
+  "verified_behaviors": [
+    "Consumes RP00.P02.M03.S07 Hermes Validation Primary happy path results only after validating the S07 result shape and allow_metadata_only decision.",
+    "Emits a frozen metadata-only secondary workflow receipt with tenant, actor, object, permission decision, audit event, primary happy path, working behavior, effect, and next-subphase fields.",
+    "Carries S02, S03, S04, S05, S06, S07, M00, permission, audit, TEN-001 through TEN-008, validation context, and acceptance gate references.",
+    "Rejects unsafe secondary-workflow, unknown, runtime, AuthZ, Hermes execution, Hermes evidence, audit write, tenant lifecycle mutation, requirement trace bypass, real-data, review-bypass, and product-write claims fail-closed.",
+    "Does not execute service logic, create runtime routes, append audit ledgers, write audit events, mutate tenant lifecycle state, run Hermes validation, create Hermes evidence, evaluate runtime permissions, call AuthZ, use real data, or write product state.",
+    "Hands off to RP00.P02.M03.S09."
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s08/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s08/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s08/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s08/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s08/construction-inspection.json"
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 0,
+    "p3_status": "none"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S08 is production_ready and explicitly hands off to RP00.P02.M03.S09 State transition enforcement."
+}

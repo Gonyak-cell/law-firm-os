@@ -1,0 +1,99 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-101",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-101-claude-review-output-valid.json",
+    "session_id": "a19a7549-ffcb-4786-ae2e-b20e6827b3f2",
+    "uuid": "90b54960-d05b-4281-913b-a1396827743d",
+    "duration_ms": 384982,
+    "total_cost_usd": 1.328672,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "location": "packages/domain/src/fixture-catalog.js base_document_fixture catalog item",
+        "description": "base_document_fixture intentionally stops at RP01.P05.M08 while CP00-102 begins the remaining RP01.P05.M09.S04 document fixture work; documented to prevent accidental normalization.",
+        "disposition": "documented_after_single_valid_review"
+      },
+      {
+        "id": "P3-4",
+        "severity": "P3",
+        "location": "docs/closeout-pack-plan/new-session-handoff.md",
+        "description": "Pre-existing untracked handoff file is stale relative to CP00-101. It is outside the CP00-101 changeset and preserved per dirty/untracked work policy.",
+        "disposition": "out_of_scope_preserved_untracked_file"
+      }
+    ],
+    "original_review_findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "location": "packages/domain/src/fixture-catalog.js createCoreDomainCp101UiFixtureState",
+        "description": "UI fixture state used the default CP00-100 permission/audit binding IDs while deriving denied/review badge effects from CP00-101 state.",
+        "disposition": "fixed_after_single_valid_review"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "location": "packages/domain/src/fixture-catalog.js base_document_fixture catalog item",
+        "description": "base_document_fixture omits RP01.P05.M09 while sibling base fixtures include it.",
+        "disposition": "documented_after_single_valid_review"
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "location": "packages/domain/src/fixture-catalog.js createCoreDomainCp101FixtureCaseCatalog",
+        "description": "Non-base catalog items attributed the full 8-id golden-case set via covered_case_ids.",
+        "disposition": "fixed_after_single_valid_review"
+      },
+      {
+        "id": "P3-4",
+        "severity": "P3",
+        "location": "docs/closeout-pack-plan/new-session-handoff.md",
+        "description": "Pre-existing untracked new-session-handoff.md is stale relative to this pack.",
+        "disposition": "out_of_scope_preserved_untracked_file"
+      }
+    ],
+    "notes": [
+      "No P0/P1/P2 findings were reported.",
+      "P3-1 and P3-3 were fixed after the single valid review and covered by post-review tests and validators.",
+      "P3-2 is an intentional CP00-101 to CP00-102 boundary because CP00-101 ends at RP01.P05.M09.S03 and CP00-102 starts at RP01.P05.M09.S04.",
+      "P3-4 is an unrelated untracked handoff note preserved by policy and not staged for CP00-101."
+    ]
+  },
+  "post_review_changes": {
+    "p2_fixed_or_deferred": [],
+    "p3_fixed_or_documented": [
+      "P3-1 fixed",
+      "P3-2 documented",
+      "P3-3 fixed",
+      "P3-4 out_of_scope_preserved"
+    ],
+    "no_second_valid_review_run": true
+  }
+}

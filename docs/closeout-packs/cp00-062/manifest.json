@@ -1,0 +1,434 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-062",
+  "planned_pack_id": "CP00-062",
+  "requested_pack_id": "CP00-061",
+  "planned_risk_class": "C",
+  "planned_unit_count": 8,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-061 shifted to CP00-062 by live sequential cursor",
+  "override_reason": "isolated fixture pack",
+  "title": "Control-plane UI Operator Surface Synthetic Fixture Set boundary pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-07T06:08:06Z",
+  "completed_at": "2026-06-07T06:08:06Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "C",
+  "risk_reason": "Closes the planned CP00-062 Risk C UI Operator Surface Synthetic Fixture Set boundary for RP00.P04.M06.S01-S08 as an isolated small fixture pack before the next B workflow boundary. The pack builds metadata-only synthetic fixture catalogue bindings over the CP00-061 permission/audit error-copy result without runtime UI rendering, route creation, external asset fetching, runtime fixture generation, runtime test execution, service logic, permission engine execution, AuthZ evaluation, security trimming, audit ledger/event writes, review queue writes, database/storage/idempotency/lock writes, product-state mutation, raw permission policy exposure, internal audit payload exposure, real data, credentials, or secrets.",
+  "primary_subphase_id": "RP00.P04.M06.S08",
+  "production_ready_flag": "control_plane_ui_operator_surface_synthetic_fixture_set_verified",
+  "unit_count": 8,
+  "source_micro_phase_completed": true,
+  "phase_completed": false,
+  "next_subphase": "RP00.P04.M07.S01",
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-062",
+    "planned_pack_id": "CP00-062",
+    "requested_pack_id": "CP00-061",
+    "title": "CP00-062 RP00.P04.M06.S01-RP00.P04.M06.S08 requested_locked_queue",
+    "risk_class": "C",
+    "planned_risk_class": "C",
+    "planned_unit_count": 8,
+    "unit_count": 8,
+    "range": {
+      "first_unit_id": "RP00.P04.M06.S01",
+      "last_unit_id": "RP00.P04.M06.S08",
+      "description": "RP00.P04.M06.S01-S08"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 8,
+    "correction_reason": "requested CP00-061 shifted to CP00-062 by live sequential cursor",
+    "override_reason": "isolated fixture pack",
+    "within_default_risk_range": false,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P04.M06.S01",
+        "title": "UI surface inventory",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M06.S02",
+        "title": "Data dependency map",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P04.M06.S03",
+        "title": "Loading state",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M06.S04",
+        "title": "Empty state",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M06.S05",
+        "title": "Denied state",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M06.S06",
+        "title": "Review-required state",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP00.P04.M06.S07",
+        "title": "Primary interaction",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M06.S08",
+        "title": "Secondary interaction",
+        "source_micro_phase_id": "RP00.P04.M06",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "ui"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP00.P04.M06.S01",
+      "title": "UI surface inventory",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S02",
+      "title": "Data dependency map",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "implementation",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S03",
+      "title": "Loading state",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S04",
+      "title": "Empty state",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S05",
+      "title": "Denied state",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S06",
+      "title": "Review-required state",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "claude_review",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S07",
+      "title": "Primary interaction",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M06.S08",
+      "title": "Secondary interaction",
+      "source_micro_phase_id": "RP00.P04.M06",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-062",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-062/manifest.json",
+        "docs/closeout-packs/cp00-062/command-evidence.json",
+        "docs/closeout-packs/cp00-062/claude-review-result.json",
+        "docs/closeout-packs/cp00-062/adjudication.md",
+        "docs/closeout-packs/cp00-062/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-062/manifest.json",
+    "docs/closeout-packs/cp00-062/command-evidence.json",
+    "docs/closeout-packs/cp00-062/claude-review-result.json",
+    "docs/closeout-packs/cp00-062/adjudication.md",
+    "docs/closeout-packs/cp00-062/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_result_ref": "docs/closeout-packs/cp00-062/claude-review-result.json"
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-062 ui operator surface synthetic fixture set pack"
+  }
+}

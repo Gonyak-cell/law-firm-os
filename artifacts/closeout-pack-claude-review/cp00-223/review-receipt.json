@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-223",
+  "normalized_at": "2026-06-10T09:28:37.811Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-223/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-223/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-223/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-223/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "8b4f77f9-2415-4018-bde6-2e362ee1040a",
+    "uuid": "a1619069-a6c7-491d-9554-589102592d11",
+    "total_cost_usd": 4.7623764999999985,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8809,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-223 (Risk C, 150 units, RP06.P06.M06.S14–RP06.P07.M02.S12) passes independent read-only review, grounded in direct source inspection via Read/Grep/Glob (summary-only review is disallowed for this pack and was not used). The pack-level production_ready claim is correctly NOT asserted pre-closeout: command-evidence.json sets production_ready=false with status implemented_and_plan_gates_passed_pending_final_closeout, manifest.json status is implemented_pending_review, and the Hermes evidence packet emits production_ready_candidate (coverage.valid && foundation.valid) rather than production_ready — no overclaim. Counts reconcile exactly to 150: DMS_CORE_CP223_REQUIREMENTS phase_counts RP06.P06=98 + RP06.P07=52; deliverable_counts (claude_review 6, ui 17, security_audit 28, test 22, implementation 35, hermes_evidence 5, failure_recovery 35, fixture 2) sum to 150 and match the assignment; micro_phase_row_counts and micro_title_row_counts each sum to 150; validateDmsCoreCp223Coverage, the validate script (lines 751-754), and the model test assert these and pass (node --test exit 0). Descriptor-only/no-runtime/no-real-data/no-leak boundaries are enforced in code, not merely asserted: freezeCp223Result hard-forces ~50 safety attestations (writes_product_state, evaluates_runtime_permission, emits_hermes_runtime_receipt, performs_rollback_runtime, performs_retry_runtime, acquires_runtime_lock, loads_real_fixture_data, and all exposes_* leak flags = false; synthetic_only/no_real_data/customer_safe_errors_only = true) by spreading input first then overwriting; DMS_CORE_CP223_ROW_EXTRAS sets customer-safe outcomes with cross_tenant_access_allowed=false, deny_over_allow_enforced=true, lock_token_included=false, performs_retry_runtime=false, performs_rollback_runtime=false, real_client_data_loaded=false, emits_hermes_runtime_receipt=false per failure row; and validateDmsCoreCp223P06CloseoutP07FailureFoundationDescriptor, validate script (rows 1353-1360 + boundary checks), and tests (2289-2307) assert every row descriptor_only=true/runtime_execution=false plus the failure-taxonomy safety invariants. Authority boundary holds: authority_boundary.claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true; claude_packet.read_only=true with allowed_tools Read/Grep/Glob; no_write_attestation.promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false — all validator/script/test asserted. Hermes is confined to a deterministic descriptor receipt (receipt_shape descriptor_only_p06_closeout_p07_failure_foundation_no_write; no runtime receipt), consistent with the boundary that Hermes runtime is not embedded in the product. CP178+ review-evidence hardening is defined (forbidden_review_evidence: auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim); the inputs for this review satisfy it (readiness auth_preflight passed with valid JSON and 1435-byte stdout; this verdict is emitted as schema-validated JSON, not fenced/prose/tool-shaped). The contract projection (current_pack_id CP00-223, cp223_requirements, cp223_no_write_attestation, p06_closeout_p07_failure_foundation_descriptor) is in sync, all 7 public exports are present and wired through index/contract/script/test, and the README documents the CP00-223 descriptor-only boundary. Scope was respected: only the 8 active-pack implementation refs were reviewed; unrelated dirty files including docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json were preserved and excluded. One non-blocking P3: manifest evidence_refs/required_pack_artifacts reference claude-review-result.json, adjudication.md, and construction-inspection.json (and closeout-pack:validate) that do not yet exist; these are correctly deferred to the post-review/closeout gate sequence per command-evidence.json notes and are not defects. No P0/P1/P2 findings. Claude is acting as a read-only independent reviewer and not as final approver; human/final approval and the enterprise trust claim are closed outside this receipt.",
+    "findings": [
+      {
+        "id": "CP00-223-P3-01",
+        "severity": "P3",
+        "title": "Post-review evidence artifacts and closeout-pack:validate correctly deferred (expected, not a defect)",
+        "file": "docs/closeout-packs/cp00-223/manifest.json",
+        "line": 5952,
+        "details": "manifest.json evidence_refs (5949-5955) and required_pack_artifacts (5956-5962) list docs/closeout-packs/cp00-223/claude-review-result.json, adjudication.md, and construction-inspection.json, and per-unit evidence references the same, but those files do not yet exist at review time. command-evidence.json (notes[3]) explicitly records that closeout-pack:review:run/normalize/receipt:validate, closeout-pack-plan:generate, closeout-pack:validate, and git diff --check --cached are post-review gated and require the claude-review-result.json produced from this accepted review. manifest status is implemented_pending_review and pack_level_claude_review.status is pending with valid_review_receipts empty. This is the correct pre-closeout state: this very review is the read_only_claude_raw_capture step of the hardened sequence (baseline -> readiness -> read_only_claude_raw_capture -> normalize -> receipt_validate -> adjudication -> construction_inspection -> final_closeout_validation -> commit), so the named artifacts are produced after it. Not a defect.",
+        "recommendation": "Proceed with the hardened post-review sequence: normalize/validate this review receipt, then generate adjudication.md, construction-inspection.json, and claude-review-result.json, then run the deferred closeout-pack:validate and cached git diff --check before commit. No code change required; confirm all referenced artifacts exist and validate before the pack is marked production_ready.",
+        "post_review_disposition": "Expected by design; verified deferred to post-review/closeout gates and documented in command-evidence.json. Non-blocking — does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

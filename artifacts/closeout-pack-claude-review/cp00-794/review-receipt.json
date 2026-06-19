@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-794",
+  "normalized_at": "2026-06-16T00:45:31.605Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-794/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-794/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-794/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-794/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "fbfa58af-3974-46e5-ba16-0968ee516f2b",
+    "uuid": "4afaddf4-cf35-417a-829d-c6c133c3a2e8",
+    "total_cost_usd": 2.7139687499999994,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7557,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-794 (RP26 Enterprise SaaS Hardening — Service Permission And Audit Binding, Risk B, 40 units, RP26.P02.M04.S21-RP26.P02.M05.S30) passes read-only review. Scope is internally consistent: manifest, plan live_state, next-pack-queue, contract latest_pack, and registry.js ENTERPRISE_SAAS_CP794_PACK_BINDING all agree on id/range/risk/unit_count and next boundary CP00-795 / RP26.P02.M06.S01. Deliverable distribution (test:6, fixture:2, hermes_evidence:2, claude_review:3, implementation:19, contract:1, security_audit:2, ui:3, failure_recovery:2 = 40) and micro_title split (Secondary Workflow Slice:10, Permission And Audit Binding:30) match the manifest units, the SERVICE_IMPLEMENTATION_ROWS row titles (M04 = rows 20-29, M05 = all 30), and the prompt baseline exactly. The CP794 descriptor in service.js follows the established CP788-793 pattern and encodes the correct authority boundary (claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true) and a CP00-795/RP26.P02.M06.S01 handoff. ENTERPRISE_SAAS_NO_WRITE_ATTESTATION is comprehensive and spread into every descriptor/case-set; a grep of packages/enterprise/src found no writeFile/fs/child_process/fetch/http/process.env usage, confirming the descriptor-only, no-write, no-real-data, runtime-closed claim. validators.js enforces descriptor_only, runtime_execution:false, exclusion of tenant/SSO/SCIM/secret payloads, no permission_decision_detail or audit_event_body leakage, no cross-tenant routing, no enterprise-trust claim, plus Hermes/Claude gate and handoff drift checks. The contract (enterprise-saas-hardening-contract.json) is the service.js projection with validation.valid:true / errors:[], latest_projection EnterpriseSaasCp794ServicePermissionAuditBindingDescriptor (CP00-794), and all mandatory_artifacts/no_leak_guards/capabilities/safety_gates/research_alignment present. model.test.js adds three CP794 tests, including explicit M05 assertions that no row evaluates runtime permission, exposes permission decision detail, writes audit events, or leaks audit bodies. command-evidence.json records status=passed with all ten required validation commands plus rp26 validators and git diff --check at exit_code 0 (production_ready:false, no_real_data:true, writes_product_state:false pre-review). Review-harness hardening (CP178+) is satisfied: auth preflight passed (exit 0, 1446-byte valid JSON), prompt is 2522 bytes with no embedded diff/source, summary-only review correctly disallowed, no forbidden tools, and no prior/poisoned review receipt exists (status pending). The untracked LDIP c-ldip-01-invalid-attempt-01.json is correctly classified as unrelated dirty state, not part of this pack. The pack claims only the descriptor-verified layer (production_ready:false, runtime_ready:false, enterprise trust deferred to human authority); that claim is fully supported. One non-blocking P3 defense-in-depth note on validator row-scan symmetry. No P0/P1/P2 issues; pack closeout is not blocked, and goal closeout for this CP is not blocked. Note: commands were not re-executed (read-only, no Bash) — command results are as recorded in command-evidence.json.",
+    "findings": [
+      {
+        "id": "CP794-P3-01",
+        "severity": "P3",
+        "title": "Descriptor validator row-scan omits active-write permission/audit flags (compensated by unit test)",
+        "file": "packages/enterprise/src/validators.js",
+        "line": 147,
+        "details": "validateDescriptor's row scan (validators.js:137-150) rejects rows that leak permission_decision_detail_included or audit_event_body_included, but does not independently reject rows that assert active runtime writes such as evaluates_runtime_permission, writes_audit_event, writes_permission_decision, or appends_audit_trace === true. For this 'Permission And Audit Binding' pack those active-verb closures are currently guaranteed only by (a) hard-coded false values in ROW_EXTRAS (permission_precheck/audit_hint_precheck), (b) the descriptor/case-set-level NO_WRITE_ATTESTATION spread, and (c) an explicit assertion in model.test.js:282-283 scoped to RP26.P02.M05 rows. A hypothetical future row setting evaluates_runtime_permission:true would still pass the contract validator (npm run rp26:enterprise-saas:validate) and would be caught only by the unit test. This does not affect CP00-794: all rows are descriptor-only and the no-write boundary is verified by tests and by command-evidence exit_code 0.",
+        "recommendation": "Optionally extend the validateDescriptor row scan to also reject evaluates_runtime_permission / writes_audit_event / writes_permission_decision / appends_audit_trace === true (mirroring NO_WRITE_ATTESTATION) so the contract validator enforces the permission/audit no-write boundary independently of the unit test. Non-blocking; safe to defer.",
+        "post_review_disposition": "Open — informational defense-in-depth; does not block CP00-794 closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

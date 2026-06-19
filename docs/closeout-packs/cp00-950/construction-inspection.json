@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-950",
+  "subphase_id": "RP30.P06.M04.S09",
+  "production_ready": true,
+  "runtime_ready": false,
+  "status": null,
+  "boundary": null,
+  "verdict": "PASS",
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1,
+    "reported_p0": 0,
+    "reported_p1": 0,
+    "reported_p2": 0,
+    "reported_p3": 1,
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed_before_closeout_finalization"
+  },
+  "hrx_candidate_privacy_audit_hint_bridge_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-950 is descriptor-only production-ready; HRX runtime opening, CandidatePrivacy runtime, AuditHint runtime, HRPermission runtime, masking runtime, policy execution, decision emission, record writes, audit writes, permission bypass, runtime receipts, separate HRX product claims, enterprise trust, production deployment, real HR/candidate/audit data, credentials, secrets, and final human approval remain deferred to CP00-951/RP30.P06.M05.S07 or later human-approved packs.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-950/review-receipt.json",
+  "invalid_review_attempts": []
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-746",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T10:46:23.050Z",
+  "finished_at": "2026-06-15T10:51:46.533Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":322739,\"duration_api_ms\":323198,\"ttft_ms\":3209,\"num_turns\":46,\"result\":\"Review complete. **Verdict: PASS** — no findings (0 P0/P1/P2/P3).\\n\\nCP00-746 is a clean descriptor-only P07 failure-type slice (S07–S16) that faithfully extends the validated CP722–745 pattern. The `slice(6,16)` failure rows map exactly to the 10 manifest unit titles, deliverable counts match across manifest/requirements/baseline, tests assert all runtime-closed authority boundaries, and the no-write/no-real-data attestations hold. `production_ready`/`runtime_ready` correctly stay `false`; the descriptor-verified flag is supported. The review does not block pack or goal closeout. Command outcomes in command-evidence.json (25 commands, exit 0) are Codex-reported and corroborated by my static inspection — I could not re-run them under read-only constraints.\",\"stop_reason\":\"end_turn\",\"session_id\":\"a088f648-13e4-4916-8317-f62ea2b76a1b\",\"total_cost_usd\":2.5201285000000007,\"usage\":{\"input_tokens\":58,\"cache_creation_input_tokens\":142702,\"cache_read_input_tokens\":2145152,\"output_tokens\":22166,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":142702,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":380,\"cache_read_input_tokens\":135496,\"cache_creation_input_tokens\":7612,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7612},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1125,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001225,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":58,\"outputTokens\":22166,\"cacheReadInputTokens\":2145152,\"cacheCreationInputTokens\":142702,\"webSearchRequests\":0,\"costUSD\":2.518903500000001,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-746 is a clean descriptor-only Korean Legal Depth P07 \\\"Type And Shape Definition\\\" failure-type slice (RP24.P07.M02.S07-S16, 10 units, risk A) that exactly mirrors the validated CP722-745 pattern. Static inspection via Read/Grep/Glob confirms: (1) Implementation is complete and correctly wired — KOREAN_LEGAL_CP746_PACK_BINDING (registry.js:417), KOREAN_LEGAL_CP746_REQUIREMENTS (registry.js:3631), case-set/descriptor builders (service.js:105-106,184-186), coverage/descriptor validators (validators.js:88-90), all re-exported via index.js export *. (2) KOREAN_LEGAL_CP745_FAILURE_ROWS.slice(6,16) resolves to exactly the 10 manifest unit titles S07-S16, and deliverable counts {failure_recovery:6,security_audit:1,implementation:1,hermes_evidence:1,fixture:1} match manifest, requirements, and prompt baseline. (3) Tests (model.test.js:57-59) assert coverage errors empty, descriptor validation empty, authority boundaries closed (claude_is_final_approval=false, human_final_approval_required=true, runtime_opening_pack_id=CP00-747, all runtime/HWPX/court/litigation/corporate flags false), and contract projection (latest_pack=CP00-746, validation.valid=true). (4) No-write/no-real-data boundaries are enforced in code and asserted: no raw/legal-source/credential/client payloads, no permission-decision detail, no cross-tenant access, no audit-event body, Hermes emits_runtime_receipt=false, Claude packet read_only=true. (5) production_ready and runtime_ready correctly remain false for a descriptor-only pack; the production_ready_flag korean_legal_p07_failure_type_slice_descriptor_verified is supported by the verified descriptor. (6) Contract header, plan live_state, queue live_latest_pack_id, and README CP00-746 are mutually consistent. Hermes control-plane patterns are used only for deterministic review packet/receipt handling, not product runtime. Claude remained a read-only, non-final reviewer. command-evidence.json reports all 25 validation commands at exit 0; these are Codex-reported (I cannot re-run Bash) but are corroborated by my structural review of source, tests, and contract. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e396ead1-3c6e-4340-acb1-cff886538c75\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4609,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "a088f648-13e4-4916-8317-f62ea2b76a1b",
+    "uuid": "e396ead1-3c6e-4340-acb1-cff886538c75",
+    "total_cost_usd": 2.5201285000000007,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-067",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "cat prompt and /tmp/cp00-067-review.diff | claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "output_ref": "/tmp/cp00-067-claude-review-output.json",
+    "session_id": "a62b8108-efc6-46a6-a3f5-e55fa19e4c7e",
+    "uuid": "d6dce9eb-7846-41a6-be72-f1b092030790",
+    "total_cost_usd": 1.1393475,
+    "duration_ms": 286663,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 0
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-067-F1",
+        "severity": "P3",
+        "title": "M08/M09/M10 per-unit titles reuse fixture-set titles and may not reflect the authoritative plan",
+        "file": "packages/control-plane/src/policies.js",
+        "line": 4750,
+        "details": "In CONTROL_PLANE_SYNTHETIC_FIXTURE_PHASE_TERMINAL_PACK_UNITS the micro-phase titles are correct (Synthetic Fixture Set / Test And Golden Case Set / Hermes Evidence Packet / Claude Review Packet / Closeout And Next Handoff), but the per-unit titles for the evidence (M08), review (M09), and closeout (M10) micro-phases reuse the fixture-set titles ('Base tenant fixture', 'Base user fixture', ... 'Denied case'). A 'Hermes Evidence Packet' or 'Closeout And Next Handoff' micro-phase having sub-steps named after tenant/user/matter/document fixtures looks like a copy-paste artifact rather than the true subphase titles. These titles are also propagated identically into the contract subphase_closeouts and the synthetic fixture. This is descriptive metadata only and affects no behavior, no test, and no validation (tests assert unit_titles.length and included_unit_ids ordering, not the title strings); it cannot be confirmed wrong from the diff alone because the plan file is not included.",
+        "recommendation": "Cross-check the 39 unit titles against docs/closeout-pack-plan/closeout-pack-plan.json. If the plan defines distinct titles for the M08/M09/M10 subphases, correct the UNITS array, the contract subphase_closeouts, and the synthetic fixture so the permanent closeout record matches the plan; otherwise confirm the repeated titles are intentional. No code/behavior change required either way."
+      },
+      {
+        "id": "CP00-067-F2",
+        "severity": "P3",
+        "title": "Assembler pack_id/next_subphase drift guards are unreachable; drift tests cover the upstream validator instead",
+        "file": "packages/control-plane/src/service.js",
+        "line": 8447,
+        "details": "assembleControlPlaneSyntheticFixturePhaseTerminalPack calls assertControlPlaneSyntheticFixturePermissionAuditHintResult(permissionAuditHintResult) before its own guards. That upstream validator pins pack_id==='CP00-066' and next_subphase==='RP00.P05.M06.S01' (confirmed by the test expecting /pack_id mismatch/ and /next_subphase mismatch/, which are the upstream validator's messages, not the terminal pack's 'upstream pack mismatch' / 'requires RP00.P05.M06.S01 upstream handoff' messages). Consequently the assembler's subsequent `if (pack_id !== 'CP00-066' ...)` and `if (next_subphase !== includedSubphaseIds[0])` blocks can never be true on inputs that pass the upstream validator, making them dead defensive code, and the two 'fails closed on drift' assertions in service.test.js do not actually exercise the terminal pack's own drift guards. Fail-closed behavior overall is still correct; this is a coverage/labeling and dead-branch observation, not a safety gap. The forbidden/unknown boundary-claim guards ARE genuinely reached and tested.",
+        "recommendation": "Optional cleanup (outside this read-only pass): either drop the redundant pack_id/next_subphase guards since the upstream result validator already enforces them, or, to preserve defense-in-depth, retitle the tests and add cases that bypass the upstream validator so the terminal pack's own guards are demonstrably hit. No change is required for closeout."
+      }
+    ],
+    "residual_risks": [
+      "Low. The pack is metadata-only, deterministic, fail-closed, and introduces no runtime/write/permission/audit/LDIP-implementation behavior; all safety flags are pinned and asserted in both policy and result validators. Remaining residual risk is confined to artifacts that cannot be verified from the diff and are instead enforced by the contract validation script at runtime: existence/content of docs/closeout-packs/cp00-067/* construction-inspection files (each must set control_plane_synthetic_fixture_phase_terminal_pack_verified===true with subphase_id RP00.P05.M10.S04), the referenced CP00-066 evidence refs, the LDIP planning-gate map (docs/ldip-integration/ldip-overlay-closeout-pack-map.json), and weighted-ledger entries for all 39 subphases. Also unverifiable from the diff: whether the M08/M09/M10 unit titles match the authoritative plan (F1). None of these affect the no-write/no-runtime/LDIP-planning-only guarantees."
+    ],
+    "overall_summary": "CP00-067 binds the RP00.P05 Synthetic Fixture phase-terminal pack (Risk C, 39 units, RP00.P05.M06.S01-RP00.P05.M10.S04), marks all 39 subphases production_ready, completes RP00.P05, and hands off to RP00.P06.M00.S01. The implementation is strictly metadata-only and no-write: the assembler only constructs a frozen descriptor and runs pure validators, all *_permitted flags are false, no_real_data is true, writes_product_state is false, and the forbidden-claim set plus fail-closed list reject runtime fixture generation, test execution, permission-engine/AuthZ/security-trimming, audit/database/storage/idempotency/lock/product-state writes, raw policy or internal audit payload exposure, real/secret data, and LDIP implementation/runtime/schema (ldip_implementation_allowed:false; LDIP referenced only as a planning gate). Unit counts (8+11+8+8+4=39), micro-phase ids/titles, included_unit_ids, result_fields, requiredInputFields-tracks-CP00-066, evidence refs, current_subphase update, and the validation-script range/weighted-ledger/construction-inspection additions are all mutually consistent. Two P3 advisories only: M08/M09/M10 per-unit titles appear to reuse the fixture-set titles (verify against the authoritative plan), and the assembler's explicit pack_id/next_subphase drift guards are unreachable because the upstream audit-hint result validator pins those values first (so the 'fails closed on drift' test assertions exercise the upstream validator, not the terminal pack's own guards)."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 286663,
+    "duration_api_ms": 290124,
+    "ttft_ms": 259892,
+    "num_turns": 1,
+    "result": "I reviewed the CP00-067 diff in full against the metadata-only/no-write, LDIP-planning-only, and phase-terminal-handoff constraints. It is internally consistent and fail-closed; the two issues I found are P3 verification/coverage notes, not blockers.\n\n```json\n{\n  \"schema_version\": \"law-firm-os.closeout-pack.claude-review.v0.1\",\n  \"pack_id\": \"CP00-067\",\n  \"model\": \"claude-opus-4-8\",\n  \"effort\": \"max\",\n  \"read_only\": true,\n  \"verdict\": \"pass_with_findings\",\n  \"summary\": \"CP00-067 binds the RP00.P05 Synthetic Fixture phase-terminal pack (Risk C, 39 units, RP00.P05.M06.S01-RP00.P05.M10.S04), marks all 39 subphases production_ready, completes RP00.P05, and hands off to RP00.P06.M00.S01. The implementation is strictly metadata-only and no-write: the assembler only constructs a frozen descriptor and runs pure validators, all *_permitted flags are false, no_real_data is true, writes_product_state is false, and the forbidden-claim set plus fail-closed list reject runtime fixture generation, test execution, permission-engine/AuthZ/security-trimming, audit/database/storage/idempotency/lock/product-state writes, raw policy or internal audit payload exposure, real/secret data, and LDIP implementation/runtime/schema (ldip_implementation_allowed:false; LDIP referenced only as a planning gate). Unit counts (8+11+8+8+4=39), micro-phase ids/titles, included_unit_ids, result_fields, requiredInputFields-tracks-CP00-066, evidence refs, current_subphase update, and the validation-script range/weighted-ledger/construction-inspection additions are all mutually consistent. Two P3 advisories only: M08/M09/M10 per-unit titles appear to reuse the fixture-set titles (verify against the authoritative plan), and the assembler's explicit pack_id/next_subphase drift guards are unreachable because the upstream audit-hint result validator pins those values first (so the 'fails closed on drift' test assertions exercise the upstream validator, not the terminal pack's own guards).\",\n  \"findings\": [\n    {\n      \"id\": \"CP00-067-F1\",\n      \"severity\": \"P3\",\n      \"title\": \"M08/M09/M10 per-unit titles reuse fixture-set titles and may not reflect the authoritative plan\",\n      \"file\": \"packages/control-plane/src/policies.js\",\n      \"line\": 4750,\n      \"details\": \"In CONTROL_PLANE_SYNTHETIC_FIXTURE_PHASE_TERMINAL_PACK_UNITS the micro-phase titles are correct (Synthetic Fixture Set / Test And Golden Case Set / Hermes Evidence Packet / Claude Review Packet / Closeout And Next Handoff), but the per-unit titles for the evidence (M08), review (M09), and closeout (M10) micro-phases reuse the fixture-set titles ('Base tenant fixture', 'Base user fixture', ... 'Denied case'). A 'Hermes Evidence Packet' or 'Closeout And Next Handoff' micro-phase having sub-steps named after tenant/user/matter/document fixtures looks like a copy-paste artifact rather than the true subphase titles. These titles are also propagated identically into the contract subphase_closeouts and the synthetic fixture. This is descriptive metadata only and affects no behavior, no test, and no validation (tests assert unit_titles.length and included_unit_ids ordering, not the title strings); it cannot be confirmed wrong from the diff alone because the plan file is not included.\",\n      \"recommendation\": \"Cross-check the 39 unit titles against docs/closeout-pack-plan/closeout-pack-plan.json. If the plan defines distinct titles for the M08/M09/M10 subphases, correct the UNITS array, the contract subphase_closeouts, and the synthetic fixture so the permanent closeout record matches the plan; otherwise confirm the repeated titles are intentional. No code/behavior change required either way.\"\n    },\n    {\n      \"id\": \"CP00-067-F2\",\n      \"severity\": \"P3\",\n      \"title\": \"Assembler pack_id/next_subphase drift guards are unreachable; drift tests cover the upstream validator instead\",\n      \"file\": \"packages/control-plane/src/service.js\",\n      \"line\": 8447,\n      \"details\": \"assembleControlPlaneSyntheticFixturePhaseTerminalPack calls assertControlPlaneSyntheticFixturePermissionAuditHintResult(permissionAuditHintResult) before its own guards. That upstream validator pins pack_id==='CP00-066' and next_subphase==='RP00.P05.M06.S01' (confirmed by the test expecting /pack_id mismatch/ and /next_subphase mismatch/, which are the upstream validator's messages, not the terminal pack's 'upstream pack mismatch' / 'requires RP00.P05.M06.S01 upstream handoff' messages). Consequently the assembler's subsequent `if (pack_id !== 'CP00-066' ...)` and `if (next_subphase !== includedSubphaseIds[0])` blocks can never be true on inputs that pass the upstream validator, making them dead defensive code, and the two 'fails closed on drift' assertions in service.test.js do not actually exercise the terminal pack's own drift guards. Fail-closed behavior overall is still correct; this is a coverage/labeling and dead-branch observation, not a safety gap. The forbidden/unknown boundary-claim guards ARE genuinely reached and tested.\",\n      \"recommendation\": \"Optional cleanup (outside this read-only pass): either drop the redundant pack_id/next_subphase guards since the upstream result validator already enforces them, or, to preserve defense-in-depth, retitle the tests and add cases that bypass the upstream validator so the terminal pack's own guards are demonstrably hit. No change is required for closeout.\"\n    }\n  ],\n  \"severity_counts\": {\"P0\": 0, \"P1\": 0, \"P2\": 0, \"P3\": 2},\n  \"blocking_findings\": [],\n  \"required_fixes\": [],\n  \"deferred_or_informational\": [\"CP00-067-F1\", \"CP00-067-F2\"],\n  \"residual_risk\": \"Low. The pack is metadata-only, deterministic, fail-closed, and introduces no runtime/write/permission/audit/LDIP-implementation behavior; all safety flags are pinned and asserted in both policy and result validators. Remaining residual risk is confined to artifacts that cannot be verified from the diff and are instead enforced by the contract validation script at runtime: existence/content of docs/closeout-packs/cp00-067/* construction-inspection files (each must set control_plane_synthetic_fixture_phase_terminal_pack_verified===true with subphase_id RP00.P05.M10.S04), the referenced CP00-066 evidence refs, the LDIP planning-gate map (docs/ldip-integration/ldip-overlay-closeout-pack-map.json), and weighted-ledger entries for all 39 subphases. Also unverifiable from the diff: whether the M08/M09/M10 unit titles match the authoritative plan (F1). None of these affect the no-write/no-runtime/LDIP-planning-only guarantees.\"\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "a62b8108-efc6-46a6-a3f5-e55fa19e4c7e",
+    "total_cost_usd": 1.1393475,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 71238,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 25699,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 71238,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 25699,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 71238,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 71238
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 49996,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.050101,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 25699,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 71238,
+        "webSearchRequests": 0,
+        "costUSD": 1.0892465,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "d6dce9eb-7846-41a6-be72-f1b092030790"
+  }
+}

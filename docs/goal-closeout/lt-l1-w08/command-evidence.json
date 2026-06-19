@@ -1,0 +1,168 @@
+{
+  "wp_id": "LT-L1-W08",
+  "tuw_id": "LT-L1-W08-T01",
+  "title": "Staffing and role gap draft",
+  "phase": "L1",
+  "status": "draft_completed_pending_l0_w02_approval",
+  "checked_at": "2026-06-18",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "completion_claim": false,
+  "artifacts": [
+    "docs/launch/staffing-plan-draft.md"
+  ],
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "status": "review_waived_by_user",
+    "valid_review_evidence": false,
+    "review_waiver_is_valid_review_evidence": false,
+    "note": "User instructed that full Claude review is skipped from this point forward."
+  },
+  "dependency_note": {
+    "l0_w02_status": "pending_human_approval",
+    "effect": "Draft is usable as decision input, but final staffing approval remains LT-L1-W08-T02 and must be rechecked if L0-W02 changes."
+  },
+  "acceptance_checks": [
+    {
+      "requirement": "staffing draft exists",
+      "command": "ls docs/launch/staffing-plan-draft.md",
+      "expected": "exit 0",
+      "actual": "docs/launch/staffing-plan-draft.md",
+      "status": "pass"
+    },
+    {
+      "requirement": "6 required role labels present",
+      "command": "grep -c \"테넌트 관리자\\|온콜\\|DBA\\|보안\\|리뷰어\\|챔피언\" docs/launch/staffing-plan-draft.md",
+      "expected": ">=6",
+      "actual": "9",
+      "status": "pass"
+    },
+    {
+      "requirement": "development-team premise section and runtime gap report citation present",
+      "command": "node - <<'NODE' ... check required sections and references ... NODE",
+      "expected": "all required markers present",
+      "actual": "{\"missing_markers\":[],\"missing_roles\":[]}",
+      "status": "pass"
+    },
+    {
+      "requirement": "no real person names are synthesized",
+      "command": "node - <<'NODE' ... check approval/identity remains pending ... NODE",
+      "expected": "no synthesized staffing approval",
+      "actual": "{\"risky_hits\":[],\"pending_identity_boundary\":true}",
+      "status": "pass"
+    }
+  ],
+  "notes": [
+    "This record does not approve staffing or name real people.",
+    "LT-L1-W08-T02 remains the human decision and approval TUW."
+  ],
+  "work_package_id": "LT-L1-W08",
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L1-W08-T01",
+      "title": "인력·역할 갭 분석 작성",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "draft_completed_pending_l0_w02_approval",
+      "objective": "단일 소유자+에이전트 분담 현 모델과 L2 신규 백엔드 구축 규모의 격차가 역할별로 정량화되고 충원 옵션이 비교 가능한 상태가 된다.",
+      "deliverables": [
+        "docs/launch/staffing-plan-draft.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-8·§8-9",
+        "workbook/matter_dev_docs/24_개발팀_착수_지시서.md"
+      ],
+      "acceptance_criteria": [
+        "docs/launch/staffing-plan-draft.md가 존재하고 6개 역할(테넌트 관리자 / 온콜·지원 / DBA / 보안 담당 / AI 리뷰어 / 파일럿 챔피언) 전부에 현황(공석·겸임 후보)과 충원 옵션(겸임/채용/외주) 비교 행이 존재한다.",
+        "'개발팀' 전제(24번 문서)의 실재 여부 판정 절이 존재한다.",
+        "L0 런타임 격차 보고서의 L2 규모 산정이 근거로 인용되어 있다."
+      ],
+      "verification_contract": {
+        "method": "1) ls docs/launch/staffing-plan-draft.md exit 0 2) grep -c \"테넌트 관리자\\|온콜\\|DBA\\|보안\\|리뷰어\\|챔피언\" docs/launch/staffing-plan-draft.md ≥6 3) 개발팀 판정 절·격차 보고서 인용 수동 확인",
+        "evidence": "명령 출력을 docs/goal-closeout/lt-l1-w08/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w08/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-8·§8-9",
+        "workbook/matter_dev_docs/24_개발팀_착수_지시서.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L1-W08-T02",
+      "title": "충원 방식 판정·인력 계획 승인",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "draft_completed_pending_l0_w02_approval",
+      "objective": "6개 역할의 충원 방식이 판정되고 인력 계획이 승인되어 L1 산출물 '인력 계획'이 성립한다.",
+      "deliverables": [
+        "launch-decision-register L1-8 행",
+        "docs/launch/staffing-plan.md (승인본)"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md §5 L1-8",
+        "docs/launch/staffing-plan-draft.md (T01 산출물)"
+      ],
+      "acceptance_criteria": [
+        "launch-decision-register의 L1-8 행이 status=decided이고 owner·결정·근거·일자 4필드 비공란이다.",
+        "6개 역할 전부에 충원 방식 판정(겸임/채용/외주/보류-시한)이 기재되어 미판정이 0건이다.",
+        "AI 리뷰어가 실명 지정되었거나 지정 시한이 기재되어 있다.",
+        "docs/launch/staffing-plan.md(승인본)가 발행되고 L1-8 행이 경로를 역참조한다.",
+        "L1-8 행에 승인 서명 참조가 존재한다."
+      ],
+      "verification_contract": {
+        "method": "1) grep -n \"L1-8\" docs/launch/launch-decision-register.md exit 0 2) 6역할 판정 전건 확인 3) ls docs/launch/staffing-plan.md exit 0 4) 역참조·서명 확인",
+        "evidence": "체크리스트+발췌를 docs/goal-closeout/lt-l1-w08/command-evidence.json에 귀속",
+        "vc_bindings": [
+          "VC-LNCH-DEC-001",
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l1-w08/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md §5 L1-8",
+        "docs/launch/staffing-plan-draft.md (T01 산출물)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 2,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

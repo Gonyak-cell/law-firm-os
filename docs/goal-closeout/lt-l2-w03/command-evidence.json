@@ -1,0 +1,197 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L2-W03",
+  "title": "Write path construction with non-bypassable audit and events",
+  "phase": "L2",
+  "gate": "G2, L2-EXIT",
+  "created_at": "2026-06-18T13:05:11Z",
+  "status": "blocked_pending_l2_w01_w02_and_write_runtime",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L0-W02": {
+      "status": "in_progress",
+      "classification": "command_evidence_only_recorded"
+    },
+    "LT-L1-W01": {
+      "status": "t01_passed_wp_open",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L2-W01": {
+      "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L2-W02": {
+      "status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "write_route_directory_count": 0,
+    "write_related_test_count": 0,
+    "api_get_only_gate_present": true,
+    "post_write_routes_present": false,
+    "g2_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L2-W03-T01",
+      "title": "Map Wave 1 write API and event surface",
+      "status": "blocked_pending_l0_w02_l1_w01_rebaseline"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T02",
+      "title": "Implement non-bypassable write pipeline",
+      "status": "blocked_waiting_on_l2_w01_l2_w02"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T03",
+      "title": "Verify audit bypass prevention statically and dynamically",
+      "status": "blocked_waiting_on_t02"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T04",
+      "title": "Implement transactional event outbox",
+      "status": "blocked_waiting_on_t02_and_l2_w01_unit_of_work"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T05",
+      "title": "Implement Matter create API and MatterCreated event",
+      "status": "blocked_api_get_only_waiting_on_t02_t04"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T06",
+      "title": "Implement Matter update/status API",
+      "status": "blocked_waiting_on_t05"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T07",
+      "title": "Implement Document register API and DocumentUploaded event",
+      "status": "blocked_waiting_on_t05_and_l2_w02_classification"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T08",
+      "title": "Implement Email filing API and EmailFiled event",
+      "status": "blocked_waiting_on_t05_and_l2_w01_idempotency"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T09",
+      "title": "Implement Attachment save to Document API",
+      "status": "blocked_waiting_on_t08"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T10",
+      "title": "Implement Task create/complete API",
+      "status": "blocked_waiting_on_t05"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T11",
+      "title": "Implement Deadline create API and DeadlineApproaching output",
+      "status": "blocked_waiting_on_t05"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T12",
+      "title": "Implement Issue create/update API",
+      "status": "blocked_waiting_on_t05"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T13",
+      "title": "Implement Review/Approval dispatch",
+      "status": "blocked_waiting_on_t02_and_l2_w02_pipeline"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T14",
+      "title": "Build partial-state rollback fault-injection harness",
+      "status": "blocked_waiting_on_wave1_write_apis"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T15",
+      "title": "Define Wave 1 write OpenAPI contract",
+      "status": "blocked_waiting_on_t01_surface_map"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T16",
+      "title": "Build write path integration regression suite",
+      "status": "blocked_waiting_on_t14_t15"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T17",
+      "title": "Align runtime service descriptor write flags with measurements",
+      "status": "blocked_waiting_on_t16_measured_runtime"
+    },
+    {
+      "tuw_id": "LT-L2-W03-T18",
+      "title": "Assemble W03 gate evidence",
+      "status": "blocked_waiting_on_t01_through_t17_runtime_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_eighteen_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "api_event_coverage_matrix_complete": false,
+        "rtg_attestation_complete": false,
+        "audit_bypass_proof_complete": false,
+        "g2_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L0-W02\" or .wp_id==\"LT-L1-W01\" or .wp_id==\"LT-L2-W01\" or .wp_id==\"LT-L2-W02\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L0-W02\tin_progress\tcommand_evidence_only_recorded",
+        "LT-L1-W01\tt01_passed_wp_open\tcommand_evidence_only_blocked",
+        "LT-L2-W01\tblocked_pending_l1_w06_hosting_decision_and_persistence_implementation\tstandard_five_blocked",
+        "LT-L2-W02\tblocked_pending_l0_l1_decisions_persistence_and_auth_runtime\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W03 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "write_route_directory_presence",
+      "command": "find apps/api/src -maxdepth 3 -type d \\( -name write -o -name routes \\) | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no write route/source directory exists under apps/api/src."
+    },
+    {
+      "id": "write_related_test_presence",
+      "command": "find apps/api/test -maxdepth 2 -type f \\( -name '*write*' -o -name '*matter-create*' -o -name '*event*' -o -name '*outbox*' -o -name '*task*' -o -name '*deadline*' -o -name '*issue*' \\) | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no write/event integration tests exist."
+    },
+    {
+      "id": "get_only_api_gate",
+      "command": "rg -n \"req.method !== \\\"GET\\\"|method_not_allowed|method: \\\"POST\\\"\" apps/api/src/server.js apps/api/test/master-data-api.test.js",
+      "exit_code": 0,
+      "output_summary": [
+        "apps/api/src/server.js returns method_not_allowed when req.method is not GET",
+        "apps/api/test/master-data-api.test.js asserts POST /master-data/records is method_not_allowed"
+      ],
+      "purpose": "Verify current API does not expose write routes."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L2-W03.",
+    "This record does not implement write APIs, event outbox, or write integration tests.",
+    "This record does not open POST product-state write routes.",
+    "This record does not prove non-bypassable audit for writes.",
+    "This record does not satisfy G2 or L2-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

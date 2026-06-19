@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-443",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T05:07:24.636Z",
+  "finished_at": "2026-06-12T05:12:47.196Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":321644,\"duration_api_ms\":322045,\"ttft_ms\":3958,\"num_turns\":40,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** — CP00-443 is internally consistent and its descriptor-only, no-write/no-real-data, read-only-reviewer, and no-Hermes-runtime claims are all supported; `production_ready` correctly remains `false` (gate not weakened). No P0/P1/P2 issues; two non-blocking P3 informational notes (downstream adjudication/inspection artifacts pending by design, and a guard that `production_ready_candidate` ≠ runtime readiness). Closeout still rightly depends on the downstream hardening steps plus human final approval.\",\"stop_reason\":\"end_turn\",\"session_id\":\"c5835533-a4f3-45e2-b65b-3b61fbded39d\",\"total_cost_usd\":1.8436887499999999,\"usage\":{\"input_tokens\":50,\"cache_creation_input_tokens\":90339,\"cache_read_input_tokens\":1419596,\"output_tokens\":22714,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":90339,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":241,\"cache_read_input_tokens\":95497,\"cache_creation_input_tokens\":3237,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3237},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1072,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001172,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":50,\"outputTokens\":22714,\"cacheReadInputTokens\":1419596,\"cacheCreationInputTokens\":90339,\"webSearchRequests\":0,\"costUSD\":1.8425167499999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-443 settlement-core P06 permission-slice descriptor pack passes independent read-only review with no P0/P1/P2 defects; descriptor-only, no-write/no-real-data, read-only-reviewer, and no-Hermes-runtime boundaries are all verified consistent across plan, manifest, source, contract, and validation script. Two non-blocking P3 informational notes recorded.\",\"findings\":[{\"id\":\"CP00-443-P3-01\",\"severity\":\"P3\",\"title\":\"Downstream review-evidence artifacts not yet present (expected at this stage)\",\"file\":\"docs/closeout-packs/cp00-443/manifest.json\",\"line\":505,\"details\":\"required_pack_artifacts lists claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in docs/closeout-packs/cp00-443/. Per the hardened_review_sequence and the command-evidence.json notes, these are post-review-gated artifacts produced after this read-only Claude run (finding_adjudication and construction_inspection steps). Consequently the 'adjudication' and 'inspection' evidence legs named in the review focus cannot be independently verified at this point; they remain to be produced downstream.\",\"recommendation\":\"No action required by this review. Treat as by-design: the human/final approver should confirm the downstream adjudication, construction-inspection, and final closeout validation are completed (and human final approval recorded) before the pack is treated as closed and before any enterprise-trust claim.\",\"post_review_disposition\":\"expected_by_design_non_blocking\"},{\"id\":\"CP00-443-P3-02\",\"severity\":\"P3\",\"title\":\"production_ready_candidate must not be read as runtime/production readiness\",\"file\":\"packages/settlement/src/validators.js\",\"line\":3226,\"details\":\"createSettlementCoreCp443HermesEvidencePacket sets production_ready_candidate:true when coverage.valid && slice.valid. This reflects only descriptor coverage and slice-shape validity. Pack-level production_ready is false and runtime_ready is false (manifest.json), and the descriptor explicitly defers runtime opening to CP00-444 with human_final_approval_required_for_runtime_opening:true. The naming could be misread as production readiness.\",\"recommendation\":\"No code change required. Ensure downstream tooling and the human approver interpret production_ready_candidate strictly as descriptor-validity, not runtime/production readiness; the production_ready gate must remain false until runtime is explicitly opened with human approval.\",\"post_review_disposition\":\"informational_guard_non_blocking\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":2,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":2}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"20e831c1-ea0c-4b94-b810-648a5efe7477\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4795,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "c5835533-a4f3-45e2-b65b-3b61fbded39d",
+    "uuid": "20e831c1-ea0c-4b94-b810-648a5efe7477",
+    "total_cost_usd": 1.8436887499999999,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

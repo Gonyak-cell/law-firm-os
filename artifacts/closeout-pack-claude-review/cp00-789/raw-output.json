@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-789",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T23:43:46.191Z",
+  "finished_at": "2026-06-15T23:48:36.297Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":289539,\"duration_api_ms\":290120,\"ttft_ms\":4538,\"num_turns\":43,\"result\":\"Review complete — verdict **PASS**, no findings.\\n\\nCP00-789 is a clean descriptor-only pack. Its scoped `production_ready` claim (`enterprise_saas_domain_model_workflow_descriptor_verified`) is fully supported: all 15 validation commands exit 0, 3052 tests pass, no-write/no-leak invariants are enforced and verified (zero runtime/leak flags set true), the Claude read-only/non-final authority boundary holds, Hermes is confined to descriptor evidence, and the manifest correctly avoids any premature production_ready/runtime/enterprise-trust claim while awaiting adjudication. Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"76380b2e-4eaa-4f7e-b530-8da0809cf9f4\",\"total_cost_usd\":1.8377849999999998,\"usage\":{\"input_tokens\":276,\"cache_creation_input_tokens\":103228,\"cache_read_input_tokens\":1435116,\"output_tokens\":18897,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":103228,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":276,\"cache_read_input_tokens\":98767,\"cache_creation_input_tokens\":4865,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4865},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1142,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001247,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":276,\"outputTokens\":18897,\"cacheReadInputTokens\":1435116,\"cacheCreationInputTokens\":103228,\"webSearchRequests\":0,\"costUSD\":1.836538,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-789 (RP26 Enterprise SaaS Hardening, risk B, 40 units, RP26.P01.M02.S09-RP26.P01.M04.S06) passes independent read-only review. The pack-level production_ready claim is scoped to enterprise_saas_domain_model_workflow_descriptor_verified (descriptor layer), explicitly NOT runtime_ready and NOT an enterprise-trust claim, and that scoped claim is well supported. Implementation (packages/enterprise/src/{registry,service,validators,sso,scim,index}.js) is descriptor-only and extends CP00-788; ENTERPRISE_SAAS_NO_WRITE_ATTESTATION pins all runtime/leak flags false and validators enforce no tenant/SSO/SCIM/secret payloads, no cross-tenant routing, no runtime opening, and no enterprise-trust claim. A flag sweep across the contract JSON and source found zero dispatches_/exposes_/writes_product_state/claims_enterprise_trust/runtime_* set to true. Local/Hermes validation is complete: command-evidence shows all 15 commands at exit_code 0, including npm test (3052 pass / 0 fail with CP00-789-specific coverage, descriptor, and contract tests), rp26:enterprise-saas:validate (pack CP00-789), and git diff --check clean. Authority boundary is correct: Claude is read-only (Read/Grep/Glob), non-final (claude_is_final_approval=false, promotes_claude_to_final_approval=false), with human approval required for runtime opening; Hermes patterns are confined to descriptor-only evidence packets (emits_runtime_receipt=false), not product runtime. Manifest, adjudication, construction-inspection, and claude-review-result are correctly in pre-review pending state with manifest production_ready=false (no premature claim), matching the validated CP00-788 close pattern; this review is the gate that enables adjudication. Review-evidence hardening checks pass (auth preflight exit 0 with 1226-byte valid JSON, schema present, forbidden tools absent, prompt under size limit, no prior invalid attempts). No P0/P1/P2/P3 findings. blocks_goal_closeout is false: the expected human/enterprise-trust authority boundary lies outside this descriptor receipt and the pack does not claim runtime or enterprise trust.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"74a020e8-4b3b-4647-96bf-15946d167cb3\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4408,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "76380b2e-4eaa-4f7e-b530-8da0809cf9f4",
+    "uuid": "74a020e8-4b3b-4647-96bf-15946d167cb3",
+    "total_cost_usd": 1.8377849999999998,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

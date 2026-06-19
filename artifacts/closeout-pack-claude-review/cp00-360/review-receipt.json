@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-360",
+  "normalized_at": "2026-06-11T18:34:15.002Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-360/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-360/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-360/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-360/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "86cd925a-26b7-4acf-9d4c-4f416b3bf190",
+    "uuid": "957d28de-46a2-40ec-983c-48caab521cdc",
+    "total_cost_usd": 2.49887725,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6939,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-360 is a descriptor-only RP11.P07 failure-hermes-slice pack (risk B, 40 units, RP11.P07.M07.S05-RP11.P07.M09.S02) covering the M07 Test/Golden failure tail (18 rows), the full M08 Hermes Evidence Packet failure cycle (20 rows), and the M09 Claude Review Packet head (2 rows). Independent source inspection confirms the pack-level claim is well supported: pack identity, deliverable distribution (22/4/3/4/2/4/1) and micro-title distribution (18/20/2) are consistent across the registry binding, contract projection, manifest, and the live closeout-pack-plan.json, with deviation_from_plan=false. The implementation is genuinely descriptor-only: freezeCp360Result sets ~50 no-write/no-real-data flags to false, and every failure-row guard asserted by validateTimeExpenseCoreCp360FailureHermesSliceDescriptor (cross-tenant deny, no permission/audit-hint/blocked-claim/lock-token/fixture/hermes-body leaks, no retry/rollback/lock/test/integration runtime, no Hermes runtime receipt, Claude not final approver, human escalation required) is backed by concrete inherited row-extras. Validators and tests are meaningful (not stubbed) and bind to the live plan; the contract validator deepEquals the contract JSON against source-generated descriptors, requirements, and no-write attestation. The authority boundary holds: claude_is_final_approval=false, enterprise trust not claimed from local validation, human final approval required before runtime opening (CP00-361). Hermes patterns appear only as deterministic descriptor receipt/evidence shapes (..._no_write), never product runtime. CP178+ review hardening is satisfied: the forbidden_review_evidence list rejects auth failures, 0-byte output, malformed/fenced JSON, tool-call-shaped output, and missing fields, and the readiness auth preflight passed with valid non-zero JSON. production_ready is correctly false (status implemented_pending_review) with post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) appropriately absent and not falsely claimed. No P0/P1/P2 issues. One P3 informational note: the reviewer-aid changed-file-scope.json double-lists the pack's own docs dir and a handoff note as both untracked implementation files and unrelated-preserved files; this is cosmetic and non-blocking (the authoritative manifest categorizes them correctly and no active implementation files are omitted). Claude is acting strictly as a read-only independent reviewer; final approval and the enterprise trust claim remain with human authority outside this receipt.",
+    "findings": [
+      {
+        "id": "CP360-001",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-categorizes pack docs dir and handoff note as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-360/changed-file-scope.json",
+        "line": 130,
+        "details": "docs/closeout-packs/cp00-360/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (lines 131-132) and unrelated_dirty_files_preserved (lines 137-138) of the reviewer-aid scope file. These categories are intended to be mutually exclusive: the pack's own docs directory is legitimately a pack implementation/evidence artifact, while the manifest's authoritative worktree_transition_policy.unrelated_dirty_files_preserved correctly excludes both files. The overlap is a scope-generator cosmetic quirk only; active_untracked_implementation_files_omitted is empty, so no active implementation file is improperly dropped, and the 8 active_pack_implementation_refs (the real deliverables) are unaffected. No impact on descriptor-only boundaries, no-write/no-real-data guarantees, validation, or the production_ready posture.",
+        "recommendation": "In the scope-file generator, treat the pack's own docs/closeout-packs/<pack>/ directory and the active session handoff as pack-scoped untracked files only and exclude them from unrelated_dirty_files_preserved, mirroring the manifest's categorization. Non-blocking for CP00-360 closeout.",
+        "post_review_disposition": "non_blocking_informational_no_action_required_for_closeout"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

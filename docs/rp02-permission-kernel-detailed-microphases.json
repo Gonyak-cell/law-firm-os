@@ -1,0 +1,3703 @@
+{
+  "schema_version": "law-firm-os.rp02-detailed-microphases.v1",
+  "program_id": "RP02",
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP02.P00.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec permission sections",
+      "objective": "Extract system roles, five permission layers, deny precedence, and security trimming requirements.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M01",
+      "micro_title": "Draft permission kernel contract shell",
+      "objective": "Create future contract shape for principals, resources, actions, effects, constraints, and decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M02",
+      "micro_title": "Define principal taxonomy",
+      "objective": "Lock User, Group, Role, MatterMember, ClientUser, ExternalCounsel, Auditor, and SystemAdmin principal references.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M03",
+      "micro_title": "Define resource taxonomy",
+      "objective": "Lock Tenant, Entity, Client, Matter, Folder, Document, DocumentVersion, Invoice, Payment, SettlementRun, AIJob resources.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M04",
+      "micro_title": "Define action taxonomy",
+      "objective": "Lock view, search, create, update, delete, download, share, approve, bill, settle, export, ai_retrieve actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M05",
+      "micro_title": "Define effect taxonomy",
+      "objective": "Lock allow, deny, review_required, approval_required, and blocked effects.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M06",
+      "micro_title": "Define precedence contract",
+      "objective": "Record Legal Hold, Ethical Wall/Deny, Object Restriction, Matter Permission, Role Permission, Tenant Default order.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M07",
+      "micro_title": "Define security trimming contract",
+      "objective": "Record that unauthorized result titles, snippets, AI citations, and report rows are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes H02 preflight",
+      "objective": "Define what Hermes records before permission implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude C02 design brief",
+      "objective": "Prepare review questions on bypass risk, precedence ambiguity, and insufficient test coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P00.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M10",
+      "micro_title": "Close RP02.P00 handoff",
+      "objective": "Hand off a contract-first permission implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M00",
+      "micro_title": "Create authz package structure",
+      "objective": "Create src and test layout for permission kernel implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M01",
+      "micro_title": "Implement Principal model",
+      "objective": "Define principal kinds, IDs, tenant scope, group membership, and role assignments.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M02",
+      "micro_title": "Implement Resource model",
+      "objective": "Define resource kinds, IDs, tenant_id, matter_id, owner module, and confidentiality attributes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M03",
+      "micro_title": "Implement Action model",
+      "objective": "Define action groups and high-risk actions for document, billing, settlement, sharing, and AI retrieval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M04",
+      "micro_title": "Implement PolicyRule model",
+      "objective": "Define rule_id, source, principal selector, resource selector, action selector, effect, priority, condition.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M05",
+      "micro_title": "Implement DenyRule model",
+      "objective": "Define deny-specific source types: legal_hold, ethical_wall, regulatory_hold, object_restriction, tenant_policy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M06",
+      "micro_title": "Implement MatterPermission model",
+      "objective": "Define MatterMember role and matter permission level mapping.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M07",
+      "micro_title": "Implement ObjectACL model",
+      "objective": "Define object-specific principal/effect/action grants and restrictions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M08",
+      "micro_title": "Implement Decision model",
+      "objective": "Define decision result shape: allowed, effect, reason, matched_rules, review_required, audit_hint.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M09",
+      "micro_title": "Export policy model registry",
+      "objective": "Export all enums and models through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P01.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm permission kernel has enough model surface for deterministic evaluation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/policy-model.js",
+        "packages/authz/src/resources.js",
+        "packages/authz/src/actions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/policy-model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M00",
+      "micro_title": "Define evaluatePermission API",
+      "objective": "Create deterministic evaluation entrypoint for principal, resource, action, and context.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M01",
+      "micro_title": "Implement tenant boundary check",
+      "objective": "Reject cross-tenant access unless explicit system operation is flagged and audited.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M02",
+      "micro_title": "Implement legal hold precedence",
+      "objective": "Ensure legal/regulatory hold rules are evaluated before all allow rules.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M03",
+      "micro_title": "Implement ethical wall deny precedence",
+      "objective": "Ensure ethical wall deny overrides partner/admin/matter-team allow.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M04",
+      "micro_title": "Implement object restriction precedence",
+      "objective": "Apply object-specific restrictions before matter-level and role-level allow.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M05",
+      "micro_title": "Implement matter-level permission",
+      "objective": "Evaluate MatterMember role and permission_level for matter-scoped resources.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M06",
+      "micro_title": "Implement role-based permission",
+      "objective": "Evaluate role permission_set when no stronger restriction blocks access.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M07",
+      "micro_title": "Implement tenant default policy",
+      "objective": "Apply default tenant policy as final fallback.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M08",
+      "micro_title": "Implement review-required effects",
+      "objective": "Return review_required or approval_required without treating them as direct allow.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M09",
+      "micro_title": "Implement explainable decisions",
+      "objective": "Return matched rule IDs, precedence reason, and blocked claims for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P02.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm evaluator handles allow, deny, review, approval, and blocked outcomes deterministically.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/evaluate.js",
+        "packages/authz/src/precedence.js",
+        "packages/authz/src/conditions.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/evaluate-permission.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose policy model, evaluatePermission, trimResults, and decision helpers from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M01",
+      "micro_title": "Define canView interface",
+      "objective": "Provide a convenience wrapper for view decisions on matter, document, invoice, and report resources.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M02",
+      "micro_title": "Define canSearch interface",
+      "objective": "Provide a wrapper for search result visibility decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M03",
+      "micro_title": "Define canDownload interface",
+      "objective": "Provide a wrapper for document/file download decisions and audit hints.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M04",
+      "micro_title": "Define canShare interface",
+      "objective": "Provide a wrapper for secure link and client portal sharing decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M05",
+      "micro_title": "Define canApprove interface",
+      "objective": "Provide a wrapper for billing, settlement, engagement, and output approval decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M06",
+      "micro_title": "Define canAIRetrieve interface",
+      "objective": "Provide a wrapper for AI retrieval scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M07",
+      "micro_title": "Define decision serialization",
+      "objective": "Lock serializable shape for API responses and Hermes evidence without leaking hidden policy internals.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M08",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for cross_tenant, denied_by_wall, legal_hold, object_restricted, insufficient_role, review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review contract summary",
+      "objective": "Expose enough interface summary for C02 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P03.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze RP02 interface until RP03 audit integration extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/index.js",
+        "packages/authz/src/decision-contract.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/authz-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M00",
+      "micro_title": "Inventory permission UI surfaces",
+      "objective": "Identify Matter detail, DMS, audit panel, approval box, and admin surfaces for permission status.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M01",
+      "micro_title": "Plan permission badge states",
+      "objective": "Define compact allowed, denied, review_required, ethical_wall, legal_hold, and inherited badges.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M02",
+      "micro_title": "Plan denied result empty state",
+      "objective": "Define how unauthorized search/report results disappear without revealing titles or snippets.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M03",
+      "micro_title": "Plan Matter team permission display",
+      "objective": "Map MatterMember roles and permission levels to existing UI density.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M04",
+      "micro_title": "Plan object restriction indicator",
+      "objective": "Define restricted document/invoice indicators without leaking restricted details.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M05",
+      "micro_title": "Plan approval-required UI",
+      "objective": "Show approval_required as a queue item, not as an actionable allow.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M06",
+      "micro_title": "Plan audit hint UI",
+      "objective": "Show that actions will be audited for sensitive actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive permission UI",
+      "objective": "Keep permission context visible on mobile without crowding Matter rows.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI permission evidence",
+      "objective": "Record UI is presentation-only and cannot override evaluator decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI permission review",
+      "objective": "Ask Claude to check whether UI leaks blocked resource details.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P04.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Defer deep admin permission editing UI to RP21 while preserving display requirements.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create synthetic tenant with default security policy and roles.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M01",
+      "micro_title": "Define matter team fixture",
+      "objective": "Create synthetic responsible partner, attorney, staff, finance, security admin, auditor, and client user.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M02",
+      "micro_title": "Define matter resource fixture",
+      "objective": "Create synthetic matters with normal, confidential, highly confidential, and ethical wall variants.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M03",
+      "micro_title": "Define document resource fixture",
+      "objective": "Create synthetic documents with folder, version, confidentiality, and matter references.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M04",
+      "micro_title": "Define invoice settlement fixtures",
+      "objective": "Create synthetic invoice and settlement resources for future finance permissions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M05",
+      "micro_title": "Define legal hold golden case",
+      "objective": "Create case where legal hold blocks destructive action despite role allow.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M06",
+      "micro_title": "Define ethical wall golden case",
+      "objective": "Create case where partner/admin-style principal is denied by wall.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M07",
+      "micro_title": "Define object ACL golden case",
+      "objective": "Create case where object restriction narrows matter team access.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M08",
+      "micro_title": "Define security trimming golden case",
+      "objective": "Create mixed search results where unauthorized rows disappear before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval golden case",
+      "objective": "Create case where AI can retrieve only permitted document/version refs.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P05.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm fixtures are synthetic, reusable, and explicit about expected decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/fixtures.js",
+        "packages/authz/fixtures/permission-golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M00",
+      "micro_title": "Define audit hint contract",
+      "objective": "Define audit_hint fields for actor, action, resource, decision, reason, and matched rules.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M01",
+      "micro_title": "Bind view audit hint",
+      "objective": "Return audit hints for document, matter, invoice, and report view decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M02",
+      "micro_title": "Bind download audit hint",
+      "objective": "Return stronger audit hints for file download and export actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M03",
+      "micro_title": "Bind share audit hint",
+      "objective": "Return audit hints for secure link, portal share, and external counsel share attempts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M04",
+      "micro_title": "Bind permission-change audit hint",
+      "objective": "Return audit hints when a policy or ACL mutation is requested.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M05",
+      "micro_title": "Bind billing audit hint",
+      "objective": "Return audit hints for invoice, payment, write-off, and month-close actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M06",
+      "micro_title": "Bind settlement audit hint",
+      "objective": "Return audit hints for settlement preview, approval, dispute, and lock actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M07",
+      "micro_title": "Bind AI retrieval audit hint",
+      "objective": "Return audit hints with model policy and retrieval scope metadata.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes H02 audit evidence",
+      "objective": "Record which permission decisions require audit event generation downstream.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit integration review",
+      "objective": "Ask Claude to find decisions that lack audit hints.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P06.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Hand off audit event persistence to RP03 with no hidden gaps.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-audit-hints.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M00",
+      "micro_title": "Define missing principal failure",
+      "objective": "Fail closed when principal is missing, disabled, or lacks tenant context.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M01",
+      "micro_title": "Define missing resource failure",
+      "objective": "Fail closed when resource kind, ID, tenant, or matter context is missing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M02",
+      "micro_title": "Define missing action failure",
+      "objective": "Fail closed when action is unknown or unsupported.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M03",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny access when principal and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M04",
+      "micro_title": "Define ambiguous rule failure",
+      "objective": "Fail or require review when two same-priority rules conflict.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M05",
+      "micro_title": "Define stale matter membership failure",
+      "objective": "Deny or review when MatterMember is inactive or removed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M06",
+      "micro_title": "Define admin bypass failure",
+      "objective": "Prove admin or partner role cannot bypass ethical wall or legal hold.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M07",
+      "micro_title": "Define search leak failure",
+      "objective": "Fail if unauthorized resource title, snippet, or count is leaked.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M08",
+      "micro_title": "Define AI retrieval leak failure",
+      "objective": "Fail if unauthorized document/version enters AI retrieval set.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude bypass review",
+      "objective": "Ask Claude to find missing bypass and failure cases.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P07.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm all dangerous ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/authz/test/permission-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M00",
+      "micro_title": "Define H02 command matrix",
+      "objective": "Record product commands Hermes should run for permission kernel validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M01",
+      "micro_title": "Define H02 decision evidence fields",
+      "objective": "Define decision count, deny count, review count, blocked claims, and matched rule summary.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M02",
+      "micro_title": "Define H02 precedence evidence",
+      "objective": "Record proof that legal hold and deny rules outrank allow rules.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M03",
+      "micro_title": "Define H02 trimming evidence",
+      "objective": "Record proof that unauthorized search/AI/report rows are hidden.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M04",
+      "micro_title": "Define H02 audit-hint evidence",
+      "objective": "Record proof that sensitive decisions carry audit hints.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M05",
+      "micro_title": "Define H02 no-real-data evidence",
+      "objective": "Record synthetic-only permission fixtures.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M06",
+      "micro_title": "Define H02 Claude dependency",
+      "objective": "Mark C02 review mandatory before DMS or AI retrieval code trusts the evaluator.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M07",
+      "micro_title": "Define H02 human approval note",
+      "objective": "Record what human must approve: deny precedence and fail-closed policy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M08",
+      "micro_title": "Prepare H02 evidence packet template",
+      "objective": "Create a future template for Hermes to fill during RP02 closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M09",
+      "micro_title": "Prepare H02 closeout criteria",
+      "objective": "Define PASS/BLOCK semantics for permission kernel gate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P08.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates permission behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M00",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP02 architecture review questions",
+      "objective": "Ask whether permission model boundaries are stable and extensible.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M01",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP02 security review questions",
+      "objective": "Ask whether deny-over-allow, fail-closed, and cross-tenant rules are sufficient.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M02",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP02 bypass review questions",
+      "objective": "Ask Claude to find admin, partner, search, report, and AI retrieval bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M03",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP02 missing test questions",
+      "objective": "Ask what golden cases and failure cases are missing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M04",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP02 DMS readiness questions",
+      "objective": "Ask whether evaluator can safely support DMS Core in RP06.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M05",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP02 AI readiness questions",
+      "objective": "Ask whether evaluator can safely support AI retrieval later in RP17/RP18.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M06",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for permission findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M07",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for RP02 closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M08",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route findings to RP02 corrections, RP03 audit, RP06 DMS, or RP17 AI governance.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M09",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize the deny precedence, fail-closed, and review-required rules for approval.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP02.P09.M10",
+      "program_id": "RP02",
+      "program_title": "Permission Kernel",
+      "phase_id": "RP02.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M10",
+      "micro_title": "Close RP02 detailed plan",
+      "objective": "Confirm RP02 is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H02",
+      "claude_gate": "C02",
+      "target_files": [
+        "docs/rp02-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing permission scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Deny-over-allow, tenant isolation, fail-closed behavior, and security trimming are preserved where applicable.",
+        "Hermes H02 evidence or blocked reason can be recorded.",
+        "Claude C02 can independently review architecture, security, bypass risks, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

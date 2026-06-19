@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-532",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T17:08:29.384Z",
+  "finished_at": "2026-06-12T17:13:48.604Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":318673,\"duration_api_ms\":318253,\"ttft_ms\":2370,\"num_turns\":54,\"result\":\"Review complete. **Verdict: PASS** — no findings.\\n\\nCP00-532 is a clean descriptor-only pack with full internal consistency across registry, service, validators, contract, tests, plan, manifest, and README. All boundaries hold (no real data, no writes, Claude read-only/non-approver, Hermes used only for descriptor projection), the `production_ready` claim is correctly `false` pending human-gated closeout, and all 27 validation commands plus the H17 gate and auth-preflight passed cleanly. Nothing blocks pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"72153d35-2abd-49a3-b983-ed70dd95a0cd\",\"total_cost_usd\":2.0687552499999997,\"usage\":{\"input_tokens\":60,\"cache_creation_input_tokens\":96689,\"cache_read_input_tokens\":1722446,\"output_tokens\":24069,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":96689,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":234,\"cache_read_input_tokens\":91462,\"cache_creation_input_tokens\":6087,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6087},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1096,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001201,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":60,\"outputTokens\":24069,\"cacheReadInputTokens\":1722446,\"cacheCreationInputTokens\":96689,\"webSearchRequests\":0,\"costUSD\":2.0675542499999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-532 (Risk B, 40 units, RP17.P05.M02.S15-RP17.P05.M04.S12) is a clean descriptor-only AI governance p05 implementation/workflow slice pack that passes independent read-only review with no findings. Verified internal consistency across registry.js (CP532 pack binding + no-write attestation with intact CP514->CP532 spread chain carrying promotes_claude_to_final_approval=false and claims_enterprise_trust_from_local_validation=false + requirements), service.js (freezeCp532Result, case set, descriptor), validators.js (coverage, slice validation, Hermes/Claude packets, handoff), contracts/ai-governance-core-contract.json (current_pack, cp532_requirements, cp532_no_write_attestation, and full p05_implementation_workflow_slice_descriptor projection, all deep-equal-validated by the validator script), test/model.test.js (3 CP532 tests covering coverage, descriptor-only rows, and authority boundaries), the closeout-pack-plan.json pack entry, the manifest, and the README #cp00-532 entry. Deliverable distribution {test:6,hermes_evidence:2,implementation:13,fixture:13,claude_review:2,security_audit:4} and micro-title distribution {Type And Shape Definition:6,Primary Implementation Slice:22,Secondary Workflow Slice:12} match the baseline, registry, manifest, and plan exactly and sum to 40. All 7 required public exports are present and re-exported via index.js. Boundaries hold: no real data (synthetic_only/no_real_data true), no writes (every no-write flag false; no fs/network/child_process/eval in package source), Claude restricted to read-only non-approver, and Hermes used only for deterministic descriptor projection (emits_hermes_runtime_receipt=false, receipt_shape descriptor-only no-write). The pack-level production_ready claim is correctly false (manifest runtime_ready=false, status implemented_pending_review); production_ready_candidate=true is legitimately gated on coverage+slice validity and does not overclaim enterprise trust or final approval. command-evidence.json records all 27 validation commands at exit_code 0, the H17 Hermes gate passed, and the readiness auth-preflight passed with valid JSON, non-zero stdout, and no auth failure (no forbidden review-evidence conditions present; no invalid attempts preserved). The two unrelated dirty files (scripts/progress-control-room-data.mjs, tools/progress-control-room/index.html) and other untracked workbook/LDIP files are correctly classified outside active pack scope. No P0/P1/P2/P3 issues identified; pack is ready for human-gated closeout.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"2ab1b350-4900-425d-bec6-dc35738bf402\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4756,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "72153d35-2abd-49a3-b983-ed70dd95a0cd",
+    "uuid": "2ab1b350-4900-425d-bec6-dc35738bf402",
+    "total_cost_usd": 2.0687552499999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

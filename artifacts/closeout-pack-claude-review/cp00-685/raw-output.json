@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-685",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-14T14:06:59.418Z",
+  "finished_at": "2026-06-14T14:11:52.205Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":292206,\"duration_api_ms\":294689,\"ttft_ms\":2893,\"num_turns\":42,\"result\":\"Review complete. Verdict: **PASS** with zero findings.\\n\\nCP00-685 is a descriptor-only P07 permission/audit failure slice (RP22.P07.M05.S05–S14) that I verified directly through Read/Grep rather than relying solely on the agent-reported command-evidence. The implementation (registry constants, descriptor factory, validators, tests, validator script, contracts) is internally consistent and matches the baseline; every runtime/no-write/no-real-data boundary is asserted closed and is independently enforced by the validators and tests; Claude stays read-only/non-final; and Hermes is used only for deterministic control-plane packet/receipt handling. The pack honestly reports `production_ready:false` / `PENDING_REVIEW` and does not overclaim runtime or enterprise trust, so it neither blocks pack closeout nor this CP's goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"7994efba-a239-4d53-922e-5f3b75a90fb8\",\"total_cost_usd\":2.3317655,\"usage\":{\"input_tokens\":193,\"cache_creation_input_tokens\":139384,\"cache_read_input_tokens\":1900759,\"output_tokens\":20322,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":139384,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":326,\"cache_read_input_tokens\":135252,\"cache_creation_input_tokens\":4578,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4578},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1116,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001221,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":193,\"outputTokens\":20322,\"cacheReadInputTokens\":1900759,\"cacheCreationInputTokens\":139384,\"webSearchRequests\":0,\"costUSD\":2.3305445,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-685 is a descriptor-only RP22 External Integrations I P07 \\\"Permission And Audit Binding\\\" failure slice over 10 planned units (RP22.P07.M05.S05-S14). Independent read-only inspection (Read/Grep/Glob) confirms the pack-level claim is honest and fully supported, and the pack does NOT overclaim production/runtime/enterprise trust: manifest production_ready=false, runtime_ready=false, status in_progress; construction-inspection verdict PENDING_REVIEW; adjudication \\\"production ready: no\\\". Implementation verified: registry CP685 pack-binding/requirements (registry.js:820-877) match the baseline exactly (risk A, 10 units, distribution 8 failure_recovery/1 security_audit/1 implementation, micro-title Permission And Audit Binding); the descriptor factory (service.js:3071-3115) emits 10 case-set rows each descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false, with every *_runtime_opened and cross_tenant_access_allowed false; the descriptor/coverage/projection validators (validators.js:881-907, 1895-2039) hard-check binding, per-row flags, all descriptor-only flags true, all runtime flags false, claude_is_final_approval false, and the shared CP666 no-write attestation for every pack incl. 685. Tests (model.test.js:966-993, 995-1044) assert descriptor validity and that BOTH contract files equal the projection, importing the 5 required CP685 exports through ../src/index.js (substantiating index_export_check via wildcard re-export). The validator script (validate-rp22-external-integrations-i-contract.mjs:324-546) wires CP685 coverage+descriptor+projection validation with assert.equal(valid,true) and writes both contracts from one projection (explaining their identical content). No-write/no-real-data boundaries hold: the descriptor carries only entity field-name shapes and boolean flags — no tokens, secrets, credentials, or raw payloads. Hermes patterns are deterministic control-plane review-packet/receipt only (hermes_runtime_opened=false, runtime_receipt_emitted=false, command_result=pending_until_closeout_pack_validation), not product runtime. Claude remains read-only and non-final (promotes_claude_to_final_approval=false). Review-evidence hygiene per CP178+ hardening passes: readiness auth preflight succeeded (exit 0, well-formed JSON, 1449B stdout); no prior raw-output/receipt exists (first valid attempt); changed-file-scope reports zero omitted active untracked implementation files and correctly segregates unrelated dirty files. Plan and next-pack-queue confirm CP00-685 is the live cursor with consistent range and next=CP00-686/RP22.P07.M05.S15. No P0/P1/P2/P3 findings. This receipt is an independent read-only review, not final human/enterprise-trust approval, which remains closed outside this receipt.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"6f084024-e322-455e-bf23-e204706ee929\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5325,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "7994efba-a239-4d53-922e-5f3b75a90fb8",
+    "uuid": "6f084024-e322-455e-bf23-e204706ee929",
+    "total_cost_usd": 2.3317655,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

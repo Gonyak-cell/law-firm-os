@@ -1,0 +1,179 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L2-W02",
+  "title": "Trust boundary rebuild with auth and server-side permission context",
+  "phase": "L2",
+  "gate": "G2, L2-EXIT",
+  "created_at": "2026-06-18T13:03:06Z",
+  "status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L0-W02": {
+      "status": "in_progress",
+      "classification": "command_evidence_only_recorded"
+    },
+    "LT-L1-W02": {
+      "status": "decision_round_brief_blocked_pending_owner_decisions",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L1-W06": {
+      "status": "decision_brief_blocked_pending_owner_hosting_decision",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L2-W01": {
+      "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "auth_src_directory_count": 0,
+    "auth_related_test_count": 0,
+    "header_injected_permission_context_present": true,
+    "server_side_permission_context_present": false,
+    "g2_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L2-W02-T01",
+      "title": "Record trust-boundary architecture decision",
+      "status": "blocked_pending_l0_l1_owner_decisions"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T02",
+      "title": "Implement fail-closed token verification middleware",
+      "status": "blocked_waiting_on_t01"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T03",
+      "title": "Implement session lifecycle and Login audit",
+      "status": "blocked_waiting_on_t02_and_l2_w01_persistent_audit"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T04",
+      "title": "Implement MSAL/NAA token acquisition adapter",
+      "status": "blocked_waiting_on_t02_synthetic_issuer"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T05",
+      "title": "Implement tenant bootstrap and tenant-context interpretation",
+      "status": "blocked_waiting_on_t02_and_l2_w01_repositories"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T06",
+      "title": "Implement server-side principal and role resolver",
+      "status": "blocked_waiting_on_t03_t05"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T07",
+      "title": "Implement server-side permission context builder",
+      "status": "blocked_waiting_on_t06_and_l2_w01_policy_acl_repository"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T08",
+      "title": "Remove x-lawos-permission-context header injection path",
+      "status": "blocked_waiting_on_t07_replacement_path"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T09",
+      "title": "Implement 10-step Permission Evaluation server orchestrator",
+      "status": "blocked_waiting_on_t07"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T10",
+      "title": "Implement classification and action-type evaluation",
+      "status": "blocked_waiting_on_t09_and_pre_w05_decision"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T11",
+      "title": "Implement audit writer for permission evaluation results",
+      "status": "blocked_waiting_on_t09_and_l2_w01_persistent_audit"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T12",
+      "title": "Build permission golden-case regression suite",
+      "status": "blocked_waiting_on_t10_t11"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T13",
+      "title": "Complete route-wide fail-closed integration",
+      "status": "blocked_waiting_on_t08_t11"
+    },
+    {
+      "tuw_id": "LT-L2-W02-T14",
+      "title": "Assemble W02 gate evidence",
+      "status": "blocked_waiting_on_t01_through_t13_runtime_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_fourteen_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "ten_step_mapping_complete": false,
+        "header_injection_removal_proven": false,
+        "npm_test_passed": false,
+        "g2_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L0-W02\" or .wp_id==\"LT-L1-W02\" or .wp_id==\"LT-L1-W06\" or .wp_id==\"LT-L2-W01\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L0-W02\tin_progress\tcommand_evidence_only_recorded",
+        "LT-L1-W02\tdecision_round_brief_blocked_pending_owner_decisions\tcommand_evidence_only_blocked",
+        "LT-L1-W06\tdecision_brief_blocked_pending_owner_hosting_decision\tcommand_evidence_only_blocked",
+        "LT-L2-W01\tblocked_pending_l1_w06_hosting_decision_and_persistence_implementation\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W02 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "auth_src_directory_presence",
+      "command": "find apps/api/src -maxdepth 2 -type d -name auth | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no auth runtime directory exists."
+    },
+    {
+      "id": "auth_related_test_presence",
+      "command": "find apps/api/test -maxdepth 1 -type f \\( -name '*auth*' -o -name '*session*' -o -name '*permission*' -o -name '*token*' -o -name '*msal*' -o -name '*naa*' \\) | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no auth/session/MSAL/token permission-runtime tests exist."
+    },
+    {
+      "id": "header_injection_path_presence",
+      "command": "rg -n \"x-lawos-permission-context|PERMISSION_CONTEXT_HEADER|context_header|parsePermissionContext\" apps/api/src",
+      "exit_code": 0,
+      "output_summary": [
+        "apps/api/src/server.js imports PERMISSION_CONTEXT_HEADER and parsePermissionContext",
+        "apps/api/src/server.js exposes context_header in SERVICE_DESCRIPTOR",
+        "apps/api/src/server.js parses req.headers[PERMISSION_CONTEXT_HEADER]",
+        "apps/api/src/permission-gate.js defines x-lawos-permission-context and parsePermissionContext"
+      ],
+      "purpose": "Verify current API still uses client-supplied permission context headers."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L2-W02.",
+    "This record does not implement auth middleware, sessions, MSAL/NAA, or server-side principal resolution.",
+    "This record does not remove the x-lawos-permission-context header path.",
+    "This record does not claim Entra tenant integration, Graph admin consent, or production identity readiness.",
+    "This record does not satisfy G2 or L2-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

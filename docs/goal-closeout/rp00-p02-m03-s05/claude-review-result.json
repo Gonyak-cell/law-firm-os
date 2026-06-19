@@ -1,0 +1,102 @@
+{
+  "subphase_id": "RP00.P02.M03.S05",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Permission precheck",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T06:58:01.071Z",
+  "exactly_one_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "2e46185a-182c-452d-a111-7f9603b312b1",
+    "uuid": "158cf829-ddf4-4fef-86b6-35096a9487a7",
+    "duration_ms": 349904,
+    "duration_api_ms": 352420,
+    "total_cost_usd": 1.17109925,
+    "permission_denials": [],
+    "write_tools_granted": false
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s05-claude-prompt.txt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s05-claude-review.json",
+    "duration_ms": 349904,
+    "duration_api_ms": 352420,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "158cf829-ddf4-4fef-86b6-35096a9487a7",
+    "session_id": "2e46185a-182c-452d-a111-7f9603b312b1"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS_WITH_FINDINGS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS_WITH_FINDINGS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "S05-P3-01",
+        "severity": "P3",
+        "title": "Several declared input fail-closed modes are enforced via the inherited S04 result assertion rather than S05-local guards",
+        "line_or_symbol": "precheckControlPlaneHermesValidationPermission (packages/control-plane/src/service.js)",
+        "why_it_matters": "The fail_closed_on modes 'missing_matter_trace_precheck_result', 'non_hermes_validation_entrypoint', and (partly) 'matter_trace_precheck_not_RP00.P02.M03.S04' rely on assertControlPlaneHermesValidationMatterTracePrecheckResult(matterTraceResult). The S05 result assertion only backstops the security-critical fields it re-derives (matter_trace_precheck_ref, permission_decision_ref, hardcoded entrypoint), so a null/non-matter-trace input or a wrong input entrypoint is caught solely by the shared S04 assertion. If that shared assertion's strictness were ever relaxed, S05's declared fail-closed contract for those specific modes would silently weaken. Behavior is currently correct and exercised by tests.",
+        "recommendation": "Optionally add S05-local guards (explicit null check and entrypoint/marker checks with S05-specific messages) and/or negative regression tests passing a non-matter-trace object, to decouple S05's fail-closed guarantees from S04's assertion.",
+        "status": "fixed",
+        "disposition": "accepted_fixed"
+      },
+      {
+        "id": "S05-P3-02",
+        "severity": "P3",
+        "title": "Synthetic fixture precheck_result is validated field-by-field but never deep-equaled to a live prechecker output",
+        "line_or_symbol": "synthetic-control-plane.json#control_plane_hermes_validation_permission_precheck.precheck_result vs precheckControlPlaneHermesValidationPermission",
+        "why_it_matters": "Neither the contract validator nor the service test asserts that the fixture precheck_result equals the value produced by precheckControlPlaneHermesValidationPermission for a corresponding input; only individual fields are compared. Drift between the synthetic evidence and the implementation in any unchecked field would not be detected (runtime safety is unaffected, since the live result is fully covered by assertControlPlaneHermesValidationPermissionPrecheckResult).",
+        "recommendation": "Consider adding one deep-equality assertion comparing the fixture precheck_result to a live prechecker output built from the canonical S04 matter-scoped result, mirroring how the runtime result is validated.",
+        "status": "fixed",
+        "disposition": "accepted_fixed"
+      }
+    ],
+    "required_followups": [
+      "Create the S05 closeout evidence under docs/goal-closeout/rp00-p02-m03-s05 (command-evidence, this claude-review-result, adjudication, and construction-inspection with control_plane_hermes_validation_permission_precheck_verified=true) so rp00:control-plane:validate passes; production_ready promotion is correctly blocked until this evidence exists.",
+      "Ensure the recorded Claude review evidence reflects the single actual claude-opus-4-8 effort=max read-only review and that no unresolved P0/P1/P2 findings remain (this review reports none)."
+    ],
+    "review_limitations": [
+      "Review was limited to the supplied diff and stated evidence; npm test and rp00:control-plane:validate were not executed here, so conclusions rely on the reported status (npm test PASS / 223 tests; implementation/contract checks passing with only the missing S05 closeout evidence failing).",
+      "S04's assertControlPlaneHermesValidationMatterTracePrecheckResult, the prior precheckControlPlaneHermesValidationMatterTrace body, and the package index re-export wiring were not included in the diff; conclusions about inherited input validation, the denied-Matter-trace path, and test-time export resolution rely on the established S02/S03/S04 pattern and the reported passing tests.",
+      "The value of the pre-existing script variable permissionAuditSubphaseId was assumed to be 'RP00.P00.M05.S01' (consistent with the permission/audit baseline references in the contract, policy, and fixture) because the contract checks are reported to pass; it was not directly visible in the diff."
+    ],
+    "summary": "RP00.P02.M03.S05 implements a metadata-only Hermes Validation Permission precheck that consumes the S04 Matter trace result and carries TEN-001..TEN-008, validation contexts, acceptance gates, M00 S02/S03 refs, S02/S03/S04 refs, permission_decision_ref, and audit_event_ref. It fails closed on every required condition: missing/null S04 result, wrong S04 marker, denied/unsatisfied Matter trace, missing permission_decision_ref, permission/permission-audit bypass, runtime permission/AuthZ/permission-engine claims, Hermes execution/evidence, tenant-lifecycle mutation, runtime route/write/service-execution, requirement/Hermes/Claude/human bypass, real-data, and unknown truthy claims. It performs no runtime permission evaluation, no AuthZ, no permission engine, no service execution, no Hermes run/evidence, no tenant mutation, and no product-state writes; the frozen result hardcodes all capability flags to false, hands off to RP00.P02.M03.S06, and sets completesSourceMicroPhase=false (no M03 completion). Contract definition, policy, RESULT_FIELDS, prechecker, validators, synthetic fixture, README, and the contract validator (including the construction-inspection flag and requiredClosedSubphases append of S04) are mutually consistent. Only non-blocking P3 advisories were found. production_ready promotion remains correctly gated by rp00:control-plane:validate until S05 closeout evidence (including this review) exists."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2
+  }
+}

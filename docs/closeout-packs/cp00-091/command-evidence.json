@@ -1,0 +1,112 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-091",
+  "subphase_id": "RP00.P09.M04.S05",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "gate_id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test --test-name-pattern \"Hermes Validation Evidence Review Transition\" packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-091",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    }
+  ],
+  "claude_review_command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-091-claude-review-prompt.md > /tmp/cp00-091-claude-review-output.json",
+  "invalid_claude_attempts": [],
+  "evidence_summary": {
+    "implemented_surface": "ControlPlaneHermesValidationEvidenceReviewTransition",
+    "included_unit_count": 61,
+    "included_range": "RP00.P08.M06.S01-RP00.P09.M04.S05",
+    "upstream_pack_consumed": "CP00-090",
+    "source_micro_phase_completed": true,
+    "phase_completed": false,
+    "next_subphase": "RP00.P09.M05.S01",
+    "ldip_boundary": "planning gate referenced only; no LDIP implementation in CP00-091",
+    "no_real_data": true,
+    "writes_product_state": false,
+    "final_validation_completed": true,
+    "final_validation_commands_include_build": true
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; all CP00-091 data is synthetic metadata.",
+    "CP00-091 is metadata-only and performs no runtime permission evaluation, audit ledger append, Claude runtime invocation, human approval synthesis, or product-state write."
+  ]
+}

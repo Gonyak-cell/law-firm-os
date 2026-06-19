@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-040",
+  "subphase_id": "RP00.P02.M07.S12",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "session_id": "c712dcf5-6f78-4259-a859-53c7b7fc4049",
+    "uuid": "2022a915-9160-467b-9597-f81dac3efe38",
+    "duration_ms": 219420,
+    "total_cost_usd": 1.1043385000000001,
+    "permission_denials": [],
+    "raw_result_ref": "/tmp/cp00-040-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "findings": [
+      {
+        "severity": "P3_INFORMATIONAL",
+        "status": "validation_confirmed_or_non_blocking",
+        "title": "P3-1",
+        "detail": "New validator block calls getWeightedSubphaseBoundary/findWeightedSubphase for RP00.P02.M07.S12 (asserts sourceMicroPhaseId=RP00.P02.M07, terminal=false, next=S13). The diff does not add a weighted-ledger entry for S12, so it must already be pre-populated. Confirm via `npm run rp00:control-plane:validate`."
+      },
+      {
+        "severity": "P3_INFORMATIONAL",
+        "status": "validation_confirmed_or_non_blocking",
+        "title": "P3-2",
+        "detail": "closeout_state_policy + construction_inspection reference closeout_pack_ref CP00-040 / evidence_root docs/closeout-packs/cp00-040. Diff does not include those evidence files; confirm the evidence root exists on disk (validator may assert existence)."
+      },
+      {
+        "severity": "P3_INFORMATIONAL",
+        "status": "validation_confirmed_or_non_blocking",
+        "title": "P3-3",
+        "detail": "Added subphase_closeouts entry for S12 has no inline construction_inspection, yet the closeout loop checks `inspection.control_plane_test_and_golden_case_set_persistence_boundary_verified === true`. This matches the existing S11 entry shape (which passed), so `inspection` is sourced outside the inline entry. Not a regression; confirm the verified flag resolves true in the validation run."
+      },
+      {
+        "severity": "P3_INFORMATIONAL",
+        "status": "validation_confirmed_or_non_blocking",
+        "title": "P3-4",
+        "detail": "Tests/policy reference createTestAndGoldenCaseSetLockAcquisitionRuleResult(), CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_CONTEXT_IDS, and CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_SERVICE_ENTRYPOINT_CONTRACT, all defined in prior S11 work, not this diff. Almost certainly present (S11 is closed); the test suite would fail loudly otherwise."
+      }
+    ],
+    "boundary_checks": {
+      "consume_only_s11_lock_acquisition_rule_result": "PASS",
+      "metadata_only_persistence_receipt": "PASS",
+      "no_persistence_record_store_database_storage_or_product_state_write": "PASS",
+      "no_test_or_golden_execution_or_persistence": "PASS",
+      "no_audit_or_permission_runtime": "PASS",
+      "handoff_to_s13": "PASS"
+    }
+  },
+  "raw_review_excerpt": "I traced the diff end-to-end against the boundary spec. My tool budget was exhausted before I could run the external-reference verifications, so I'm flagging those as confirm-by-validation items rather than asserting them as defects. The diff itself is internally consistent and mirrors the established S11 pattern.\n\n```json\n{\n  \"review\": \"CP00-040\",\n  \"subphase\": \"RP00.P02.M07.S12\",\n  \"boundary\": \"Test And Golden Case Set Persistence boundary\",\n  \"scope_note\": \"Read-only review of current diff only.\",\n  \"findings\": {\n    \"P0\": [],\n    \"P1\": [],\n    \"P2\": [],\n    \"P3\": [\n      {\n        \"id\": \"P3-1\",\n        \"area\": \"verification\",\n        \"note\": \"New validator block calls getWeightedSubphaseBoundary/findWeightedSubphase for RP00.P02.M07.S12 (asserts sourceMicroPhaseId=RP00.P02.M07, terminal=false, next=S13). The diff does not add a weighted-ledger entry for S12, so it must already be pre-populated. Confirm via `npm run rp00:control-plane:validate`.\"\n      },\n      {\n        \"id\": \"P3-2\",\n        \"area\": \"evidence-hook\",\n        \"note\": \"closeout_state_policy + construction_inspection reference closeout_pack_ref CP00-040 / evidence_root docs/closeout-packs/cp00-040. Diff does not include those evidence files; confirm the evidence root exists on disk (validator may assert existence).\"\n      },\n      {\n        \"id\": \"P3-3\",\n        \"area\": \"evidence-hook\",\n        \"note\": \"Added subphase_closeouts entry for S12 has no inline construction_inspection, yet the closeout loop checks `inspection.control_plane_test_and_golden_case_set_persistence_boundary_verified === true`. This matches the existing S11 entry shape (which passed), so `inspection` is sourced outside the inline entry. Not a regression; confirm the verified flag resolves true in the validation run.\"\n      },\n      {\n        \"id\": \"P3-4\",\n        \"area\": \"verification\",\n        \"note\": \"Tests/policy reference createTestAndGoldenCaseSetLockAcquisitionRuleResult(), CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_CONTEXT_IDS, and CONTROL_PLANE_TEST_AND_GOLDEN_CASE_SET_SERVICE_ENTRYPOINT_CONTRACT, all defined in prior S11 work, not this diff. Almost certainly present (S11 is closed); the test suite would fail loudly otherwise.\"\n      }\n    ]\n  },\n  \"correctness\": {\n    \"input_consumption\": \"PASS — precheck consumes only the S11 lock acquisition rule result: validates entrypoint=test_and_golden_case_set, lock_acquisition_rule_subphase_id=RP00.P02.M07.S11, presence of lock_receipt + nonblank audit_event_ref, runs assertControlPlaneTestAndGoldenCaseSetLockAcquisitionRuleResult, and requires carried lock_acquisition_decision=allow_metadata_only + lock_acquisition_rule_applied=true.\",\n    \"metadata_only_receipt\": \"PASS — emits persistence_receipt (19 required fields) with effect=allow_metadata_only, persistence_boundary_ref/policy_ref synthetic, no write side effects; result frozen.\",\n    \"result_field_parity\": \"PASS — 69-field RESULT_FIELDS match across policies.js, service.js result object, contract definition.result_fields, and fixture.result_fields.\",\n    \"field_counts\": \"PASS — forbiddenPersistenceClaims length pinned to 50 and present in validator loop; failClosedOn pinned to 29 and present in validator loop.\",\n    \"claim_rejection\": \"PASS — all required families rejected: persistence_record/store, database, storage, product_state, test execution, golden generation/persistence, golden-catalog/unit-test-contract mutation, audit ledger/event, runtime-permission/AuthZ/permission-engine/security-trimming, idempotency/lock store writes, runtime lock acquisition, UI, real-data/secrets, human-approval bypass, complete_source_micro_phase. Truthy-and-unknown claim rejection enforced (falsy-but-not-false e.g. 0 also rejected for forbidden keys).\",\n    \"deterministic_coupling\": \"OK by design — receipt.lock_rule_ref/lock_scope copied from upstream then asserted against hardcoded S11 constants; upstream assertion pins the same constants, so coupling is self-consistent, not a defect.\"\n  },\n  \"boundary_drift\": \"NONE — source_micro_phase_completed=false, completesSourceMicroPhase=false, scope_policy.does_not_complete_RP00_P02_M07/RP00_P02/close_RP00/replace_H00_or_C00 all true, next_subphase=RP00.P02.M07.S13, downstream validation_error_mapping=RP00.P02.M07.S13. requiredClosedSubphases correctly adds S11; currentContractSubphaseId advanced to S12.\",\n  \"missing_tests\": \"NONE material — covers policy binding, happy-path receipt, validator drift (incl. persistence_boundary_applied=false, wrong marker, bad idempotency key, each write/test/golden/audit permit flip, blocked refs, wrong next_subphase), fail-closed (null/array input, 24 forbidden-claim cases, falsy-non-false, unknown claim, wrong marker/entrypoint, missing lock_receipt, blank audit_event_ref, denied lock, non-object claims), prechecker no-write, and fixture-mirrors-policy with live precheck reconstruction.\",\n  \"missing_evidence_hooks\": \"NONE new — production_ready_requires gains control_plane_test_and_golden_case_set_persistence_boundary_verified; README, definition, policy, prechecker, fixture, and source-text hooks all wired in the validator. (See P3-1..P3-3 for external references to confirm at validation time.)\",\n  \"production_ready_blockers\": \"NONE found in the diff.\",\n  \"verdict\": \"PASS\"\n}\n```\n\nVerdict: **PASS**. The diff is a clean, internally consistent S12 extension — consumes only S11 metadata, emits a metadata-only persistence receipt, rejects every required claim family, keeps RP00.P02.M07 open, and hands off to S13. The only open items (P3) are external references I couldn't confirm before my tool budget ran out; a single `npm run rp00:control-plane:validate` run will settle all of them."
+}

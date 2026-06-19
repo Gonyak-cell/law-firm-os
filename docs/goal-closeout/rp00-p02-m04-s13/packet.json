@@ -1,0 +1,83 @@
+{
+  "subphase_id": "RP00.P02.M04.S13",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Validation error mapping",
+  "status": "production_ready",
+  "created_at": "2026-06-05T22:43:53Z",
+  "deliverable_type": "implementation",
+  "implementation_summary": [
+    "Added the control-plane Claude review Validation error mapping slice for RP00.P02.M04.S13.",
+    "The S13 policy, result-field registry, prechecker module, service function, validator, synthetic fixture, contract definition, README, and RP00 validator bind a frozen metadata-only validation error mapping receipt after RP00.P02.M04.S12.",
+    "The precheck consumes and revalidates the S12 Persistence boundary result, requires the carried claude_review entrypoint, claude-opus-4-8 model, max effort, read-only metadata, persistence receipt, audit event ref, allow_metadata_only persistence decision, and applied persistence boundary marker.",
+    "The allowed path emits a frozen allow_metadata_only validation error mapping receipt and result without mapping runtime errors, translating exceptions, writing error records, writing database, storage, product state, persistence records, idempotency records, lock records, audit events, review queues, review assignments, review notifications, UI, service routes, runtime permissions, AuthZ, permission engines, or runtime Claude review.",
+    "Unsafe or unknown validation error mapping claims fail closed, including runtime error mapper registration, runtime/product exception translation, error record/store writes, error UI creation, database/storage/cache/object-store/file-store writes, product/control-plane/runtime persistence, runtime Claude review, review queue/assignment/notification writes, audit writes, runtime permission/AuthZ/permission-engine execution, idempotency/lock store writes, runtime lock acquisition, UI creation, real-data claims, validation error mapping bypass, and source microphase completion.",
+    "The dedicated service tests prove policy binding, metadata-only validation error mapping receipt emission, firm-level metadata acceptance, result drift rejection, unsafe-claim and wrong-source failures, prechecker no-write boundaries, S14 handoff, and synthetic fixture parity.",
+    "Claude review returned PASS/GO with no P0/P1 findings. The single P2 stale human_approval evidence descriptor was fixed before production_ready; the P3 fixture casing note is explicitly deferred as cosmetic.",
+    "RP00.P02.M04 remains open after S13 and hands off to RP00.P02.M04.S14 Review-required routing; RP00.P02 and RP00 remain open."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m04-s13/packet.json",
+    "docs/goal-closeout/rp00-p02-m04-s13/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m04-s13/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m04-s13/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m04-s13/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 304,
+    "full_test_count": 388,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s13_evidence_files",
+    "final_rp00_gate_status": "passed_after_evidence_creation",
+    "final_rp00_gate_recorded_at": "2026-06-05T22:46:26Z"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "0633a782-9191-4e29-a29b-db9c7b852d00",
+    "uuid": "8bc98679-f5e2-4b9a-b617-0a39c230272c",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_adjudication": "GO",
+    "production_ready_verdict_after_adjudication": "GO",
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 1
+  },
+  "adjudication_summary": {
+    "p0_status": "none",
+    "p1_status": "none",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "deferred_non_blocking",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "microphase_closeout": {
+    "source_micro_phase_completed": false,
+    "completed_micro_phase_id": null,
+    "next_micro_phase_id": "RP00.P02.M04",
+    "next_subphase": "RP00.P02.M04.S14",
+    "does_not_complete_RP00_P02_M04": true,
+    "does_not_complete_RP00_P02": true,
+    "does_not_close_RP00": true
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M04.S14",
+  "gate_outcome": "passed_after_evidence_creation"
+}

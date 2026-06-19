@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-L6-W03",
+  "inspected_at": "2026-06-18T14:53:52Z",
+  "verdict": "BLOCKED_BREAK_GLASS_APPROVAL_GOVERNANCE_AND_VALIDATION_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "required_element_rows": 5,
+    "activation_condition_rows": 6,
+    "procedure_step_rows": 10,
+    "audit_mapping_rows": 10,
+    "production_break_glass_granted": false,
+    "tabletop_executed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "break_glass_access_granted": false,
+    "approvers_synthesized": false,
+    "activation_evidence_synthesized": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

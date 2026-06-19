@@ -1,0 +1,107 @@
+{
+  "subphase_id": "RP00.P02.M03.S03",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Tenant boundary precheck",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T06:07:45Z",
+  "exactly_one_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "f42f18ba-0d99-4315-8e96-ad9090df4921",
+    "uuid": "d2507567-e32f-481b-97f8-5cd407143f5e",
+    "duration_ms": 632575,
+    "duration_api_ms": 634814,
+    "total_cost_usd": 1.9107355,
+    "permission_denials": [],
+    "write_tools_granted": false
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s03-claude-prompt.txt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s03-claude-review.json",
+    "duration_ms": 632575,
+    "duration_api_ms": 634814,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "d2507567-e32f-481b-97f8-5cd407143f5e",
+    "session_id": "f42f18ba-0d99-4315-8e96-ad9090df4921"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS_WITH_FINDINGS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "C00-S03-001",
+        "severity": "P3",
+        "title": "Result validator requires a blocked ref on deny but does not bind each mismatch condition to its specific blocked claim ref.",
+        "status": "fixed",
+        "disposition": "accepted_fixed",
+        "rationale": "precheckControlPlaneHermesValidationTenantBoundary pushes the correct ref per condition and is well-tested, and assertControlPlaneHermesValidationTenantBoundaryPrecheckResult correctly forces precheck_passed===false on any actor/resource/matter-missing/matter-mismatch condition and requires blocked_claim_refs to be non-empty on deny. However, the independent result validator (the fail-closed gate) would still accept a hand-constructed deny result whose blocked_claim_refs do not correspond to the actual mismatch (e.g., an actor_tenant mismatch carrying only the resource ref). Given the project's strong defense-in-depth posture of independent validators re-deriving invariants, this is a minor completeness gap. It does not affect S03 runtime correctness: the prechecker is the sole producer, it is deterministic, and its specific-ref behavior is covered by the deny test matrix. Fixed by binding each detected mismatch condition to its specific blocked claim ref in the independent result validator and adding a tampered deny-result test."
+      }
+    ],
+    "boundary_assessment": {
+      "metadata_only_preserved": true,
+      "same_tenant_boundary_enforced": true,
+      "blocked_claim_denials_recorded": true,
+      "no_runtime_route_preserved": true,
+      "no_hermes_execution_preserved": true,
+      "no_evidence_creation_preserved": true,
+      "matter_permission_audit_deferred": true,
+      "single_review_sufficient_for_closeout": true
+    },
+    "summary": "S03 Tenant boundary precheck correctly consumes the S02 normalized hermes_validation request, re-derives actor/resource/Matter tenant boundaries against tenant_id from metadata only, emits allow_metadata_only for genuine same-tenant context and deny_blocked_claim_required with the precise blocked claim refs for actor/resource/Matter mismatch or missing Matter tenant when Matter is present. It carries S01/S02 validation contexts, TEN-001..TEN-008 trace refs, acceptance gates, M00 S02/S03 refs, permission_decision_ref, and audit_event_ref; requires the carried allow_metadata_only precheck pass; and fails closed on non-hermes entrypoints, tampered S02/M00 markers, all eleven forbidden boundary claims, and unknown truthy claims (only undefined/null/false are ignored). No cross-tenant allow is reachable: the allow path requires all four mismatch conditions to be false, and the result validator independently forces deny on any mismatch. The function is a pure, deterministic, frozen-output computation with no service execution, no runtime route creation, no tenant lifecycle mutation, no Hermes validation execution, no Hermes evidence creation, and no product-state writes; Matter trace/permission/audit-hint checks are correctly deferred to S04/S05/S06. Contract, policy, prechecker, fixture, tests, and the contract validator are mutually consistent and exhaustive. No P0/P1/P2 issues; one non-blocking P3 defense-in-depth hardening note on the result validator's ref-to-condition binding. The expected rp00:control-plane:validate FAIL is solely due to S03 production_ready evidence not yet being written, consistent with this pre-review state. This single read-only claude-opus-4-8 effort=max review is sufficient for closeout once evidence is recorded."
+  },
+  "adjudicated_findings": {
+    "p0": [],
+    "p1": [],
+    "p2": [],
+    "p3": [
+      {
+        "id": "C00-S03-001",
+        "severity": "P3",
+        "finding": "Result validator requires a blocked ref on deny but does not bind each mismatch condition to its specific blocked claim ref.",
+        "disposition": "accepted_fixed",
+        "rationale": "assertControlPlaneHermesValidationTenantBoundaryPrecheckResult now requires the actor/resource/Matter missing/Matter mismatch-specific blocked claim ref whenever that condition is present, and service.test.js asserts tampered deny results fail closed.",
+        "blocks_subphase_closeout": false
+      }
+    ]
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "num_turns": 1,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s03-claude-review.json",
+    "summary": "Claude returned PASS_WITH_FINDINGS, blocks_subphase_closeout false, blocks_goal_closeout false, with one P3 finding and no P0/P1/P2 findings."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

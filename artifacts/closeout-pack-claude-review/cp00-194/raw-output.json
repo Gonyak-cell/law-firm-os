@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-194",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-09T21:19:05.788Z",
+  "finished_at": "2026-06-09T21:25:13.900Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":367346,\"duration_api_ms\":366892,\"ttft_ms\":3202,\"num_turns\":47,\"result\":\"Review complete. **Verdict: PASS** — no findings (P0/P1/P2/P3 all zero).\\n\\nCP00-194's descriptor-only implementation, validators, tests, and evidence are internally consistent; no-write/no-real-data boundaries and the read-only Claude authority boundary hold; CP178+ hardening correctly rejects the 0-byte placeholder rather than accepting it; and no file over-claims production readiness. My review gate does not block pack or goal closeout, but human final approval (required for any enterprise trust claim) and final validation remain appropriately outstanding per the pack's own sequence.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e5115b25-4859-4d43-a010-f34b3754b5a5\",\"total_cost_usd\":3.1492934999999997,\"usage\":{\"input_tokens\":946,\"cache_creation_input_tokens\":113602,\"cache_read_input_tokens\":3538224,\"output_tokens\":26570,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":113602,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":238,\"cache_read_input_tokens\":145415,\"cache_creation_input_tokens\":6715,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6715},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1089,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001189,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":946,\"outputTokens\":26570,\"cacheReadInputTokens\":3538224,\"cacheCreationInputTokens\":113602,\"webSearchRequests\":0,\"costUSD\":3.1481044999999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-194 (Risk B, 40 units, RP05.P08.M04.S20-RP05.P08.M06.S17) is a descriptor-only Matter Core permission/audit evidence terminal bridge. Read-only inspection (Read/Grep/Glob) confirms the implementation is internally consistent and supports the pack's deferred readiness posture. Deliverable distribution (implementation:17, hermes_evidence:20, claude_review:2, test:1 = 40) and micro-phase/micro-title counts (M04:1, M05:22, M06:17; Secondary Workflow Slice:1, Permission And Audit Binding:22, Synthetic Fixture Set:17) were independently re-derived from CP193_EVIDENCE_FULL_CONTROLS via CP193_DELIVERABLE_BY_CONTROL and reconcile exactly; they match the contract descriptor, registry requirements, validators, and the three dedicated tests in model.test.js. No-write/no-real-data boundaries hold: MATTER_CORE_CP194_NO_WRITE_ATTESTATION sets all write/runtime/leak flags false (synthetic_only true); the service builder is a pure frozen-object function with no fs/db/network side effects; row-level flags (runtime_permission_evaluated, audit_event_written, dispatches_*_route, executes_rollback/retry, live_dom_rendered) are all false and replay_command_inert is true. Hermes patterns appear only as deterministic review packet/receipt labels (H05.CP00-194…) plus counts, with no_runtime_permission_evaluation/no_audit_event_write asserted — not product runtime. Authority boundary preserved: allowed tools Read/Grep/Glob, claude_is_final_approval and promotes_claude_to_final_approval false, claims_enterprise_trust_from_local_validation false, forbidden_review_evidence enumerates the full CP178+ rejection set. CP178+ hardening is correctly applied: the existing claude-review-result.json is a 0-byte-stdout placeholder explicitly labeled 'not valid review evidence' with status pending_hardened_review, and it blocks closeout rather than being accepted. No over-claim exists — manifest, command-evidence, construction-inspection, and adjudication all honestly report production_ready:false/in_progress pending this review, final validation, and human closeout. Changed-file scope correctly isolates the 7 active matter refs from unrelated dirty/untracked files. No P0/P1/P2/P3 findings. This verdict is an independent read-only review recommendation; it does not constitute final approval, and human final approval for any enterprise trust claim remains required and preserved.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ad5f04d3-2ecf-4947-9209-d3af912af2b0\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4684,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e5115b25-4859-4d43-a010-f34b3754b5a5",
+    "uuid": "ad5f04d3-2ecf-4947-9209-d3af912af2b0",
+    "total_cost_usd": 3.1492934999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

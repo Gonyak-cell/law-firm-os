@@ -1,0 +1,132 @@
+{
+  "subphase_id": "RP00.P02.M05.S03",
+  "source_micro_phase_id": "RP00.P02.M05",
+  "title": "Tenant boundary precheck",
+  "micro_title": "Permission And Audit Binding",
+  "created_at": "2026-06-06T00:50:21.000Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "bypassPermissions",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "invalid_partial_claude_attempt_notes": [],
+  "raw_review_file": "/tmp/lfos-rp00-p02-m05-s03-claude-review.stream.jsonl",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m05-s03-review-packet.diff",
+  "session_id": "ec45a3d3-5a90-4f3a-8be7-f5ee1db7073c",
+  "uuid": "f1d45635-f99a-4932-a6d9-6b17439c84cb",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.277813,
+  "duration_ms": 223777,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 80854,
+    "cache_read_input_tokens": 529085,
+    "output_tokens": 20281,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 80854,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "APPROVE",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "advisory_findings": [
+    {
+      "id": "ADV-1",
+      "severity": "info",
+      "status": "adjudicated_non_blocking",
+      "area": "packages/control-plane/test/service.test.js",
+      "issue": "Claude noted createPermissionAuditBindingTenantBoundaryResult appears unused in the visible diff.",
+      "adjudication": "Deferred as non-blocking. The helper is small, deterministic, and consistent with sibling result helper patterns. It may be useful for S04 and later M05 precheck tests. No production behavior or closeout correctness depends on it."
+    },
+    {
+      "id": "ADV-2",
+      "severity": "info",
+      "status": "adjudicated_as_expected_boundary",
+      "area": "packages/control-plane/src/service.js",
+      "issue": "Claude noted matter_id null with a non-null matter_tenant_id equal to tenant_id resolves to allow.",
+      "adjudication": "Accepted as non-blocking by scope. S03 enforces tenant isolation, while S02 shape normalization and later S04 Matter trace precheck own finer Matter-pair semantics. The state does not allow cross-tenant access or any runtime behavior."
+    },
+    {
+      "id": "ADV-3",
+      "severity": "info",
+      "status": "adjudicated_as_expected",
+      "area": "packages/control-plane/fixtures/synthetic-control-plane.json",
+      "issue": "Claude noted fixture deferred-to fields appear both at top level and inside result.",
+      "adjudication": "Accepted as intentional evidence duplication. Top-level fixture metadata and executable result metadata are both validated by tests and the RP00 validator."
+    }
+  ],
+  "review_text": "PASS / GO. No P0/P1/P2 findings. The S03 tenant boundary precheck is correct, fail-closed, and internally consistent across all artifacts. It accepts only S02 normalized metadata, allows same-tenant and firm-level no-Matter metadata, denies tenant mismatches with specific refs, rejects unsafe claims, carries S01 and S14 refs, keeps boundary flags false, keeps M05 open, and hands off to S04.",
+  "required_fixes": [],
+  "deferred_or_informational": [
+    "Unused helper observation deferred as non-blocking.",
+    "Null matter_id with same-tenant matter_tenant_id observation accepted as non-blocking S04 scope.",
+    "Fixture deferred-to duplication accepted as intentional evidence duplication."
+  ],
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "ec45a3d3-5a90-4f3a-8be7-f5ee1db7073c",
+    "uuid": "f1d45635-f99a-4932-a6d9-6b17439c84cb",
+    "total_cost_usd": 1.277813,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m05-s03-claude-review.stream.jsonl",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m05-s03-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "production_ready_verdict": "APPROVE",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [],
+    "advisory_findings": [
+      "ADV-1 unused helper observation",
+      "ADV-2 Matter pair edge-state observation",
+      "ADV-3 fixture deferred-to duplication observation"
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "advisory": 3
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-06T00:50:21.000Z",
+  "production_ready": true
+}

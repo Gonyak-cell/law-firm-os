@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-447",
+  "normalized_at": "2026-06-12T05:44:11.138Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-447/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-447/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-447/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-447/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "1ac67dd9-e7d2-486a-849f-529ffcbbdaaf",
+    "uuid": "56a5a2ec-7d45-4e82-b770-c05e7d386b29",
+    "total_cost_usd": 2.3969687499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5632,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-447 is a clean descriptor-only settlement-core pack (RP14.P07.M09.S12-RP14.P08.M06.S13, risk C, 150 units) and passes independent read-only review with no findings. Verified: (1) pack binding identity and clean chaining CP446->CP447->CP448 with next_subphase RP14.P08.M06.S14; (2) deliverable distribution hand-recomputed from the 150 baseline included_units {failure_recovery:14,implementation:44,hermes_evidence:71,fixture:2,test:8,security_audit:3,claude_review:8}=150, matching prompt/registry/contract/manifest exactly, with micro-title and phase counts also summing to 150; (3) all 7 required public exports present in service.js/validators.js, exercised by 3 test blocks and the validate-rp14 script which deep-equals contract vs registry constants; (4) contract current_pack/cp447_requirements/no_write_attestation, manifest, and README#cp00-447 mutually consistent; (5) source-chaining to upstream CP446 descriptor string is valid. Authority boundary is correct: production_ready=false, runtime_ready=false, status=implemented_pending_review; claude_is_final_approval=false and claims_enterprise_trust_from_local_validation=false across registry/contract/manifest/descriptor/claude-packet, so Claude stays a read-only reviewer and the pack does not overstate readiness. Hermes patterns are descriptor-only review packet/receipt handling (all runtime dispatch/receipt flags false; receipt shape ..._no_write), not product runtime. CP178+ hardening guards (forbidden_review_evidence) cover auth failures, zero-byte stdout, malformed JSON, fenced JSON, tool-call-shaped output, and missing required fields/references. A grep sweep of product source found zero fs/network/db/process/exec operations, confirming the no-write/no-real-data boundary; the validator script is read-and-assert only. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly absent at this stage. Note: per the read-only model, the listed validation commands are self-reported in command-evidence.json (exit_code 0, executed by the deterministic control plane); this review verifies source-level consistency and boundaries, which all hold, and the hardened review sequence re-runs final validation before commit.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

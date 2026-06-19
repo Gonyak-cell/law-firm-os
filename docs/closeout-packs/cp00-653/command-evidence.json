@@ -1,0 +1,139 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-653",
+  "subphase_id": "RP21.P05.M06.S01",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": []
+  },
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp21-admin-console-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/admin/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/validate-rp21-admin-console-contract.mjs --write",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-653",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp21:admin-console:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp21:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/admin/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-653",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-653",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-653 --timeout_ms=900000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-653",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-653",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; CP00-653 remains descriptor-only and synthetic-only.",
+    "Full CP00-653 local command matrix ran after queue regeneration to CP00-654 and all recorded commands exited 0 before hardened read-only Claude review.",
+    "CP00-653 remains in_progress until hardened read-only Claude receipt, adjudication, construction inspection, and final production_ready promotion are complete."
+  ],
+  "review_artifacts": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-653/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-653/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-653/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-653/review-receipt.json"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M08.S02",
+  "source_micro_phase_id": "RP00.P01.M08",
+  "title": "Primary entity identifier",
+  "status": "production_ready",
+  "created_at": "2026-06-04T08:36:44.000Z",
+  "implemented_surface": "ControlPlaneHermesEvidencePacket",
+  "implemented_slice": "primary_entity_identifier",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p01-m08-s02/packet.json",
+    "docs/goal-closeout/rp00-p01-m08-s02/command-evidence.json",
+    "docs/goal-closeout/rp00-p01-m08-s02/claude-review-result.json",
+    "docs/goal-closeout/rp00-p01-m08-s02/adjudication.md",
+    "docs/goal-closeout/rp00-p01-m08-s02/construction-inspection.json"
+  ],
+  "implementation_summary": [
+    "Added CONTROL_PLANE_HERMES_EVIDENCE_PACKET_IDENTIFIER_POLICY for RP00.P01.M08.S02.",
+    "Added normalizeControlPlaneHermesEvidencePacketId for trim-only canonical packet_id normalization.",
+    "Added validateControlPlaneHermesEvidencePacketId for stored canonical-form enforcement.",
+    "Declared the stable hep_ packet_id prefix and canonical ^hep_[a-z0-9]+(?:_[a-z0-9]+)*$ pattern.",
+    "Recorded a synthetic packet identifier fixture and verified it maps to the S01 layout packet_id field.",
+    "Exposed the identifier policy through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY and advanced nextSubphase to RP00.P01.M08.S03."
+  ],
+  "scope_boundaries": {
+    "implements_only_control_plane_hermes_evidence_packet_identifier": true,
+    "does_not_complete_tenant_scope": true,
+    "does_not_complete_full_packet_validation": true,
+    "does_not_mutate_entity_registry": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "does_not_create_ui": true
+  },
+  "gates": {
+    "hermes": "H00",
+    "claude": "C00",
+    "claude_review_count": 1,
+    "claude_review_session_continued_to_complete_result": false,
+    "construction_inspection": "PASS",
+    "next_subphase": "RP00.P01.M08.S03"
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L5-W06",
+  "title": "Performance and load-test acceptance criteria",
+  "phase": "L5",
+  "gate": "L5-EXIT",
+  "status": "t01_decision_brief_t02_harness_t03_report_draft_blocked_pending_owner_thresholds_staging_load_and_performance_verdict",
+  "recorded_at": "2026-06-18T12:10:00Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L5-W06-T01",
+      "title": "Performance acceptance criteria decision brief",
+      "status": "decision_brief_blocked_pending_owner_approval_l3_w06_slo_approval_and_runtime_harness",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "docs/goal-closeout/lt-l5-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "required_inputs": 5,
+        "candidate_criteria_rows": 4,
+        "slo_alignment_rows": 4,
+        "load_profile_rows": 3,
+        "runbook_handoff_steps": 5,
+        "decision_register_updated": false,
+        "approved_thresholds": false,
+        "synthetic_dataset_created": false,
+        "load_harness_built": false,
+        "staging_load_test_run": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count performance criteria, SLO alignment rows, load profiles, handoff steps, and verify register was not mutated ... NODE",
+          "exit_code": 0,
+          "output": "{\"required_inputs\":5,\"candidate_criteria_rows\":4,\"slo_alignment_rows\":4,\"load_profile_rows\":3,\"runbook_handoff_steps\":5,\"register_has_performance_row\":false}",
+          "purpose": "Verify the performance criteria brief is decision-ready without synthesizing threshold approval or register rows"
+        },
+        {
+          "command": "grep -c \"^| PERF-CRIT-\" docs/launch/perf/performance-acceptance-criteria-decision.md && grep -c \"^| LOAD-PROFILE-\" docs/launch/perf/performance-acceptance-criteria-decision.md && grep -c \"^| PERF-IN-\" docs/launch/perf/performance-acceptance-criteria-decision.md",
+          "exit_code": 0,
+          "output": "8\n3\n5",
+          "purpose": "Verify criteria/alignment, load profile, and required input row counts; PERF-CRIT appears in both criteria and alignment tables"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a decision-input brief only. It intentionally does not update the launch decision register because owner evidence does not exist.",
+        "Candidate thresholds are not approved pass/fail release criteria.",
+        "No synthetic dataset, load harness, staging execution, runtime telemetry, or product-state write was created."
+      ]
+    },
+    {
+      "tuw_id": "LT-L5-W06-T02",
+      "title": "Synthetic performance dataset generator and dry-run harness",
+      "status": "harness_draft_ready_blocked_pending_owner_scale_approval_staging_load_and_t01_threshold_approval",
+      "terminal_tuw": false,
+      "artifacts": [
+        "tests/launch/perf/datagen/wave1-pilot.synthetic-profile.json",
+        "tests/launch/perf/lib/synthetic-perf.mjs",
+        "tests/launch/perf/datagen/generate.mjs",
+        "tests/launch/perf/scenarios/search-index.mjs",
+        "tests/launch/perf/scenarios/document-upload.mjs",
+        "tests/launch/perf/scenarios/concurrent-users.mjs",
+        "tests/launch/perf/scenarios/dry-run.mjs",
+        "docs/goal-closeout/lt-l5-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "profile_status": "candidate_pending_owner_scale_approval",
+        "synthetic_only": true,
+        "no_real_data": true,
+        "seed_present": true,
+        "target_counts": {
+          "tenants": 1,
+          "users": 12,
+          "matters": 120,
+          "documents": 2400,
+          "emails": 1800,
+          "tasks": 360,
+          "issues": 240,
+          "file_refs": 2400,
+          "audit_hints": 4800
+        },
+        "target_count_match": true,
+        "deterministic_same_seed_verified": true,
+        "scenario_count": 3,
+        "scenario_dry_run_exit_0": true,
+        "runtime_requests_executed": false,
+        "staging_loaded": false,
+        "staging_count_reconciliation_complete": false,
+        "approved_thresholds_present": false
+      },
+      "commands": [
+        {
+          "command": "node tests/launch/perf/datagen/generate.mjs --manifest",
+          "exit_code": 0,
+          "output": "{\"profile_id\":\"lt-l5-w06-wave1-pilot-candidate\",\"synthetic_only\":true,\"no_real_data\":true,\"target_count_match\":true,\"generated_counts\":{\"tenants\":1,\"users\":12,\"matters\":120,\"documents\":2400,\"emails\":1800,\"tasks\":360,\"issues\":240,\"file_refs\":2400,\"audit_hints\":4800},\"staging_load_verified\":false}",
+          "purpose": "Verify deterministic synthetic manifest generation without real data or staging writes"
+        },
+        {
+          "command": "node - <<'NODE' ... import buildSyntheticManifest twice and compare deterministic digest/counts ... NODE",
+          "exit_code": 0,
+          "output": "{\"same_digest\":true,\"same_counts\":true,\"seed_present\":true,\"synthetic_only\":true}",
+          "purpose": "Verify same-seed deterministic regeneration"
+        },
+        {
+          "command": "node tests/launch/perf/scenarios/dry-run.mjs",
+          "exit_code": 0,
+          "output": "{\"scenario_count\":3,\"all_required_counts_satisfied\":true,\"runtime_requests_executed\":false,\"staging_loaded\":false,\"synthetic_only\":true}",
+          "purpose": "Verify the three launch performance scenarios dry-run without runtime traffic"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The harness creates a deterministic synthetic profile and dry-run scenario plan only.",
+        "No staging load, API call, search runtime, upload runtime, provider transfer, or product-state write is executed.",
+        "LT-L5-W06-T02 remains blocked for full completion until owner-approved scale/thresholds and staging count reconciliation exist."
+      ]
+    },
+    {
+      "tuw_id": "LT-L5-W06-T03",
+      "title": "Performance acceptance report draft",
+      "status": "report_draft_blocked_pending_owner_thresholds_staging_run_and_performance_verdict",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/perf/performance-acceptance-report.md",
+        "docs/launch/perf/performance-acceptance-criteria-decision.md",
+        "tests/launch/perf/datagen/generate.mjs",
+        "tests/launch/perf/scenarios/dry-run.mjs",
+        "docs/goal-closeout/lt-l5-w06/command-evidence.json"
+      ],
+      "acceptance": {
+        "manifest_rows": 9,
+        "scenario_summary_rows": 3,
+        "verdict_rows": 3,
+        "rerun_command_rows": 3,
+        "staging_run_complete": false,
+        "measured_values_present": false,
+        "approved_thresholds_present": false,
+        "performance_verdict_available": false,
+        "p0_p1_findings_registered": false,
+        "real_data_used": false,
+        "runtime_requests_executed": false
+      },
+      "commands": [
+        {
+          "command": "grep -c \"^| PERF-MANIFEST-\" docs/launch/perf/performance-acceptance-report.md && grep -c \"^| PERF-SCENARIO-\" docs/launch/perf/performance-acceptance-report.md && grep -c \"^| PERF-VERDICT-\" docs/launch/perf/performance-acceptance-report.md",
+          "exit_code": 0,
+          "output": "9\n3\n3",
+          "purpose": "Verify report draft contains manifest summary, three scenario rows, and three blocked verdict rows"
+        },
+        {
+          "command": "node tests/launch/perf/scenarios/dry-run.mjs",
+          "exit_code": 0,
+          "output": "{\"scenario_count\":3,\"all_required_counts_satisfied\":true,\"runtime_requests_executed\":false,\"staging_loaded\":false,\"synthetic_only\":true}",
+          "purpose": "Verify dry-run evidence used by the report without executing staging traffic"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a performance report draft only; it assembles manifest and dry-run evidence but records no measured staging values.",
+        "No performance pass/fail verdict is available because owner-approved thresholds and staging run outputs do not exist.",
+        "LT-L5-W06-T03 remains open until staging execution, measured values, target comparison, and finding/adjudication handling are complete."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L5-W06, LT-L5-W06-T01, LT-L5-W06-T02, or LT-L5-W06-T03 is complete.",
+    "This record does not approve performance thresholds or update the launch decision register.",
+    "This record does not run a staging load test or performance verdict.",
+    "This record does not use real client, matter, document, email, or user data.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

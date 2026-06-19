@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P01.M06.S03",
+  "source_micro_phase_id": "RP00.P01.M06",
+  "title": "Tenant scope field",
+  "entity": "ControlPlaneSyntheticFixtureSet",
+  "status": "production_ready",
+  "production_ready_at": "2026-06-04T04:50:14Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "next_subphase": "RP00.P01.M07.S01",
+  "summary": "Implements the control-plane synthetic fixture set tenant scope with canonical lfos_ tenant_id normalization, stored-value validation, same-tenant fixture-set assertion, synthetic fixture evidence, registry exposure, and no-real-data/no-write boundaries before Test And Golden Case Set work.",
+  "acceptance": {
+    "implementation_complete": true,
+    "tests_passed": true,
+    "hermes_evidence_recorded": true,
+    "claude_review_completed_once": true,
+    "claude_findings_adjudicated": true,
+    "construction_inspection_passed": true,
+    "production_ready_marked": true
+  },
+  "boundaries": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "tenant_scope_only": true,
+    "tenant_field": "tenant_id",
+    "stable_prefix": "lfos_",
+    "canonical_pattern": "^lfos_[a-z0-9]+(?:_[a-z0-9]+)*$",
+    "same_tenant_required": true,
+    "identifier_completion_subphase": "RP00.P01.M06.S02",
+    "completes_synthetic_fixture_set": true,
+    "does_not_create_real_fixture_data": true,
+    "does_not_complete_test_and_golden_case_set": true,
+    "does_not_close_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true
+  }
+}

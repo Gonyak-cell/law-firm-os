@@ -1,0 +1,105 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-053",
+  "subphase_id": "RP00.P02.M10.S03",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "36630b73-cb6f-4845-b800-1928761b44a0",
+    "uuid": "6cb8f956-5e95-4b22-b65b-2f4f69e0f732",
+    "duration_ms": 696120,
+    "duration_api_ms": 706787,
+    "total_cost_usd": 2.3223615,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-053-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "request_changes_until_evidence_pack_created",
+    "raw_review_result_form": "json_result_body_truncated_prefix_in_claude_cli_wrapper",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 4
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [
+        {
+          "id": "P2-1",
+          "severity": "P2",
+          "title": "CP00-053 evidence pack not yet created during Claude review",
+          "file": "docs/closeout-packs/cp00-053/manifest.json",
+          "line_or_area": "docs/closeout-packs/cp00-053/*",
+          "issue": "Claude requested changes because the reviewed diff intentionally did not yet include the CP00-053 pack evidence files required by the RP00 validator.",
+          "recommendation": "Create manifest, command evidence, Claude review result, adjudication, and construction inspection; then rerun RP00 and closeout pack validators.",
+          "status": "fixed_by_closeout_evidence",
+          "adjudication": "Resolved by this CP00-053 evidence pack and final validation commands."
+        }
+      ],
+      "p3": [
+        {
+          "id": "P3-1",
+          "severity": "P3",
+          "title": "Closeout Next Handoff result validator should reject incoherent allow/deny completion triplets",
+          "file": "packages/control-plane/src/validators.js",
+          "status": "fixed",
+          "adjudication": "Fixed by enforcing allow_metadata_only implies completion true with lock_not_acquired_metadata_boundary_only and ready transition, while deny_cross_tenant_boundary implies completion false with blocked lock and handoff decisions; tests cover both drift cases."
+        },
+        {
+          "id": "P3-2",
+          "severity": "P3",
+          "title": "requested_pack_id intentionally lags pack_id/planned_pack_id",
+          "file": "contracts/control-plane-contract.json",
+          "status": "not_applicable_after_adjudication",
+          "adjudication": "Confirmed. CP00-053 plan records requested_pack_id CP00-052 with correction_reason shifted to CP00-053 by live sequential cursor; this is provenance for the locked queue shift after CP00-052 was already closed, not a deviation."
+        },
+        {
+          "id": "P3-3",
+          "severity": "P3",
+          "title": "Module no-write flag set omits audit-ledger flags carried by policy",
+          "file": "packages/control-plane/src/service.js",
+          "status": "fixed",
+          "adjudication": "Fixed by adding doesNotAppendAuditLedger and doesNotWriteAuditEvent to the CP00-053 module and asserting them in tests and RP00 validator."
+        },
+        {
+          "id": "P3-4",
+          "severity": "P3",
+          "title": "Misleading nested-ternary indentation in construction-inspection subphase mapping",
+          "file": "scripts/validate-rp00-control-plane-contract.mjs",
+          "status": "fixed",
+          "adjudication": "Fixed by replacing the nested ternary with an explicit if/else-if chain."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "no_claude_runtime": "PASS - claude_runtime_invocation_permitted:false and doesNotInvokeClaudeRuntimeReview:true",
+      "no_review_queue": "PASS - review queue, assignment, and notification writes are false",
+      "no_runtime_lock": "PASS - runtime_lock_acquisition_permitted:false and lock_record_write_permitted:false",
+      "no_runtime_route": "PASS - runtime_route_created:false and doesNotCreateRuntimeRoute:true",
+      "no_service_logic_execution": "PASS - assembler returns frozen metadata only",
+      "no_database_storage_product_state_writes": "PASS - database/storage/product_state permitted all false",
+      "no_audit_idempotency_lock_writes": "PASS - audit/idempotency/lock behavior is metadata-only",
+      "no_real_data": "PASS - synthetic fixture and no credentials/secrets",
+      "fail_closed": "PASS - entrypoint/source/model/evidence/gate drift and unsafe claims throw; cross-tenant drift is denied metadata",
+      "plan_binding": "PASS - planned/actual pack CP00-053, requested provenance CP00-052, Risk A, 4 units",
+      "handoff": "PASS - RP00.P02 handoff completes and next_subphase is RP00.P03.M00.S01"
+    },
+    "recommendation": "PASS_WITH_FINDINGS. No unresolved P0/P1/P2 findings remain after evidence creation and P3 hardening/adjudication."
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":696120,\"duration_api_ms\":706787,\"ttft_ms\":328728,\"num_turns\":1,\"result\":\"\\\"line\\\": \\\"assertControlPlaneCloseoutNextHandoffBoundarySuiteResult, allow_metadata_only branch\\\",\\n      \\\"rationale\\\": \\\"The assertion forces source_micro_phase_completed===true and phase_completed===true only when tenant_boundary_decision==='allow_metadata_only'. It does not enforce the inverse (deny => completion flags false) nor that decision triplets cohere (e.g., it would accept allow + lock_acquisition_decision='blocked', or deny + phase_completed=true). The assembler is the only producer and is correct, so this is latent looseness, not an active bug.\\\",\\n      \\\"recommended_fix\\\": \\\"Add an else branch asserting that deny_cross_tenant_boundary implies source_micro_phase_completed===false, phase_completed===false, lock_acquisition_decision==='blocked', and handoff_state_transition==='blocked' (and the allow case implies the 'allow/lock_not_acquired/ready' triplet), so the validator rejects incoherent hand-built results.\\\"\\n    },\\n    {\\n      \\\"severity\\\": \\\"P3\\\",\\n      \\\"title\\\": \\\"requested_pack_id intentionally lags pack_id/planned_pack_id (CP00-052 vs CP00-053)\\\",\\n      \\\"file\\\": \\\"contracts/control-plane-contract.json\\\",\\n      \\\"line\\\": \\\"control_plane_closeout_next_handoff_boundary_suite_definition (requested_pack_id/correction_reason)\\\",\\n      \\\"rationale\\\": \\\"pack_id and planned_pack_id are CP00-053 while requested_pack_id is CP00-052 with correction_reason 'requested CP00-052 shifted to CP00-053 by live sequential cursor'. CP00-052 was already closed by the prior commit, so the shift is plausible and it is modeled consistently across contract/fixture/policy/validator with deviation_from_plan=false. Flagging because a stale requested id silently differing from the real pack id is the kind of thing that should be a deliberate, reviewed decision, not noise.\\\",\\n      \\\"recommended_fix\\\": \\\"Confirm the live-cursor shift matches the locked-queue intent in the plan; no code change needed if the plan's CP00-053 entry records the same requested/planned relationship (already asserted by the validator).\\\"\\n    },\\n    {\\n      \\\"severity\\\": \\\"P3\\\",\\n      \\\"title\\\": \\\"Module no-write flag set omits the two audit-ledger flags carried by the policy\\\",\\n      \\\"file\\\": \\\"packages/control-plane/src/service.js\\\",\\n      \\\"line\\\": \\\"CONTROL_PLANE_CLOSEOUT_NEXT_HANDOFF_BOUNDARY_SUITE_MODULE\\\",\\n      \\\"rationale\\\": \\\"The policy carries doesNotAppendAuditLedger and doesNotWriteAuditEvent, and the result/contract no_write_scope assert audit_event_write_permitted=false, so the 'no audit writes' gate is covered. The MODULE object omits those two flags. The validator's module check does not require them, so this is purely a cosmetic asymmetry, but it makes the module's no-write surface look incomplete relative to its policy.\\\",\\n      \\\"recommended_fix\\\": \\\"Add doesNotAppendAuditLedger:true and doesNotWriteAuditEvent:true to the module for parity with the policy (optional; no functional impact).\\\"\\n    },\\n    {\\n      \\\"severity\\\": \\\"P3\\\",\\n      \\\"title\\\": \\\"Misleading nested-ternary indentation in construction-inspection subphase mapping\\\",\\n      \\\"file\\\": \\\"scripts/validate-rp00-control-plane-contract.mjs\\\",\\n      \\\"line\\\": \\\"~56240-56250 (expectedInspectionSubphaseId)\\\",\\n      \\\"rationale\\\": \\\"The chained ternary's final ': closeout.id' is indented under the wrong branch, suggesting it pairs with the closeout-next-handoff condition. JS evaluates it right-associatively so behavior is correct (closeout-next-handoff ids map to the M10.S03 terminal), but the layout invites a future editor to misread the fallthrough.\\\",\\n      \\\"recommended_fix\\\": \\\"Reformat as an explicit if/else-if chain or align the ternary branches consistently so the final fallback clearly reads as the outermost else.\\\"\\n    }\\n  ],\\n  \\\"notes\\\": \\\"No P0/P1 issues found in the shown changes. Verified: assembler performs no I/O and never invokes Claude, writes a queue/db/storage/audit/idempotency record, or acquires a lock; all *_permitted flags are hard-false in both policy assertion and result assertion; forbidden boundary claims (e.g., acquire_runtime_lock) and unknown truthy claims are rejected before any result is built; tenant fail-closed produces deny_cross_tenant_boundary / blocked / completion=false; the synthetic fixture round-trips byte-for-byte (key order included) through assemble + assertResult, matching the validator's live check; README/test/contract/fixture text and array fields line up with the validator's requireText and JSON.stringify equality checks. The only blockers to approval are the out-of-diff plan-binding and cp00-053 evidence artifacts the validator requires (P2 items), which per instructions must be seen rather than assumed.\\\"\\n}\\n```\\n\\nVerdict: **request_changes** — not because the shown code is defective (it is sound and gate-compliant), but because the modified RP00 validator hard-depends on a CP00-053 plan entry and `docs/closeout-packs/cp00-053/` evidence that are not in this diff and cannot be assumed. Surface those files for a clean approval; the four P3s are optional hardening.\",\"stop_reason\":\"end_turn\",\"session_id\":\"36630b73-cb6f-4845-b800-1928761b44a0\",\"total_cost_usd\":2.3223615,\"usage\":{\"input_tokens\":5,\"cache_creation_input_tokens\":90680,\"cache_read_input_tokens\":126343,\"output_tokens\":66178,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":90680,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":2178,\"cache_read_input_tokens\":61673,\"cache_creation_input_tokens\":32065,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":32065},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":37850,\"outputTokens\":23,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.037965,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":5,\"outputTokens\":66178,\"cacheReadInputTokens\":126343,\"cacheCreationInputTokens\":90680,\"webSearchRequests\":0,\"costUSD\":2.2843965,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"6cb8f956-5e95-4b22-b65b-2f4f69e0f732\"}"
+}

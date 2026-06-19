@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-364",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-364/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-364/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "cae490e2-71b0-4765-aadb-1ebb8cf1834d",
+    "uuid": "3b5d3f49-8cfa-4b59-ace5-f6456290ac14",
+    "total_cost_usd": 1.7649622499999997,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-364 is a clean RP12 Billing And Invoicing descriptor-only scope/contract foundation pack (Risk C, 150 units, RP12.P00.M00.S01-RP12.P01.M02.S08). The pack-level production_ready claim is supported and honestly scoped: command-evidence.json and manifest.json both set production_ready:false, and production_ready_flag is a descriptor-verification token rather than an enterprise-trust claim. Coverage is internally consistent across plan pack (closeout-pack-plan.json:412), manifest, contract current_pack/historical bindings, and the BILLING_CORE_CP364_PACK_BINDING registry constant: 150 units, deliverable distribution 108/8/16/7/3/8, and a 14-section descriptor case set (section_count:14) covering RP12.P00.M00-M10 and RP12.P01.M00-M02. No-write/no-real-data boundaries are real and verified by inspection plus grep: registry/service/validators/index are pure descriptor and validation logic with no writeFile/network/child_process/process.env/db access; freezeCp364Result stamps every result with the complete false-flag runtime set and synthetic_only/no_real_data, and the NO_WRITE attestation is mirrored consistently in the contract (lines 321, 342, 2131, 2251). Claude remains a read-only reviewer and not final approver (review-request read_only with Read/Grep/Glob only; descriptor authority_boundary.claude_is_final_approval:false; manifest claude_not_final_approver:true and enterprise_trust_not_claimed_from_local_validation:true). Hermes patterns are used only for deterministic evidence packet/receipt handling (descriptor_only:true, emits_hermes_runtime_receipt:false), not product runtime. CP178+ hardening holds: auth_preflight passed with valid non-empty JSON, summary-only review correctly prohibited, forbidden tools absent, no omitted active untracked implementation files, and this review is emitted as valid schema JSON. Root package.json wires the billing test into npm test (line 10) and defines rp12:billing-core:validate (line 70); all 7 required public exports are present and re-exported via index.js. No P0/P1/P2 issues. One P3 informational note about the standing validation-command battery; coverage of the RP12 gate is confirmed elsewhere, so closeout is not blocked.",
+    "findings": [
+      {
+        "id": "CP364-001",
+        "severity": "P3",
+        "title": "Standing validation battery omits RP12-specific validator from prompt command list",
+        "file": "artifacts/closeout-pack-claude-review/cp00-364/prompt.txt",
+        "line": 23,
+        "details": "The 'Validation commands expected before closeout' list embeds the standing closeout battery and includes npm run rp05:matter-core:validate as a representative contract validator, but does not list the pack-specific npm run rp12:billing-core:validate. The RP12 billing contract gate is nonetheless exercised: packages/billing/test/model.test.js (which deep-equals the contract against the registry/service constants) runs under npm test per root package.json:10, and docs/closeout-packs/cp00-364/command-evidence.json independently records npm run rp12:billing-core:validate with exit_code 0. Coverage of the RP12 gate is therefore real; this is a cosmetic mismatch in the standing battery, not a missing or skipped gate.",
+        "recommendation": "Optionally surface the active RP's contract validator (rp12:billing-core:validate) in the per-pack expected-commands list, or document that the RP-specific validator is covered transitively by npm test plus command-evidence. No code or contract change required.",
+        "post_review_disposition": "Non-blocking. RP12 gate confirmed covered by npm test and by command-evidence rp12:billing-core:validate exit_code 0. No action required for pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

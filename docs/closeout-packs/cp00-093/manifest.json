@@ -1,0 +1,203 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-093",
+  "planned_pack_id": "CP00-093",
+  "requested_pack_id": "CP00-092",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "control_plane_review_closeout_finding_routing_map_verified",
+  "program_id": "RP00",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 1,
+  "unit_count": 1,
+  "primary_subphase_id": "RP00.P09.M05.S11",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-092 shifted to CP00-093 by live sequential cursor",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-093",
+    "planned_pack_id": "CP00-093",
+    "requested_pack_id": "CP00-092",
+    "title": "CP00-093 RP00.P09.M05.S11 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 1,
+    "unit_count": 1,
+    "range": {
+      "first_unit_id": "RP00.P09.M05.S11",
+      "last_unit_id": "RP00.P09.M05.S11",
+      "description": "RP00.P09.M05.S11"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 1,
+    "correction_reason": "requested CP00-092 shifted to CP00-093 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P09.M05.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP00.P09.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P09",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "included_units": [
+    {
+      "id": "RP00.P09.M05.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP00.P09.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P09",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-093/manifest.json",
+        "docs/closeout-packs/cp00-093/command-evidence.json",
+        "docs/closeout-packs/cp00-093/claude-review-result.json",
+        "docs/closeout-packs/cp00-093/adjudication.md",
+        "docs/closeout-packs/cp00-093/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready_flag": "control_plane_review_closeout_finding_routing_map_verified"
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-093/manifest.json",
+    "docs/closeout-packs/cp00-093/command-evidence.json",
+    "docs/closeout-packs/cp00-093/claude-review-result.json",
+    "docs/closeout-packs/cp00-093/adjudication.md",
+    "docs/closeout-packs/cp00-093/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "valid_review_artifact": "docs/closeout-packs/cp00-093/claude-review-result.json",
+    "invalid_attempts_not_counted": true
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-093 review closeout finding routing map pack"
+  },
+  "implementation_summary": {
+    "implemented_surface": "ControlPlaneReviewCloseoutFindingRoutingMap",
+    "upstream_pack_consumed": "CP00-092",
+    "included_unit_count": 1,
+    "included_range": "RP00.P09.M05.S11",
+    "source_micro_phase_completed": true,
+    "phase_completed": false,
+    "next_subphase": "RP00.P09.M06.S01",
+    "ldip_boundary": "planning gate referenced only; no LDIP implementation in CP00-093",
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "changed_files_snapshot": [
+    "M contracts/control-plane-contract.json",
+    " M docs/closeout-pack-plan/closeout-pack-plan.json",
+    " M docs/closeout-pack-plan/latest-total-closeout-execution-plan.md",
+    " M docs/closeout-pack-plan/next-pack-queue.json",
+    " M packages/control-plane/README.md",
+    " M packages/control-plane/fixtures/synthetic-control-plane.json",
+    " M packages/control-plane/src/policies.js",
+    " M packages/control-plane/src/service.js",
+    " M packages/control-plane/src/validators.js",
+    " M packages/control-plane/test/service.test.js",
+    " M scripts/validate-rp00-control-plane-contract.mjs",
+    "?? .DS_Store",
+    "?? \"Law Firm OS UI/\"",
+    "?? docs/.DS_Store",
+    "?? docs/closeout-pack-plan/new-session-handoff.md",
+    "?? docs/closeout-packs/cp00-093/",
+    "?? docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+  ],
+  "live_status_snapshot": [
+    "M contracts/control-plane-contract.json",
+    " M docs/closeout-pack-plan/closeout-pack-plan.json",
+    " M docs/closeout-pack-plan/latest-total-closeout-execution-plan.md",
+    " M docs/closeout-pack-plan/next-pack-queue.json",
+    " M packages/control-plane/README.md",
+    " M packages/control-plane/fixtures/synthetic-control-plane.json",
+    " M packages/control-plane/src/policies.js",
+    " M packages/control-plane/src/service.js",
+    " M packages/control-plane/src/validators.js",
+    " M packages/control-plane/test/service.test.js",
+    " M scripts/validate-rp00-control-plane-contract.mjs",
+    "?? .DS_Store",
+    "?? \"Law Firm OS UI/\"",
+    "?? docs/.DS_Store",
+    "?? docs/closeout-pack-plan/new-session-handoff.md",
+    "?? docs/closeout-packs/cp00-093/",
+    "?? docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+  ],
+  "final_validation_snapshot": {
+    "closeout_pack_plan_generate": "passed; regenerated plan cursor to CP00-094 but not counted as closeout evidence command",
+    "closeout_pack_plan_validate": "passed: 1160 packs, 53571 units, queue starts after CP00-093",
+    "closeout_pack_validate_cp00_093": "passed",
+    "closeout_pack_validate_all": "passed through CP00-093",
+    "rp00_control_plane_validate": "passed: RP00.P09.M05.S11 production_ready",
+    "targeted_tests": "6 passed for Review Closeout Finding Routing Map",
+    "npm_test": "919 passed",
+    "validate": "passed",
+    "spec_requirements_validate": "passed; 227 requirements",
+    "weighted_validate": "passed; 54355 Law Firm OS implementation subphases",
+    "fullplan_validate": "passed; 3300 micro phases, 30 release programs",
+    "goal_closeout_validate": "passed",
+    "build": "passed",
+    "git_diff_check": "passed"
+  }
+}

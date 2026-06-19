@@ -1,0 +1,80 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-055",
+  "subphase_id": "RP00.P03.M05.S06",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "24f3d783-2e00-4ac8-95d9-6f973af276b9",
+    "uuid": "ffd260b4-d1f8-4968-83a9-8db2ed4162f4",
+    "duration_ms": 207383,
+    "duration_api_ms": 208967,
+    "total_cost_usd": 0.8506345,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-055-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "strict_json_verdict_returned",
+    "raw_review_result_form": "claude_cli_json_wrapper_with_requested_verdict_json_result",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "CP00-055-P3-01",
+          "severity": "P3",
+          "title": "Unused loop index in CP00-055 weighted-boundary validation",
+          "location": "scripts/validate-rp00-control-plane-contract.mjs (controlPlaneApiPermissionAuditBoundarySuiteSubphaseIds.entries() loop)",
+          "description": "The weighted-boundary verification loop destructures `[index, subphaseId]` from `.entries()` but never references `index`; a plain `for (const subphaseId of controlPlaneApiPermissionAuditBoundarySuiteSubphaseIds)` would be equivalent and cleaner.",
+          "impact": "Cosmetic only. No effect on validation behavior, boundary enforcement, fixture/policy consistency, or closeout state.",
+          "recommendation": "Optionally iterate the array directly or drop the unused index. Non-blocking.",
+          "blocks_closeout": false,
+          "status": "fixed"
+        }
+      ]
+    },
+    "boundary_checks": {
+      "no_runtime_permission_evaluation": "pass — runtime_permission_evaluation_permitted=false in result/fixture/no_write_scope; doesNotEvaluateRuntimePermission=true; forbidden claim evaluate_runtime_permission rejected; assembler performs no permission evaluation",
+      "no_authz_evaluator_call": "pass — authz_evaluator_call_permitted=false; doesNotCallAuthzEvaluator=true; forbidden claim call_authz_evaluator rejected; no evaluator invocation present",
+      "no_permission_engine": "pass — permission_engine_execution_permitted=false; doesNotRunPermissionEngine=true; forbidden claim run_permission_engine rejected",
+      "no_security_trimming": "pass — security_trimming_execution_permitted=false; doesNotApplySecurityTrimming=true; forbidden claim apply_security_trimming rejected",
+      "no_audit_ledger_append": "pass — audit_ledger_append_permitted=false; doesNotAppendAuditLedger=true; forbidden claim append_audit_ledger rejected",
+      "no_audit_event_write": "pass — audit_event_write_permitted=false; doesNotWriteAuditEvent=true; forbidden claim write_audit_event rejected; acceptance gate api_permission_audit_no_audit_event_write present",
+      "no_runtime_route": "pass — runtime_route_created=false; doesNotCreateRuntimeRoute=true; forbidden claims create_runtime_route/wire_backend_route/publish_runtime_api rejected",
+      "no_service_logic": "pass — service_logic_execution_permitted=false; doesNotExecuteServiceLogic=true; forbidden claim execute_service_logic rejected; assembler is pure metadata assembly",
+      "no_database_write": "pass — database_write_permitted=false; doesNotWriteDatabase=true; forbidden claim write_database rejected",
+      "no_storage_write": "pass — storage_write_permitted=false; doesNotWriteStorage=true; forbidden claim write_storage rejected",
+      "no_idempotency_write": "pass — idempotency_record_write_permitted=false; doesNotPersistIdempotencyRecord=true; forbidden claim write_idempotency_record rejected",
+      "no_lock_acquisition": "pass — runtime_lock_acquisition_permitted=false; doesNotAcquireLock=true; forbidden claims acquire_runtime_lock/write_lock_record rejected",
+      "no_product_state_write": "pass — product_state_persistence_permitted=false; writes_product_state=false; doesNotPersistProductState=true; forbidden claim persist_product_state rejected; acceptance gate api_permission_audit_no_product_state_writes present",
+      "no_real_data": "pass — no_real_data=true; fixture_integrity.synthetic_only/no_real_client_data/no_real_matter_data/no_credentials_or_secrets all true; forbidden claims use_real_client_data/use_real_matter_data/use_secret_material rejected",
+      "metadata_only_permission_audit_binding": "pass — permission/audit annotations bound as *_bound_metadata_only decisions; no enforcement or write side effects; separation of contract metadata from runtime enforcement is correct",
+      "tenant_boundary_fail_closed": "pass — assembler requires tenant_id===actor_tenant_id===resource_tenant_id===matter_tenant_id; tenant drift yields state=blocked, all positive flags false, blocked_claim_refs populated (verified by denied-path test)",
+      "forbidden_and_unknown_claims_rejected": "pass — any non-false/null/undefined boundary claim throws; forbidden claims give specific error, all others rejected as unknown (verified by tests for evaluate_runtime_permission and surprise_claim)",
+      "completion_triplet_enforced": "pass — assertResult enforces mutually exclusive allow/denied triplets across state transition, binding booleans, and blocked_claim_refs; tampering throws (verified by test)",
+      "source_micro_phase_completed_false": "pass — source_micro_phase_completed=false in result/fixture/policy/module/definition and asserted as fixed value",
+      "phase_completed_false": "pass — phase_completed=false everywhere and asserted",
+      "handoff_to_next_subphase": "pass — next_subphase='RP00.P03.M05.S07' in policy/module/result/fixture/definition/closeout_state_policy and asserted; weighted terminal flag false for S01-S06 (micro phase RP00.P03.M05 continues to S07)",
+      "plan_binding_and_cursor_correction": "pass — packId/plannedPackId=CP00-055, requestedPackId=CP00-054 with documented correction_reason ('shifted to CP00-055 by live sequential cursor'); deviation_from_plan=false; consistent across policy/definition/fixture/validator",
+      "upstream_evidence_refs": "pass — required_evidence_refs and upstream_evidence_refs bound to CP00-054 closeout-pack files; assembler requires exact match (fail-closed on drift)",
+      "cross_artifact_consistency": "pass — policy, service module/assembler, validators, contract definition, fixture, README, and tests are mutually consistent; 59 result fields aligned; fixture result exactly mirrors assembler output (validator's full consistency checks reported clean — only missing CP00-055 evidence files remain, which is expected pre-evidence)",
+      "local_validation": "pass — node --check clean; node --test 617 tests pass; preliminary contract validator failure attributable solely to not-yet-created CP00-055 evidence files (expected at this stage)"
+    },
+    "recommendation": "PASS_WITH_FINDINGS. No unresolved P0/P1/P2 findings remain; the single P3 cleanup finding was fixed before closeout."
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":207383,\"duration_api_ms\":208967,\"ttft_ms\":179976,\"num_turns\":1,\"result\":\"{\\n  \\\"overall_verdict\\\": \\\"PASS_WITH_FINDINGS\\\",\\n  \\\"blocks_pack_closeout\\\": false,\\n  \\\"blocks_goal_closeout\\\": false,\\n  \\\"finding_counts\\\": {\\n    \\\"p0\\\": 0,\\n    \\\"p1\\\": 0,\\n    \\\"p2\\\": 0,\\n    \\\"p3\\\": 1\\n  },\\n  \\\"findings\\\": {\\n    \\\"p0\\\": [],\\n    \\\"p1\\\": [],\\n    \\\"p2\\\": [],\\n    \\\"p3\\\": [\\n      {\\n        \\\"id\\\": \\\"CP00-055-P3-01\\\",\\n        \\\"severity\\\": \\\"P3\\\",\\n        \\\"title\\\": \\\"Unused loop index in CP00-055 weighted-boundary validation\\\",\\n        \\\"location\\\": \\\"scripts/validate-rp00-control-plane-contract.mjs (controlPlaneApiPermissionAuditBoundarySuiteSubphaseIds.entries() loop)\\\",\\n        \\\"description\\\": \\\"The weighted-boundary verification loop destructures `[index, subphaseId]` from `.entries()` but never references `index`; a plain `for (const subphaseId of controlPlaneApiPermissionAuditBoundarySuiteSubphaseIds)` would be equivalent and cleaner.\\\",\\n        \\\"impact\\\": \\\"Cosmetic only. No effect on validation behavior, boundary enforcement, fixture/policy consistency, or closeout state.\\\",\\n        \\\"recommendation\\\": \\\"Optionally iterate the array directly or drop the unused index. Non-blocking.\\\",\\n        \\\"blocks_closeout\\\": false\\n      }\\n    ]\\n  },\\n  \\\"boundary_checks\\\": {\\n    \\\"no_runtime_permission_evaluation\\\": \\\"pass — runtime_permission_evaluation_permitted=false in result/fixture/no_write_scope; doesNotEvaluateRuntimePermission=true; forbidden claim evaluate_runtime_permission rejected; assembler performs no permission evaluation\\\",\\n    \\\"no_authz_evaluator_call\\\": \\\"pass — authz_evaluator_call_permitted=false; doesNotCallAuthzEvaluator=true; forbidden claim call_authz_evaluator rejected; no evaluator invocation present\\\",\\n    \\\"no_permission_engine\\\": \\\"pass — permission_engine_execution_permitted=false; doesNotRunPermissionEngine=true; forbidden claim run_permission_engine rejected\\\",\\n    \\\"no_security_trimming\\\": \\\"pass — security_trimming_execution_permitted=false; doesNotApplySecurityTrimming=true; forbidden claim apply_security_trimming rejected\\\",\\n    \\\"no_audit_ledger_append\\\": \\\"pass — audit_ledger_append_permitted=false; doesNotAppendAuditLedger=true; forbidden claim append_audit_ledger rejected\\\",\\n    \\\"no_audit_event_write\\\": \\\"pass — audit_event_write_permitted=false; doesNotWriteAuditEvent=true; forbidden claim write_audit_event rejected; acceptance gate api_permission_audit_no_audit_event_write present\\\",\\n    \\\"no_runtime_route\\\": \\\"pass — runtime_route_created=false; doesNotCreateRuntimeRoute=true; forbidden claims create_runtime_route/wire_backend_route/publish_runtime_api rejected\\\",\\n    \\\"no_service_logic\\\": \\\"pass — service_logic_execution_permitted=false; doesNotExecuteServiceLogic=true; forbidden claim execute_service_logic rejected; assembler is pure metadata assembly\\\",\\n    \\\"no_database_write\\\": \\\"pass — database_write_permitted=false; doesNotWriteDatabase=true; forbidden claim write_database rejected\\\",\\n    \\\"no_storage_write\\\": \\\"pass — storage_write_permitted=false; doesNotWriteStorage=true; forbidden claim write_storage rejected\\\",\\n    \\\"no_idempotency_write\\\": \\\"pass — idempotency_record_write_permitted=false; doesNotPersistIdempotencyRecord=true; forbidden claim write_idempotency_record rejected\\\",\\n    \\\"no_lock_acquisition\\\": \\\"pass — runtime_lock_acquisition_permitted=false; doesNotAcquireLock=true; forbidden claims acquire_runtime_lock/write_lock_record rejected\\\",\\n    \\\"no_product_state_write\\\": \\\"pass — product_state_persistence_permitted=false; writes_product_state=false; doesNotPersistProductState=true; forbidden claim persist_product_state rejected; acceptance gate api_permission_audit_no_product_state_writes present\\\",\\n    \\\"no_real_data\\\": \\\"pass — no_real_data=true; fixture_integrity.synthetic_only/no_real_client_data/no_real_matter_data/no_credentials_or_secrets all "
+}

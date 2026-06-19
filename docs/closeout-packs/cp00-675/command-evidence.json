@@ -1,0 +1,139 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-675",
+  "subphase_id": "RP22.P03.M06.S12",
+  "status": "passed",
+  "production_ready": true,
+  "writes_product_state": false,
+  "no_real_data": true,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": []
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/integrations-core/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/integrations-core/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/integrations-core/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp22-external-integrations-i-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/integrations-core/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate -- CP00-675",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp22:external-integrations-i:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/integrations-core/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp22:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-675",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-675",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-675 --timeout_ms=900000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-675",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-675",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was read, written, persisted, exposed, or included in CP00-675 evidence.",
+    "CP00-675 received exactly one valid closeout-eligible hardened read-only Claude review receipt with PASS_WITH_FINDINGS verdict and P0/P1/P2/P3 counts 0/0/0/2.",
+    "CP00-675 full pre-review validation matrix passed 22/22 across closeout-pack validation, closeout-pack-plan generation/validation, RP22 External Integrations I validation, model tests, RP22/weighted/spec/fullplan/global/goal/RP00 validators, git diff --check, npm test, and build.",
+    "The first CP00-675 Claude review attempt terminated with zero-byte stdout and was quarantined as invalid_not_accepted; it is preserved as invalid-attempt-01 and is not counted as valid review evidence.",
+    "Read-only Claude review noted it did not independently re-execute Bash commands; command exit codes are retained as independently executed closeout harness evidence from /tmp/cp675-pre-review-results.json and command-evidence.json, while the review verified static consistency through Read/Grep/Glob.",
+    "Claude review P3 findings CP675-R01 and CP675-R02 are informational transparency notes with non-blocking dispositions; they do not block pack closeout.",
+    "External provider API, OAuth, sync, message capture, e-sign, webhook, credential persistence, persistence writes, permission, audit, UI, Hermes, Claude, command-result, golden-case payload, fixture, and test runtimes remain closed."
+  ],
+  "review_artifacts": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-675/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-675/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-675/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-675/review-receipt.json"
+  }
+}

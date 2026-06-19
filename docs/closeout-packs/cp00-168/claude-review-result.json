@@ -1,0 +1,84 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-168",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "d7d3dff0-14bc-4f7f-b31c-60430f39207f",
+    "uuid": "cf40a4d6-d051-4a6a-99b2-d6bb499f449f",
+    "duration_ms": 216790,
+    "duration_api_ms": 219641,
+    "total_cost_usd": 0.81222,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-168-claude-review-output-valid.json"
+  },
+  "invalid_review_attempts": [
+    {
+      "source": "claude_cli",
+      "raw_output_ref": "/tmp/cp00-168-claude-review-output.json",
+      "prompt_ref": "/tmp/cp00-168-claude-prompt.txt",
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < /tmp/cp00-168-claude-prompt.txt > /tmp/cp00-168-claude-review-output.json",
+      "reason": "outer command succeeded but result was not JSON-only and returned markdown/prose, so it was not counted as a valid pack-level review",
+      "session_id": "256014ca-c526-441a-9962-4bd24a8af757",
+      "uuid": "57aa8d2a-bccf-408d-b823-570c5cfa9861",
+      "permission_denials": []
+    }
+  ],
+  "review_packet": {
+    "review_id": "C04.CP00-168.master_data_permission_audit_fixture_decision_tests",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-168-claude-prompt-valid-retry.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-168 approved. It preserves the Risk A descriptor-only/no-write boundary for 10 Master Data permission/audit fixture decision test units; customer-facing outputs remain trimmed, internal refs remain evidence-only, and handoff to CP00-169/RP04.P06.M06.S06 is valid. The single P3 evidence pointer finding was addressed by binding row_ref to the concrete CP00-166 permission matrix row_id and regenerating the contract projection.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_a_scope_preserved": true,
+      "handoff_valid": true,
+      "notes": "CP00-168 builds frozen permission/audit fixture decision test descriptors only; package code does not load real data, execute runtime permission checks, audit appends, route dispatch, API handlers, UI rendering, AI retrieval, analytics, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "CP00-168-C04-F001",
+        "severity": "P3",
+        "file": "packages/master-data/src/registry.js",
+        "line": 1323,
+        "title": "permission_matrix_row row_ref resolves to undefined",
+        "description": "decision_binding_descriptors.permission_matrix_row assigns row_ref from MASTER_DATA_PERMISSION_AUDIT_DECISION_BINDING.permission_matrix_row.row_ref, which evaluates to undefined (confirmed: JSON.stringify drops it, so contract/registry parity only holds because both serialize without row_ref, and the validator's stringify comparison passes). The intended internal evidence pointer never materializes — likely the source property is named differently. No leak, no scope or no-write impact since the field is internal evidence-only and customer surface is unaffected; non-blocking nit worth correcting for evidence completeness.",
+        "post_review_disposition": "addressed: permission_matrix_row row_ref now points to MASTER_DATA_PERMISSION_AUDIT_DECISION_BINDING.permission_matrix_row.row_id and the regenerated contract mirrors the concrete row_ref value."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

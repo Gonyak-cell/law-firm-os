@@ -1,0 +1,533 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-113",
+  "planned_pack_id": "CP00-113",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "permission_kernel_api_permission_audit_binding_verified",
+  "program_id": "RP02",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP02.P03.M05.S16",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-113",
+    "planned_pack_id": "CP00-113",
+    "title": "CP00-113 RP02.P03.M05.S07-RP02.P03.M05.S16 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP02.P03.M05.S07",
+      "last_unit_id": "RP02.P03.M05.S16",
+      "description": "RP02.P03.M05.S07-RP02.P03.M05.S16"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP02.P03.M05.S07",
+        "title": "Pagination or filtering contract",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "contract"
+      },
+      {
+        "id": "RP02.P03.M05.S08",
+        "title": "Serialization guard",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P03.M05.S09",
+        "title": "Unauthorized data omission",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP02.P03.M05.S10",
+        "title": "API fixture",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "contract"
+      },
+      {
+        "id": "RP02.P03.M05.S11",
+        "title": "Contract test",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP02.P03.M05.S12",
+        "title": "Invalid request test",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP02.P03.M05.S13",
+        "title": "Denied response test",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP02.P03.M05.S14",
+        "title": "Hermes API evidence",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP02.P03.M05.S15",
+        "title": "Claude interface prompt",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP02.P03.M05.S16",
+        "title": "Documentation example",
+        "source_micro_phase_id": "RP02.P03.M05",
+        "program_id": "RP02",
+        "phase_id": "RP02.P03",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP02.P03.M05.S07",
+      "title": "Pagination or filtering contract",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "contract",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S08",
+      "title": "Serialization guard",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S09",
+      "title": "Unauthorized data omission",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S10",
+      "title": "API fixture",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "contract",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S11",
+      "title": "Contract test",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S12",
+      "title": "Invalid request test",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S13",
+      "title": "Denied response test",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S14",
+      "title": "Hermes API evidence",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S15",
+      "title": "Claude interface prompt",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    },
+    {
+      "id": "RP02.P03.M05.S16",
+      "title": "Documentation example",
+      "source_micro_phase_id": "RP02.P03.M05",
+      "program_id": "RP02",
+      "phase_id": "RP02.P03",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-113/manifest.json",
+        "docs/closeout-packs/cp00-113/command-evidence.json",
+        "docs/closeout-packs/cp00-113/claude-review-result.json",
+        "docs/closeout-packs/cp00-113/adjudication.md",
+        "docs/closeout-packs/cp00-113/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/authz/src/api-permission-audit-binding.js",
+        "packages/authz/src/index.js",
+        "packages/authz/test/authz.test.js",
+        "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "contracts/permission-kernel-contract.json",
+        "packages/authz/README.md"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-113/manifest.json",
+    "docs/closeout-packs/cp00-113/command-evidence.json",
+    "docs/closeout-packs/cp00-113/claude-review-result.json",
+    "docs/closeout-packs/cp00-113/adjudication.md",
+    "docs/closeout-packs/cp00-113/construction-inspection.json"
+  ],
+  "implementation_refs": [
+    "packages/authz/src/api-permission-audit-binding.js",
+    "packages/authz/src/index.js",
+    "packages/authz/test/authz.test.js",
+    "scripts/validate-rp02-permission-kernel-contract.mjs",
+    "contracts/permission-kernel-contract.json",
+    "packages/authz/README.md"
+  ],
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-113/manifest.json",
+    "docs/closeout-packs/cp00-113/command-evidence.json",
+    "docs/closeout-packs/cp00-113/claude-review-result.json",
+    "docs/closeout-packs/cp00-113/adjudication.md",
+    "docs/closeout-packs/cp00-113/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "unrelated_untracked_files_preserved": true
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed"
+  },
+  "commit_policy": {
+    "required": true,
+    "commit_message": "Close CP00-113 permission kernel api permission audit binding pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "implementation_summary": {
+    "risk_a_boundary_pack": true,
+    "synthetic_only": true,
+    "no_real_data": true,
+    "metadata_only_api_binding": true,
+    "covered_unit_count": 10,
+    "fixture_count": 6,
+    "permission_evaluator_invoked_on_synthetic_inputs": true,
+    "pagination_filtering_contract_verified": true,
+    "serialization_allowlist_verified": true,
+    "unauthorized_data_omission_verified": true,
+    "permission_denied_fixture_verified": true,
+    "invalid_pagination_fixture_verified": true,
+    "audit_annotation_preview_only_verified": true,
+    "audit_hint_hidden_field_sanitizer_verified": true,
+    "no_write_attestation": {
+      "accepts_real_client_data": false,
+      "mutates_permission_policy": false,
+      "writes_audit_event": false,
+      "writes_product_state": false,
+      "creates_database_rows": false,
+      "persists_idempotency_keys": false,
+      "acquires_locks": false,
+      "executes_rollback": false,
+      "executes_retry": false,
+      "executes_ai_retrieval": false,
+      "executes_export_download": false,
+      "executes_external_share": false,
+      "grants_human_approval": false,
+      "executes_claude_review": false,
+      "implements_ldip": false
+    },
+    "ldip_implemented": false,
+    "hrx_embedded_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "hermes_packet_ref": "permission_kernel_cp113_api_permission_audit_binding_hermes_packet",
+  "claude_packet_ref": "permission_kernel_cp113_api_permission_audit_binding_claude_packet",
+  "next_pack_id": "CP00-114",
+  "next_subphase_id": "RP02.P03.M05.S17"
+}

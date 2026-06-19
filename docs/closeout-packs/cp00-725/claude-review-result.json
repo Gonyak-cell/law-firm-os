@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-725",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-725/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-725/review-receipt.json"
+  ],
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "claude_api_529_overloaded",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-725/raw-output-invalid-attempt-01.json",
+      "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-725/review-receipt-invalid-attempt-01.json"
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5edc57db-dab3-40cc-a74d-dca4db349ccf",
+    "uuid": "de5a08d4-da51-4d29-8c79-1b388df70fdf",
+    "total_cost_usd": 1.9471615,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7352,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-725 is a descriptor-only RP24 \"Korean Legal Depth\" fixture/evidence/review + P02 bridge pack (risk C, 150 units, RP24.P01.M06.S05-RP24.P02.M02.S22). The pack-level claim it actually makes — descriptor-only, no-write, no-real-data, runtime-closed, Claude read-only/non-final, pending exactly one valid hardened review — is fully supported by the evidence; it does NOT claim runtime production or enterprise trust (manifest production_ready:false, runtime_ready:false, writes_product_state:false, no_real_data:true). Implementation verified read-only: registry.js bindings are deep-frozen; service.js builds frozen descriptors carrying KOREAN_LEGAL_NO_WRITE_ATTESTATION with descriptor_only:true, runtime_execution:false, and all Korean-legal runtime surfaces closed (hwpx/court_filing/litigation/corporate/clause-authority all false); validators.js enforces the exact deliverable/phase/micro/section distributions (sum 150, matching the prompt's deliverable and micro_title distributions) plus descriptor boundaries (no sensitive payloads, no runtime opening, no permission-decision/audit-body leak, claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true). test/model.test.js asserts coverage errors [], descriptor errors [], runtime-closed state, Hermes emits_runtime_receipt:false, Claude read_only:true, handoff routing to CP00-726/RP24.P02.M03.S01, and contract latest=CP00-725 with CP00-722..724 historical. contracts/korean-legal-depth-contract.json shows validation.valid:true with zero valid:false occurrences. command-evidence.json records all 25 commands at exit_code 0, including the full validation ladder (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check). Authority boundary holds: Claude is a read-only independent reviewer and not final approver; Hermes is used only for deterministic descriptor-only packet/receipt handling (no runtime receipt, no product write), not product runtime. CP178+ hardening worked as designed: the prior attempt's 529 \"Overloaded\" CLI error (raw-output.json) was correctly normalized to invalid_review (auth_or_cli_error; structured_output_missing) and is not counted as valid evidence; this re-run supersedes it. One non-blocking P3: the result rollup's invalid_review_attempts array is still empty while two on-disk receipts record the invalid 529 attempt — a transient pre-normalization state. No P0/P1/P2 issues; the descriptor-only closeout claim is supported and closeout is not blocked.",
+    "findings": [
+      {
+        "id": "CP725-P3-01",
+        "severity": "P3",
+        "title": "Result rollup invalid_review_attempts empty despite an on-disk invalid (529) attempt",
+        "file": "docs/closeout-packs/cp00-725/claude-review-result.json",
+        "line": 8,
+        "details": "claude-review-result.json reports status pending_review with valid_review_receipts:[] and invalid_review_attempts:[] (exactly_one_valid_pack_level_claude_review_run:false), while artifacts/closeout-pack-claude-review/cp00-725/review-receipt.json and review-receipt-invalid-attempt-01.json both record status invalid_review for the prior run (api_error_status 529 Overloaded, parsed_review:null). Rejecting that attempt is correct per CP178+ hardening (auth_or_cli_error; structured_output_missing), but the result rollup has not yet captured the recorded invalid attempt. This is a transient pre-normalization bookkeeping gap, not a boundary or correctness defect.",
+        "recommendation": "When the receipt normalizer regenerates the result rollup at final closeout, ensure the recorded 529 invalid attempt is reflected in invalid_review_attempts and that exactly one valid review receipt (this re-run) populates valid_review_receipts before the production_ready / korean_legal_p01_fixture_evidence_review_p02_bridge_descriptor_verified flag is flipped.",
+        "post_review_disposition": "Non-blocking. Does not affect descriptor-only correctness, no-write/no-real-data boundaries, or the authority boundary. Expected to self-reconcile at final receipt normalization; recorded for audit completeness only."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

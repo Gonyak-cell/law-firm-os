@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-913",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T17:33:55.259Z",
+  "finished_at": "2026-06-17T17:39:12.637Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":316797,\"duration_api_ms\":317643,\"ttft_ms\":3402,\"num_turns\":42,\"result\":\"Review complete — verdict **PASS** (no P0/P1/P2; one non-blocking P3).\\n\\nCP00-913 is a coherent descriptor-only RuleEngine HRX slice tail. I verified end-to-end consistency across the plan, CP913 binding, manifest, descriptor/case-set generator, validators, tests, the serialized contract projection, and the validate script. All runtime/write/decision/real-data/secret boundaries are enforced and closed; the authority boundary (Claude read-only, not final approver; human approval gates runtime opening at CP00-914; no enterprise-trust claim from local validation; Hermes H30 emits no runtime receipt) holds. The `production_ready` claim is the descriptor-only `hrx_rule_engine_tail_descriptor_verified` flag, with `runtime_ready` correctly false. Auth preflight evidence is valid JSON, and no invalid/0-byte/malformed review evidence is being counted.\\n\\nThe only finding is a P3 commit-hygiene note: two unrelated tracked UI files (`scripts/progress-control-room-data.mjs`, `tools/progress-control-room/index.html`) are dirty in the worktree, so the closeout commit should stage only pack-scoped paths.\",\"stop_reason\":\"end_turn\",\"session_id\":\"144ce5ae-a13d-4166-993c-a6f145aa7810\",\"total_cost_usd\":1.81780575,\"usage\":{\"input_tokens\":94,\"cache_creation_input_tokens\":104815,\"cache_read_input_tokens\":1151324,\"output_tokens\":23415,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":104815,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":453,\"cache_read_input_tokens\":100741,\"cache_creation_input_tokens\":4631,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4631},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1105,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012050000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":94,\"outputTokens\":23415,\"cacheReadInputTokens\":1151324,\"cacheCreationInputTokens\":104815,\"webSearchRequests\":0,\"costUSD\":1.81660075,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-913 RuleEngine HRX slice tail (RP30.P02.M06.S02-S11, risk A, 10 implementation units) is a sound descriptor-only pack. The CP913 binding, requirements, descriptor/case-set generator (packages/hrx/src/registry.js), validators (packages/hrx/src/validators.js), tests (packages/hrx/test/model.test.js), the serialized contract projection (contracts/hrx-people-contract.json), and the validate script (scripts/validate-rp30-hrx-people-contract.mjs) are mutually consistent. They enforce that rule definitions, rule execution runtime, rule decision writes, HR AI final judgment, payroll runtime, permission/audit/product-state writes, runtime receipts, separate-product creation, credentials/secrets, and real employee/candidate/payroll/document data all stay closed at the row, baseline, domain-entity, and attestation levels. Plan<->binding<->manifest<->contract agree (range, 10 units, risk A, next pack CP00-914 / RP30.P02.M06.S12), so deviation_from_plan:false is accurate. Authority boundary holds: Claude is read_only and not final approver (claude_is_final_approval:false, promotes_claude_to_final_approval:false), human approval is required before runtime opening (deferred to CP00-914), enterprise trust is not claimed from local validation, and the Hermes H30 packet emits_runtime_receipt:false (used only for deterministic control-plane review/evidence handling, not product runtime). Review-hardening checks pass: readiness auth preflight succeeded with valid JSON (stdout 1455 bytes, exit 0) and no invalid/0-byte/malformed/fenced/tool-call-shaped review evidence is being counted as valid (pack_level_claude_review status pending, my review is the one being produced). The pack-level production_ready claim is the descriptor-only flag hrx_rule_engine_tail_descriptor_verified; runtime_ready remains false and is supported by the evidence. Provenance note: the validation command exit codes (rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate, node --check/--test) are reported from command-evidence.json; re-execution is outside read-only scope, but static code/contract consistency I verified directly corroborates them. One non-blocking P3 on closeout commit hygiene.\",\"findings\":[{\"id\":\"CP913-P3-01\",\"severity\":\"P3\",\"title\":\"Unrelated tracked dirty files present in worktree at closeout\",\"file\":\"scripts/progress-control-room-data.mjs\",\"line\":null,\"details\":\"changed-file-scope.json lists two tracked, modified files unrelated to CP00-913 in unrelated_dirty_files_preserved: scripts/progress-control-room-data.mjs and tools/progress-control-room/index.html (both status ' M'). These belong to the separate non-CP UI workstream, not the HRX rule-engine pack. A broad `git add -A` / `git commit -a` for the closeout commit (commit_policy.message 'Close CP00-913 HRX rule engine tail pack') would bundle these unrelated changes into the pack commit. This does not affect the descriptor-only boundaries or the production_ready claim of CP00-913.\",\"recommendation\":\"Stage only pack-scoped paths for the closeout commit: packages/hrx/**, contracts/hrx-people-contract.json, scripts/validate-rp30-hrx-people-contract.mjs, docs/closeout-packs/cp00-913/**, and artifacts/closeout-pack-claude-review/cp00-913/**. Leave the progress-control-room UI files to the separate non-CP workstream.\",\"post_review_disposition\":\"Advisory only; does not block pack or goal closeout. Resolve by scoping commit staging to pack files.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"194643d9-dec2-4c28-a10b-fe307322e10d\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6249,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "144ce5ae-a13d-4166-993c-a6f145aa7810",
+    "uuid": "194643d9-dec2-4c28-a10b-fe307322e10d",
+    "total_cost_usd": 1.81780575,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

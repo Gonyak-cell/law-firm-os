@@ -1,0 +1,6 @@
+{
+  "schema_version": "law-firm-os.commercial-compatibility-contract.v0.1",
+  "canonical_contract_ref": "contracts/commercial-readiness-contract.json",
+  "latest_pack_id": "CP00-896",
+  "program_id": "RP29"
+}

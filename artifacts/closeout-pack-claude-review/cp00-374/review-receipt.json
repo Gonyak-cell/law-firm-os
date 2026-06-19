@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-374",
+  "normalized_at": "2026-06-11T20:46:24.139Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-374/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-374/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-374/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-374/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "e972e5e4-f415-4faf-83d7-b34c1228e50f",
+    "uuid": "361732a7-4db4-4984-a2c5-228b5542957d",
+    "total_cost_usd": 2.36395475,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5919,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-374 is a descriptor-only billing-core pack (RP12.P03.M06.S13-RP12.P04.M03.S20, 150 units) that closes RP12.P03 and opens the RP12.P04 foundation as nine descriptor-only sections. The pack-level claim is honestly production_ready=false / status=implemented_pending_review, supported by implementation (service.js/registry.js), tests (3 dedicated CP374 tests in model.test.js), the contract projection, and the RP12 validator — all of which enforce descriptor-only, no-write (writes_product_state=false, emits_hermes_runtime_receipt=false), and no-real-data (no_real_data=true, synthetic_only=true) boundaries. Unit count, deliverable distribution, and micro-title distribution match exactly across the prompt baseline, registry requirements, manifest, and validate script (sum=150). Claude is correctly held as a read-only, non-final-approver reviewer (claude_is_final_approval=false, promotes_claude_to_final_approval=false, allowed tools Read/Grep/Glob), and Hermes patterns appear only as deterministic evidence-packet/receipt descriptors, never product runtime. CP178+ review hardening is satisfied: forbidden_review_evidence covers auth failure, 0-byte output, malformed/fenced JSON, tool-call-shaped output, and missing fields; readiness auth preflight passed with non-zero stdout; prompt is within the 25600B limit; forbidden tools absent; summary-only correctly prohibited for Risk C. Changed-file scope is clean — all dirty files are within active implementation refs and unrelated dirty files are correctly excluded. One non-blocking P3 readability observation; no P0/P1/P2 issues. Does not block pack or goal closeout; human final approval remains required for any enterprise-trust or runtime opening.",
+    "findings": [
+      {
+        "id": "CP00-374-P3-01",
+        "severity": "P3",
+        "title": "Cumulative no_write_attestation retains CP364-era label under CP00-374 pack_id",
+        "file": "packages/billing/src/registry.js",
+        "line": 1048,
+        "details": "BILLING_CORE_CP374_NO_WRITE_ATTESTATION is built by spreading the CP373 attestation (which transitively spreads down to the CP364 base) and overriding pack_id to CP00-374 plus adding validates_p03_closeout_p04_foundation_descriptor_only:true. As a result the CP374 attestation (and the mirrored contracts/billing-core-contract.json top-level no_write_attestation at lines 2211-2241) still carries the original CP364 field validates_scope_contract_foundation_descriptor_only:true under pack_id CP00-374. This is intentional cumulative attestation and is strictly drift-guarded by the validator's assert.deepEqual against the registry constant, so there is no correctness or boundary risk; it is purely a readability nuance for a future reader scanning the contract who may momentarily expect a CP364-named field not to appear under a CP374 pack_id.",
+        "recommendation": "No action required for closeout. Optionally, a future cleanup could add a short comment documenting the cumulative-attestation spread chain, or rename the accumulated descriptor-validation flags to a single list, to make the intent self-evident.",
+        "post_review_disposition": "Acknowledged as by-design cumulative attestation; non-blocking; no change required for CP00-374 closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

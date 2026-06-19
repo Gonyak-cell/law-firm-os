@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.subphase-construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M01.S01",
+  "source_micro_phase_id": "RP00.P01.M01",
+  "program_id": "RP00",
+  "verdict": "PASS",
+  "production_ready": true,
+  "product_contract_model_verified": true,
+  "inspected_at": "2026-06-03T12:39:42Z",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "human_acceptance_or_explicit_next_goal_boundary": {
+    "status": "explicit_next_goal_boundary_recorded",
+    "current_subphase_sensitive_action": false,
+    "human_approval_required_now": false,
+    "next_subphase": "RP00.P01.M02.S01",
+    "boundary": "This PASS covers only the RP00.P01.M01.S01 ProductContract model. It does not approve production mutation, runtime target writes, generation output approval, real data import, client-facing output, finance action, external sharing, AIControlRule or other entity model completion, H00 replacement, C00 replacement, human-approval replacement, RP00.P01 closeout, RP00.P01.M02.S01 completion, or RP00 closeout."
+  },
+  "checks": [
+    {
+      "id": "goal_scope_satisfied",
+      "status": "passed",
+      "evidence": "packages/control-plane now implements ProductContract model constants, factory, validation, fixture, tests, and registry wiring for RP00.P01.M01.S01."
+    },
+    {
+      "id": "product_contract_model_verified",
+      "status": "passed",
+      "evidence": "contracts/control-plane-contract.json defines product_contract_model_definition with identifier policy, tenant scope, status lifecycle, nullable matter_refs policy, audit metadata, explicit weighted generator defer, and next boundary RP00.P01.M02.S01."
+    },
+    {
+      "id": "all_required_local_commands_pass",
+      "status": "passed",
+      "evidence": "docs/goal-closeout/rp00-p01-m01-s01/command-evidence.json"
+    },
+    {
+      "id": "hermes_gate_passed",
+      "status": "passed",
+      "evidence": "H00 command evidence includes product_contract_validate, rp00_control_plane_contract_validate, and spec_requirement_validate with exit_code 0."
+    },
+    {
+      "id": "claude_code_review_result_validated",
+      "status": "passed",
+      "evidence": "docs/goal-closeout/rp00-p01-m01-s01/claude-review-result.json"
+    },
+    {
+      "id": "no_unresolved_P0_or_P1",
+      "status": "passed",
+      "evidence": "Claude C00 review returned no P0 or P1 findings."
+    },
+    {
+      "id": "all_P2_adjudicated",
+      "status": "passed",
+      "evidence": "Claude C00 review returned no P2 findings."
+    },
+    {
+      "id": "weighted_generator_alignment_defer_recorded",
+      "status": "passed",
+      "evidence": "product_contract_model_definition.deferred_weighted_generator_alignment records the generated weighted ledger title/deliverable_type/UI gate mismatch without hand-editing generated ledger output."
+    },
+    {
+      "id": "other_entities_remain_future",
+      "status": "passed",
+      "evidence": "CONTROL_PLANE_DOMAIN_MODEL_REGISTRY marks AIControlRule and later entities implementedInFutureSubphase=true."
+    }
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 2,
+    "p3_status": "recorded_with_future_anchor"
+  }
+}

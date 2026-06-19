@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-783",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-783/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-783/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "8d1785ea-4b1d-4dad-924d-320bd6b9ae4b",
+    "uuid": "372371ef-e512-4c78-84ce-8177a66b1d74",
+    "total_cost_usd": 3.190278750000001,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9486,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Read-only review of CP00-783 (RP25.P07.M05.S21-S30, risk A, 10 units, micro \"Permission And Audit Binding\", deliverables claude_review:1 + implementation:9). The descriptor-verified production_ready claim is well supported and the pack correctly remains production_ready=false / runtime_ready=false / status=in_progress pending this gating review — manifest, construction-inspection (PENDING), adjudication (in_progress), and claude-review-result (pending) are mutually consistent with no premature readiness claim. command-evidence's production_ready=true is the command/build gate-level claim, identical to the already-committed CP00-782 pattern.\n\nImplementation: registry.js MIGRATION_PLATFORM_CP783_PACK_BINDING (pack_id CP00-783, range S21-S30, upstream CP00-782, next CP00-784/RP25.P07.M06.S01, flag migration_platform_failure_recovery_audit_closeout_descriptor_verified) and CP783_REQUIREMENTS match the baseline exactly; required_section_rows for RP25.P07.M05 = PERMISSION_MATRIX_FAILURE_CLOSEOUT_ROWS, whose 10 rows (Claude edge-case prompt -> Future incident note) match the unit titles one-for-one. service.js:1824-1879 adds caseSet/descriptor/hermes/claude/handoff following the established pattern (emits_runtime_receipt=false, read_only claude, promotes_claude_to_final_approval=false, handoff to CP00-784/RP25.P07.M06.S01). validators.js:2419-2503 enforce descriptor_only, no runtime execution, no source-system runtime, no raw/source/credential/real-client payloads, no permission-decision/cross-tenant/audit-body/runtime-render leakage, unauthorized-omission and unverified-knowledge guards, and authority boundary (human_final_approval_required_for_runtime_opening=true, claude_is_final_approval=false, local_validation_claims_enterprise_trust=false).\n\nTests/validation: model.test.js:1028-1092 assert binding/coverage, runtime-closed descriptor (runtime_opening_pack_id=CP00-784, all *_runtime_opened=false, hermes emits_runtime_receipt=false, claude read_only=true), and latest contract projection with all historical projections cp756..cp783 preserved and validation.valid=true. command-evidence shows all 10 required validation commands plus extras at exit 0 (npm test 3033/3033 pass, migration 85/85 pass, git diff --check clean, npm run build clean). contracts/migration-platform-contract.json has no \"valid\":false entries; current_pack=latest_pack=CP00-783, cp783 coverage.valid=true with by_deliverable {claude_review:1,implementation:9}, authority_boundary and no_write_attestation closed. index.js wildcard-reexports the new functions; README #cp00-783 documents the closeout with all runtime/write boundaries still closed.\n\nBoundaries/authority: descriptor-only, no real data, writes_product_state=false; the contract generator writes only the deterministic descriptor artifact (Hermes control-plane review packet/receipt), not product runtime, and Hermes packets emit_runtime_receipt=false — Hermes is not embedded in product runtime. Claude stays read-only and non-final; no runtime or enterprise-trust claim is made (runtime opening deferred to CP00-784 under human approval). The review-hardening lib remains strict: it rejects auth failures, 0-byte stdout, malformed JSON, fenced JSON/prose, tool-call-shaped output, missing required fields, permission denials, and any blocking finding, and requires session_id/uuid/cost/stdout_bytes>0/status=0 plus PASS|PASS_WITH_FINDINGS with p0/p1/p2=0 for closeout eligibility. Readiness auth preflight passed with valid non-empty JSON. No P0/P1/P2 issues. One P3 data-quality nuance in the review-context changed-file-scope.json (pack evidence dir double-listed) is benign because the authoritative manifest stages correctly and no active deliverable is omitted. Verdict: PASS_WITH_FINDINGS, non-blocking.",
+    "findings": [
+      {
+        "id": "CP783-P3-01",
+        "severity": "P3",
+        "title": "Pack evidence dir double-listed as both implementation and unrelated in changed-file-scope.json",
+        "file": "artifacts/closeout-pack-claude-review/cp00-783/changed-file-scope.json",
+        "line": 196,
+        "details": "changed-file-scope.json lists docs/closeout-packs/cp00-783/ (the pack's own evidence directory) and docs/closeout-pack-plan/new-session-handoff.md in BOTH untracked_implementation_files (lines 188-191) and unrelated_dirty_files_preserved (lines 195-196). These are mutually exclusive categories, so the dual listing is internally inconsistent. Root cause is a directory-vs-file granularity mismatch: git status reports the untracked directory entry 'docs/closeout-packs/cp00-783/' (changed-file-scope git_status_rows line 124-130), while the active scope lists the specific files inside it (docs/closeout-packs/cp00-783/manifest.json, etc.), so the directory-level entry falls through to the 'unrelated' bucket even though its constituent files are active pack deliverables. Impact is limited: active_untracked_implementation_files_omitted is [] (line 192), so no active deliverable is dropped, and the authoritative manifest.json (which drives commit staging via commit_policy.stage_only_pack_scope) correctly lists the cp00-783 evidence files in active_pack_required_untracked_files and does NOT place docs/closeout-packs/cp00-783/ in its own unrelated_dirty_files_preserved list. No real-data, product-state-write, runtime, or authority boundary is affected. This is the same benign data-quality class noted on CP00-782; the CP00-782 corrupted-path typo itself is not present in CP00-783.",
+        "recommendation": "Tighten the changed-file-scope generator so an untracked directory whose constituent files are active pack deliverables is not also emitted into unrelated_dirty_files_preserved (reconcile directory-vs-file granularity, or exclude any path prefix that matches active_pack_required_untracked_files). No re-run of validation is required for closeout since the authoritative manifest staging is already correct.",
+        "post_review_disposition": "Acknowledged as non-blocking data-quality cleanup in a review-context artifact. Does not affect pack closeout: the manifest is authoritative for staging and is correct, no active deliverable is omitted, all validations pass, and no real-data/write/runtime/authority boundary is impacted."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

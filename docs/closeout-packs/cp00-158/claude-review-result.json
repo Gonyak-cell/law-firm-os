@@ -1,0 +1,105 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-158",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "78cf41d0-d8aa-4fa4-99d2-18e8fb95dfdc",
+    "uuid": "87034573-c9fd-4d55-9b32-73b02599fa1d",
+    "duration_ms": 547349,
+    "duration_api_ms": 555865,
+    "total_cost_usd": 0.6902815000000001,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-158-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-158.master_data_service_tail_boundary",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-158-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-158 received a valid read-only Claude review with one P2 and four P3 findings, all fixed before closeout.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "notes": "CP00-158 remains descriptor-only and no-write after finding fixes."
+    },
+    "findings": [
+      {
+        "id": "CP158-F1",
+        "severity": "P2",
+        "title": "Customer-safe no-leak guarantee is asserted only on blocked_output, but the tail descriptor embeds the full upstream workflow object",
+        "recommended_action": "Add an assertion on the full descriptor, e.g. assert.equal(JSON.stringify(denied).includes(\"must not leak\"), false). If it passes, it confirms CP157 workflow redaction and locks the guarantee in. If it fails, sanitize the embedded `workflow` (or drop raw payload fields from it) before returning. Alternatively, if the full tail descriptor is intended as internal-only evidence and only `blocked_output` may cross the customer boundary, document that boundary explicitly in the README/contract so the distinction is not lost in later runtime packs.",
+        "post_review_disposition": "fixed: createMasterDataServiceTailDescriptor now sanitizes the embedded workflow recursively and model tests assert the full descriptor does not leak hidden source values."
+      },
+      {
+        "id": "CP158-F2",
+        "severity": "P3",
+        "title": "routeFor maps review/approval claim arrays without the null-guard used for blocked_claims",
+        "recommended_action": "Apply the same `?? []` guard to review_required_claims and approval_required_claims for consistency with the blocked path, or document the invariant that these arrays are always present when the outcome matches.",
+        "post_review_disposition": "fixed: review_required_claims and approval_required_claims now use the same null-guard pattern as blocked claims."
+      },
+      {
+        "id": "CP158-F3",
+        "severity": "P3",
+        "title": "validateMasterDataCp158TailBoundary spot-checks only 7 of the 10 validation_error_mapping keys",
+        "recommended_action": "Iterate Object.keys(MASTER_DATA_SERVICE_TAIL_BOUNDARY.validation_error_mapping) instead of a hardcoded subset so the validator stays complete as the mapping grows.",
+        "post_review_disposition": "fixed: validateMasterDataCp158TailBoundary now checks all expected mapping claims and validates every configured safe code entry."
+      },
+      {
+        "id": "CP158-F4",
+        "severity": "P3",
+        "title": "Customer-facing blocked_output includes raw internal claim names (blocked_claims) alongside safe_error_codes",
+        "recommended_action": "Decide intentionally whether raw blocked_claims belong in the customer-safe output. If yes (to aid client-side categorization), note it as intended; if the customer surface should be codes-only, move blocked_claims and the raw `claim` keys to an internal-only section of the descriptor.",
+        "post_review_disposition": "fixed: customer-facing blocked_output now exposes safe_error_codes only; raw blocked claim refs moved to internal_blocked_claim_refs and README documents the boundary."
+      },
+      {
+        "id": "CP158-F5",
+        "severity": "P3",
+        "title": "Overlapping persistence attestation keys: executes_persistence_boundary (CP157) and writes_persistence_boundary (CP158)",
+        "recommended_action": "Either consolidate to a single persistence key going forward or add a one-line note distinguishing 'executes' (runtime execution) from 'writes' (mutation) so the intent of keeping both is explicit.",
+        "post_review_disposition": "fixed: README and no-write attestation distinguish CP00-157 executes_persistence_boundary from CP00-158 writes_persistence_boundary."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "reported_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 4
+    },
+    "p2_status": "fixed_or_deferred",
+    "p3_disposition": "all four P3 findings fixed through code, validator, contract, or README updates",
+    "post_review_validation": {
+      "focused_master_data_tests": "17 pass",
+      "full_workspace_tests": "1185 pass",
+      "rp04_master_data_validate": "passed",
+      "closeout_pack_plan_validate": "passed",
+      "product_validate": "passed",
+      "build": "passed"
+    }
+  }
+}

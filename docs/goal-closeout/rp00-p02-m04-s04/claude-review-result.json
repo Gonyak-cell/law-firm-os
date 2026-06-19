@@ -1,0 +1,190 @@
+{
+  "subphase_id": "RP00.P02.M04.S04",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Matter trace precheck",
+  "created_at": "2026-06-05T17:26:00Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit",
+    "Grep",
+    "Glob"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m04-s04-claude-review.json",
+  "stderr_path": "/tmp/lfos-rp00-p02-m04-s04-claude-review.stderr",
+  "review_packet_path": "/tmp/lfos-rp00-p02-m04-s04-review-packet.diff",
+  "stderr_bytes": 0,
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 357471,
+  "duration_api_ms": 358311,
+  "session_id": "ba89c4cc-74b0-410d-b7de-889b23b7854c",
+  "uuid": "ea0aa479-401d-4cb8-bc0e-8b5391cee1d5",
+  "total_cost_usd": 2.2985197499999996,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 19,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_adjudication": "GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude rated the S04 engineering deliverable GO with no P0/P1/P2 findings. Three P3 notes were optional informational observations and explicitly deferred because the substantive S04 guarantees are preserved by the inherited S03 gate, S04's unique matter_tenant_without_matter rule, Matter-required denial, defense-in-depth result validator, and no-write/no-runtime boundaries.",
+  "findings": [
+    {
+      "id": "CLAUDE-S04-P3-001",
+      "severity": "P3",
+      "title": "Two blocked claim refs are defense-in-depth through S04 entrypoint",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that matter_tenant_missing and matter_tenant_mismatch are unreachable through the S04 public entrypoint because the S03 input assertion rejects those malformed tenant/Matter shapes first.",
+      "resolution": "Deferred as intentional defense-in-depth. S04's result validator still rejects those shapes if a hand-authored result attempts to encode them, while the executable S04 path actively emits matter_required_missing and matter_tenant_without_matter."
+    },
+    {
+      "id": "CLAUDE-S04-P3-002",
+      "severity": "P3",
+      "title": "Two Matter pair-drift tests verify inherited S03 validation",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that two pair-drift assert.throws cases are satisfied by S03 validator messages before the S04 function body runs.",
+      "resolution": "Deferred as acceptable inherited gate coverage. S04 depends on a validated S03 tenant-boundary result, and the S04-specific matter_tenant_without_matter deny path remains directly tested through the public S04 entrypoint."
+    },
+    {
+      "id": "CLAUDE-S04-P3-003",
+      "severity": "P3",
+      "title": "Model effort read-only negative coverage is transitive",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that S04's model, effort, and read-only re-check has no dedicated S04 negative test because the S03 input validator already covers those fields.",
+      "resolution": "Deferred as harmless defense-in-depth on a security boundary. S04 carries the already-validated S03 metadata and reasserts the same constraints without adding runtime authority."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T17:26:00Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read"
+    ],
+    "write_tools_granted": false,
+    "session_id": "ba89c4cc-74b0-410d-b7de-889b23b7854c",
+    "uuid": "ea0aa479-401d-4cb8-bc0e-8b5391cee1d5",
+    "duration_ms": 357471,
+    "duration_api_ms": 358311,
+    "total_cost_usd": 2.2985197499999996,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m04-s04-claude-review.json",
+    "review_packet_file": "/tmp/lfos-rp00-p02-m04-s04-review-packet.diff"
+  },
+  "claude_cli": {
+    "command": "claude -p --add-dir /tmp --model claude-opus-4-8 --effort max --permission-mode dontAsk --no-session-persistence --tools Read --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit,Grep,Glob --output-format json",
+    "prompt_source": "review packet diff",
+    "output_file": "/tmp/lfos-rp00-p02-m04-s04-claude-review.json",
+    "stderr_file": "/tmp/lfos-rp00-p02-m04-s04-claude-review.stderr",
+    "stderr_bytes": 0,
+    "duration_ms": 357471,
+    "duration_api_ms": 358311,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "ea0aa479-401d-4cb8-bc0e-8b5391cee1d5",
+    "session_id": "ba89c4cc-74b0-410d-b7de-889b23b7854c"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "GO",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Defense-in-depth blocked refs",
+        "location": "packages/control-plane/src/validators.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "matter_tenant_missing and matter_tenant_mismatch are unreachable through the S04 entrypoint because S03 rejects those shapes first, but S04 still protects hand-authored results."
+      },
+      {
+        "severity": "P3",
+        "title": "Inherited pair-drift test coverage",
+        "location": "packages/control-plane/test/service.test.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Two pair-drift throw cases verify S03's upstream validator before S04 execution; the S04-unique matter_tenant_without_matter deny path is directly tested."
+      },
+      {
+        "severity": "P3",
+        "title": "Transitive model effort read-only negative coverage",
+        "location": "packages/control-plane/src/service.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "S04 repeats model, effort, and read-only checks already enforced by S03; this remains defense-in-depth."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M04.S05 Permission precheck as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed S04 consumes the S03 tenant-boundary result and preserves S01, S02, and RP00.P02.M03.S20 dependencies.",
+      "Claude confirmed Matter-required claims without Matter context fail closed with a canonical blocked ref.",
+      "Claude confirmed matter_id null plus matter_tenant_id set fails closed with S04's unique matter_tenant_without_matter rule.",
+      "Claude confirmed no runtime Claude invocation, no review queue writes, no audit writes, no service execution, no runtime route creation, and no product-state write.",
+      "Claude confirmed RP00.P02.M04 stays open and hands off to RP00.P02.M04.S05."
+    ],
+    "summary": "Claude reported GO and no P0/P1/P2 issues. P3 notes are optional hardening or inherited-gate observations."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 3
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m04-s04-claude-review.json",
+    "summary": "Claude returned GO with no P0/P1/P2 findings and three P3 optional informational notes."
+  },
+  "overall_verdict": "PASS"
+}

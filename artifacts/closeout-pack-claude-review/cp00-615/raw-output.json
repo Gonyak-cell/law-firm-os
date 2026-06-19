@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-615",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T06:18:26.056Z",
+  "finished_at": "2026-06-13T06:27:01.682Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":514640,\"duration_api_ms\":513761,\"ttft_ms\":3980,\"num_turns\":52,\"result\":\"CP00-615 review complete: **PASS**, zero findings, does not block pack or goal closeout. The descriptor-only pack faithfully follows the CP00-610→614 pattern with all 40 units / 3 sections accounted for, every no-write/no-real-data flag enforced in code, tests, and contract projection, and the read-only/non-final-approver authority boundary intact. Verdict emitted as JSON per review-schema.json.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d92dac48-e181-4b06-baa8-7f69d443d500\",\"total_cost_usd\":3.8135035000000004,\"usage\":{\"input_tokens\":46,\"cache_creation_input_tokens\":266893,\"cache_read_input_tokens\":1864144,\"output_tokens\":35042,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":266893,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":202,\"cache_read_input_tokens\":105421,\"cache_creation_input_tokens\":4604,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4604},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1102,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001207,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1933,\"outputTokens\":42684,\"cacheReadInputTokens\":2030213,\"cacheCreationInputTokens\":275268,\"webSearchRequests\":0,\"costUSD\":3.8122965000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-615 (RP20 Data Room And VDR P02 permission/audit binding + synthetic fixture head, Risk B, 40 units, range RP20.P02.M04.S19-RP20.P02.M06.S14) passes independent read-only review with zero findings. Verified through Read/Grep/Glob only (no Bash, no edits, no writes, no connectors). (1) Coverage: registry decomposes the pack as M04=4 (P02_SERVICE_TEST_TAIL_ROWS), M05=22 (P02_SERVICE_REVIEW_ROWS = 20 service rows + review/integration tail), M06=14 (P02_SERVICE_ROWS.slice(0,14)) = 40 units / 3 sections; deliverable distribution (implementation 17, contract 2, security_audit 4, ui 5, claude_review 2, failure_recovery 2, test 8) is identical across the registry constant, requirements expected_deliverable_counts, manifest delivery_counts, the hand-mapped manifest included_units, and the prompt baseline. (2) No-write/no-real-data boundaries: freezeCp615Result freezes a descriptor with ~40 runtime/dispatch/write/permission/audit/storage and no-leak flags all false (including the CP615-specific executes_permission_audit_binding_runtime and executes_fixture_head_runtime), synthetic_only/no_real_data true, customer_safe_errors_only true; validateDataRoomVdrCoreCp615... asserts every one of those flags false plus the authority boundary; no filesystem, network, DB, or process I/O exists in any source/test/validator — they are pure frozen-object builders. (3) Tests assert covered_units 40, section_count 3, deliverable_counts deepEqual, production_ready_candidate true, all execute_* false, no_write_attestation reference-equality, hermes emits_hermes_runtime_receipt false, claude_is_final_approval false, handoff to CP00-616/RP20.P02.M06.S15, and deepEqual of contract.projections.cp615_{pack_binding,requirements,no_write_attestation} and contract.packs.cp615_p02_permission_audit_fixture_head_descriptor against generated code. (4) Contract and live plan are consistent: program block current_pack_id CP00-615 / next CP00-616 / current_range matches; manifest status in_progress, production_ready false, runtime_ready false, descriptor_only true, deviation_from_plan false. (5) Authority boundary holds: Claude is read_only_independent_reviewer and never final approver, human_final_approval_required_for_runtime_opening true, local_validation_claims_enterprise_trust false, allowed_tools Read/Grep/Glob, CP178+ forbidden_review_evidence wired into the claude packet. (6) Hermes appears only as descriptor evidence-packet/receipt-shape metadata with emits_hermes_runtime_receipt false (no product runtime). CP178+ hardening evidence is sound: auth preflight passed with non-zero valid-JSON stdout; the pending_review states in claude-review-result.json, construction-inspection.json, adjudication.md, and the empty command-evidence command matrix are by-design placeholders for this read_only_claude_run_raw_capture step (downstream normalize/receipt_validate/adjudication/inspection/final_closeout_validation populate them), not defects; unrelated dirty/untracked files are correctly excluded from pack scope. The pack correctly holds production_ready/runtime_ready false at the descriptor layer and weakens no production_ready gate.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"137e1ffb-cead-4e84-b5ad-9c5888c694f4\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5252,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d92dac48-e181-4b06-baa8-7f69d443d500",
+    "uuid": "137e1ffb-cead-4e84-b5ad-9c5888c694f4",
+    "total_cost_usd": 3.8135035000000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

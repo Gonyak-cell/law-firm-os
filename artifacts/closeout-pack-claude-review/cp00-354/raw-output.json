@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-354",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T17:33:51.459Z",
+  "finished_at": "2026-06-11T17:39:07.013Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":314237,\"duration_api_ms\":314210,\"ttft_ms\":3985,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** (does not block pack or goal closeout; no unresolved P0/P1).\\n\\nCP00-354 is a well-formed descriptor-only permission-slice pack whose binding, distributions, exports, descriptor-only boundaries, validators, tests, contract projection, and manifest are all internally consistent and match the live closeout-plan baseline. The pack-level `production_ready` is correctly `false` (pending this review + human final approval), Claude stays read-only/non-final, and Hermes/H11 is confined to deterministic evidence/review-packet handling. The only finding is one P3 informational note that the downstream review/adjudication/inspection artifacts are expectedly not yet on disk at this pre-review stage.\",\"stop_reason\":\"end_turn\",\"session_id\":\"9a5fb71a-6da6-413c-a1c0-37b273bde0f7\",\"total_cost_usd\":1.9025115000000001,\"usage\":{\"input_tokens\":492,\"cache_creation_input_tokens\":94964,\"cache_read_input_tokens\":1379909,\"output_tokens\":24615,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":94964,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":296,\"cache_read_input_tokens\":96346,\"cache_creation_input_tokens\":7013,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7013},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1092,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011970000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":492,\"outputTokens\":24615,\"cacheReadInputTokens\":1379909,\"cacheCreationInputTokens\":94964,\"webSearchRequests\":0,\"costUSD\":1.9013145,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-354 is a descriptor-only closeout pack (13th in the CP342–CP354 RP11 Time Expense series) covering the permission slice RP11.P06.M04.S06–RP11.P06.M06.S03 (40 units). All evidence supports the pending-closeout posture and the production_ready *candidate* claim, while the actual pack-level production_ready is correctly false. Pack binding (registry.js:217), requirements/distributions (registry.js:1282), and the live closeout-pack-plan entry all match the baseline exactly: deliverables {implementation:14, security_audit:10, ui:8, claude_review:2, test:6}, micro-titles {Secondary Workflow Slice:15, Permission And Audit Binding:22, Synthetic Fixture Set:3}; section rows align one-to-one with the planned included units. All 7 required public exports exist. freezeCp354Result (service.js:1751) hard-codes descriptor-only/no-write/no-leak flags and an authority boundary that keeps Claude non-final and disclaims enterprise trust from local validation. The validators (validators.js:2666/2701) and the contract validator script comprehensively check coverage, section rows, descriptor-only flags, permission guards, no-write attestation, authority boundary, and contract-vs-source drift via deepEqual; three CP354 tests assert coverage.valid, slice.valid, descriptor-only rows, permission guards, authority boundary, hermes production_ready_candidate, and handoff targets. No fs/network/exec/eval/require appears in any changed source (purely Object.freeze descriptors). Contract and manifest are consistent (production_ready:false, runtime_ready:false, status implemented_pending_review, claude review pending with empty receipts, all boundary attestations true). CP178+ review hardening definitions (forbidden_review_evidence, hardened_review_sequence) are complete and correct; readiness auth-preflight passed with valid non-empty JSON. Claude remains a read-only independent reviewer (not final approver) and Hermes/H11 is used only for deterministic descriptor evidence/review-packet handling, not product runtime. One non-blocking P3 informational note: the downstream closeout artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) referenced in the manifest are not yet on disk, which is expected at this pre-review stage. No P0/P1/P2 issues found; the pack is sound and closeout may proceed through the normal post-review gates and human final approval.\",\"findings\":[{\"id\":\"CP00-354-INFO-01\",\"severity\":\"P3\",\"title\":\"Downstream closeout artifacts not yet present (expected at pre-review stage)\",\"file\":\"docs/closeout-packs/cp00-354/manifest.json\",\"line\":1677,\"details\":\"manifest.json required_pack_artifacts and evidence_refs reference docs/closeout-packs/cp00-354/claude-review-result.json, adjudication.md, and construction-inspection.json, none of which exist on disk yet (Glob shows only manifest.json and command-evidence.json). This is consistent with the documented hardening sequence (read_only_claude_run_raw_capture -> normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit): this very review is the step that produces claude-review-result.json, and adjudication/construction-inspection are generated afterward. command-evidence.json explicitly records these as post-review gated commands run before commit. production_ready is correctly false and status is implemented_pending_review, so there is no overclaim. This is informational, not a defect.\",\"recommendation\":\"At the closeout gate, ensure the three referenced artifacts are generated and validated (closeout-pack:validate / receipt:validate) before the commit step, and keep production_ready false until human final approval per the authority boundary. No code or descriptor change required.\",\"post_review_disposition\":\"expected_pending_by_design_non_blocking\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"b5a1d596-8ed4-438e-a882-4e7026753aa2\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6288,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "9a5fb71a-6da6-413c-a1c0-37b273bde0f7",
+    "uuid": "b5a1d596-8ed4-438e-a882-4e7026753aa2",
+    "total_cost_usd": 1.9025115000000001,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

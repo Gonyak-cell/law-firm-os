@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.launch-owner-response-receipt-candidates.validation.v0.1",
+  "generated_at": "2026-06-19T00:15:13.237Z",
+  "source_refs": [
+    "docs/launch/launch-owner-response-receipt-candidates.json",
+    "docs/launch/launch-owner-response-receipt-candidates.md",
+    "docs/launch/launch-owner-response-intake.json",
+    "docs/launch/launch-owner-response-intake-validation.json",
+    "docs/launch/launch-owner-approval-receipt-ledger.json",
+    "docs/launch/launch-owner-approval-receipt-ledger-validation.json"
+  ],
+  "verdict": "PASS",
+  "summary": {
+    "receipt_update_candidate_count": 0,
+    "expected_receipt_update_candidate_count": 0,
+    "response_entry_count": 4,
+    "real_owner_response_count": 0,
+    "copy_allowed_response_count": 0,
+    "target_count_by_candidates": 0,
+    "receipt_ledger_current_real_receipt_count": 0,
+    "receipt_ledger_current_copy_allowed_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "boundary": {
+    "validates_receipt_update_candidates_only": true,
+    "go_live_approved_by_validation": false,
+    "owner_deferrals_approved_by_validation": false,
+    "receipt_ledger_modified_by_validation": false,
+    "launch_decision_register_modified_by_validation": false,
+    "pending_responses_excluded_from_candidates": true,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "findings": []
+}

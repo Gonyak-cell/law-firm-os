@@ -1,0 +1,85 @@
+{
+  "subphase_id": "RP00.P02.M02.S05",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": false,
+    "permission_mode": "dontAsk",
+    "session_id": "80590d6d-d38a-4a0f-9880-ab2ba1577005",
+    "uuid": "9ed23f11-c5af-4f15-bba6-f4110ae8767c",
+    "total_cost_usd": 0.6984705,
+    "duration_ms": 276925,
+    "duration_api_ms": 278682,
+    "num_turns": 1,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "session_continuation_used_to_complete_review": false,
+    "raw_result_path": "codex_exec_output:claude-rp00-p02-m02-s05-session-80590d6d",
+    "reviewed_input": "Provided the RP00.P02.M02.S05 git diff through stdin with Claude tools disabled by --tools \"\" and a read-only C00 review prompt."
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0_or_p1": true,
+    "findings": [
+      {
+        "id": "S05-P3-01",
+        "source_finding_id": "F1",
+        "severity": "P3",
+        "title": "Missing and wrong-source rejections are intentionally layered through S04 input validation and S05 result validation",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude noted that some S05 rejection tests throw from the inherited S04 input validator before S05-specific checks run.",
+        "recommendation": "Optionally add a comment clarifying that permission_decision_ref and source enforcement are intentionally layered.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "No code change required. S05 intentionally consumes only a valid S04 result, so the S04 result validator is the first fail-closed layer. S05 result validation independently requires permission_decision_ref, S04 refs, S05 marker, allow_metadata_only decision, no runtime permission engine, no blocked refs, and S06 next boundary."
+      },
+      {
+        "id": "S05-P3-02",
+        "source_finding_id": "F2",
+        "severity": "P3",
+        "title": "runtime_permission_engine_claim taxonomy should map to explicit forbidden claims",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "description": "Claude noted that runtime_permission_engine_claim was listed in failClosedOn but originally relied on the unknown-claim catch-all rather than named forbidden claims.",
+        "recommendation": "Add explicit forbidden claims for runtime permission evaluation or document catch-all coverage.",
+        "status": "fixed",
+        "disposition": "Fixed. The policy, contract, fixture, policy validator, RP00 validator, README, and service tests now explicitly reject evaluate_runtime_permission, run_permission_engine, and call_authz_evaluator claims."
+      },
+      {
+        "id": "S05-P3-03",
+        "source_finding_id": "F3",
+        "severity": "P3",
+        "title": "Result-validator negative branches and firm-level null-Matter allow path need direct coverage",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude noted that S05 result validator negative branches and null-Matter pass-through were not directly tested.",
+        "recommendation": "Add direct result validator negative assertions and one firm-level matter_id:null allow pass-through test.",
+        "status": "fixed",
+        "disposition": "Fixed. Service tests now assert firm-level null-Matter metadata passes through S05, and result validator rejects wrong S05 marker, runtime permission engine execution, blocked refs, and wrong next_subphase. The RP00 validator repeats those executable checks."
+      },
+      {
+        "id": "S05-P3-04",
+        "source_finding_id": "F4",
+        "severity": "P3",
+        "title": "production_ready remains scoped to metadata-only precheck behavior",
+        "file": "contracts/control-plane-contract.json",
+        "line": null,
+        "description": "Claude noted that production_ready here is for a metadata-only precheck and must not imply runtime permission evaluation completion.",
+        "recommendation": "No change required; keep downstream runtime permission slices explicit.",
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "Accepted as an explicit boundary. S05 production_ready means the metadata-only permission precheck is executable, tested, reviewed, and inspected. It does not complete runtime permission evaluation, AuthZ evaluator integration, service execution, routes, UI, RP00.P02.M02, RP00.P02, or RP00; S06 audit hint precheck remains next."
+      }
+    ],
+    "summary": "Claude returned PASS_WITH_FINDINGS from one completed read-only tools-disabled review. It found no P0/P1 and did not block subphase or goal closeout. F2 and F3 were fixed with code, contract, fixture, validator, README, and test updates. F1 is accepted as intentional layered validation. F4 is deferred as an explicit metadata-only production_ready boundary. No second completed Claude review was run.",
+    "residual_risk": "Low for S05 because it remains synthetic, no-write, no-runtime, no-service-execution, no runtime permission engine, no AuthZ evaluator call, no implementation handoff drafting, and requires an S04 Matter trace pass before recording a metadata-only permission reference. Runtime authorization remains an explicit future-slice responsibility."
+  },
+  "production_ready": true
+}

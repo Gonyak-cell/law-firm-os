@@ -1,0 +1,23 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.validation-report.v0.1",
+  "pack_id": "CP00-430",
+  "prompt_bytes": 2135,
+  "prompt_size_limit_bytes": 25600,
+  "prompt_size_ok": true,
+  "prompt_contains_full_diff_or_source": false,
+  "source_inspection_mode": "read_tools_used",
+  "source_inspection_mode_allowed": true,
+  "summary_only_review_allowed": false,
+  "summary_only_prohibited_reasons": [
+    "security/audit deliverables present"
+  ],
+  "review_schema_ref": "artifacts/closeout-pack-claude-review/cp00-430/review-schema.json",
+  "review_schema_present": true,
+  "tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "forbidden_tools_present": false,
+  "active_untracked_implementation_files_omitted": []
+}

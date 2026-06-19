@@ -1,0 +1,459 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-793",
+  "planned_pack_id": "CP00-793",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "program_id": "RP26",
+  "risk_class": "A",
+  "planned_risk_class": "A",
+  "unit_count": 10,
+  "planned_unit_count": 10,
+  "primary_subphase_id": "RP26.P02.M04.S11",
+  "next_subphase": "RP26.P02.M04.S21",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-793",
+    "planned_pack_id": "CP00-793",
+    "title": "CP00-793 RP26.P02.M04.S11-RP26.P02.M04.S20 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP26.P02.M04.S11",
+      "last_unit_id": "RP26.P02.M04.S20",
+      "description": "RP26.P02.M04.S11-RP26.P02.M04.S20"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP26.P02.M04.S11",
+        "title": "Lock acquisition rule",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP26.P02.M04.S12",
+        "title": "Persistence boundary",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP26.P02.M04.S13",
+        "title": "Validation error mapping",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP26.P02.M04.S14",
+        "title": "Review-required routing",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP26.P02.M04.S15",
+        "title": "Approval-required routing",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP26.P02.M04.S16",
+        "title": "Blocked-claim output",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP26.P02.M04.S17",
+        "title": "Rollback behavior",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP26.P02.M04.S18",
+        "title": "Retry behavior",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP26.P02.M04.S19",
+        "title": "Unit test: happy path",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP26.P02.M04.S20",
+        "title": "Unit test: denied path",
+        "source_micro_phase_id": "RP26.P02.M04",
+        "program_id": "RP26",
+        "phase_id": "RP26.P02",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "test"
+      }
+    ]
+  },
+  "deviation_from_plan": false,
+  "production_ready_flag": "enterprise_saas_service_workflow_tail_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "runtime_execution": false,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "local_validation_claims_enterprise_trust": false,
+    "human_final_approval_required_for_runtime_opening": true,
+    "source_refs": [
+      "contracts/enterprise-saas-hardening-contract.json",
+      "packages/enterprise/README.md",
+      "packages/enterprise/src/registry.js",
+      "packages/enterprise/src/service.js",
+      "packages/enterprise/src/validators.js",
+      "packages/enterprise/test/model.test.js",
+      "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+    ],
+    "descriptor": "EnterpriseSaasCp793ServiceWorkflowTailDescriptor",
+    "package_path": "packages/enterprise",
+    "contract_ref": "contracts/enterprise-saas-hardening-contract.json",
+    "source_descriptor": "EnterpriseSaasCp792ServiceImplementationDescriptor",
+    "production_ready_descriptor_verified": true,
+    "runtime_ready": false
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "scripts/progress-control-room-data.mjs",
+      "tools/progress-control-room/index.html",
+      "Law_Firm_OS_Enterprise_SaaS_사양명세서_v2.0.docx",
+      "docs/closeout-pack-plan/new-session-handoff.md",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/launch-tuw/",
+      "workbook/matter-post-cp-launch-plan.md",
+      "workbook/matter_dev_docs/matter_개발문서_통합본.md",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-793/review-receipt.json",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-793/review-receipt.json"
+    ],
+    "invalid_review_attempts": []
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-793/manifest.json",
+    "docs/closeout-packs/cp00-793/command-evidence.json",
+    "docs/closeout-packs/cp00-793/claude-review-result.json",
+    "docs/closeout-packs/cp00-793/adjudication.md",
+    "docs/closeout-packs/cp00-793/construction-inspection.json"
+  ],
+  "included_units": [
+    {
+      "id": "RP26.P02.M04.S11",
+      "title": "Lock acquisition rule",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S12",
+      "title": "Persistence boundary",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S13",
+      "title": "Validation error mapping",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S14",
+      "title": "Review-required routing",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S15",
+      "title": "Approval-required routing",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S16",
+      "title": "Blocked-claim output",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S17",
+      "title": "Rollback behavior",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S18",
+      "title": "Retry behavior",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S19",
+      "title": "Unit test: happy path",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "RP26.P02.M04.S20",
+      "title": "Unit test: denied path",
+      "source_micro_phase_id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "phase_id": "RP26.P02",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/enterprise-saas-hardening-contract.json",
+        "packages/enterprise/README.md",
+        "packages/enterprise/src/registry.js",
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/validators.js",
+        "packages/enterprise/test/model.test.js",
+        "scripts/validate-rp26-enterprise-saas-hardening-contract.mjs"
+      ],
+      "evidence_refs": []
+    }
+  ],
+  "commit_policy": {
+    "required": true,
+    "commit_after_production_ready": true
+  }
+}

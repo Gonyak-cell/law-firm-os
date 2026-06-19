@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-L2-W03",
+  "title": "Write path construction with non-bypassable audit and events",
+  "created_at": "2026-06-18T13:05:11Z",
+  "status": "blocked_pending_l2_w01_w02_and_write_runtime",
+  "phase": "L2",
+  "gate_binding": [
+    "G2",
+    "L2-EXIT"
+  ],
+  "terminal_tuw": "LT-L2-W03-T18",
+  "artifacts": [
+    "docs/launch/l2/write-path-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l2-w03/packet.json",
+    "docs/goal-closeout/lt-l2-w03/command-evidence.json",
+    "docs/goal-closeout/lt-l2-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l2-w03/adjudication.md",
+    "docs/goal-closeout/lt-l2-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "write_route_directory_count": 0,
+    "write_related_test_count": 0,
+    "api_supports_post_write_routes": false,
+    "l2_w01_persistence_foundation_complete": false,
+    "l2_w02_permission_foundation_complete": false,
+    "g2_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

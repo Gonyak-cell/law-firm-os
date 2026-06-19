@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-113",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-113-claude-review-output-valid.json",
+    "session_id": "54b7c070-9cde-44e9-8d23-d620306fa76e",
+    "uuid": "445cf58a-e1bc-4e73-b533-f0fd55f6a465",
+    "duration_ms": 181941,
+    "duration_api_ms": 183995,
+    "total_cost_usd": 0.6123065,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 3
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "audit_annotation.hint flows from evaluatePermission(resource=...) into the serialized response — verify it cannot echo hidden source fields",
+        "file": "packages/authz/src/api-permission-audit-binding.js",
+        "evidence": "auditAnnotation.hint = decision?.audit_hint ?? null is built from evaluatePermission(), which receives the full resource including the four omit-listed fields (privileged_note, cross_tenant_secret, internal_policy_label, sealed_audit_hint_payload). serializeResource() then places audit_annotation (an allowlisted field) into response_contract.items[0]. If evaluate.js copies resource.sealed_audit_hint_payload (or similar) into audit_hint, the omission guard is bypassed via the audit annotation channel. serializeResource itself omits the raw fields correctly, so the only residual channel is the evaluator's audit_hint.",
+        "recommendation": "Confirm evaluatePermission's audit_hint is a decision-shaped hint that never echoes raw resource source fields, or sanitize auditAnnotation.hint against hidden_source_fields before serialization. No change strictly required if evaluate.js is already field-bounded.",
+        "disposition": "fixed_after_review_by_sanitizing_audit_hint_and_asserting_hidden_field_omission_in_tests_and_validator"
+      },
+      {
+        "severity": "P3",
+        "title": "Invalid-pagination response sanitizes page_size while pagination_filtering_contract echoes the raw rejected value",
+        "file": "packages/authz/src/api-permission-audit-binding.js",
+        "evidence": "For page_size=101, response_contract.page_size resolves via isValidIntegerInRange(pageSize,1,100) ? pageSize : 25 (→ 25), but pagination_filtering_contract.page_size returns the raw pageSize (101) with valid:false. Same rejected request is represented two different ways. Harmless (request is rejected, items:[], error_codes:[invalid_pagination]).",
+        "recommendation": "Document the requested-vs-applied intent or align the two fields to avoid consumer confusion.",
+        "disposition": "documented_non_blocking"
+      },
+      {
+        "severity": "P3",
+        "title": "Filtering surface enforces pagination bounds only; no filter predicate is applied",
+        "file": "packages/authz/src/api-permission-audit-binding.js",
+        "evidence": "Surface/title 'pagination_filtering_contract' / 'Pagination or filtering contract' implements page/page_size bounds (page_min 1, page_size_max 100, invalid_pagination) but no filter parameter. Acceptable under the 'or' title and metadata-only Risk A scope.",
+        "recommendation": "Confirm any filtering semantics are intentionally deferred to CP00-114; no change required for this pack.",
+        "disposition": "documented_non_blocking"
+      },
+      {
+        "severity": "P3",
+        "title": "Validator additions reference requireIncludes, not shown in this diff",
+        "file": "scripts/validate-rp02-permission-kernel-contract.mjs",
+        "evidence": "New assertions call requireIncludes(...) for api_binding_surfaces, error_codes, safety_codes, allowlist, and hidden_source_fields. The helper definition is outside the diff; if it is not already defined in the file the Hermes validation command would throw a ReferenceError.",
+        "recommendation": "Verify requireIncludes is defined in the existing validator scope alongside requireEqual/requireTrue/requireFalse.",
+        "disposition": "documented_non_blocking"
+      }
+    ],
+    "recommendation": "approve_pack_closeout",
+    "rationale": "Clean synthetic Risk A boundary pack; all in-scope guarantees hold. Pagination bounds 1..100 enforced with invalid_pagination; serialization is strict allowlist-only (serializeResource emits only resource_id/resource_type/tenant_id/matter_id/title/permission_annotation/audit_annotation) and the four hidden source fields are never serialized (tests + validator assert undefined); unauthorized_data_omitted safety code is always present (fail-closed). evaluatePermission is invoked only after synthetic, tenant, matter, and pagination prechecks pass (evaluator_invoked false for non-synthetic/cross-tenant/matter-drift/invalid-pagination, true for allow/deny). permission_denied and invalid_pagination are both exercised, plus non_synthetic_request_blocked, tenant_boundary_precheck_failed, matter_trace_precheck_failed. Audit annotation is preview_only with emitted_to_audit_ledger:false; all no_write_attestation flags (policy/audit/product/database/idempotency/locks/rollback/retry/AI/export/external-share/approval/claude/ldip) are false and the module performs no actual I/O. HRX stays embedded-only and handoff is fixed to CP00-114 / RP02.P03.M05.S17. Contract JSON, README, tests, and the validator are mutually consistent (10 units S07–S16, deliverable counts 2/3/3/1/1, Claude packet claude-opus-4-8 effort max read_only exactly_one). The single P2 is a verification item on the audit_hint channel, not a confirmed leak, and does not block closeout; remaining items are informational nits.",
+    "notes": [
+      "No P0/P1 findings were reported by the valid CP00-113 pack-level Claude review.",
+      "Original P2 audit-hint channel finding was fixed after review by sanitizing the hint and adding test/validator assertions for hidden source field omission.",
+      "P3 invalid-pagination requested-versus-applied note is documented as non-blocking because rejected request metadata intentionally preserves requested values while response_contract uses safe applied defaults.",
+      "P3 filtering predicate note is documented as non-blocking because CP00-113 implements the pagination side of the \"pagination or filtering\" unit and CP00-114 continues the same Risk A boundary.",
+      "P3 requireIncludes note is documented as non-blocking because requireIncludes is already defined in the existing validator scope.",
+      "No second valid Claude review was run."
+    ]
+  },
+  "raw_result_text": "```json\n{\n  \"overall_verdict\": \"pass\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 1, \"p3\": 3 },\n  \"findings\": [\n    {\n      \"severity\": \"p2\",\n      \"title\": \"audit_annotation.hint flows from evaluatePermission(resource=...) into the serialized response — verify it cannot echo hidden source fields\",\n      \"file\": \"packages/authz/src/api-permission-audit-binding.js\",\n      \"evidence\": \"auditAnnotation.hint = decision?.audit_hint ?? null is built from evaluatePermission(), which receives the full resource including the four omit-listed fields (privileged_note, cross_tenant_secret, internal_policy_label, sealed_audit_hint_payload). serializeResource() then places audit_annotation (an allowlisted field) into response_contract.items[0]. If evaluate.js copies resource.sealed_audit_hint_payload (or similar) into audit_hint, the omission guard is bypassed via the audit annotation channel. serializeResource itself omits the raw fields correctly, so the only residual channel is the evaluator's audit_hint.\",\n      \"recommendation\": \"Confirm evaluatePermission's audit_hint is a decision-shaped hint that never echoes raw resource source fields, or sanitize auditAnnotation.hint against hidden_source_fields before serialization. No change strictly required if evaluate.js is already field-bounded.\"\n    },\n    {\n      \"severity\": \"p3\",\n      \"title\": \"Invalid-pagination response sanitizes page_size while pagination_filtering_contract echoes the raw rejected value\",\n      \"file\": \"packages/authz/src/api-permission-audit-binding.js\",\n      \"evidence\": \"For page_size=101, response_contract.page_size resolves via isValidIntegerInRange(pageSize,1,100) ? pageSize : 25 (→ 25), but pagination_filtering_contract.page_size returns the raw pageSize (101) with valid:false. Same rejected request is represented two different ways. Harmless (request is rejected, items:[], error_codes:[invalid_pagination]).\",\n      \"recommendation\": \"Document the requested-vs-applied intent or align the two fields to avoid consumer confusion.\"\n    },\n    {\n      \"severity\": \"p3\",\n      \"title\": \"Filtering surface enforces pagination bounds only; no filter predicate is applied\",\n      \"file\": \"packages/authz/src/api-permission-audit-binding.js\",\n      \"evidence\": \"Surface/title 'pagination_filtering_contract' / 'Pagination or filtering contract' implements page/page_size bounds (page_min 1, page_size_max 100, invalid_pagination) but no filter parameter. Acceptable under the 'or' title and metadata-only Risk A scope.\",\n      \"recommendation\": \"Confirm any filtering semantics are intentionally deferred to CP00-114; no change required for this pack.\"\n    },\n    {\n      \"severity\": \"p3\",\n      \"title\": \"Validator additions reference requireIncludes, not shown in this diff\",\n      \"file\": \"scripts/validate-rp02-permission-kernel-contract.mjs\",\n      \"evidence\": \"New assertions call requireIncludes(...) for api_binding_surfaces, error_codes, safety_codes, allowlist, and hidden_source_fields. The helper definition is outside the diff; if it is not already defined in the file the Hermes validation command would throw a ReferenceError.\",\n      \"recommendation\": \"Verify requireIncludes is defined in the existing validator scope alongside requireEqual/requireTrue/requireFalse.\"\n    }\n  ],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"approve_pack_closeout\",\n  \"rationale\": \"Clean synthetic Risk A boundary pack; all in-scope guarantees hold. Pagination bounds 1..100 enforced with invalid_pagination; serialization is strict allowlist-only (serializeResource emits only resource_id/resource_type/tenant_id/matter_id/title/permission_annotation/audit_annotation) and the four hidden source fields are never serialized (tests + validator assert undefined); unauthorized_data_omitted safety code is always present (fail-closed). evaluatePermission is invoked only after synthetic, tenant, matter, and pagination prechecks pass (evaluator_invoked false for non-synthetic/cross-tenant/matter-drift/invalid-pagination, true for allow/deny). permission_denied and invalid_pagination are both exercised, plus non_synthetic_request_blocked, tenant_boundary_precheck_failed, matter_trace_precheck_failed. Audit annotation is preview_only with emitted_to_audit_ledger:false; all no_write_attestation flags (policy/audit/product/database/idempotency/locks/rollback/retry/AI/export/external-share/approval/claude/ldip) are false and the module performs no actual I/O. HRX stays embedded-only and handoff is fixed to CP00-114 / RP02.P03.M05.S17. Contract JSON, README, tests, and the validator are mutually consistent (10 units S07–S16, deliverable counts 2/3/3/1/1, Claude packet claude-opus-4-8 effort max read_only exactly_one). The single P2 is a verification item on the audit_hint channel, not a confirmed leak, and does not block closeout; remaining items are informational nits.\"\n}\n```"
+}

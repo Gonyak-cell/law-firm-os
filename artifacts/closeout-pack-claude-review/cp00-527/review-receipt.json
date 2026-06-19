@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-527",
+  "normalized_at": "2026-06-12T16:36:41.348Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-527/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-527/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-527/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-527/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0b2bfe6d-2d5d-4071-9dea-31d34a87afdd",
+    "uuid": "5d8a868e-8727-495c-8a8e-9f382f06eb99",
+    "total_cost_usd": 2.0794465,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5588,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-527 is a descriptor-only RP17 (AI Governance) closeout pack covering 150 units (RP17.P03.M06.S01-RP17.P04.M03.S08). The pack-level production_ready claim is correctly conservative: command-evidence.json declares production_ready=false with status \"implementation_and_plan_gates_passed_pending_final_closeout\", and the Hermes packet reports only production_ready_candidate=true (gated on coverage.valid && slice.valid). No enterprise-trust claim is made from local validation. Verification: (1) CP527 binding, no-write attestation, requirements, case-set/descriptor (service.js), and coverage/slice/Hermes/Claude/handoff validators (validators.js) are all present; all 7 required public exports exist and are imported+exercised by tests; deliverable (impl 53/contract 21/security_audit 16/test 14/hermes 6/claude 10/ui 28/fixture 2 = 150), micro-title (=150), phase, and micro-phase distributions are internally consistent and match the baseline, plan, and contract. (2) model.test.js validates against the real closeout-pack-plan.json and contract (not hand-built fixtures), asserting coverage validity, descriptor-only rows, authority boundary (claude_is_final_approval=false), and no-write attestation. (3) command-evidence shows npm test, npm run validate, rp17:ai-governance-core:validate, closeout-pack-plan/weighted/spec/fullplan/goal/control-plane validate, build, and git diff --check all exit 0; readiness auth preflight passed with valid non-empty JSON (not a forbidden auth-failure/0-byte/malformed result). (4) No-write/no-real-data boundaries are truthful: freezeCp527Result + CP527_NO_WRITE_ATTESTATION assert ~30 no-write/no-runtime flags, and grep confirms the package src has no writeFileSync/child_process/fetch/network/env side-effects (pure frozen descriptor construction). (5) Claude remains a read-only reviewer and not final approver: allowed_claude_tools=[Read,Grep,Glob]; promotes_claude_to_final_approval=false; claims_enterprise_trust_from_local_validation=false; human_final_approval_required_for_runtime_opening=true; the hardened_review_sequence places human finding-adjudication, construction-inspection, and final-closeout validation after the Claude run. (6) Hermes patterns are review-plane only (emits_hermes_runtime_receipt=false, PROGRAM_CONTRACT.descriptor_only=true, hermes_packet_body excluded), not product runtime. (7) Review-hardening (CP178+) is enforced: forbidden_review_evidence enumerates failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, disabled_tools_run, missing_raw_output_reference, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, and production_enterprise_trust_claim; validation-report.json confirms forbidden_tools_present=false and summary_only_review_allowed=false with prompt within size limit. (8) Changed-file scope is clean: all in-scope edits are confined to packages/ai-governance (registry/service/validators/test/README), the contract, and the validator script; unrelated dirty files (progress-control-room UI, workbook docs, docx) are correctly classified as unrelated and not attributed to this pack, with no required untracked implementation files omitted. No P0/P1/P2/P3 issues found.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

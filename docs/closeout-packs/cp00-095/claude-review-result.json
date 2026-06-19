@@ -1,0 +1,142 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-095",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "8ab41204-4b30-4b9e-8398-bcb04b7a8c17",
+    "uuid": "d2e6ac0b-1ece-49fa-a66c-9841ca179c2a",
+    "total_cost_usd": 1.1385832500000002,
+    "permission_denials": [],
+    "duration_ms": 295812,
+    "invalid_attempt_counted_as_valid": false,
+    "cli_type": "result",
+    "cli_subtype": "success",
+    "cli_is_error": false
+  },
+  "invalid_attempts": [],
+  "parsed_review": {
+    "pack_id": "CP00-095",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "CP00-095-P3-01",
+          "title": "Generated pack risk class derived solely from the first unit",
+          "severity": "P3",
+          "blocks_pack_closeout": false,
+          "file": "scripts/generate-closeout-pack-plan.mjs",
+          "detail": "buildGeneratedPacks() classifies the entire pack via classifyUnitRisk(units[start]) (first unit only). CP00-095 leads with 'Scope inventory' (Risk C), so the 150-unit pack is Risk C even though it contains permission/audit/tenant precheck units that individually key to Risk A. For CP00-095 this is acceptable and does NOT weaken gates: every included unit is non-enforcing foundational scaffolding (permission precheck is reference_only/evaluated:false, audit precheck is hint_only/writes_audit_event:false), no-write boundaries are enforced by contract + code + tests, and the Claude C01 / Hermes H01 gates apply to the full pack.",
+          "recommendation": "In a future generator revision, classify a generated pack by the maximum risk across all its units so a pack that leads with a scaffolding unit but contains genuinely enforcing security units cannot be under-classified. Non-blocking; this is the established generator rule (law-firm-os.closeout-pack-plan.generator.v1) and not introduced by this pack."
+        },
+        {
+          "id": "CP00-095-P3-02",
+          "title": "service intake synthetic_only flag is informational, not fail-closed",
+          "severity": "P3",
+          "blocks_pack_closeout": false,
+          "file": "packages/domain/src/service.js",
+          "detail": "normalizeCoreDomainServiceRequest sets synthetic_only: input.synthetic_only !== false, so a caller may pass synthetic_only:false without rejection. The synthetic_data_only invariant and accepts_real_client_data:false still hold structurally because no code path persists or processes real data (writes_product_state:false, no DB/IO in the domain package), so the boundary is not actually breachable here.",
+          "recommendation": "To make synthetic_data_only an actively enforced invariant rather than an advisory marker, reject requests where synthetic_only === false. Non-blocking."
+        }
+      ]
+    },
+    "explicit_checks": {
+      "risk_c_150_unit_acceleration_preserves_quality_gates": {
+        "status": "pass",
+        "unit_count": 150,
+        "risk_class": "C",
+        "c_range": "40-150",
+        "within_default_risk_range": true,
+        "claude_gate": "C01",
+        "hermes_gate": "H01",
+        "detail": "150 units sits at the upper bound of the Risk C range and is flagged within_default_risk_range:true. Acceleration does not weaken gates: Claude C01 and Hermes H01 still apply to the full pack, domain tests (13) and the full suite (931) pass, rp01:core-domain:validate and closeout-pack-plan:validate exit 0, and all content is non-enforcing foundational scaffolding. See finding CP00-095-P3-01 for the advisory on first-unit-only risk classification."
+      },
+      "no_runtime_permission_evaluation": {
+        "status": "pass",
+        "detail": "createCoreDomainPermissionPrecheck returns status:'reference_only', evaluated:false and never branches on permissionRef.effect to allow/deny. Contract no_write_boundaries.evaluates_runtime_permission:false and service_entrypoint_contract.evaluates_runtime_permission:false. Permission evaluation explicitly deferred to RP02. Tests assert permission_precheck.evaluated === false.",
+        "deferred_to": "RP02 Permission Kernel"
+      },
+      "no_audit_ledger_writes": {
+        "status": "pass",
+        "detail": "createCoreDomainAuditHint returns status:'hint_only', writes_audit_event:false. createAuditEvent/createAuditEventReference are in-memory frozen-record constructors only (no fs/network/DB). Contract no_write_boundaries.writes_audit_event:false and service_entrypoint_contract.writes_audit_event:false. Audit ledger write explicitly deferred to RP03. Tests assert audit_hint.writes_audit_event === false.",
+        "deferred_to": "RP03 Audit And Compliance Kernel"
+      },
+      "hrx_remains_embedded": {
+        "status": "pass",
+        "detail": "generate-closeout-pack-plan.mjs expanded_product_scope keeps hrx_embedded_people_units:901 with hrx_boundary:'embedded_people_hr_evidence_module_inside_law_firm_os'. CP00-095 covers only RP01 core-domain units and does not split, extract, or relocate HRX."
+      },
+      "ldip_not_split_or_implemented": {
+        "status": "pass",
+        "detail": "No reviewed CP00-095 file implements or splits LDIP; the pack scope is RP01.P00.M00.S01-RP01.P02.M04.S06 (core domain foundation). Note: an untracked working-tree artifact docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json exists, but it is outside this pack's deliverable set and is an 'invalid-attempt' review result, not an LDIP implementation. Out of scope for CP00-095; not a finding."
+      },
+      "no_real_sensitive_data": {
+        "status": "pass",
+        "detail": "All identifiers in tests and validator are synthetic (t_rp01, u_owner, m_rp01, c_rp01, d_rp01, dv_rp01_v1, perm_rp01_read, *_validator). No real client/matter/document/billing data, no credentials, secrets, API keys, tokens, or real emails. Contract no_write_boundaries.uses_real_client_data:false; invariant synthetic_data_only present; service_entrypoint_contract.accepts_real_client_data:false. (See CP00-095-P3-02 re: synthetic_only flag enforcement.)"
+      },
+      "no_write_boundaries_enforced": {
+        "status": "pass",
+        "detail": "Domain package is pure functions with no persistence/IO. assembleCoreDomainServiceIntake and the contract both expose writes_product_state:false; contract no_write_boundaries sets creates_database_rows:false, writes_product_state:false. Only file IO in the change set is a read in validate-rp01-core-domain-contract.mjs."
+      },
+      "pack_identity_consistency": {
+        "status": "pass",
+        "detail": "pack_id CP00-095, risk_class C, unit_count 150, range RP01.P00.M00.S01-RP01.P02.M04.S06 are consistent across CORE_DOMAIN_PACK_BINDING, CORE_DOMAIN_SERVICE_ENTRYPOINT_CONTRACT, contracts/core-domain-contract.json, next-pack-queue.json, and the plan snapshot. Queue correctly starts after live CP00-094 at live_next_unit_id RP01.P00.M00.S01 as the first generated pack."
+      },
+      "contract_code_consistency": {
+        "status": "pass",
+        "entity_count": 24,
+        "matter_traceable_count": 8,
+        "pre_matter_count": 16,
+        "detail": "contract.owns (24), entity_definitions (24), owner_boundaries (4+2+8+6+2+2=24), and ownership.js CORE_DOMAIN_ENTITY_DEFINITIONS (24) agree. matter_traceable_entity_types (8) + pre_matter_entity_types (16) = 24. validate-rp01-core-domain-contract.mjs cross-checks binding, owners, traceability, registry, and metadata-only intake and exits 0."
+      },
+      "tests_and_validators_green": {
+        "status": "pass",
+        "detail": "node --check on all new/changed JS exit 0; domain tests 13 passed; npm test 931 passed; rp01:core-domain:validate exit 0 (entities 24, entrypoint core_domain_service_intake); npm run validate, closeout-pack-plan:validate (796 packs, 53547 units, queue after CP00-094), spec/weighted/fullplan/goal-closeout validators, build, and git diff --check all exit 0."
+      },
+      "deferrals_explicit": {
+        "status": "pass",
+        "detail": "contract.deferred_to_future_rps explicitly records permission_evaluation->RP02, audit_ledger_write->RP03, matter_workflow_runtime->RP05, dms_document_runtime->RP06, and invariants permission_reference_only_until_rp02 / audit_hint_only_until_rp03 are declared. Out-of-pack runtime behavior is explicitly deferred, not silently omitted."
+      },
+      "working_tree_hygiene": {
+        "status": "advisory_non_blocking",
+        "detail": "Untracked working-tree noise (.DS_Store, docs/.DS_Store, 'Law Firm OS UI/', docs/ldip-integration/...invalid-attempt-01.json, docs/closeout-pack-plan/new-session-handoff.md) is present but is not part of CP00-095's deliverable file set and does not affect pack correctness. Ensure these are not committed into the pack; not a finding against CP00-095."
+      }
+    }
+  },
+  "post_review_fixes": [
+    {
+      "finding_id": "CP00-095-P3-02",
+      "status": "fixed",
+      "files": [
+        "packages/domain/src/service.js",
+        "packages/domain/test/core-domain-foundation.test.js"
+      ],
+      "validation": [
+        "node --test packages/domain/test/*.test.js",
+        "npm test",
+        "npm run rp01:core-domain:validate"
+      ]
+    }
+  ],
+  "raw_result_excerpt": "{\n  \"review\": {\n    \"pack_id\": \"CP00-095\",\n    \"overall_verdict\": \"PASS_WITH_FINDINGS\",\n    \"blocks_pack_closeout\": false,\n    \"blocks_goal_closeout\": false,\n    \"no_unresolved_p0\": true,\n    \"no_unresolved_p1\": true,\n    \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 2 },\n    \"findings\": {\n      \"p0\": [],\n      \"p1\": [],\n      \"p2\": [],\n      \"p3\": [\n        {\n          \"id\": \"CP00-095-P3-01\",\n          \"title\": \"Generated pack risk class derived solely from the first unit\",\n          \"severity\": \"P3\",\n          \"blocks_pack_closeout\": false,\n          \"file\": \"scripts/generate-closeout-pack-plan.mjs\",\n          \"detail\": \"buildGeneratedPacks() classifies the entire pack via classifyUnitRisk(units[start]) (first unit only). CP00-095 leads with 'Scope inventory' (Risk C), so the 150-unit pack is Risk C even though it contains permission/audit/tenant precheck units that individually key to Risk A. For CP00-095 this is acceptable and does NOT weaken gates: every included unit is non-enforcing foundational scaffolding (permission precheck is reference_only/evaluated:false, audit precheck is hint_only/writes_audit_event:false), no-write boundaries are enforced by contract + code + tests, and the Claude C01 / Hermes H01 gates apply to the full pack.\",\n          \"recommendation\": \"In a future generator revision, classify a generated pack by the maximum risk across all its units so a pack that leads with a scaffolding unit but contains genuinely enforcing security units cannot be under-classified. Non-blocking; this is the established generator rule (law-firm-os.closeout-pack-plan.generator.v1) and not introduced by this pack.\"\n        },\n        {\n          \"id\": \"CP00-095-P3-02\",\n          \"title\": \"service intake synthetic_only flag is informational, not fail-closed\",\n          \"severity\": \"P3\",\n          \"blocks_pack_closeout\": false,\n          \"file\": \"packages/domain/src/service.js\",\n          \"detail\": \"normalizeCoreDomainServiceRequest sets synthetic_only: input.synthetic_only !== false, so a caller may pass synthetic_only:false without rejection. The synthetic_data_only invariant and accepts_real_client_data:false still hold structurally because no code path persists or processes real data (writes_product_state:false, no DB/IO in the domain package), so the boundary is not actually breachable here.\",\n          \"recommendation\": \"To make synthetic_data_only an actively enforced invariant rather than an advisory marker, reject requests where synthetic_only === false. Non-blocking.\"\n        }\n      ]\n    },\n    \"explicit_checks\": {\n      \"risk_c_150_unit_acceleration_preserves_quality_gates\": {\n        \"status\": \"pass\",\n        \"unit_count\": 150,\n        \"risk_class\": \"C\",\n        \"c_range\": \"40-150\",\n        \"within_default_risk_range\": true,\n        \"claude_gate\": \"C01\",\n        \"hermes_gate\": \"H01\",\n        \"detail\": \"150 units sits at the upper bound of the Risk C range and is flagged within_default_risk_range:true. Acceleration does not weaken gates: Claude C01 and Hermes H01 still apply to the full pack, domain tests (13) and the full suite (931) pass, rp01:core-domain:validate and closeout-pack-plan:validate exit 0, and all content is non-enforcing foundational scaffolding. See finding CP00-095-P3-01 for the advisory on first-unit-only risk classification.\"\n      },\n      \"no_runtime_permission_evaluation\": {\n        \"status\": \"pass\",\n        \"detail\": \"createCoreDomainPermissionPrecheck returns status:'reference_only', evaluated:false and never branches on permissionRef.effect to allow/deny. Contract no_write_boundaries.evaluates_runtime_permission:false and service_entrypoint_contract.evaluates_runtime_permission:false. Permission evaluation explicitly deferred to RP02. Tests assert permission_precheck.evaluated === false.\",\n        \"deferred_to\": \"RP02 Permission Kernel\"\n      },\n      \"no_audit_ledger_writes\": {\n        \"status\": \"pass\",\n        \"detail\": \"createCoreDomainAuditHint returns status:'hint_only', writes_audit_event:false. createAuditEvent/createAuditEventReference are in-memory frozen-record constructors only (no fs/network/DB). Contract no_write_boundaries.writes_audit_event:false and service_entrypoint_contract.writes_audit_event:false. Audit ledger write explicitly deferred to RP03. Tests assert audit_hint.writes_audit_event === false.\",\n        \"deferred_to\": \"RP03 Audit And Compliance Kernel\"\n      },\n      \"hrx_remains_embedded\": {\n        \"status\": \"pass\",\n        \"detail\": \"generate-closeout-pack-plan.mjs expanded_product_scope keeps hrx_embedded_people_units:901 with hrx_boundary:'embedded_people_hr_evidence_module_inside_law_firm_os'. CP00-095 covers only RP01 core-domain units and does not split, extract, or relocate HRX.\"\n      },\n      \"ldip_not_split_or_implemented\": {\n        \"status\": \"pass\",\n        \"detail\": \"No reviewed CP00-095 file implements or splits LDIP; the pack scope is RP01.P00.M00.S01-RP01.P02.M04.S06 (core domain foundation). Note: an untracked working-tree artifact docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json exists, but it is outside this pack's deliverable set and is an 'invalid-attempt' review result, not an LDIP implementation. Out of scope for CP00-095; not a finding.\"\n      },\n      \"no_real_sensitive_data\": {\n        \"status\": \"pass\",\n        \"detail\": \"All identifiers in tests and validator are synthetic (t_rp01, u_owner, m_rp01, c_rp01, d_rp01, dv_rp01_v1, perm_rp01_read, *_validator). No real client/matter/document/billing data, no credentials, secrets, API keys, tokens, or real emails. Contract no_write_boundaries.uses_real_client_data:false; invariant synthetic_data_only present; service_entrypoint_contract.accepts_real_client_data:false. (See CP00-095-P3-02 re: synthetic_only flag enforcement.)\"\n      },\n      \"no_write_boundaries_enforced\": {\n        \"status\": \"pass\",\n        \"detail\": \"Domain package is pure functions with no persistence/IO. assembleCoreDomainServiceIntake and the contract both expose writes_product_state:false; contract no_write_boundaries sets creates_database_rows:false, writes_product_state:false. Only file IO in the change set is a read in validate-rp01-core-domain-contract.mjs.\"\n      },\n      \"pack_identity_consistency\": {\n        \"status\": \"pass\",\n        \"detail\": \"pack_id CP00-095, risk_class C, unit_count 150, range RP01.P00.M00.S01-RP01.P02.M04.S06 are consistent across CORE_DOMAIN_PACK_BINDING, CORE_DOMAIN_SERVICE_ENTRYPOINT_CONTRACT, contracts/core-domain-contract.json, next-pack-queue.json, and the plan snapshot. Queue correctly starts after live CP00-094 at live_next_unit_id RP01.P00.M00.S01 as the first generated pack.\"\n      },\n      \"contract_code_consistency\": {\n        \"status\": \"pass\",\n        \"entity_count\": 24,\n        \"matter_traceable_count\": 8,\n        \"pre_matter_count\": 16,\n        \"detail\": \"contract.owns (24), entity_definitions (24), owner_boundaries (4+2+8+6+2+2=24), and ownership.js CORE_DOMAIN_ENTITY_DEFINITIONS (24) agree. matter_traceable_entity_types (8) + pre_matter_entity_types (16) = 24. validate-rp01-core-domain-contract.mjs cross-checks binding, owners, traceability, registry, and metadata-only intake and exits 0.\"\n      },\n      \"tests_and_validators_green\": {\n        \"status\": \"pass\",\n        \"detail\": \"node --check on all new/changed JS exit 0; domain tests 13 passed; npm test 931 passed; rp01:core-domain:validate exit 0 (entities 24, entrypoint core_domain_service_intake); npm run validate, closeout-pack-plan:validate (796 packs, 53547 units, queue after CP00-094), spec/weighted/fullplan/goal-closeout validators, build, and git diff --check all exit 0.\"\n      },\n      \"deferrals_explicit\": {\n        \"status\": \"pass\",\n        \"detail\": \"contract.deferred_to_future_rps explicitly records permission_evaluation->RP02, audit_ledger_write->RP03, matter_workflow_runtime->RP05, dms_document_runtime->RP06, and invariants permission_reference_only_until_rp02 / audit_hint_only_until_rp03 are declared. Out-of-pack runtime behavior is explicitly deferred, not silently omitted.\"\n      },\n      \"working_tree_hygiene\": {\n        \"status\": \"advisory_non_blocking\",\n        \"detail\": \"Untracked working-tree noise (.DS_Store, docs/.DS_Store, 'Law Firm OS UI/', docs/ldip-integration/...invalid-attempt-01.json, docs/closeout-pack-plan/new-session-handoff.md) is present but is not part of CP00-095's deliverable file set and does not affect pack correctness. Ensure these are not committed into the pack; not a finding against CP00-095.\"\n      }\n    }\n  }\n}"
+}

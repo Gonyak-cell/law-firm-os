@@ -1,0 +1,103 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-156",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "efbdd194-b252-4a9c-8777-a8fd1eae8c9e",
+    "uuid": "e4fc64f0-7028-4cdf-8efb-bb82f899b22b",
+    "duration_ms": 272364,
+    "duration_api_ms": 274478,
+    "total_cost_usd": 0.8061245,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-156-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-156.master_data_foundation_model_registry",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-156-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "No boundary drift. All factories/validators are deterministic descriptor builders; no DB writes, no runtime permission eval, no audit append, no Hermes/Claude execution, no API handler, no UI, no network, synthetic-only data (example.invalid), no LDIP, no HRX split. Ownership boundaries (PermissionKernel/AuditKernel/MatterCore/DMS as reference-only) are declarative and respected.",
+    "findings": [
+      {
+        "id": "C04-CP156-01",
+        "severity": "P2",
+        "title": "no_write_attestation validation is incomplete (defeated completeness guard)",
+        "evidence": "scripts/validate-rp04-master-data-contract.mjs loops the 19-key MASTER_DATA_CP156_NO_WRITE_ATTESTATION but guards each check with `&& key in contract.no_write_attestation`. Any attestation key omitted from contracts/master-data-contract.json (which currently declares only 15) passes silently, and the 4 code-only keys (emits_hermes_evidence, sends_claude_prompt, mutates_dom, issues_network_request) are never required in the contract. A future contract declaring only a subset of false attestations would still validate.",
+        "recommended_action": "Require every registry attestation key to be present AND false in the contract; drop the `key in` guard and add a missing-key error so the core no-write boundary cannot drift silently."
+      },
+      {
+        "id": "C04-CP156-02",
+        "severity": "P2",
+        "title": "ownership_drift acceptance risk has zero automated coverage",
+        "evidence": "validators.js implements the ownership_drift block (`options.owner_module !== definition.owner_module`), but neither packages/master-data/test/model.test.js nor scripts/validate-rp04-master-data-contract.mjs exercises it. It is the only one of the five acceptance risks with no passing/failing assertion. The 'owner drift must block' criterion is therefore unverified.",
+        "recommended_action": "Add a test asserting validateMasterDataRecord(..., { owner_module: 'DMS' }) returns valid:false with blocked_claims including 'ownership_drift', mirroring the leakage/direction tests."
+      },
+      {
+        "id": "C04-CP156-03",
+        "severity": "P2",
+        "title": "Relationship direction validation in validateMasterDataRecord is narrow",
+        "evidence": "validators.js only flags `from_entity_id === to_entity_id` (self-loop). It does not validate the `direction` enum nor that direction is consistent with endpoint entity kinds; the enum is only enforced in the model.js factory, so a record built outside the factory with an invalid/mismatched direction passes validation. Also, when both endpoints are absent, `undefined === undefined` yields a false-positive relationship_direction_error alongside missing_required_fields.",
+        "recommended_action": "In the validator, reject direction values not in MASTER_DATA_RELATIONSHIP_DIRECTIONS, and only run the self-loop check when both endpoints are present; document that direction/kind cross-consistency is deferred (no kind lookup available in descriptor-only scope)."
+      },
+      {
+        "id": "C04-CP156-04",
+        "severity": "P3",
+        "title": "hidden_source_fields absence is structurally guaranteed but untested",
+        "evidence": "Factories construct records via an explicit allowlist (baseRecord + per-model fields), so MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS (raw_document_body, secret, etc.) cannot leak through factory output. No test asserts this — e.g., passing { raw_document_body, secret } to a factory and verifying they are absent from the frozen record.",
+        "recommended_action": "Add one regression test confirming hidden source fields supplied as input never appear on the returned record."
+      },
+      {
+        "id": "C04-CP156-05",
+        "severity": "P3",
+        "title": "contract.public_exports under-declares the real surface and is unvalidated",
+        "evidence": "contracts/master-data-contract.json lists 11 exports, but src/index.js re-exports all of model/registry/validators (e.g., createMasterDataEntity, MASTER_DATA_LIFECYCLE_STATUSES, getMasterDataModelDefinition, missingRequiredFields, createMasterDataCp156CoverageSummary). The validation script never checks public_exports, so this list can drift from the actual API without detection.",
+        "recommended_action": "Either validate public_exports against the package's actual named exports or relabel the field as an illustrative subset."
+      },
+      {
+        "id": "C04-CP156-06",
+        "severity": "P3",
+        "title": "ContactPoint omits owner_user_id from required_fields, unlike all other models",
+        "evidence": "registry.js ContactPoint.required_fields = [contact_point_id, tenant_id, owner_entity_id, contact_type, value, status] — no owner_user_id, while Entity/Person/Organization/ClientGroup/Relationship/BillingProfile all require it. Likely intentional (owned via owner_entity_id), but the inconsistency is undocumented.",
+        "recommended_action": "Confirm intent and add a brief note in the registry/README, or align required_fields if user-ownership is expected on contact points."
+      },
+      {
+        "id": "C04-CP156-07",
+        "severity": "P3",
+        "title": "package-lock adds an unrelated control-plane workspace entry",
+        "evidence": "package-lock.json registers both @law-firm-os/master-data and @law-firm-os/control-plane links/workspaces; only master-data is in scope for CP00-156. Appears to be benign lockfile reconciliation for a previously-unlocked workspace, but it is outside the pack's stated file set.",
+        "recommended_action": "Verify the control-plane lock entry is expected reconciliation (not an accidental include); no action if intentional."
+      }
+    ],
+    "reported_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 3,
+      "p3": 4
+    },
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4
+    },
+    "p2_status": "fixed_or_deferred",
+    "p3_disposition": "two fixed and two accepted as non-blocking workspace/descriptor-scope residuals"
+  }
+}

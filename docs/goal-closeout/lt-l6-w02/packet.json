@@ -1,0 +1,42 @@
+{
+  "work_package_id": "LT-L6-W02",
+  "title": "Support and permission request operating model",
+  "created_at": "2026-06-18T14:53:52Z",
+  "status": "t01_permission_procedure_t02_faq_onboarding_drafts_blocked_pending_runtime_support_channel_and_training_source",
+  "phase": "L6",
+  "gate_binding": [
+    "G6",
+    "L6-EXIT"
+  ],
+  "terminal_tuw": "LT-L6-W02-T02",
+  "artifacts": [
+    "docs/launch/runbooks/permission-request-procedure.md",
+    "docs/launch/support/faq-onboarding.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l6-w02/packet.json",
+    "docs/goal-closeout/lt-l6-w02/command-evidence.json",
+    "docs/goal-closeout/lt-l6-w02/claude-review-result.json",
+    "docs/goal-closeout/lt-l6-w02/adjudication.md",
+    "docs/goal-closeout/lt-l6-w02/construction-inspection.json"
+  ],
+  "current_status": {
+    "procedure_steps": 4,
+    "regression_map_rows": 7,
+    "faq_rows": 12,
+    "onboarding_steps": 8,
+    "permission_demo_steps": 4,
+    "internal_link_targets_existing": true,
+    "live_permission_change_performed": false,
+    "support_channel_opened": false,
+    "permission_request_demo_performed": false,
+    "published_training": false,
+    "g6_satisfied": false,
+    "l6_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L3-W05",
+  "title": "Backup and DR RPO/RTO decision track",
+  "created_at": "2026-06-18T14:49:34Z",
+  "status": "t01_proposal_t04_runbook_draft_blocked_pending_owner_approval_and_restore_rehearsal",
+  "phase": "L3",
+  "gate_binding": [
+    "G4",
+    "L3-EXIT"
+  ],
+  "terminal_tuw": "LT-L3-W05-T05",
+  "artifacts": [
+    "docs/launch/l3/rpo-rto-decision.md",
+    "docs/runbooks/backup-dr-runbook.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l3-w05/packet.json",
+    "docs/goal-closeout/lt-l3-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l3-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l3-w05/adjudication.md",
+    "docs/goal-closeout/lt-l3-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "candidate_target_rows": 4,
+    "restore_procedure_steps": 12,
+    "index_resync_steps": 6,
+    "responsibility_boundary_rows": 4,
+    "approved_rpo_rto_cited": false,
+    "restore_rehearsal_evidence_present": false,
+    "mat_dec_03_boundary_preserved": true,
+    "g4_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "schema_version": "law-firm-os.goal1-claude-review-contract.v0.1",
+  "goal_id": "goal1-foundation-slice",
+  "goal_scope": "RP00-RP03 foundation slice",
+  "purpose": "Maximize useful Claude Code cross-validation during the Law Firm OS foundation slice without making Claude Code a product authority.",
+  "review_principles": [
+    "Claude Code reviews early and often, not only at closeout.",
+    "Claude Code must independently challenge architecture, security, domain correctness, tests, and evidence quality.",
+    "Claude Code cannot approve production mutation, delete evidence, bypass Hermes, or replace human approval.",
+    "P0/P1 Claude findings block production_ready closeout until routed to a concrete correction subphase.",
+    "Every RP00-RP03 closeout must include a Claude PASS, PASS_WITH_FINDINGS, or BLOCK verdict."
+  ],
+  "programs": [
+    {
+      "id": "RP00",
+      "title": "Product Constitution And AI Control Plane",
+      "claude_gate": "C00",
+      "minimum_review_count": 8,
+      "review_checkpoints": [
+        "RP00.P00.M01 contract shell review",
+        "RP00.P00.M05 AI authority boundary review",
+        "RP00.P00.M08 Hermes attachment review",
+        "RP00.P00.M09 C00 design brief review",
+        "RP00.P03.M09 product interface review",
+        "RP00.P06.M09 permission and audit baseline review",
+        "RP00.P08.M05 Hermes dependency review",
+        "RP00.P09.M00-M10 final cross-validation closeout"
+      ],
+      "must_challenge": [
+        "scope drift",
+        "AI authority overreach",
+        "Hermes/product boundary confusion",
+        "missing human approval",
+        "validation theater"
+      ]
+    },
+    {
+      "id": "RP01",
+      "title": "Core Domain Foundation",
+      "claude_gate": "C01",
+      "minimum_review_count": 10,
+      "review_checkpoints": [
+        "RP01.P00.M01 core domain contract review",
+        "RP01.P01.M01 Tenant model review",
+        "RP01.P01.M02 User model review",
+        "RP01.P01.M03 Client/Matter model review",
+        "RP01.P01.M06 relationship map review",
+        "RP01.P02.M03 invariant service review",
+        "RP01.P03.M09 public interface review",
+        "RP01.P05.M07 golden case and fixture review",
+        "RP01.P06.M09 permission/audit integration review",
+        "RP01.P09.M00-M10 final cross-validation closeout"
+      ],
+      "must_challenge": [
+        "duplicate identity systems",
+        "missing tenant_id",
+        "weak Matter-first invariants",
+        "DMS ownership drift",
+        "PII classification gaps"
+      ]
+    },
+    {
+      "id": "RP02",
+      "title": "Permission Kernel",
+      "claude_gate": "C02",
+      "minimum_review_count": 12,
+      "review_checkpoints": [
+        "RP02.P00.M09 permission model design review",
+        "RP02.P01.M07 precedence enum review",
+        "RP02.P02.M01 evaluator review",
+        "RP02.P02.M03 deny-over-allow review",
+        "RP02.P02.M04 ethical wall review",
+        "RP02.P03.M09 API and error contract review",
+        "RP02.P05.M07 bypass fixture review",
+        "RP02.P06.M07 permission-audit matrix review",
+        "RP02.P06.M09 missing audit hint review",
+        "RP02.P07.M09 edge and fail-closed review",
+        "RP02.P08.M05 Hermes dependency review",
+        "RP02.P09.M00-M10 final cross-validation closeout"
+      ],
+      "must_challenge": [
+        "admin bypass",
+        "cross-tenant access",
+        "search count leak",
+        "AI retrieval overreach",
+        "ambiguous allow/deny precedence"
+      ]
+    },
+    {
+      "id": "RP03",
+      "title": "Audit And Compliance Kernel",
+      "claude_gate": "C03",
+      "minimum_review_count": 12,
+      "review_checkpoints": [
+        "RP03.P00.M09 audit architecture design review",
+        "RP03.P01.M05 hash-chain model review",
+        "RP03.P02.M01 append-only service review",
+        "RP03.P02.M02 correction event review",
+        "RP03.P02.M03 hash-chain verification review",
+        "RP03.P02.M05 legal hold service review",
+        "RP03.P03.M09 interface and export review",
+        "RP03.P05.M07 tamper and WORM fixture review",
+        "RP03.P06.M09 permission/audit completeness review",
+        "RP03.P07.M09 edge and fail-closed review",
+        "RP03.P08.M05 Hermes dependency review",
+        "RP03.P09.M00-M10 final cross-validation closeout"
+      ],
+      "must_challenge": [
+        "mutable audit event",
+        "missing actor",
+        "retention purge bypass",
+        "legal hold bypass",
+        "PII overlogging",
+        "hash chain replay gap",
+        "cross-tenant audit leak"
+      ]
+    }
+  ],
+  "review_packet_template": {
+    "required_fields": [
+      "program_id",
+      "checkpoint_id",
+      "changed_files",
+      "contracts_reviewed",
+      "tests_reviewed",
+      "hermes_evidence_refs",
+      "requirement_refs",
+      "risk_focus",
+      "claude_questions",
+      "expected_verdict_format",
+      "finding_routing"
+    ],
+    "verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "finding_severity": [
+      "P0_BLOCKER",
+      "P1_MUST_FIX",
+      "P2_SHOULD_FIX",
+      "P3_NOTE"
+    ]
+  },
+  "blocking_rules": [
+    "Any P0_BLOCKER blocks the parent subphase and parent RP closeout.",
+    "Any P1_MUST_FIX blocks production_ready until a correction subphase is created and verified.",
+    "PASS_WITH_FINDINGS is allowed only for P2_SHOULD_FIX or P3_NOTE findings with explicit owner and target phase.",
+    "A missing Claude review packet is treated as BLOCK for RP00-RP03 closeout.",
+    "Hermes H00-H03 evidence must record whether the matching Claude C00-C03 packet exists."
+  ],
+  "minimum_total_review_count": 42
+}

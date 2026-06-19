@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-PRE-W04",
+  "title": "Gap five-area coverage matrix and disposition input",
+  "created_at": "2026-06-18T14:35:02Z",
+  "status": "blocked_pending_owner_disposition",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W04-T02",
+  "artifacts": [
+    "docs/launch/gap-five-area-coverage-matrix.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w04/packet.json",
+    "docs/goal-closeout/lt-pre-w04/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w04/adjudication.md",
+    "docs/goal-closeout/lt-pre-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "coverage_matrix_exists": true,
+    "coverage_matrix_rows": 5,
+    "partial_or_uncovered_rows": 5,
+    "disposition_register_exists": false,
+    "owner_approved_disposition_count": 0,
+    "required_owner_approved_disposition_count": 5,
+    "pre_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

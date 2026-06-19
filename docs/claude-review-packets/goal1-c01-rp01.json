@@ -1,0 +1,72 @@
+{
+  "packet_version": "law-firm-os.claude-review-packet.v0.1",
+  "goal_id": "goal1-foundation-slice",
+  "program_id": "RP01",
+  "program_title": "Core Domain Foundation",
+  "claude_gate": "C01",
+  "checkpoint_id": "RP01.C01.all_checkpoints",
+  "status": "packet_ready",
+  "review_checkpoints": [
+    "RP01.P00.M01 core domain contract review",
+    "RP01.P01.M01 Tenant model review",
+    "RP01.P01.M02 User model review",
+    "RP01.P01.M03 Client/Matter model review",
+    "RP01.P01.M06 relationship map review",
+    "RP01.P02.M03 invariant service review",
+    "RP01.P03.M09 public interface review",
+    "RP01.P05.M07 golden case and fixture review",
+    "RP01.P06.M09 permission/audit integration review",
+    "RP01.P09.M00-M10 final cross-validation closeout"
+  ],
+  "changed_files": [
+    "contracts/core-domain-contract.json",
+    "packages/domain/src/entities.js",
+    "packages/domain/src/invariants.js",
+    "packages/domain/src/index.js",
+    "packages/domain/test/domain.test.js"
+  ],
+  "contracts_reviewed": [
+    "contracts/core-domain-contract.json",
+    "contracts/law-firm-os.product-contract.json"
+  ],
+  "tests_reviewed": [
+    "npm test",
+    "npm run goal1:foundation:validate"
+  ],
+  "hermes_evidence_refs": [
+    "H01.domain_authz_audit_tests",
+    "H01.goal1_foundation_validate"
+  ],
+  "requirement_refs": [
+    "REQ-004",
+    "REQ-005",
+    "REQ-006"
+  ],
+  "risk_focus": [
+    "duplicate identity systems",
+    "missing tenant_id",
+    "weak Matter-first invariants",
+    "DMS ownership drift",
+    "PII classification gaps"
+  ],
+  "claude_questions": [
+    "Do Tenant, User, Client, Matter, and DocumentReference carry tenant identity consistently?",
+    "Can a Matter exist without a Client or responsible owner?",
+    "Does the domain layer reference DMS documents without becoming the DMS owner?",
+    "Are cross-tenant relationships rejected before downstream permission logic?"
+  ],
+  "expected_verdict_format": {
+    "allowed_verdicts": [
+      "PASS",
+      "PASS_WITH_FINDINGS",
+      "BLOCK"
+    ],
+    "finding_severity": [
+      "P0_BLOCKER",
+      "P1_MUST_FIX",
+      "P2_SHOULD_FIX",
+      "P3_NOTE"
+    ]
+  },
+  "finding_routing": "P0/P1 findings must create correction subphases before RP01 production_ready closeout."
+}

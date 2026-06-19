@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-868",
+  "subphase_id": "RP28.P08.M04.S13",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, secret, connector secret, OAuth token, prompt, completion, permission decision detail, audit event body, tenant install payload, app submission payload, install receipt payload, custom AI app runtime payload, fixture runtime payload, test runtime payload, Hermes runtime receipt, review harness runtime payload, API runtime payload, UI runtime payload, permission matrix runtime payload, or product-state write data used; CP00-868 uses descriptor-only RP28 Marketplace evidence review permission/audit bridge evidence.",
+    "CP00-868-P3-01 is closed by narrowing closeout-pack Claude review path classification so docs/closeout-packs/<pack-id>/ is treated as the active pack closeout artifact root instead of an untracked implementation file, cleaning artifacts/closeout-pack-claude-review/cp00-868/changed-file-scope.json, and requiring the full deterministic validation suite after review normalization, adjudication update, queue regeneration, and before commit."
+  ],
+  "commands": [
+    {
+      "id": "rp28_marketplace_contract_syntax_initial",
+      "command": "node --check scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "rp28_marketplace_contract_validate_initial",
+      "command": "node scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "marketplace_model_test_initial",
+      "command": "node --test packages/marketplace/test/*.test.js",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_review_hardening_syntax",
+      "command": "node --check scripts/lib/closeout-pack-claude-review-hardening.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_review_baseline_generator_syntax",
+      "command": "node --check scripts/generate-closeout-pack-claude-review-baseline.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_plan_generate",
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_plan_validate",
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "validate_closeout_pack_script_syntax",
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "id": "closeout_pack_validate_all",
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_test",
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "id": "npm_validate",
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "id": "spec_requirement_validate",
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "weighted_validate",
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "fullplan_validate",
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "goal_closeout_validate",
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp00_control_plane_contract_validate",
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "critical_rps_validate",
+      "command": "npm run critical-rps:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp28_validate",
+      "command": "npm run rp28:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "rp28_marketplace_validate",
+      "command": "npm run rp28:marketplace:validate",
+      "exit_code": 0
+    },
+    {
+      "id": "marketplace_model_test",
+      "command": "node --test packages/marketplace/test/*.test.js",
+      "exit_code": 0
+    },
+    {
+      "id": "build",
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "id": "git_diff_check",
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

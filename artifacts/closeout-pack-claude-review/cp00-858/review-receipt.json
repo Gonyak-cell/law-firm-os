@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-858",
+  "normalized_at": "2026-06-16T19:41:52.941Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-858/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-858/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-858/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-858/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "cda3a832-84ae-40af-af2a-99858594851e",
+    "uuid": "65df7592-9900-4c4d-a806-c24e96d5c1ce",
+    "total_cost_usd": 2.2650092499999994,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7012,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-858 is a descriptor-only RP28 Marketplace UI-fixture + golden-case coverage extension (Risk C, 150 units, RP28.P04.M06.S05-RP28.P05.M03.S08). Read-only static inspection (Read/Grep/Glob; no Bash) supports the pack's descriptor-only closeout claim. Implementation (model.js, states.js, registry.js) produces deeply-frozen, descriptor-only structures where every row asserts runtime_execution=false, writes_product_state=false, and no real-data/secret/permission/audit payloads. validators.js enforces these per-row plus the authority boundary (claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false), no runtime opening, no writes, Hermes packet emits_runtime_receipt=false, Claude packet read_only=true, closeout handoff, model registry, and contract-projection pack identity; the contract validator is fail-closed. The contract JSON validates (valid=true, latest_pack=CP00-858, latest_projection=MarketplaceCp858UiFixtureGoldenCaseDescriptor) with an all-closed no_write_attestation, and model.test.js covers CP858 binding/coverage/runtime-closed descriptor/projection. Manifest (production_ready=false, runtime_ready=false, descriptor layer), construction-inspection, adjudication, and claude-review-result correctly report the PENDING_REVIEW state without overclaiming. Authority boundary holds: Claude is a read-only reviewer not final approver; Hermes is control-plane review-evidence only (no product runtime embedded); enterprise-trust/runtime opening remain closed pending human approval. CP178+ hardening is intact: the 0-byte placeholder receipt is correctly NOT treated as a valid review (valid_review_receipts=[], exactly_one_valid_pack_level_claude_review_run=false) and the auth preflight passed with valid JSON. No real-client-data or secret/credential/token leakage was found in the contract or sources. No P0/P1 issues. Two non-blocking P3 notes are recorded. Provenance: this verdict is from static read-only inspection and the recorded initial command exits; the full validation suite is a post-review closeout-pipeline step that was not executed within this review.",
+    "findings": [
+      {
+        "id": "CP858-R01",
+        "severity": "P3",
+        "title": "changed-file-scope dual-classifies new-session-handoff.md",
+        "file": "artifacts/closeout-pack-claude-review/cp00-858/changed-file-scope.json",
+        "line": 155,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md is listed in both untracked_implementation_files (line 155) and unrelated_dirty_files_preserved (line 162). It is not in active_pack_required_untracked_files (only docs/closeout-packs/cp00-858 is), and active_untracked_implementation_files_omitted is empty, so no active pack implementation file is omitted from review. The overlap is a metadata labeling inconsistency in the scope record, not a scope leak, and the file is a non-CP planning/handoff doc unrelated to this pack's marketplace deliverables.",
+        "recommendation": "Classify the handoff doc under a single category (unrelated preserved) in the scope record to avoid ambiguity; no change to pack deliverables is needed.",
+        "post_review_disposition": "Non-blocking metadata note. Key invariant (active_untracked_implementation_files_omitted empty) holds; does not block CP00-858 closeout."
+      },
+      {
+        "id": "CP858-R02",
+        "severity": "P3",
+        "title": "Full validation suite not executed within read-only review (provenance caveat)",
+        "file": "docs/closeout-packs/cp00-858/command-evidence.json",
+        "line": 21,
+        "details": "command-evidence records only the initial commands rp28:marketplace:validate (exit 0) and node --test packages/marketplace/test/*.test.js (exit 0), and explicitly notes the full validation suite is required after review/adjudication/queue regeneration. The 10 expected closeout commands (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) are not yet recorded as run. As a read-only reviewer (no Bash) I verified descriptor/contract/test/boundary consistency by static inspection and the recorded exits only; I did not re-execute these commands.",
+        "recommendation": "Closeout pipeline must run and record passing results for the full validation suite (and git diff --check, accounting for the unrelated progress-control-room dirty files) before promoting the marketplace_ui_fixture_golden_case_descriptor_verified flag to true.",
+        "post_review_disposition": "Expected by design (review precedes full-suite run); not a defect. Promotion remains gated on the recorded full-suite pass, which is outside this read-only receipt."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

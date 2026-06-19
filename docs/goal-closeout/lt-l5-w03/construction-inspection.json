@@ -1,0 +1,31 @@
+{
+  "work_package_id": "LT-L5-W03",
+  "inspected_at": "2026-06-18T14:18:02Z",
+  "verdict": "BLOCKED_PROHIBITION_BYPASS_MATRIX_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "bypass_ai_automation_test_directory_exists": false,
+    "bypass_hr_test_directory_exists": false,
+    "bypass_share_export_test_directory_exists": false,
+    "addin_scope_check_directory_exists": false,
+    "bypass_matrix_exists": false,
+    "addin_scope_check_report_exists": false,
+    "uat_prohibition_rows_exist": true,
+    "uat_prohibition_rows_executed": false,
+    "matrix_required_rows": 13,
+    "matrix_green_rows": 0,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "staging_accessed": false,
+    "production_accessed": false,
+    "real_matter_or_hr_sensitive_data_accessed": false,
+    "m365_admin_consent_requested": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

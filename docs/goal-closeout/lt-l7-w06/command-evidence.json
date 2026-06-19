@@ -1,0 +1,505 @@
+{
+  "schema": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package": "LT-L7-W06",
+  "title": "UAT scenario and regression coverage",
+  "phase": "L7",
+  "gate": "L7-EXIT",
+  "status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+  "prepared_at": "2026-06-18",
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped and must not be counted as a valid review receipt."
+  },
+  "review_valid_evidence": false,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "completion_claim": false,
+  "boundary": {
+    "uat_catalog_exists": true,
+    "uat_execution_results_template_exists": true,
+    "uat_executed": false,
+    "pilot_user_results_recorded": false,
+    "kpi_before_after_collected": false,
+    "prohibition_bypass_result_template_exists": true,
+    "prohibited_action_blocking_proven": false,
+    "bypass_attempts_executed": 0,
+    "bypass_attempts_blocked": 0,
+    "audit_block_events_observed": 0,
+    "temporary_permissions_granted_for_bypass_test": 0,
+    "uat_final_report_template_exists": true,
+    "uat_pass_closure_rate": null,
+    "uat_unclosed_scenarios": 32,
+    "uat_signed_acceptance_records": 0,
+    "l7_exit_bundle_final": false,
+    "lt_l7_w06_t01_closed": false,
+    "lt_l7_w06_t02_closed": false,
+    "lt_l7_w06_t03_closed": false,
+    "lt_l7_w06_t04_closed": false,
+    "lt_l7_w06_closed": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw": "LT-L7-W06-T01",
+      "status": "uat_scenario_catalog_created_not_executed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/uat-scenario-catalog.md",
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "screen_scenario_rows": 14,
+        "core_workflow_steps": 7,
+        "regression_map_rows": 6,
+        "prohibited_action_rows": 5,
+        "source_links_checked": 6,
+        "broken_links": 0,
+        "scenarios_executed": 0,
+        "pass_results_recorded": 0,
+        "fail_results_recorded": 0,
+        "not_executed_rows": 32
+      },
+      "required_future_evidence_before_close": [
+        "WP:LT-L4-W04 regression map runtime/test readiness",
+        "Approved pilot users and UAT environment",
+        "UAT execution results for every catalog row",
+        "KPI before/after collection for applicable Wave 1 metrics",
+        "Fail scenarios triaged into defect and rerun queue"
+      ],
+      "blocked_claims": [
+        "No UAT scenario was executed.",
+        "No pass/fail result was recorded.",
+        "No KPI before/after value was collected.",
+        "No prohibited-action block was proven in production."
+      ]
+    },
+    {
+      "tuw": "LT-L7-W06-T02",
+      "status": "uat_execution_results_template_created_not_executed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/uat-execution-results.md",
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "category_summary_rows": 4,
+        "result_field_rows": 10,
+        "core_completion_rows": 7,
+        "kpi_compare_rows": 7,
+        "fail_queue_fields": 8,
+        "execution_state_rows": 8,
+        "source_links_checked": 6,
+        "broken_links": 0,
+        "total_catalog_scenarios": 32,
+        "executed_scenarios": 0,
+        "unexecuted_scenarios": 32,
+        "pass_results_recorded": 0,
+        "fail_results_recorded": 0,
+        "blocked_results_recorded": 0,
+        "kpi_before_after_comparisons": 0,
+        "unclassified_fail_count_available": false
+      },
+      "required_future_evidence_before_close": [
+        "Pass/fail/blocked result for every scenario in the catalog with zero not_executed rows",
+        "Pilot-user completion record for the 7-step core business scenario",
+        "KPI before/after collection for applicable Wave 1 metrics",
+        "Every fail classified into defect and rerun queue"
+      ],
+      "blocked_claims": [
+        "No UAT scenario was executed.",
+        "No pilot user completed the 7-step workflow.",
+        "No KPI before/after comparison exists.",
+        "No fail classification or rerun queue exists."
+      ]
+    },
+    {
+      "tuw": "LT-L7-W06-T03",
+      "status": "prohibition_bypass_results_template_created_not_executed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/prohibition-bypass-attempt-results.md",
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "attempt_rows": 5,
+        "result_field_rows": 8,
+        "audit_field_rows": 8,
+        "p0_field_rows": 8,
+        "state_rows": 7,
+        "source_links_checked": 6,
+        "broken_links": 0,
+        "attempts_required": 5,
+        "attempts_executed": 0,
+        "attempts_blocked": 0,
+        "audit_block_events_observed": 0,
+        "temporary_permissions_granted": 0,
+        "block_rate_available": false
+      },
+      "required_future_evidence_before_close": [
+        "At least one approved pilot-user attempt for each of the five prohibited actions",
+        "Observed block result and user-visible state for every attempt",
+        "Audit/block event reconciliation with attempts equal to observed block events",
+        "P0 registration, fix, and rerun record for any unblocked attempt"
+      ],
+      "blocked_claims": [
+        "No prohibited-action bypass attempt was executed.",
+        "No block result was observed.",
+        "No audit/block event reconciliation exists.",
+        "No block rate is calculated.",
+        "No P0 failure track exists."
+      ]
+    },
+    {
+      "tuw": "LT-L7-W06-T04",
+      "status": "uat_final_report_template_created_not_closed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/uat-final-report.md",
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "final_metric_rows": 8,
+        "closure_field_rows": 8,
+        "acceptance_field_rows": 8,
+        "defect_field_rows": 6,
+        "l7_exit_link_rows": 3,
+        "final_state_rows": 4,
+        "source_links_checked": 11,
+        "broken_links": 0,
+        "total_catalog_scenarios": 32,
+        "pass_results": 0,
+        "unclosed_scenarios": 32,
+        "pass_closure_rate": null,
+        "signed_acceptance_records": 0,
+        "l7_exit_bundle_final": false
+      },
+      "required_future_evidence_before_close": [
+        "Every UAT scenario closed as pass, fixed/rerun pass, or signed owner acceptance",
+        "Signed/date owner acceptance record for each accepted scenario, or explicit not-applicable if zero",
+        "Recalculated UAT pass/closure rate equal to 100 percent",
+        "Final L7-EXIT evidence bundle cross-linking W04 training, W05 pilot, and W06 UAT evidence"
+      ],
+      "blocked_claims": [
+        "No UAT pass/closure rate is calculated.",
+        "No scenario is closed.",
+        "No owner acceptance record is signed.",
+        "No final L7-EXIT bundle is assembled.",
+        "Template links are not final gate evidence."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W06-T01",
+      "title": "UAT 시나리오 카탈로그 작성",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "objective": "14개 화면 흐름·핵심 업무 시나리오·Regression Map 회귀·금지사항 우회 시나리오가 판정 기준 포함 카탈로그로 작성되어 UAT 실행이 가능해진다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w06/uat-scenario-catalog.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:239 (§5 L7-6)",
+        "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md:6-24 (핵심 화면 14종)",
+        "workbook/matter_dev_docs/16_Execution_Dependency_Graph.md:61-71 (Regression Map)",
+        "workbook/matter_dev_docs/24_개발팀_착수_지시서.md:58-65 (금지사항 5건)"
+      ],
+      "acceptance_criteria": [
+        "14개 화면(21:6-24) 각각에 시나리오가 1건 이상 존재한다 — Wave 1 포함 화면은 흐름 실행 시나리오, 비포함 화면은 비노출·비활성 확인 시나리오.",
+        "핵심 업무 시나리오가 7단계(신건 등록→문서 filing→이메일 filing→task/deadline→issue→검토 승인→audit 조회)를 전부 포함한다.",
+        "Regression Map 6행(16:61-71) 각각에 회귀 체크 항목이 매핑된다(미매핑 행 0).",
+        "금지사항 5건 각각에 우회 시도 시나리오가 1건 이상 배정된다.",
+        "시나리오별 pass 판정 기준이 관찰 가능한 문장(표시값·차단 메시지·이벤트 존재)으로 기재된다."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 화면×시나리오 커버리지 표 대조(14/14) 2) 7단계·6행·5건 매핑 완전성 검사 3) 판정 기준 문장 표본 검토",
+        "evidence": "docs/goal-closeout/lt-l7-w06/uat-scenario-catalog.md + command-evidence.json(lt-l7-w06)",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:239 (§5 L7-6)",
+        "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md:6-24 (핵심 화면 14종)",
+        "workbook/matter_dev_docs/16_Execution_Dependency_Graph.md:61-71 (Regression Map)",
+        "workbook/matter_dev_docs/24_개발팀_착수_지시서.md:58-65 (금지사항 5건)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W06-T02",
+      "title": "UAT 시나리오 실행·KPI 수집 동작 확인",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "objective": "카탈로그 전 시나리오가 파일럿 사용자에 의해 production에서 실행되고 KPI 수집 파이프라인이 실 이벤트를 집계함이 확인된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w06/uat-execution-results.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:239 (§5 L7-6)",
+        "docs/goal-closeout/lt-l7-w06/uat-scenario-catalog.md(본 WP 선행 산출물)",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md:88-98"
+      ],
+      "acceptance_criteria": [
+        "카탈로그 전 시나리오의 실행 결과(pass/fail/blocked)가 기록되고 미실행 시나리오 0건이다.",
+        "핵심 업무 시나리오 7단계가 파일럿 사용자에 의해 1회 이상 완주된다(단계별 수행자·시각 기록).",
+        "UAT 실행 전후 KPI 수집치 비교에서 Wave 1 적용 지표의 증가가 확인된다(전후 수치 기록).",
+        "fail 시나리오 전건이 결함 등록되고 재실행 큐로 분류된다(미분류 fail 0건)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 시나리오 실행 진행표 완전성 검사 2) 7단계 완주 기록 확인 3) KPI 전후 수치 비교 4) fail 분류 상태 검사",
+        "evidence": "docs/goal-closeout/lt-l7-w06/uat-execution-results.md + KPI 전후 출력 + command-evidence.json(lt-l7-w06)",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:239 (§5 L7-6)",
+        "docs/goal-closeout/lt-l7-w06/uat-scenario-catalog.md(본 WP 선행 산출물)",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md:88-98"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W06-T03",
+      "title": "금지사항 우회 시도 세션(파일럿 사용자 직접)",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "objective": "파일럿 사용자가 금지사항 5건의 우회를 직접 시도하여 전건 차단됨이 production에서 확인된다(기능 존재가 아니라 우회 불가가 기준 — L5-3의 실사용자 재검증).",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w06/prohibition-bypass-attempt-results.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:239 (§5 L7-6 금지사항 우회 시도)",
+        "workbook/matter_dev_docs/24_개발팀_착수_지시서.md:58-65 (금지사항 5건)",
+        "workbook/matter-post-cp-launch-plan.md:207 (§5 L5-3 우회 불가 기준)",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md"
+      ],
+      "acceptance_criteria": [
+        "금지사항 5건 각각에 대해 우회 시도가 1회 이상 실행되고 전건 차단된다(최종 차단율 100%).",
+        "각 시도가 audit 이벤트로 기록된다(시도 건수 = 차단 이벤트 건수).",
+        "차단 실패 발견 시 P0 등록·수정·재시도 기록이 존재한다(발견 0이면 해당 없음 표기).",
+        "결과표에 시도 계정·시각·시나리오 ID·차단 방식이 기재된다."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 시나리오별 우회 시도 실행(파일럿 사용자) 2) 차단 결과·메시지 기록 3) audit 이벤트 대사 4) 실패분 P0 처리 추적",
+        "evidence": "docs/goal-closeout/lt-l7-w06/prohibition-bypass-attempt-results.md + audit 대사 출력 + command-evidence.json(lt-l7-w06)",
+        "vc_bindings": [
+          "VC-PERM-001",
+          "VC-AUD-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:239 (§5 L7-6 금지사항 우회 시도)",
+        "workbook/matter_dev_docs/24_개발팀_착수_지시서.md:58-65 (금지사항 5건)",
+        "workbook/matter-post-cp-launch-plan.md:207 (§5 L5-3 우회 불가 기준)",
+        "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W06-T04",
+      "title": "UAT 결과 보고서·통과율 100% 판정",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_uat_templates_blocked_pending_l4_w04_runtime_pilot_users_execution_kpi_before_after_audit_reconciliation_owner_acceptance_and_l7_exit_bundle",
+      "objective": "UAT 통과율 100%(실패분은 수정 재실행 pass 또는 인간 승인자 명시 수용으로 종결)가 판정되고 L7-EXIT 증거 묶음이 상호 링크로 조립된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w06/uat-final-report.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:240 (L7 완료 게이트 UAT 통과율 100%)",
+        "docs/goal-closeout/lt-l7-w06/uat-execution-results.md(본 WP 선행 산출물)",
+        "workbook/matter-post-cp-launch-plan.md:241 (L7 산출물)"
+      ],
+      "acceptance_criteria": [
+        "전 시나리오가 pass 또는 종결 상태(수정 후 재실행 pass / 인간 승인자 명시 수용 기록)이며 미종결 0건이다 — 통과율 100% 판정.",
+        "승인자 수용 건 각각에 수용 사유·승인자 서명·일자가 기재된다(수용 0이면 해당 없음 표기).",
+        "보고서에 시나리오 수·pass/재실행/수용 집계와 결함 추적 링크가 포함된다.",
+        "교육 이수 대장(W04)·파일럿 보고서(W05)·UAT 보고서(W06)가 L7-EXIT 증거 묶음으로 상호 링크된다(깨진 상호 링크 0)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 시나리오 종결 상태 전수 검사 2) 수용 건 서명 확인 3) 집계 재계산 대조 4) W04~W06 상호 링크 점검",
+        "evidence": "docs/goal-closeout/lt-l7-w06/uat-final-report.md + command-evidence.json(lt-l7-w06)",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w06/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:240 (L7 완료 게이트 UAT 통과율 100%)",
+        "docs/goal-closeout/lt-l7-w06/uat-execution-results.md(본 WP 선행 산출물)",
+        "workbook/matter-post-cp-launch-plan.md:241 (L7 산출물)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "result": "PASS",
+      "output": "TUW total 344 | WP 72 | violations 0"
+    },
+    {
+      "command": "node inline validation script for LT-L7-W06 uat-scenario-catalog.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "screen_scenario_rows": 14,
+        "core_workflow_steps": 7,
+        "regression_map_rows": 6,
+        "prohibited_action_rows": 5,
+        "source_links_checked": 6,
+        "broken_links": [],
+        "not_executed_rows": 32
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W06 uat-execution-results.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "category_summary_rows": 4,
+        "result_field_rows": 10,
+        "core_completion_rows": 7,
+        "kpi_compare_rows": 7,
+        "fail_queue_fields": 8,
+        "execution_state_rows": 8,
+        "source_links_checked": 6,
+        "broken_links": [],
+        "total_catalog_scenarios": 32,
+        "executed_scenarios": 0,
+        "unexecuted_scenarios": 32,
+        "kpi_before_after_comparisons": 0,
+        "unclassified_fail_count_available": false
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W06 prohibition-bypass-attempt-results.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "attempt_rows": 5,
+        "result_field_rows": 8,
+        "audit_field_rows": 8,
+        "p0_field_rows": 8,
+        "state_rows": 7,
+        "source_links_checked": 6,
+        "broken_links": [],
+        "attempts_required": 5,
+        "attempts_executed": 0,
+        "attempts_blocked": 0,
+        "audit_block_events_observed": 0,
+        "temporary_permissions_granted": 0,
+        "block_rate_available": false
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W06 uat-final-report.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "final_metric_rows": 8,
+        "closure_field_rows": 8,
+        "acceptance_field_rows": 8,
+        "defect_field_rows": 6,
+        "l7_exit_link_rows": 3,
+        "final_state_rows": 4,
+        "source_links_checked": 11,
+        "broken_links": [],
+        "total_catalog_scenarios": 32,
+        "pass_results": 0,
+        "unclosed_scenarios": 32,
+        "pass_closure_rate": null,
+        "signed_acceptance_records": 0,
+        "l7_exit_bundle_final": false
+      }
+    }
+  ],
+  "source_materials": [
+    "workbook/matter_dev_docs/21_UI_화면_사용자흐름.md",
+    "workbook/matter_dev_docs/16_Execution_Dependency_Graph.md",
+    "workbook/matter_dev_docs/24_개발팀_착수_지시서.md",
+    "docs/training/wave1/screen-flows.md",
+    "docs/goal-closeout/lt-l7-w05/kpi-baseline-definition.md",
+    "docs/goal-closeout/lt-l7-w05/pilot-kickoff-checklist.md",
+    "docs/goal-closeout/lt-l7-w05/metrics-collection-check.md",
+    "docs/goal-closeout/lt-l7-w04/training/lawyer-guide.md",
+    "docs/launch/runbooks/incident-response-runbook.md",
+    "docs/launch/runbooks/change-management.md",
+    "workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md",
+    "docs/goal-closeout/lt-l7-w04/training-completion-ledger.md",
+    "docs/goal-closeout/lt-l7-w05/pilot-report.md",
+    "docs/goal-closeout/lt-l7-w05/pilot-owner-acceptance.md"
+  ],
+  "work_package_id": "LT-L7-W06",
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 4,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

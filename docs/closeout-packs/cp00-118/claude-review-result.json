@@ -1,0 +1,56 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-118",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-118-claude-review-output-valid.json",
+    "session_id": "d4e032df-f4e8-484e-9216-1cf05cb5628d",
+    "uuid": "5e310ad3-bc1d-4f39-a722-ec8e4478efec",
+    "duration_ms": 221181,
+    "duration_api_ms": 223557,
+    "total_cost_usd": 0.75449975,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "p3",
+        "title": "Deliverable-type classification relies on order-dependent substring matching",
+        "file": "packages/authz/src/ui-synthetic-fixture-golden-case-catalog.js",
+        "evidence": "deliverableTypeFor() classifies via brittle checks (title.includes(\"fixture\"), includes(\"Hermes\"), includes(\"test\")) whose result depends on condition ordering; e.g. \"Hermes fixture evidence\" must hit the Hermes branch before the fixture branch, and \"Claude missing-test prompt\" must hit the exact-match test branch before the Claude branch. Verified correct for the current frozen title lists (counts resolve exactly to ui:35, claude_review:14, security_audit:12, implementation:37, fixture:36, test:10, hermes_evidence:6 = 150).",
+        "recommendation": "Accept as-is for this frozen catalog; if titles are extended in CP00-119+, prefer an explicit title→type map over substring heuristics to avoid silent miscounts."
+      },
+      {
+        "severity": "p3",
+        "title": "No-write / no-leak flags on matrix profiles are structurally forced, so related assertions are attestations not behavioral tests",
+        "file": "packages/authz/src/ui-synthetic-fixture-golden-case-catalog.js",
+        "evidence": "freezeFixtureProfile() unconditionally overrides unauthorized_count_exposed, hidden_field_names_exposed, executes_ai_retrieval, writes_product_state, etc. to false after spreading the input, so the validator/test loops checking these flags cannot fail by construction.",
+        "recommendation": "Acceptable for a metadata-only synthetic catalog with no runtime behavior to exercise; note that leak/write protection is asserted at the contract level here and must be re-verified behaviorally when real UI/runtime surfaces land in a later pack."
+      }
+    ],
+    "recommendation": "approve",
+    "rationale": "The pack is a pure, frozen, metadata-only catalog with no runtime UI/API routes, no policy/audit/product/database writes, no export/share, and no AI/analytics execution. All 150 units, the 85/65 split, the 10 micro-phase coverage, every hard-coded deliverable count, the CP117 three-state inheritance, the blocked cross-tenant and AI/analytics cases, leak protections, and the CP00-119/RP02.P05.M04.S08 handoff reconcile exactly between the implementation, the JSON contract, the tests, and the standalone validator. The only findings are two P3 maintainability/attestation notes that do not affect correctness or boundaries. Nothing blocks closeout."
+  }
+}

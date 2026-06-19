@@ -1,0 +1,84 @@
+{
+  "subphase_id": "RP00.P02.M01.S01",
+  "source_micro_phase_id": "RP00.P02.M01",
+  "status": "passed",
+  "executed_at": "2026-06-04T13:31:25Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "purpose": "JSON syntax validation for contract and fixture evidence surfaces."
+    },
+    {
+      "command": "node -c packages/control-plane/src/policies.js && node -c packages/control-plane/src/validators.js && node -c packages/control-plane/src/service.js && node -c scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "purpose": "Syntax validation for changed control-plane modules and RP00 validator."
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js packages/control-plane/test/model.test.js",
+      "exit_code": 0,
+      "purpose": "Focused control-plane service/model regression tests."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "purpose": "Hermes H00 RP00 control-plane contract validator after evidence materialization."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "purpose": "Product contract validation."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "purpose": "Weighted 54,355-subphase ledger validation."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "purpose": "Goal closeout protocol validation."
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "purpose": "227-requirement ledger validation."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "purpose": "Full 30 RP / 3,300 microphase plan validation."
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "purpose": "Full local test suite."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "purpose": "Whitespace and diff hygiene validation."
+    },
+    {
+      "command": "git diff -- packages/control-plane/src/states.js packages/control-plane/src/registry.js",
+      "exit_code": 0,
+      "purpose": "No state or registry mutation for this contract-only slice."
+    }
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "outcome": "PASS",
+    "writes_product_state": false
+  },
+  "blocked_claims": [],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used; fixtures remain synthetic-only and reserved to example/test identifiers.",
+    "The first RP00 validator run failed only because these five closeout evidence files were intentionally absent before Claude review and adjudication; after evidence materialization the command is required to pass."
+  ]
+}

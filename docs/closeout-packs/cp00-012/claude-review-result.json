@@ -1,0 +1,79 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-012",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "source": "claude_cli",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "session_id": "4528dad3-a50a-412f-bf13-e64d7e7677eb",
+      "uuid": "8fbaa9b0-39ad-4465-a4b3-5cadccb8cb2b",
+      "reason": "CLI returned a Bash tool-request artifact without a review verdict, findings, or adjudicable review content; it is not counted as the completed pack-level review."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "b260b01f-8dbd-4dbb-8928-1260fc371045",
+    "uuid": "c003f6e9-facc-4730-a830-50cd1067e75f",
+    "duration_ms": 204039,
+    "total_cost_usd": 2.0176865,
+    "permission_denials": []
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Duplicate forbidden blocked-claim output claims",
+        "description": "Claude noted that forbiddenBlockedClaimOutputClaims and the mirrored contract field carry duplicate tokens inherited from the S15 spread. The prechecker uses a Set and the contract mirrors the policy, so this is harmless hygiene only.",
+        "recommendation": "Deduplicate in a future hygiene cleanup pack if desired."
+      }
+    ],
+    "non_blocking_notes": [
+      {
+        "severity": "note",
+        "title": "Boundary verified: metadata-only blocked-claim output",
+        "description": "Claude verified that S16 correctly accepts only S15 permission_audit_binding approval-required routing output, emits a frozen synthetic blocked-claim output receipt with canonical refs and entries, keeps write/runtime flags false, leaves RP00.P02.M05 open, and hands off to S17."
+      },
+      {
+        "severity": "note",
+        "title": "Expected pre-evidence validation state",
+        "description": "Claude treated the missing CP00-012 evidence files before review as expected pre-review state rather than a finding."
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "One completed claude-opus-4-8 max read-only/no-tools review is recorded for CP00-012.",
+    "Claude returned PASS_WITH_FINDINGS with zero P0, zero P1, and zero P2 findings.",
+    "The single P3 duplicate-forbidden-claim hygiene note is non-blocking and deferred to a later cleanup pack because changing implementation after review would change the reviewed diff without resolving a blocking risk.",
+    "The expected pre-evidence RP00 failure is resolved by creating this CP00-012 evidence and rerunning final validation."
+  ]
+}

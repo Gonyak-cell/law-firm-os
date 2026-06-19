@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-867",
+  "normalized_at": "2026-06-17T07:29:42.580Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-867/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-867/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-867/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-867/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "9b3bc4d9-1fbd-4359-8f82-df3932234fe9",
+    "uuid": "601aff18-39f8-4483-96c8-9cda8d693351",
+    "total_cost_usd": 2.915515,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7644,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-867 (RP28 Marketplace evidence-review implementation bridge, risk B, 40 units, RP28.P08.M02.S15-RP28.P08.M04.S12) is a descriptor-only bridge pack that does not claim production/runtime readiness (manifest.json production_ready:false, runtime_ready:false, implementation_layer:descriptor); its descriptor-verification claim is supported by code, tests, and boundaries. Binding (registry.js:428), deliverable counts (registry.js:1750) and micro-title counts (registry.js:1764) match the prompt/baseline distributions exactly and sum to 40 (hermes_evidence 20 / implementation 16 / test 2 / claude_review 2; M02 6 / M03 22 / M04 12); the coverage validator (validators.js:2749) checks these against the live plan, and the manifest included_units distribution reconciles to the same totals. Upstream chain CP00-845..CP00-867 is intact (validate script lines 53-121; binding upstream_pack_id CP00-866). Every descriptor row is built by createRow (registry.js:1965), which hard-codes descriptor_only:true and all runtime/install/write/leak flags false; the descriptor validator (validators.js:2785) fails closed on any runtime execution, marketplace opening, permission/audit/product-state write, or real-data/secret/token/prompt inclusion (validators.js:2814-2842), and MARKETPLACE_NO_WRITE_ATTESTATION (registry.js:35) is spread into the descriptor. Authority boundary is correct: descriptor.authority_boundary (registry.js:3666) and the Claude packet (registry.js:2802) keep Claude read-only and non-final-approver, require human approval for runtime opening, and disclaim enterprise trust for local validation; the Hermes packet (registry.js:2525) is control-plane only (emits_runtime_receipt:false, writes_product_state:false, no_real_data:true), consistent with hermes_runtime_embedded_in_product:false. Tests (model.test.js:868-902) assert empty coverage/descriptor errors, runtime-closed rows (row_count 40), and a current CP00-867 contract projection; index.js wildcard re-exports all symbols the validate script imports. Review-hardening checks pass: auth preflight succeeded (readiness-report.json exit 0, 1455-byte stdout, not 0-byte/malformed), invalid_review_attempts is empty, and the pending-state evidence (command-evidence.json, construction-inspection.json, adjudication.md) is mutually consistent and does not over-claim production_ready or runtime/enterprise trust. The CP00-866 P3 (changed-file-scope double-listing) is resolved here: untracked_implementation_files and unrelated_dirty_files_preserved are disjoint, and unrelated dirty files (progress-control-room, workbook, docx, ldip invalid-attempt) are correctly kept out of pack scope. Provenance: recorded validation exit codes (rp28:marketplace:validate=0, marketplace node:test=0) are read from command-evidence.json and were NOT re-executed in this read-only review; the full pre-closeout suite (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) remains the implementer's deterministic closeout gate. No P0/P1/P2 defects; one P3 advisory on changed-file-scope bookkeeping. Verdict PASS_WITH_FINDINGS; does not block pack closeout or this CP's closeout goal.",
+    "findings": [
+      {
+        "id": "CP00-867-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json buckets a generic/stale handoff doc as pack implementation scope",
+        "file": "artifacts/closeout-pack-claude-review/cp00-867/changed-file-scope.json",
+        "line": 153,
+        "details": "untracked_implementation_files (lines 152-155) lists docs/closeout-pack-plan/new-session-handoff.md as pack-implementation-scoped, but that file is a generic Law Firm OS session-handoff/process document, not RP28 Marketplace implementation for CP00-867. It is not in active_pack_implementation_refs (lines 5-15, the authoritative in-pack list, which is clean: marketplace src/contract/test files plus scripts/validate-rp28-marketplace-custom-ai-apps-contract.mjs), not in required_pack_artifacts, and its own content is stale (it records 'Latest committed closeout pack observed: CP00-082' at a 2026-06-08 refresh, far behind the live CP00-867 cursor). Impact is cosmetic only and does not affect the production_ready/closeout decision; the CP00-866 double-listing P3 is otherwise resolved here because untracked_implementation_files and unrelated_dirty_files_preserved are now disjoint.",
+        "recommendation": "Scope untracked_implementation_files to files actually produced by/for the pack (e.g., the pack evidence dir docs/closeout-packs/cp00-867/) and exclude generic planning/handoff docs like docs/closeout-pack-plan/new-session-handoff.md (or refresh/track it separately). No pack content change required.",
+        "post_review_disposition": "advisory_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M07.S01",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T10:17:39Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "120ad743-6202-4a3e-85aa-9837bef5033d",
+    "uuid": "54a65935-2a28-44e1-8a1a-cba67c699941",
+    "duration_ms": 181242,
+    "total_cost_usd": 1.0115927500000002,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 15549,
+        "cache_read_input_tokens": 447561,
+        "cache_creation_input_tokens": 63677,
+        "cost_usd": 1.01054675
+      }
+    }
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI re-review verified validation_command_matrix_scope_inventory binds to RP00.P00.M07.S01, stays no-write scope-inventory only, includes all seven validation surfaces and commands, excludes generation commands, preserves H00/C00/no-real-data/human-approval boundaries, and does not claim full M07 or RP00 completion."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Prior command-evidence H00 command_ids parity P3 is resolved",
+        "file": "docs/goal-closeout/rp00-p00-m07-s01/command-evidence.json",
+        "line": 47,
+        "details": "hermes_gate.command_ids now lists product_contract_validate, rp00_control_plane_contract_validate, and spec_requirement_validate. All three are registered Hermes validation_commands and map to commands executed with exit_code 0.",
+        "recommendation": "No action required; treat the prior P3 as resolved."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "hermes_gate.command_ids parity is not machine-enforced by the validator",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 1103,
+        "details": "The validator checks command-evidence status and command rows, but does not yet assert that hermes_gate.command_ids is a subset of hermes/project.json H00.validation_command_ids and maps to executed commands. Non-blocking for RP00.P00.M07.S01.",
+        "recommendation": "At RP00.P00.M07.S02, consider asserting that command-evidence hermes_gate.command_ids is a subset of H00.validation_command_ids and that each maps to an executed command with exit_code 0."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m07-s01/packet.json",
+      "docs/goal-closeout/rp00-p00-m07-s01/command-evidence.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Actual claude-opus-4-8 max read-only CLI re-review completed with PASS_WITH_FINDINGS and no P0/P1/P2 findings. The first C00 run found one P3 command-evidence H00 command_ids parity note; product_contract_validate was added and the final re-review confirmed that P3 is resolved. The remaining P3 validator-enforcement improvement is deferred to RP00.P00.M07.S02."
+  }
+}

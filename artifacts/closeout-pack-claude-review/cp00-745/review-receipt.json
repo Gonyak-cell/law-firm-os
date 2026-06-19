@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-745",
+  "normalized_at": "2026-06-15T10:42:11.370Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-745/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-745/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-745/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-745/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "ed5803f2-3fd9-470c-835b-a8e952e609a7",
+    "uuid": "6d56b146-7934-47c6-99cf-c9c7c65364b6",
+    "total_cost_usd": 2.2125247499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5329,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-745 (Korean Legal Depth P06/P07 Fixture Failure Bridge, Risk C, 150 units, RP24.P06.M06.S05-RP24.P07.M02.S06) is a descriptor-only closeout pack that passes independent read-only review with no findings. The CP745 binding (registry.js:400), requirements (registry.js:3524), case set + descriptor (service.js:102-103), and validators (validators.js:83-85) follow the identical, tooling-enforced generic pattern as CP722-CP744. Distribution math verified: 150 units, phase counts P06=104/P07=46, deliverable counts and micro-title counts each sum to 150, and PERMISSION_DECISION_ROWS(22)/FAILURE_ROWS(20) slices produce the declared section row counts. Tests (model.test.js:55-57) cover binding/coverage, descriptor runtime-closure (runtime_opening_pack_id=CP00-746, runtime flags false, Hermes no receipt, Claude read_only, handoff to next_pack_id), and the contract projection being latest while CP722-744 stay historical. All 24 validation commands in command-evidence.json ran exit_code 0 (closeout-pack:validate, npm test, validate, spec/weighted/fullplan/goal/rp00 control-plane validators, git diff --check, build) and the readiness auth preflight passed with well-formed JSON. Boundaries are intact: KOREAN_LEGAL_NO_WRITE_ATTESTATION enforces descriptor_only, no product-state writes, no real client/matter data, and no HWPX/court-filing/litigation/corporate/Korean-clause runtime opening; Claude is read-only non-final (Read/Grep/Glob, no permission denials); Hermes is deterministic receipt-only (receipt_shape descriptor_only_korean_legal_no_write, emits_runtime_receipt=false) and not embedded in product runtime; and the pack does not claim enterprise trust (local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true). CP178+ hardening blockers (auth failure, malformed/fenced JSON, tool-call-shaped output, 0-byte stdout, usage limit) are encoded in the descriptor's invalid_review_blockers. The changed-file-scope cleanly separates the active implementation refs from unrelated dirty UI/LDIP/plan/queue/workbook files with none omitted, and the README CP00-745 entry, plan live_state, and queue live_latest_pack_id are all consistent. The pending claude-review-result/adjudication/construction-inspection states are the expected pre-receipt condition awaiting this review, not defects. Because the pack neither opens runtime nor claims enterprise trust, blocks_goal_closeout is false; the pack-level production_ready claim is well-supported pending this single valid hardened review receipt.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

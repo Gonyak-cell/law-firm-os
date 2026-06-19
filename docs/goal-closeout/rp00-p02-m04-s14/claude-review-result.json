@@ -1,0 +1,143 @@
+{
+  "subphase_id": "RP00.P02.M04.S14",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Review-required routing",
+  "created_at": "2026-06-05T23:31:31.750Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "bypassPermissions",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 3,
+  "invalid_partial_claude_attempt_notes": [
+    "A heredoc stdin run produced no output and was terminated before completion; it is not counted as a valid review.",
+    "A direct prompt run with dontAsk produced no output and was terminated before completion; it is not counted as a valid review.",
+    "A stream-json run without --verbose exited before review with the CLI flag error: stream-json requires --verbose; it is not counted as a valid review."
+  ],
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s14-claude-review.stream.jsonl",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s14-review-packet.diff",
+  "session_id": "74d471ee-e6a3-4e33-ba75-c6134fb64ab9",
+  "uuid": "4c737150-0520-4eb7-a414-19d5e69ad9fe",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 2.4633354999999995,
+  "duration_ms": 304834,
+  "usage": {
+    "input_tokens": 38,
+    "cache_creation_input_tokens": 128310,
+    "cache_read_input_tokens": 2165894,
+    "output_tokens": 23082,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 128310,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 10738,
+        "cache_read_input_tokens": 163385,
+        "cache_creation_input_tokens": 1666,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1666
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "APPROVE",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    {
+      "id": "P3-1",
+      "title": "Stale \"S15\" reference in two RP00 validator error-message strings",
+      "status": "fixed",
+      "file": "scripts/validate-rp00-control-plane-contract.mjs",
+      "line_or_area": "fixture no-write assertion (~\"handing off to S15\") and precheck no-write assertion (~\"no-write next S15 ... result\")",
+      "issue": "The validation logic correctly checks next_subphase === \"RP00.P02.M05.S01\" and terminal/nextSubphaseId === null (no S15 exists; ledger confirms S14 is Step 14 of 14 and the next sibling is RP00.P02.M05). However two error message strings still say \"S15\", a copy-paste artifact from the prior per-subphase template where the in-microphase successor was Sxx+1. These strings only print on failure and do not affect any check outcome or the emitted contract/policy/fixture data.",
+      "recommendation": "Defer (non-blocking). Optionally reword the two strings to reference RP00.P02.M05.S01 / terminal closeout for clarity. No logic change needed.",
+      "resolution": "Updated scripts/validate-rp00-control-plane-contract.mjs failure-message strings to reference terminal M04 closeout and RP00.P02.M05.S01 handoff instead of stale S15 wording."
+    }
+  ],
+  "review_text": "RP00.P02.M04.S14 (Review-required routing) is a clean, metadata-only no-write closeout slice that revalidates the S13 validation-error-mapping result, fails closed on unsafe/unknown claims and wrong entrypoint/source/model/effort/read-only/denied inputs, and emits only a synthetic review-required routing receipt. It correctly terminates RP00.P02.M04 (ledger-confirmed split_count 14, order-14 terminal subphase, no S15) and hands off to RP00.P02.M05.S01 with global plan counts preserved (ledger untouched). Contract, policy, service result, validators, fixture, README, and the RP00 validator are mutually consistent and the validator enforces that agreement with exact-equality checks; test coverage spans all required cases. The only finding is a P3 cosmetic stale \"S15\" reference in two RP00-validator failure-message strings, which does not affect any check outcome. Recommend PASS / APPROVE.",
+  "required_fixes": [],
+  "deferred_or_informational": [
+    "Focus 1 (revalidate S13 + fail closed): precheckControlPlaneClaudeReviewRequiredRouting calls assertControlPlaneClaudeReviewErrorMappingResult on the input and additionally enforces entrypoint=claude_review, validation_error_mapping_subphase_id=RP00.P02.M04.S13, model=claude-opus-4-8/effort=max/read_only=true, decision=allow_metadata_only+applied=true, present receipt + non-blank audit_event_ref, and rejects ANY truthy claim (forbidden or unknown, including falsy-but-not-false values like 0) before building output. Fail-closed coverage is comprehensive.",
+    "Focus 2 (metadata-only, no-write): every write/runtime/review-queue/review-assignment/review-notification/human-approval/persistence/audit/permission-engine flag is false in the result, prechecker, fixture, and policy; assertControlPlaneClaudeReviewRequiredRoutingResult and the RP00 validator both enforce these are false and no_real_data=true, blocked_claim_refs empty, and the result/receipt are frozen. Only a synthetic review-required routing receipt (action_id=claude_review.review_required_routing, effect=review_required_metadata_only) is emitted.",
+    "Focus 3 (closes M04): weighted ledger directly confirms RP00.P02.M04.S14 is order 14 / \"Step 14 of 14\", terminal, with the next ledger sibling being RP00.P02.M05 (no S15). The RP00 validator enforces terminal===true and nextSubphaseId===null for S14, completesSourceMicroPhase===true, and the control_plane_claude_review_required_routing_verified closeout flag.",
+    "Focus 4 (handoff + counts): next_subphase=RP00.P02.M05.S01 is consistent across contract definition, policy, prechecker, fixture, and result; RP00.P02.M05.S01 exists (M05 split_count 20). The weighted ledger is not part of this change, so source_micro_phase_count (3300) and all global counts are preserved.",
+    "Focus 5 (cross-file agreement): the RP00 validator enforces exact JSON equality of result_fields, required_input_fields, review_context_ids, required_evidence_refs, acceptance_gate_ids, decision_values, review_required_scopes, required_review_required_receipt_fields, forbidden_review_required_routing_claims, and fail_closed_on across the contract definition, the policies module, and the fixture, plus prechecker.policy/errorMappingPolicy identity and README text presence. All reviewed copies are identical.",
+    "Focus 6 (test coverage): happy path, firm-level (matter_id null → object_id firm_level_claude_review), validator drift rejection battery, fail-closed unsafe-claim and wrong-source/model/read-only/denied cases, no-write flag assertions, prechecker terminal-closeout, and fixture-mirroring (deepEqual of runtime precheck vs fixture precheck_result) are all present.",
+    "By-design note: review_required_receipt_fields is a declared 13-field projection while the emitted review_required_receipt object additionally carries matter_id, review_required_policy_ref, and decision_reason. This matches the established S12/S13 receipt pattern and the extra fields are explicitly validated by assertControlPlaneClaudeReviewRequiredRoutingResult, so it is intentional, not a defect."
+  ],
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "74d471ee-e6a3-4e33-ba75-c6134fb64ab9",
+    "uuid": "4c737150-0520-4eb7-a414-19d5e69ad9fe",
+    "total_cost_usd": 2.4633354999999995,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s14-claude-review.stream.jsonl",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s14-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "production_ready_verdict": "APPROVE",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Stale \"S15\" reference in two RP00 validator error-message strings",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line_or_area": "fixture no-write assertion (~\"handing off to S15\") and precheck no-write assertion (~\"no-write next S15 ... result\")",
+        "details": "The validation logic correctly checks next_subphase === \"RP00.P02.M05.S01\" and terminal/nextSubphaseId === null (no S15 exists; ledger confirms S14 is Step 14 of 14 and the next sibling is RP00.P02.M05). However two error message strings still say \"S15\", a copy-paste artifact from the prior per-subphase template where the in-microphase successor was Sxx+1. These strings only print on failure and do not affect any check outcome or the emitted contract/policy/fixture data.",
+        "required_action": "Defer (non-blocking). Optionally reword the two strings to reference RP00.P02.M05.S01 / terminal closeout for clarity. No logic change needed.",
+        "status": "fixed"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T23:31:31.750Z",
+  "production_ready": true
+}

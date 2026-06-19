@@ -1,0 +1,17 @@
+{
+  "schema_version": "law-firm-os.next-pack-queue.v1",
+  "generated_at": "2026-06-18T09:35:32.264Z",
+  "generated_by": "scripts/generate-closeout-pack-plan.mjs",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "source_ledger_path": "docs/weighted-implementation-ledger.json",
+  "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+  "live_latest_pack_id": "CP00-987",
+  "live_next_unit_id": null,
+  "queue_policy": {
+    "starts_after_live_latest_pack": true,
+    "live_state_overrides_requested_queue": true,
+    "closeout_complete": true,
+    "generated_queue_preview_after_locked_queue_exhausted": false
+  },
+  "packs": []
+}

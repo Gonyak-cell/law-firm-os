@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-278",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T21:05:47.773Z",
+  "finished_at": "2026-06-10T21:10:31.342Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":283007,\"duration_api_ms\":284133,\"ttft_ms\":7214,\"num_turns\":29,\"result\":\"Verdict emitted: **PASS** for CP00-278.\\n\\n- `blocks_pack_closeout`: false\\n- `blocks_goal_closeout`: false\\n- `no_unresolved_p0`: true / `no_unresolved_p1`: true\\n- Findings: none (P0–P3 all 0)\\n\\nThe descriptor-only pack is internally consistent, holds `production_ready` correctly at false pending human approval, preserves the no-write/no-real-data and authority boundaries, and clears the CP178+ review-evidence hardening checks. As read-only reviewer I am not the final approver — human final approval remains required before any enterprise-trust/runtime step.\",\"stop_reason\":\"end_turn\",\"session_id\":\"d9098a1a-3a29-4d76-8247-51ae1253d971\",\"total_cost_usd\":2.26862975,\"usage\":{\"input_tokens\":28,\"cache_creation_input_tokens\":151857,\"cache_read_input_tokens\":1201146,\"output_tokens\":11903,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":151857,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":248,\"cache_read_input_tokens\":66572,\"cache_creation_input_tokens\":3726,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3726},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1081,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001186,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":2287,\"outputTokens\":24704,\"cacheReadInputTokens\":1369005,\"cacheCreationInputTokens\":152625,\"webSearchRequests\":0,\"costUSD\":2.26744375,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Independent read-only review of CP00-278 (RP08.P02.M06.S15-RP08.P02.M07.S02, risk class A, 10 units, descriptor-only email-dms core service fixture tail pack). The pack-level production_ready claim is correctly held false: manifest.json status is implemented_pending_review with production_ready false, pack_level_claude_review pending, and valid_review_receipts empty, so no production-readiness or enterprise-trust claim is asserted ahead of human final approval. Cross-file consistency verified across registry.js binding, service.js, validators.js, contracts/email-dms-core-contract.json (current_pack_id CP00-278), docs/closeout-pack-plan/closeout-pack-plan.json, manifest.json, review-baseline.json, README.md, the validator script, and test/model.test.js: pack id, range, upstream/next chain (CP00-277 -> CP00-278 -> CP00-279), deliverable distribution {ui:1,implementation:2,failure_recovery:2,test:4,contract:1}, micro_title distribution {Synthetic Fixture Set:8,Test And Golden Case Set:2}, and the 10 required section rows all agree. Descriptor-only/synthetic-only/no-real-data and the full no-runtime/no-leak flag set are present; attestation carries promotes_claude_to_final_approval false and claims_enterprise_trust false. Authority boundary intact: Claude remains read_only_independent_reviewer and not final approver, and Hermes control-plane patterns appear only in deterministic review-packet/receipt builders, not product runtime (hermes_runtime_embedded_in_product false). CP178+ review-evidence hardening clears: readiness auth-preflight passed (exit 0, non-zero 1246-byte stdout, well-formed JSON result), with no auth failure, 0-byte stdout, malformed/fenced/tool-call-shaped output, or missing required fields. command-evidence.json shows ~20 commands all exit 0 (node --check x5, node --test, npm test, npm run validate/build, closeout-pack/weighted/spec/control-plane/goal/fullplan validators, git diff --check), no_real_data true, writes_product_state false, Hermes gate H08 passed. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are expected outputs of this review step and their current absence is not a defect. No P0, P1, P2, or P3 discrepancies identified.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"921dfe76-cded-4d16-90c8-5306bc68b15c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4490,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "d9098a1a-3a29-4d76-8247-51ae1253d971",
+    "uuid": "921dfe76-cded-4d16-90c8-5306bc68b15c",
+    "total_cost_usd": 2.26862975,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

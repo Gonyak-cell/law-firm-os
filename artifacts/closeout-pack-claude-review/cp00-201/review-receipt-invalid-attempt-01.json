@@ -1,0 +1,37 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-201",
+  "normalized_at": "2026-06-10T00:20:14.401Z",
+  "status": "invalid_review",
+  "valid_review": false,
+  "closeout_eligible": false,
+  "invalid_reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-201/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-201/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-201/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-201/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 1,
+    "signal": null,
+    "session_id": "c321e415-17f3-48c7-bea0-39ed80aef307",
+    "uuid": "8876ef7a-3036-447c-ad10-2147ee2619ff",
+    "total_cost_usd": 2.0758267499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 1441,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": null
+}

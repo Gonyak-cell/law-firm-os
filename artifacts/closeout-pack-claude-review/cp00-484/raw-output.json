@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-484",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T10:29:30.361Z",
+  "finished_at": "2026-06-12T10:35:07.116Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":335074,\"duration_api_ms\":334012,\"ttft_ms\":3558,\"num_turns\":41,\"result\":\"Review complete — **PASS** with zero findings. CP00-484 is a clean descriptor-only governance slice: scope/distributions match the baseline, the implementation is pure frozen-descriptor construction with no runtime or real-data access, tests and the contract validator are consistent, the `production_ready:false`/`implemented_pending_review` posture is correctly conservative, and all review-hardening/authority-boundary checks hold. Does not block pack or goal closeout; final human approval remains required outside this receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"c5ae6ae4-2297-47d3-bcf5-6ab0768aadbf\",\"total_cost_usd\":2.3073162499999995,\"usage\":{\"input_tokens\":3394,\"cache_creation_input_tokens\":124853,\"cache_read_input_tokens\":1761996,\"output_tokens\":25113,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":124853,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":201,\"cache_read_input_tokens\":127010,\"cache_creation_input_tokens\":6238,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6238},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1092,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011920000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3394,\"outputTokens\":25113,\"cacheReadInputTokens\":1761996,\"cacheCreationInputTokens\":124853,\"webSearchRequests\":0,\"costUSD\":2.30612425,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-484 is a descriptor-only RP16.P02 governance implementation-slice pack (40 units, risk B, range RP16.P02.M03.S01-RP16.P02.M04.S18) and passes independent read-only review with no findings. Verification: (1) Scope and distributions are consistent across registry.js (GOVERNANCE_CORE_CP484_PACK_BINDING/REQUIREMENTS), service.js descriptor builders, contracts/governance-core-contract.json, and the manifest — deliverable distribution (contract:2/implementation:18/security_audit:4/ui:6/claude_review:2/failure_recovery:4/test:4=40) and micro-title split (Primary Implementation Slice:22, Secondary Workflow Slice:18) match the prompt baseline exactly. (2) Implementation is pure frozen-object descriptor construction following the established CP480-483 pattern; every row sets descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false, plus a comprehensive no-write/no-runtime/no-leak attestation. A grep of packages/governance/src for fs/require/child_process/fetch/exec/spawn/process.env/.write returned no matches, confirming no real data, no I/O, and no product runtime execution. (3) Tests (model.test.js) add three CP484 cases covering coverage validation, descriptor-only row guarantees, and authority-boundary/evidence-packet preservation; scripts/validate-rp16-governance-core-contract.mjs deep-equals the stored contract descriptor against the in-code descriptor and asserts historical_pack_bindings ends at CP00-484. (4) The pack-level production_ready claim is appropriately conservative: manifest reports production_ready:false, status:implemented_pending_review, runtime_ready:false; the Hermes production_ready_candidate:true is a local-validation signal only, not a final production or enterprise-trust claim, and post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are referenced but not yet present, which is the correct pre-review state. (5) Authority boundary holds: claude_is_final_approval:false, enterprise trust not claimed from local validation, and Hermes patterns are confined to deterministic descriptor-only review/evidence packets rather than embedded product runtime. (6) Review-hardening evidence is valid: auth preflight passed (exit 0, 1445-byte stdout, well-formed JSON {\\\"ok\\\":true}); validation-report confirms tools limited to Read/Grep/Glob, no forbidden tools, prompt contains no full diff/source, source_inspection_mode read_tools_used; none of the rejected evidence shapes (auth failure, 0-byte, malformed/fenced JSON, tool-call-shaped, missing fields) are present. The README-noted CP00-483 P3 remediation (next-micro handoff label) is consistently applied across service.js, validators.js, and the contract JSON. Unrelated dirty/untracked files (LDIP result, workbook docs, docx) are correctly partitioned as out-of-scope and not attributed to this pack. Final human approval remains required outside this receipt for any enterprise trust claim; Claude remains a read-only independent reviewer.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"5a649924-2d3b-493a-adfa-1636a1ff061a\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5277,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "c5ae6ae4-2297-47d3-bcf5-6ab0768aadbf",
+    "uuid": "5a649924-2d3b-493a-adfa-1636a1ff061a",
+    "total_cost_usd": 2.3073162499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

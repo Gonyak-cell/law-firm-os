@@ -1,0 +1,112 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-018",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "722e3b9c-509d-4c68-9bdf-da4f05b1266d",
+    "uuid": "f55e97a9-ec2b-4af2-be30-beda12d77678",
+    "duration_ms": 243229,
+    "duration_api_ms": 245107,
+    "total_cost_usd": 1.024336,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 41382,
+        "outputTokens": 24,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.041502000000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 23632,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 62480,
+        "webSearchRequests": 0,
+        "costUSD": 0.982834,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/fixtures/synthetic-control-plane.json request_input/normalized_request.command_evidence_ref",
+        "title": "Synthetic command_evidence_ref points at a different pack",
+        "detail": "The synthetic request carries docs/closeout-packs/cp00-016/command-evidence.json inside a CP00-018 fixture. The normalizer treats this as deterministic synthetic example data and not a correctness or security issue."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/test/service.test.js",
+        "title": "Minor uncovered branches: null matter_id and namespace-prefix / acceptance-gate drift",
+        "detail": "Tests exercise representative shared validation paths; RP validator and shared array equality loops cover the invariant indirectly."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "blocking": false,
+        "location": "packages/control-plane/README.md",
+        "title": "README prose omits explicit synthetic-only-policy and fixture-integrity dependency mention",
+        "detail": "The structural contract and validators carry synthetic_only_policy_ref RP00.P00.M06.S01 and fixture integrity requirements; this is documentation-completeness guidance only."
+      }
+    ],
+    "security_notes": [
+      "normalizeControlPlaneSyntheticFixtureSetRequest is pure, side-effect-free metadata construction with no file/network/DB/storage I/O.",
+      "Any truthy forbidden input claim or unknown claim fails closed.",
+      "All canonical array fields are pinned by ordered equality; output hardcodes no-real-data, no-write, and no runtime/fixture generation flags."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed with 426 tests.",
+      "Five dedicated tests cover policy, frozen happy-path metadata, fail-closed cases, module shape, and fixture mirror.",
+      "RP00 validator failure before evidence creation was only missing CP00-018 evidence files."
+    ],
+    "summary": "CP00-018 correctly binds RP00.P02.M06.S02 after S01. The normalizer produces only deterministic frozen metadata with no fixture generation/persistence, service execution, runtime route creation, database/storage/product-state writes, or real data use. Upstream dependencies on S01, S20, P00 synthetic-only policy, and fixture integrity are carried consistently. No P0/P1/P2 findings; three non-blocking P3 quality notes."
+  },
+  "raw_review_text": "Review complete. PASS_WITH_FINDINGS. No blockers: 0 P0/P1/P2, 3 P3 notes. CP00-018 / RP00.P02.M06.S02 is internally consistent across contract, policy/module, fixture, test, README, and RP validator; the only outstanding validator item is expected evidence assembly.",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "Claude returned PASS_WITH_FINDINGS with no P0, P1, or P2 findings. Three P3 findings are deferred in adjudication.md."
+}

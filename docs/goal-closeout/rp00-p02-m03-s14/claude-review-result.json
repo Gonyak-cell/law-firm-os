@@ -1,0 +1,115 @@
+{
+  "subphase_id": "RP00.P02.M03.S14",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Review-required routing",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T11:18:25Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "5a432298-3e5b-4a72-a973-44e94f6cd8fd",
+    "uuid": "8d8efbf4-9723-48b3-8c41-1eb558a92583",
+    "duration_ms": 254280,
+    "duration_api_ms": 249504,
+    "total_cost_usd": 2.4863660000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s14-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline heredoc",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s14-claude-review.json",
+    "duration_ms": 254280,
+    "duration_api_ms": 249504,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "8d8efbf4-9723-48b3-8c41-1eb558a92583",
+    "session_id": "5a432298-3e5b-4a72-a973-44e94f6cd8fd"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "validation_error_mapping_ref early guard is transitive rather than bespoke",
+        "location": "packages/control-plane/src/service.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Claude confirmed the full S13 result is asserted before consumption, so the ordering requirement is met. A bespoke early guard would only add symmetry with the failClosedOn reason and is deferred."
+      },
+      {
+        "severity": "P3",
+        "title": "blank audit_event_ref and missing validation_error_mapping_ref could have dedicated negative tests",
+        "location": "packages/control-plane/test/service.test.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "The code and result validators already enforce these fields, and negative loops cover the S13 marker, denied decision, missing receipt, unsafe claims, and unknown claims. Extra one-field tests are optional hardening and deferred."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S15 Approval-required routing as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S14 metadata-only review-required routing logic, validators, fixture parity, fail-closed claim handling, and S15 successor behavior.",
+      "S14 does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S15.",
+      "There were no P0, P1, or P2 findings."
+    ],
+    "summary": "Claude reported PASS / GO with two optional P3 guard/test granularity observations. After adjudication S14 is PASS_WITH_FINDINGS / GO with no unresolved P0/P1/P2."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s14-claude-review.json",
+    "summary": "Claude returned PASS / GO with two optional P3 guard/test granularity observations."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

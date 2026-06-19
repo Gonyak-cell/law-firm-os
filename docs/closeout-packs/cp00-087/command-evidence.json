@@ -1,0 +1,143 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-087",
+  "subphase_id": "RP00.P07.M07.S20",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test --test-name-pattern \"Failure Edge Recovery Test Golden Case Set\" packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-087",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "claude_review_command": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < CP00-087 diff prompt",
+    "exit_code": 0,
+    "exactly_one_valid_pack_level_review": true
+  },
+  "invalid_claude_attempts": [
+    {
+      "reason": "Disabled-tool request without verdict or finding counts",
+      "counted_as_valid_pack_review": false
+    }
+  ],
+  "evidence_summary": {
+    "claude_review_dependency": "One valid claude-opus-4-8 max read-only review completed before production_ready; the prior no-verdict tool-request attempt is not counted.",
+    "upstream_boundary": "CP00-087 consumes CP00-086 and requires upstream next_subphase RP00.P07.M07.S01.",
+    "finding_resolution": "Claude P3 CP00-087-P3-01 was fixed by creating pack evidence and validating; CP00-087-P3-02 and CP00-087-P3-03 were accepted as metadata-authoring and sliding-window conventions.",
+    "ldip_boundary": "LDIP remains planning-only; no LDIP implementation is introduced by CP00-087."
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-087 is metadata-only and does not execute runtime tests, generate runtime fixtures, write golden catalogs, evaluate runtime permissions, call AuthZ, run the permission engine, emit runtime error responses, create incidents, write observability, append audit events, write Hermes evidence packets, write command evidence, write database/storage/idempotency/product state, acquire locks, or implement LDIP."
+  ],
+  "hermes_failure_evidence": {
+    "evidence_ref": "failure_edge_recovery.cp00_087.test_golden_case_set",
+    "closes_units": [
+      "RP00.P07.M07.S01",
+      "RP00.P07.M07.S02",
+      "RP00.P07.M07.S03",
+      "RP00.P07.M07.S04",
+      "RP00.P07.M07.S05",
+      "RP00.P07.M07.S06",
+      "RP00.P07.M07.S07",
+      "RP00.P07.M07.S08",
+      "RP00.P07.M07.S09",
+      "RP00.P07.M07.S10",
+      "RP00.P07.M07.S11",
+      "RP00.P07.M07.S12",
+      "RP00.P07.M07.S13",
+      "RP00.P07.M07.S14",
+      "RP00.P07.M07.S15",
+      "RP00.P07.M07.S16",
+      "RP00.P07.M07.S17",
+      "RP00.P07.M07.S18",
+      "RP00.P07.M07.S19",
+      "RP00.P07.M07.S20"
+    ],
+    "upstream_result_ref": "failure_edge_recovery.cp00_086.synthetic_fixture_set_result",
+    "metadata_only": true
+  }
+}

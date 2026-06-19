@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-681",
+  "normalized_at": "2026-06-14T13:11:29.059Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-681/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-681/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-681/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-681/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "ffec6c60-8c64-40e2-919a-2bfc8d0f271e",
+    "uuid": "f4639b89-8183-475a-9b5a-1f10522f3a71",
+    "total_cost_usd": 2.3658235,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7015,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Read-only hardened review of CP00-681 (RP22 External Integrations I, P05 closeout -> P06 scope inventory bridge; risk C; 150 units RP22.P05.M03.S19-RP22.P06.M00.S06). The pack is a descriptor-only bridge and does NOT overclaim: manifest and construction-inspection report status=in_progress, production_ready=false, runtime_ready=false, runtime_opened=false, pending_review; the only asserted claim is descriptor-bridge verification, with enterprise trust and runtime opening explicitly deferred to human approval / CP00-682. Implementation verified through Read/Grep/Glob: registry.js CP681 binding and requirements match the baseline (deliverables impl 58 / fixture 48 / claude_review 7 / security_audit 13 / test 18 / hermes_evidence 6 = 150; micro_title and micro_phase counts each reconcile to 150); service.js descriptor/Hermes/Claude/handoff builders return frozen plain objects via freezeCp681Result with synthetic_only/no_real_data/writes_product_state=false and the full no-write/no-runtime flag block; validators.js asserts every row descriptor_only + runtime_execution=false + customer_safe + no raw payload, plus contract-level runtime-closed and claude_is_final_approval=false; model.test.js asserts the same boundaries and coverage. No runtime side effects exist in source (imports are internal ./registry.js/./service.js only; no fs/network/child_process/process.env). command-evidence.json shows all 22 commands exit 0, including every prompt-required validation command (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) plus node --check/--test and build. Review evidence is clean per CP178+ hardening: readiness auth-preflight passed (exit 0, 1446-byte valid JSON result), validation-report shows read-only tools only, no forbidden tools, schema present, summary-only review correctly prohibited and read_tools_used. Authority boundary holds: Claude is read-only independent reviewer, not final approver (promotes_claude_to_final_approval=false; human_final_approval_required_for_runtime_opening=true), and Hermes is used only for deterministic review packet/receipt (hermes_runtime_opened=false, runtime_receipt_emitted=false, not embedded in product). Contracts (integrations-core, external-integrations-i) and the live plan/queue all agree CP00-681 is the current cursor with next CP00-682 / RP22.P06.M00.S07. One non-blocking P3 observation: changed-file-scope.json dual-lists docs/closeout-pack-plan/new-session-handoff.md in both untracked_implementation_files and unrelated_dirty_files_preserved, but active_pack_implementation_refs correctly excludes it and active_untracked_implementation_files_omitted is empty, so there is no pack-boundary impact. No P0/P1/P2 issues found; pack closeout is supported.",
+    "findings": [
+      {
+        "id": "CP681-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope dual-classifies new-session-handoff.md (cosmetic, no boundary impact)",
+        "file": "artifacts/closeout-pack-claude-review/cp00-681/changed-file-scope.json",
+        "line": 184,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 184) and unrelated_dirty_files_preserved (line 191). The authoritative active_pack_implementation_refs list (lines 5-19) correctly excludes it, active_untracked_implementation_files_omitted is empty (line 187), and the manifest worktree_transition_policy also lists it as unrelated dirty, so the file is correctly treated as outside CP00-681. The dual listing is a naming/bucketing nuance (untracked_implementation_files appears to mean 'untracked doc/code-shaped files' rather than 'files in this pack'), not a scope leak.",
+        "recommendation": "Optional: clarify untracked_implementation_files semantics or omit unrelated files from it to avoid reader confusion. No action required for CP00-681 closeout.",
+        "post_review_disposition": "non_blocking_observation; informational only; does not affect production_ready, no-write/no-real-data boundary, or pack closeout eligibility"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

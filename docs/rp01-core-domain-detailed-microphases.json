@@ -1,0 +1,3692 @@
+{
+  "schema_version": "law-firm-os.rp01-detailed-microphases.v1",
+  "program_id": "RP01",
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP01.P00.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec sections 5 and 6",
+      "objective": "Extract Tenant, User, Role, Entity, Client, Matter, Document reference, and AuditEvent requirements into a core-domain inventory.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M01",
+      "micro_title": "Draft core domain contract shell",
+      "objective": "Create the future contract shape for core entities, ownership, identifiers, and required invariants.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M02",
+      "micro_title": "Define ID naming rules",
+      "objective": "Lock tenant_id, user_id, role_id, entity_id, client_id, matter_id, document_id, version_id, event_id naming rules.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M03",
+      "micro_title": "Define ownership rules",
+      "objective": "Specify Core owns Tenant/User/Role/Permission/AuditEvent, Master Data owns Entity/Client, Matter Core owns Matter, DMS owns Document.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M04",
+      "micro_title": "Define pre-Matter exceptions",
+      "objective": "Record that Lead and Opportunity may exist before Matter while Document, Time, Billing, Settlement, and AI must be Matter-traceable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M05",
+      "micro_title": "Define acceptance gates",
+      "objective": "Write H01 acceptance gates for Matter-first, DMS ownership, Permission core ownership, and Audit core ownership.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that RP01 fixtures use fake tenants, users, clients, matters, and documents only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M07",
+      "micro_title": "Plan contract validation checks",
+      "objective": "List validation checks that will fail if core required entities or invariants disappear.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes H01 preflight rows",
+      "objective": "Define what Hermes records before running RP01 implementation checks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude C01 review brief",
+      "objective": "Prepare review questions for Claude Code around missing entities, ownership drift, and inadequate tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P00.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "micro_id": "M10",
+      "micro_title": "Close RP01.P00 handoff",
+      "objective": "Produce a handoff that tells AI to implement entity definitions next, not UI or API.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "contracts/core-domain-contract.json",
+        "packages/domain/README.md"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M00",
+      "micro_title": "Create domain package structure",
+      "objective": "Create src and test layout for package-level domain definitions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M01",
+      "micro_title": "Implement Tenant shape",
+      "objective": "Define Tenant required fields: tenant_id, name, plan, region, security_policy, data_residency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M02",
+      "micro_title": "Implement User Group Role shapes",
+      "objective": "Define User, Group, Role required fields and role permission_set reference.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M03",
+      "micro_title": "Implement Permission Policy shapes",
+      "objective": "Define Permission and Policy shape references without implementing authz evaluation yet.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M04",
+      "micro_title": "Implement Entity Person Organization shapes",
+      "objective": "Define master-data entity base shapes for company/person/organization identity.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M05",
+      "micro_title": "Implement Client BillingEntity ContactPoint shapes",
+      "objective": "Define ClientProfile, BillingEntity, ContactPoint, and Relationship references.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M06",
+      "micro_title": "Implement Matter shapes",
+      "objective": "Define Matter, MatterMember, MatterTask, MatterCalendarEvent, Checklist, and MatterStatusHistory shapes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M07",
+      "micro_title": "Implement DMS reference shapes",
+      "objective": "Define Document and DocumentVersion references owned by DMS but visible to core domain checks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M08",
+      "micro_title": "Implement AuditEvent shape",
+      "objective": "Define AuditEvent core fields for actor, action, object, timestamp, and IP metadata.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M09",
+      "micro_title": "Export domain registry",
+      "objective": "Export a registry of entity names, owning modules, required fields, and relationship references.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P01.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P01",
+      "phase_title": "Domain Model",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm all RP01 core entities are represented and ready for invariant validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/entities.js",
+        "packages/domain/src/ownership.js",
+        "packages/domain/src/index.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-entities.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M00",
+      "micro_title": "Define invariant registry",
+      "objective": "Create a registry for Matter-first, DMS ownership, core ownership, and required field invariants.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M01",
+      "micro_title": "Implement required field validator",
+      "objective": "Validate required fields by entity type using the domain registry.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M02",
+      "micro_title": "Implement Matter required invariant",
+      "objective": "Enforce tenant_id, client_id, owner_user_id, status, and confidentiality on Matter.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M03",
+      "micro_title": "Implement DMS Matter trace invariant",
+      "objective": "Require Document and DocumentVersion references to remain traceable to matter_id.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M04",
+      "micro_title": "Implement pre-Matter exception invariant",
+      "objective": "Allow Opportunity and Lead to exist before Matter conversion without weakening post-Matter rules.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M05",
+      "micro_title": "Implement ownership invariant",
+      "objective": "Fail if Document is treated as CRM/Billing/Matter-owned instead of DMS-owned.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M06",
+      "micro_title": "Implement Core ownership invariant",
+      "objective": "Fail if Permission, Policy, or AuditEvent are moved outside Core ownership.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M07",
+      "micro_title": "Implement module dependency check",
+      "objective": "Check allowed reference direction between Core, Master Data, Matter, DMS, Billing, CRM, Settlement, and AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, errors, warnings, and checked invariant IDs for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M09",
+      "micro_title": "Add blocked-claim output",
+      "objective": "Expose blocked claims when a requested structure violates Matter-first or ownership rules.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P02.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P02",
+      "phase_title": "Service Logic",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm validators can be consumed by tests and future Hermes product checks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/invariants.js",
+        "packages/domain/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-invariants.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M00",
+      "micro_title": "Define package public exports",
+      "objective": "Expose entities, ownership registry, invariants, validators, and fixture helpers through a stable index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M01",
+      "micro_title": "Define validateDomainContract API",
+      "objective": "Create a single function contract for validating entity registries and fixtures.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M02",
+      "micro_title": "Define getEntityDefinition API",
+      "objective": "Expose entity definitions by name for future API/DB generators.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M03",
+      "micro_title": "Define getOwnerModule API",
+      "objective": "Expose owning module by entity name for cross-module checks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M04",
+      "micro_title": "Define listMatterTraceableEntities API",
+      "objective": "Expose entities that must be traceable to Matter.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M05",
+      "micro_title": "Define listPreMatterEntities API",
+      "objective": "Expose Lead and Opportunity as explicit pre-Matter exceptions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M06",
+      "micro_title": "Define validation result shape",
+      "objective": "Lock result fields: valid, errors, warnings, checked, blocked_claims.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M07",
+      "micro_title": "Define error code taxonomy",
+      "objective": "Add stable error codes for missing field, ownership drift, matter trace failure, and pre-Matter misuse.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Ensure validation result can be serialized into Hermes evidence without hidden state.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review packet input",
+      "objective": "Expose enough contract summary for Claude Code cross-validation prompts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P03.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P03",
+      "phase_title": "API And Interface",
+      "micro_id": "M10",
+      "micro_title": "Close interface phase",
+      "objective": "Freeze RP01 package interface until RP02 explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/index.js",
+        "packages/domain/src/domain-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M00",
+      "micro_title": "Inventory existing Jira-like UI",
+      "objective": "Identify current Matter UI spots that should later consume domain fixtures.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M01",
+      "micro_title": "Plan domain fixture injection",
+      "objective": "Define how UI will read synthetic Matters without direct coupling to validators.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M02",
+      "micro_title": "Define Matter row required fields display",
+      "objective": "Map matter_id, client name, owner, status, confidentiality, and due data to existing table layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M03",
+      "micro_title": "Define audit panel domain fields",
+      "objective": "Map AuditEvent shape to the existing right-side recent audit event panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M04",
+      "micro_title": "Define permission signal display",
+      "objective": "Map deny-rule and attorney-review state into a compact Jira-like warning/approval panel.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M05",
+      "micro_title": "Define no-real-data UI marker",
+      "objective": "Ensure UI seed data is visibly synthetic in developer fixtures, not client-like hidden test data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M06",
+      "micro_title": "Plan responsive domain density",
+      "objective": "Keep Matter and Audit fields readable on mobile without losing required context.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M07",
+      "micro_title": "Plan UI build validation",
+      "objective": "Keep `npm run build` as RP01 UI smoke even if no UI code changes are required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that RP01 UI is display-only and not a domain authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review prompt",
+      "objective": "Ask Claude to check whether UI suggests unsafe final authority or hides key security context.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P04.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P04",
+      "phase_title": "UI And Operator Surface",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Defer deeper UI implementation to RP05/RP06 while preserving RP01 display assumptions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M00",
+      "micro_title": "Define synthetic tenant fixture",
+      "objective": "Create fake tenant with security policy and data residency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M01",
+      "micro_title": "Define synthetic users and roles",
+      "objective": "Create fake owner, partner, attorney, finance, security admin, and auditor users.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M02",
+      "micro_title": "Define synthetic entity and client",
+      "objective": "Create fake organization/person/entity relationship and client profile.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M03",
+      "micro_title": "Define synthetic matter",
+      "objective": "Create fake active Matter with owner, client, team, status, type, confidentiality.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M04",
+      "micro_title": "Define synthetic document references",
+      "objective": "Create fake Document and DocumentVersion references tied to matter_id.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M05",
+      "micro_title": "Define synthetic audit events",
+      "objective": "Create fake view/download/permission-change audit events.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M06",
+      "micro_title": "Define valid golden case",
+      "objective": "Create a complete valid case that passes all RP01 invariants.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M07",
+      "micro_title": "Define invalid no-matter document case",
+      "objective": "Create a failing case where Document lacks matter_id.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M08",
+      "micro_title": "Define invalid ownership drift case",
+      "objective": "Create a failing case where Document is assigned to Billing or CRM ownership.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M09",
+      "micro_title": "Define invalid matter required fields case",
+      "objective": "Create failing cases for missing tenant/client/owner/status/confidentiality.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P05.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm fixtures are synthetic, serializable, and reusable by Hermes H01.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/fixtures.js",
+        "packages/domain/fixtures/core-domain-fixtures.json"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-fixtures.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M00",
+      "micro_title": "Define Permission reference contract",
+      "objective": "Specify Permission fields and relationship to principal/object/action/effect.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M01",
+      "micro_title": "Define Policy reference contract",
+      "objective": "Specify Policy fields and policy_type/config ownership.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M02",
+      "micro_title": "Define AuditEvent action taxonomy seed",
+      "objective": "Seed actions for login, view, download, upload, permission_change, billing_change, AI_access.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M03",
+      "micro_title": "Define audited object reference shape",
+      "objective": "Specify object_type and object_id rules for audit events.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M04",
+      "micro_title": "Define security trimming contract seed",
+      "objective": "Record that search/AI/report visibility must be trimmed before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M05",
+      "micro_title": "Define deny-rule precedence seed",
+      "objective": "Record deny-over-allow as RP02 implementation input.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M06",
+      "micro_title": "Define ethical wall placeholder",
+      "objective": "Represent ethical wall as future deny-rule source without implementing logic in RP01.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M07",
+      "micro_title": "Test audit event object references",
+      "objective": "Ensure synthetic audit events point to known core/DMS object references.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes H01 security notes",
+      "objective": "Record what RP01 checks now and what must wait for RP02/RP03.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude security review brief",
+      "objective": "Ask Claude to identify security assumptions that are only placeholders.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P06.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P06",
+      "phase_title": "Permission Audit Integration",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Hand off explicit TODOs to RP02 and RP03 without creating hidden logic gaps.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/src/security-contract.js",
+        "packages/domain/src/audit-contract.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/security-audit-contract.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M00",
+      "micro_title": "Define missing identifier failures",
+      "objective": "Test missing tenant_id, user_id, client_id, matter_id, document_id, event_id where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M01",
+      "micro_title": "Define invalid reference failures",
+      "objective": "Test references to unknown tenant, client, matter, document, or user.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M02",
+      "micro_title": "Define ownership mismatch failures",
+      "objective": "Test mismatched owner module claims and ensure validators return blocked_claims for unsafe module drift.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M03",
+      "micro_title": "Define status enum failures",
+      "objective": "Test invalid Matter status and user status values.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M04",
+      "micro_title": "Define confidentiality failures",
+      "objective": "Test missing or invalid confidentiality level.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M05",
+      "micro_title": "Define pre-Matter misuse failures",
+      "objective": "Test Document/Time/Billing-style records incorrectly treated as pre-Matter.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M06",
+      "micro_title": "Define audit object mismatch failures",
+      "objective": "Test AuditEvent object_type/object_id mismatch.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M07",
+      "micro_title": "Define blocked claim assertions",
+      "objective": "Ensure validators return blocked_claims instead of silently accepting unsafe shapes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failing micro phase should be corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge-case review",
+      "objective": "Ask Claude to find missing failure cases and weak assumptions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P07.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm failure cases fail for the intended reason and not due to test brittleness.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "target_tests": [
+        "packages/domain/test/domain-failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M00",
+      "micro_title": "Define H01 command matrix",
+      "objective": "Record exact product commands Hermes should run for RP01.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M01",
+      "micro_title": "Define H01 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, invariant_summary, blocked_claims, next_gate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M02",
+      "micro_title": "Define H01 domain summary",
+      "objective": "Serialize entity count, invariant count, fixture count, and failed case count.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M03",
+      "micro_title": "Define H01 no-real-data evidence",
+      "objective": "Record that fixtures are synthetic and contain no client data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M04",
+      "micro_title": "Define H01 blocked claim evidence",
+      "objective": "Record unsafe domain shapes rejected by validators.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M05",
+      "micro_title": "Define H01 Claude dependency",
+      "objective": "Mark C01 cross-validation required before RP02 opens.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M06",
+      "micro_title": "Define H01 human approval note",
+      "objective": "Record what the human must approve: domain ownership and phase transition.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M07",
+      "micro_title": "Test H01 command availability",
+      "objective": "Ensure npm scripts required by H01 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M08",
+      "micro_title": "Prepare H01 evidence packet template",
+      "objective": "Create a future template for Hermes to fill during implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M09",
+      "micro_title": "Prepare H01 closeout criteria",
+      "objective": "Define PASS/BLOCK semantics for the RP01 gate.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P08.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P08",
+      "phase_title": "Hermes Validation Binding",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes is attached as verifier, not product code owner.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "scripts/validate-product-contract.mjs"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M00",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP01 architecture review questions",
+      "objective": "Ask whether entity ownership and module boundaries match the spec.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M01",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP01 security review questions",
+      "objective": "Ask whether Matter-first, DMS ownership, and Permission/Audit placeholders are sufficiently constrained.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M02",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP01 missing test questions",
+      "objective": "Ask what core domain failure cases are missing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M03",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP01 data model drift questions",
+      "objective": "Ask whether names/fields drift from the Law Firm OS specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M04",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP01 SaaS readiness questions",
+      "objective": "Ask whether tenant isolation assumptions are ready for RP26 later.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M05",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP01 blocked risk register",
+      "objective": "List unresolved risks that must move to RP02/RP03/RP04.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M06",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Claude findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M07",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for RP01 closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M08",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a future RPxx.Pyy.Mzz or create a correction micro phase.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M09",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before RP02 begins.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP01.P09.M10",
+      "program_id": "RP01",
+      "program_title": "Core Domain Foundation",
+      "phase_id": "RP01.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "micro_id": "M10",
+      "micro_title": "Close RP01 detailed plan",
+      "objective": "Confirm RP01 is detailed enough for AI implementation without further planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H01",
+      "claude_gate": "C01",
+      "target_files": [
+        "docs/rp01-claude-cross-validation-brief.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm test",
+        "npm run fullplan:validate"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, Permission core ownership, and Audit core ownership are preserved where applicable.",
+        "Hermes H01 evidence or blocked reason can be recorded.",
+        "Claude C01 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-476",
+  "normalized_at": "2026-06-12T09:27:24.083Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-476/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-476/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-476/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-476/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "fec964fd-3c09-4636-863b-b1ef00d790a1",
+    "uuid": "d13bebbb-e9f4-46f7-937c-b9b697134655",
+    "total_cost_usd": 1.7797204999999998,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6985,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-476 is a descriptor-only RP15.P08.M06 \"Synthetic Fixture Set\" slice (10 units, RP15.P08.M06.S08-S17, risk class A, deliverables hermes_evidence:3/claude_review:1/implementation:6). Verified via Read/Grep/Glob only: (1) ANALYTICS_CORE_CP476_PACK_BINDING / REQUIREMENTS / NO_WRITE_ATTESTATION in registry.js match the contract's current_pack, cp476_requirements, cp476_no_write_attestation, the closeout-pack-plan CP00-476 entry, and the manifest plan_binding_snapshot (unit count, range, distribution, section rows all agree). (2) service.js builders (createAnalyticsCoreCp476P08FixtureSliceCaseSet/Descriptor) emit frozen descriptor-only rows for all 10 required titles with descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false; freezeCp476Result stamps a complete no-write/no-real-data attestation. (3) validators.js coverage/slice/Hermes/Claude/handoff functions enforce unit/range/distribution, descriptor-only row shape, authority boundary, and handoff targets. (4) model.test.js and scripts/validate-rp15-analytics-core-contract.mjs assert coverage.valid, slice.valid, deepEqual of the contract p08_fixture_slice_descriptor / cp476_requirements / cp476_no_write_attestation against generated objects (drift guards), authority_boundary.claude_is_final_approval=false, and historical_pack_bindings tail = CP00-476. (5) Security sweep found no fs/network/child_process/process.env/secret usage in the changed analytics source or validator — the no-write/no-real-data boundary holds. (6) production_ready=false and runtime_ready=false: production gates are not weakened; only the descriptor-level flag analytics_core_p08_fixture_slice_descriptor_verified is asserted. (7) Authority boundary intact: Claude is read-only and explicitly not final approver, enterprise trust is not claimed from local validation, and Hermes patterns are used only for deterministic packet/receipt handling (hermes_runtime_embedded_in_product=false, emits_hermes_runtime_receipt=false). (8) CP178+ hardening: readiness auth preflight passed with 1434-byte valid JSON stdout (no auth failure, 0-byte, malformed/fenced JSON, or tool-call-shaped output), and pack_level_claude_review shows no invalid attempts laundered as valid. Unrelated dirty/untracked files (LDIP invalid-attempt JSON, workbook docs, v2.0 docx) are correctly excluded from pack scope. One P3 informational note only: the final-closeout receipt artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are intentionally pending downstream of this read-only run and human final approval is still required; nothing blocks pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP476-N1",
+        "severity": "P3",
+        "title": "Final-closeout adjudication/inspection/review-result artifacts are pending by design downstream of this read-only run",
+        "file": "docs/closeout-packs/cp00-476/manifest.json",
+        "line": 504,
+        "details": "manifest.required_pack_artifacts and the per-unit evidence_refs list docs/closeout-packs/cp00-476/claude-review-result.json, adjudication.md, and construction-inspection.json, none of which exist yet (only manifest.json and command-evidence.json are present). This is expected, not a defect: this Claude run is step 3 (read_only_claude_run_with_raw_capture) of the 9-step hardened_review_sequence, and those artifacts plus raw-output.json / review-receipt.json are produced in the later normalize/receipt_validate/finding_adjudication/construction_inspection steps. Consistent with pack status implemented_pending_review, production_ready=false, runtime_ready=false, and pack_level_claude_review.status=pending. No production_ready or enterprise-trust boolean is asserted from local validation.",
+        "recommendation": "At final-closeout validation, confirm claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, and review-receipt.json are generated, schema-valid, and reference this read-only run before commit; the human approver must not interpret this PASS as final approval or enterprise-trust closure.",
+        "post_review_disposition": "no_action_required_expected_staged_artifact_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

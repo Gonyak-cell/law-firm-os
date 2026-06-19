@@ -1,0 +1,29 @@
+{
+  "work_package_id": "LT-L8-W03",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "review_waived_by_user",
+  "review_type": "full_claude_review",
+  "model": null,
+  "effort": null,
+  "exactly_one_valid_claude_review_run": false,
+  "valid_review_evidence": false,
+  "qualifies_as_required_review": false,
+  "model_not_run": true,
+  "waiver": {
+    "waived_by": "user",
+    "instruction": "From now on, skip full Claude reviews.",
+    "recorded_effect": "The waiver is recorded for traceability but does not count as independent review evidence."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "advisory": 0
+  },
+  "satisfies_governance_review_gate": false,
+  "notes": [
+    "No Claude review was executed for LT-L8-W03.",
+    "This file is not a review receipt.",
+    "W03 is blocked on owner approval, go/no-go decision, production cutover execution, rollout, and 48-hour monitoring."
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "subphase_id": "RP00.P02.M04.S08",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Secondary workflow path",
+  "created_at": "2026-06-05T20:01:24Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s08-claude-review.json",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s08-review-packet.diff",
+  "session_id": "6cd61fbb-8f2c-4f29-94ff-6b0229aa117b",
+  "uuid": "d7779478-53c8-43ad-a1f0-5e31fd519ff3",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.9050592499999999,
+  "usage": {
+    "input_tokens": 36,
+    "cache_creation_input_tokens": 111971,
+    "cache_read_input_tokens": 1661695,
+    "output_tokens": 14939,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 111971,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 6362,
+        "cache_read_input_tokens": 138596,
+        "cache_creation_input_tokens": 4708,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 4708
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "GO",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    "P3: secondary_workflow_receipt_fields is a required-subset list rather than an exhaustive receipt key list; all 13 emitted receipt keys are nonetheless validated by assertControlPlaneClaudeReviewSecondaryWorkflowPathResult, matching the established S07 convention.",
+    "P3: fail_closed_on labels are declarative metadata rather than literal claim keys; enforcement happens through forbiddenSecondaryWorkflowClaims plus unknown-claim rejection, matching the established S07 convention."
+  ],
+  "review_text": "Claude returned GO for RP00.P02.M04.S08 with no P0, P1, or P2 findings. Claude verified that precheckControlPlaneClaudeReviewSecondaryWorkflowPath consumes and revalidates the S07 result, preserves claude_review plus claude-opus-4-8 plus max plus read-only metadata, emits a frozen metadata-only secondary workflow receipt, rejects forbidden and unknown claims, and does not invoke runtime Claude, write review queues, write audit ledgers/events, execute runtime permission/AuthZ/permission-engine logic, execute service logic, create runtime routes, or write product state. Two P3 observations were informational only: receipt field advertising is a required subset, and fail_closed_on labels are declarative metadata backed by explicit forbidden-claim enforcement.",
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "6cd61fbb-8f2c-4f29-94ff-6b0229aa117b",
+    "uuid": "d7779478-53c8-43ad-a1f0-5e31fd519ff3",
+    "total_cost_usd": 1.9050592499999999,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s08-claude-review.json",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s08-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3_INFORMATIONAL",
+        "title": "secondary_workflow_receipt_fields advertises 10 fields while the emitted secondary_workflow_receipt object carries 13 keys.",
+        "body": "No action required. The list is a minimum-required subset, and assertControlPlaneClaudeReviewSecondaryWorkflowPathResult explicitly checks all emitted receipt keys.",
+        "status": "deferred_with_explicit_boundary"
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3_INFORMATIONAL",
+        "title": "fail_closed_on labels are declarative metadata rather than literal claim keys.",
+        "body": "No action required. Actual enforcement is performed by forbiddenSecondaryWorkflowClaims plus unknown-claim rejection, consistent with the S07 pattern.",
+        "status": "deferred_with_explicit_boundary"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T20:01:24Z",
+  "production_ready": true
+}

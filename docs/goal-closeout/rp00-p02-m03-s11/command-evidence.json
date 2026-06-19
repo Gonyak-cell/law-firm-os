@@ -1,0 +1,105 @@
+{
+  "subphase_id": "RP00.P02.M03.S11",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Lock acquisition rule",
+  "micro_title": "Hermes Validation",
+  "status": "passed",
+  "recorded_at": "2026-06-05T10:03:40Z",
+  "executed_at": "2026-06-05T10:03:40Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "All commands are local validation, parser, test, Claude read-only review, or git whitespace checks; none execute service logic, create runtime routes, run Hermes validation as product runtime behavior, create Hermes evidence as product runtime behavior, mutate tenant lifecycle state, append audit ledgers, write audit events, persist idempotency records, acquire locks, create UI, replace human approval, or mutate product state.",
+    "Pre-closeout npm run rp00:control-plane:validate failed only because S11 evidence files were intentionally not created yet; this command is rerun after evidence creation as the final gate.",
+    "Claude C00 valid review completed with FAIL / NO_GO due to a P0 false M03 closeout boundary. The P0, P2, and P3 findings were fixed before production_ready."
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "175 pass"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "full local test suite passed"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "summary": "product contract validation passed"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "227 requirements"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "54355 implementation subphases"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "30 release programs, 3300 micro phases"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "Final S11 closeout gate rerun after evidence creation"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "status": "passed"
+  },
+  "pre_closeout_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "docs/goal-closeout/rp00-p02-m03-s11/packet.json",
+      "docs/goal-closeout/rp00-p02-m03-s11/command-evidence.json",
+      "docs/goal-closeout/rp00-p02-m03-s11/claude-review-result.json",
+      "docs/goal-closeout/rp00-p02-m03-s11/adjudication.md",
+      "docs/goal-closeout/rp00-p02-m03-s11/construction-inspection.json"
+    ]
+  }
+}

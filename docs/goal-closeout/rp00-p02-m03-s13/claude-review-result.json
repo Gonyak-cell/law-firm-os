@@ -1,0 +1,108 @@
+{
+  "subphase_id": "RP00.P02.M03.S13",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Validation error mapping",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T10:53:08Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "8a160a30-1ae2-4896-837d-73cf3d2104a5",
+    "uuid": "2fb0e76c-95cf-4e89-b20b-198c35224b0c",
+    "duration_ms": 307924,
+    "duration_api_ms": 308269,
+    "total_cost_usd": 2.38139525,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s13-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline heredoc",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s13-claude-review.json",
+    "duration_ms": 307924,
+    "duration_api_ms": 308269,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "2fb0e76c-95cf-4e89-b20b-198c35224b0c",
+    "session_id": "8a160a30-1ae2-4896-837d-73cf3d2104a5"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "completion_gates pre-assert closeout evidence that does not yet exist",
+        "location": "contracts/control-plane-contract.json",
+        "status": "fixed_by_closeout_evidence",
+        "summary": "Claude observed the expected mid-closeout state where the S13 closeout evidence bundle had not yet been created. The bundle now exists and is validated by the RP00 closeout gate."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S14 Review-required routing as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S13 metadata-only validation error mapping logic, validators, fixture parity, fail-closed claim handling, and S14 successor behavior.",
+      "S13 does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S14.",
+      "There were no P0, P1, or P2 findings."
+    ],
+    "summary": "Claude reported PASS / GO with one P3 closeout-evidence sequencing finding. After adjudication S13 is PASS_WITH_FINDINGS / GO with no unresolved P0/P1/P2."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 1
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s13-claude-review.json",
+    "summary": "Claude returned PASS / GO with one P3 expected closeout evidence finding."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

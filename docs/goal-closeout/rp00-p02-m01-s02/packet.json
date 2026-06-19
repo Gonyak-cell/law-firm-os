@@ -1,0 +1,50 @@
+{
+  "subphase_id": "RP00.P02.M01.S02",
+  "source_micro_phase_id": "RP00.P02.M01",
+  "title": "Request normalization",
+  "micro_title": "Contract Draft",
+  "status": "production_ready",
+  "evidence_root": "docs/goal-closeout/rp00-p02-m01-s02",
+  "implemented_surface": "ControlPlanePlanAuthoringRequestNormalization",
+  "implemented_slice": "plan_authoring_request_normalization",
+  "summary": "RP00.P02.M01.S02 normalizes an M00 S03 allow_metadata_only tenant-boundary precheck result into frozen plan_authoring Contract Draft metadata carrying S01 contract row IDs and acceptance gate IDs. The subphase does not draft contract rows, execute service logic, create runtime routes, mutate registries, replace human approval, or write product state.",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "required_exports": [
+    "CONTROL_PLANE_PLAN_AUTHORING_REQUEST_NORMALIZATION_POLICY",
+    "CONTROL_PLANE_PLAN_AUTHORING_REQUEST_NORMALIZED_FIELDS",
+    "CONTROL_PLANE_PLAN_AUTHORING_REQUEST_NORMALIZER",
+    "getControlPlanePlanAuthoringRequestNormalizationPolicy",
+    "normalizeControlPlanePlanAuthoringRequest",
+    "assertControlPlanePlanAuthoringRequestNormalizationPolicy",
+    "assertNormalizedControlPlanePlanAuthoringRequest"
+  ],
+  "upstream_dependencies": [
+    "RP00.P02.M01.S01",
+    "RP00.P02.M00.S03"
+  ],
+  "next_subphase": "RP00.P02.M01.S03",
+  "boundary": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "service_logic_execution_permitted": false,
+    "runtime_route_created": false,
+    "contract_rows_drafted": false,
+    "human_approval_replaced": false
+  },
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m01-s02/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m01-s02/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m01-s02/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m01-s02/construction-inspection.json"
+  ],
+  "production_ready": true
+}

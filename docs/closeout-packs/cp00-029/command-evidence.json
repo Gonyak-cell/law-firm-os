@@ -1,0 +1,111 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-029",
+  "subphase_id": "RP00.P02.M07.S01",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T15:49:06Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-029 is a metadata-only service entrypoint contract pack: it defines the Test And Golden Case Set S01 contract, context ids, service module, validator, fixture, README, and RP00 validation coverage without executing tests as product behavior, generating golden fixtures, persisting golden fixtures, creating runtime routes, executing service logic, writing database/storage/product state, or completing RP00.P02.M07/RP00.P02/RP00.",
+    "A preliminary RP00 validation run before evidence creation failed only because docs/closeout-packs/cp00-029 evidence files did not exist yet.",
+    "The completed read-only Claude run is the single valid pack-level review for CP00-029; raw verdict was request_changes because evidence did not yet exist, and all P1/P2 items are resolved or adjudicated by this pack evidence and final validation."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "expected": true,
+      "summary": "Pre-evidence RP00 validation failed only because docs/closeout-packs/cp00-029 evidence files did not exist yet."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "483 tests passed after CP00-029 implementation."
+    },
+    {
+      "command": "claude --no-session-persistence -p --model claude-opus-4-8 --effort max --permission-mode bypassPermissions --system-prompt \"read-only pack-level code reviewer\" --output-format text --max-budget-usd 5",
+      "exit_code": 0,
+      "summary": "Single valid pack-level read-only review completed; raw verdict request_changes, raw findings P0=0/P1=1/P2=2/P3=1, unresolved after adjudication P0=0/P1=0/P2=0."
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Final Closeout Pack validation passed for CP00-001 through CP00-029."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Full test suite passed after CP00-029."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with current repo requirement_count."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 54355 implementation subphases."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed with 3300 micro phases."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M07.S01 after CP00-029 evidence finalization."
+    }
+  ]
+}

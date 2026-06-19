@@ -1,0 +1,93 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M07.S11",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read_only_diff_only",
+    "session_id": "e3a0d112-2d6e-4e9a-9a9d-d1e72e1a7e04",
+    "uuid": "b1c4951b-e403-4e9b-a254-74ad2ced45ff",
+    "total_cost_usd": 0.840323,
+    "duration_ms": 263576,
+    "duration_api_ms": 265274,
+    "num_turns": 1,
+    "permission_denials": [],
+    "write_tools_granted": false,
+    "review_count_for_subphase": 1,
+    "raw_result_path": "/tmp/lfos-rp00-p01-m07-s11-claude-review.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "validation_helper_only": true,
+    "defines_new_enum_values": false,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "handoff_to_next_subphase": "RP00.P01.M08.S01",
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "Transition-evidence enforcement is opt-in when fromStatus is provided",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "A current record cannot be evidence-checked without a source status; the standalone transition evidence assertion, fixture, model test, and RP00 validator explicitly exercise the required evidence path."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "Reference-array optional fields are validated twice",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The repeated validation is idempotent, fail-closed, and intentionally preserves simple composition of S07-S09 validators."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "title": "Shared registry nextSubphase assertions moved to RP00.P01.M08.S01",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "This follows the existing single global nextSubphase pattern and is required after S11 closes the state enum registry model slice."
+      },
+      {
+        "id": "P3-4",
+        "severity": "P3",
+        "title": "README S11 export list omitted CONTROL_PLANE_STATE_ENUM_REGISTRY_TRANSITION_EVIDENCE_KEYS",
+        "status": "fixed",
+        "disposition": "The README S11 bullet now includes CONTROL_PLANE_STATE_ENUM_REGISTRY_TRANSITION_EVIDENCE_KEYS alongside the validation helper and transition evidence assertion exports."
+      },
+      {
+        "id": "P3-5",
+        "severity": "P3",
+        "title": "Evidence artifacts were absent from the reviewed diff",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "This closeout packet now records the Claude result, command evidence, adjudication, and construction inspection under docs/goal-closeout/rp00-p01-m07-s11, with final validation rerun required before commit."
+      },
+      {
+        "id": "CB-1",
+        "severity": "CB",
+        "title": "S11 evidence artifacts must exist before production_ready",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "Evidence artifacts are materialized in the S11 evidence root and verified by npm run rp00:control-plane:validate."
+      },
+      {
+        "id": "CB-2",
+        "severity": "CB",
+        "title": "S10 closeout must remain production_ready",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "S10 closeout evidence exists and RP00 validation enforces it through requiredClosedSubphases."
+      },
+      {
+        "id": "CB-3",
+        "severity": "CB",
+        "title": "C00 review must record no unresolved P0/P1",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "The actual Claude review found zero P0 and zero P1 findings."
+      }
+    ]
+  },
+  "raw_review_summary": "Claude approved the S11 validation-helper slice with no P0/P1/P2, validation-helper-only scope compliance, no new enum values, no real data, no product-state writes, and handoff to RP00.P01.M08.S01. P3-4 was fixed in README; remaining P3/CB items are adjudicated or closed by evidence."
+}

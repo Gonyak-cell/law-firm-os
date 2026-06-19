@@ -1,0 +1,83 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-062",
+  "subphase_id": "RP00.P04.M06.S08",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "7203b6f8-82f0-4356-b469-fd9c687b5df3",
+    "uuid": "edfe2fb1-e7c7-491e-855c-6c84452b3883",
+    "duration_ms": 185299,
+    "duration_api_ms": 188329,
+    "total_cost_usd": 1.0563369999999999,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-062-claude-review-output-valid.json"
+  },
+  "invalid_review_attempts_not_counted": [
+    {
+      "output_ref": "/tmp/cp00-062-claude-review-output.json",
+      "status": "invalid_no_parsed_review",
+      "reason": "The earlier CLI invocation completed but did not return a review verdict JSON and is therefore preserved only as command evidence, not as the valid pack-level Claude review."
+    }
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_summary": "CP00-062 closes the metadata-only UI Operator Surface Synthetic Fixture Set boundary for RP00.P04.M06.S01-S08. Plan binding, CP00-061 upstream consumption, no-write/no-runtime/no-leak boundaries, fixture catalogue determinism, validators, tests, README, contract, fixture, and RP00 validator coverage are mutually consistent. The only finding was one non-blocking P3 note asking for clarification that blocked receipts keep a static next_subphase handoff while source_micro_phase_completed=false prevents closeout use.",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "original_review_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "severity": "P3_NOTE",
+          "title": "Blocked-path result advertises next_subphase past an incomplete micro-phase",
+          "status": "fixed",
+          "detail": "Claude noted that blocked results keep next_subphase RP00.P04.M07.S01 while source_micro_phase_completed is false. This is intentional static handoff metadata and not persisted as closeout state. A clarifying code comment was added in assembleControlPlaneUiOperatorSurfaceSyntheticFixtureSet."
+        }
+      ]
+    },
+    "boundary_checks": {
+      "no_runtime_ui_route_or_external_assets": "pass",
+      "no_runtime_fixture_generation": "pass",
+      "no_runtime_test_execution": "pass",
+      "no_db_storage_product_state_idempotency_lock_writes": "pass",
+      "no_audit_or_review_writes": "pass",
+      "no_runtime_permission_authz_or_security_trimming": "pass",
+      "no_raw_permission_policy_or_internal_audit_payload": "pass",
+      "no_real_data_or_secrets": "pass",
+      "metadata_only_synthetic_fixture_catalogue": "pass",
+      "consumes_cp00_061_error_copy_result": "pass",
+      "plan_drift": "none",
+      "source_micro_phase_completion": "RP00.P04.M06 completed; RP00.P04 open; next RP00.P04.M07.S01",
+      "fail_closed_two_state_enforcement": "pass",
+      "validator_coverage": "comprehensive",
+      "test_sufficiency": "allow+blocked+tamper+drift+forbidden/unknown-claim covered"
+    },
+    "notes": [
+      "Pre-review syntax checks passed for policies, service, validators, service tests, and the RP00 validator.",
+      "The focused service suite passed with 652/652 tests.",
+      "The pre-evidence RP00 validator failure was expected and limited to missing CP00-062 evidence files.",
+      "No P0, P1, or P2 findings were reported.",
+      "The single P3 note was fixed without running a second valid Claude review."
+    ]
+  }
+}

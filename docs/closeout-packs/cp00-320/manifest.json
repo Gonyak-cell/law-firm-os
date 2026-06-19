@@ -1,0 +1,701 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-320",
+  "planned_pack_id": "CP00-320",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "crm_core_review_closeout_slice_descriptor_verified",
+  "program_id": "RP09",
+  "planned_risk_class": "C",
+  "risk_class": "C",
+  "planned_unit_count": 12,
+  "unit_count": 12,
+  "primary_subphase_id": "RP09.P09.M10.S04",
+  "next_subphase": "RP10.P00.M00.S01",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-320",
+    "planned_pack_id": "CP00-320",
+    "title": "CP00-320 RP09.P09.M09.S01-RP09.P09.M10.S04 generated_from_weighted_implementation_ledger",
+    "risk_class": "C",
+    "planned_risk_class": "C",
+    "planned_unit_count": 12,
+    "unit_count": 12,
+    "range": {
+      "first_unit_id": "RP09.P09.M09.S01",
+      "last_unit_id": "RP09.P09.M10.S04",
+      "description": "RP09.P09.M09.S01-RP09.P09.M10.S04"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "override_reason": "Generated C pack has 12 units outside 40-150 because ledger-order cohesion is smaller than the default risk range.",
+    "within_default_risk_range": false,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP09.P09.M09.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP09.P09.M09.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP09.P09.M09.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP09.P09.M09.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP09.P09.M09.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP09.P09.M09.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP09.P09.M09.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP09.P09.M09.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP09.P09.M09",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP09.P09.M10.S01",
+        "title": "Architecture review questions",
+        "source_micro_phase_id": "RP09.P09.M10",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP09.P09.M10.S02",
+        "title": "Security review questions",
+        "source_micro_phase_id": "RP09.P09.M10",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP09.P09.M10.S03",
+        "title": "Permission bypass questions",
+        "source_micro_phase_id": "RP09.P09.M10",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP09.P09.M10.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP09.P09.M10",
+        "program_id": "RP09",
+        "phase_id": "RP09.P09",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "security_audit"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP09.P09.M09.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "claude_review",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "claude_review",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "test",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "ui",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M09.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP09.P09.M09",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M10.S01",
+      "title": "Architecture review questions",
+      "source_micro_phase_id": "RP09.P09.M10",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "claude_review",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M10.S02",
+      "title": "Security review questions",
+      "source_micro_phase_id": "RP09.P09.M10",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "claude_review",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M10.S03",
+      "title": "Permission bypass questions",
+      "source_micro_phase_id": "RP09.P09.M10",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P09.M10.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP09.P09.M10",
+      "program_id": "RP09",
+      "phase_id": "RP09.P09",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-320/manifest.json",
+        "docs/closeout-packs/cp00-320/command-evidence.json",
+        "docs/closeout-packs/cp00-320/claude-review-result.json",
+        "docs/closeout-packs/cp00-320/adjudication.md",
+        "docs/closeout-packs/cp00-320/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-320 implements descriptor-only coverage of the final RP09 review slice: the RP09.P09.M09 Claude Review Packet head (architecture/security/permission-bypass/audit-completeness/missing-test/UI-leak/downstream-readiness questions, risk register) and the RP09.P09.M10 Closeout And Next Handoff head (four core review question rows) across two sections over 12 planned rows, closing the RP09 descriptor program and handing off to RP10.P00.M00.S01 with Hermes evidence (H09), Claude review packet (C09), and CP00-321 handoff, without opening any closed runtime surface.",
+    "source_refs": [
+      "contracts/crm-core-contract.json",
+      "packages/crm/README.md",
+      "packages/crm/src/index.js",
+      "packages/crm/src/registry.js",
+      "packages/crm/src/service.js",
+      "packages/crm/src/validators.js",
+      "packages/crm/test/model.test.js",
+      "scripts/validate-rp09-crm-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_crm_runtime": true,
+    "no_campaign_runtime": true,
+    "no_proposal_runtime": true,
+    "no_referral_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_permission_bypass_detected": true,
+    "no_ui_leak_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-320/manifest.json",
+    "docs/closeout-packs/cp00-320/command-evidence.json",
+    "docs/closeout-packs/cp00-320/claude-review-result.json",
+    "docs/closeout-packs/cp00-320/adjudication.md",
+    "docs/closeout-packs/cp00-320/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-320/manifest.json",
+    "docs/closeout-packs/cp00-320/command-evidence.json",
+    "docs/closeout-packs/cp00-320/claude-review-result.json",
+    "docs/closeout-packs/cp00-320/adjudication.md",
+    "docs/closeout-packs/cp00-320/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-320/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-320/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "a1be214e-db27-4831-b38a-d293d7d33fa1",
+      "uuid": "14c8129f-612a-41c6-81a2-991da87d850a",
+      "total_cost_usd": 3.1711350000000005,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "Independent read-only review of CP00-320 (RP09.P09.M09.S01-RP09.P09.M10.S04, risk C, 12 units) using Read/Grep/Glob only. The pack binding (registry CRM_CORE_CP320_PACK_BINDING) is consistent across manifest.json, review-baseline.json, closeout-pack-plan.json, contract current_pack, and next-pack-queue.json: pack_id CP00-320, risk C, 12 units, upstream CP00-319, next CP00-321, next_subphase RP10.P00.M00.S01. The live cursor (next-pack-queue live_latest=CP00-319, live_next_unit=RP09.P09.M09.S01) and git log (\"Close CP00-319\") confirm CP00-320 is the correct live pack. Deliverable distribution {claude_review:4, security_audit:4, test:1, ui:1, implementation:2}=12 and micro_title {Claude Review Packet:8, Closeout And Next Handoff:4} match the requirements block, plan included_units, validator coverage assertions, and tests. Descriptor-only/no-write boundaries are verified: every case-set row is descriptor_only:true / runtime_execution:false / raw_payload_included:false; freezeCp320Result attests no CRM/campaign/proposal/referral/AI/command runtime, no state/audit/object-storage/idempotency writes, no Hermes runtime receipt, no permission/audit/blocked-claim/fixture/hermes-body/raw-payload leak, no cross-tenant access; and grep found no writeFile/exec/spawn/fetch/network/process.env/real-data patterns in any changed source (registry.js, service.js, validators.js, test, validate script, contract). Authority boundary is correctly enforced and physically present in source AND contract: claude_is_final_approval:false, promotes_claude_to_final_approval:false, local_validation_claims_enterprise_trust:false, claims_enterprise_trust_from_local_validation:false, human_final_approval_required_for_runtime_opening:true, claude_packet.read_only:true with allowed_tools Read/Grep/Glob. Hermes is used only as a deterministic control-plane review packet/receipt (evidence_packet string \"H09.CP00-320...\", receipt_shape \"descriptor_only..._no_write\", emits_hermes_runtime_receipt:false) — not product runtime. The production_ready claim is NOT overstated: manifest production_ready:false, status implemented_pending_review, pack_level_claude_review.status pending, valid_review_receipts:[]; command-evidence records all implementation/test/plan/repo validation commands at exit 0 and Hermes gate H09 passed. CP178+ review-evidence hardening is satisfied: the descriptor's invalid_review_blockers encode failed-auth/zero-byte/malformed-JSON/fenced-JSON/tool-call-shaped/disabled-tools/missing-field rejection, and the readiness auth-preflight passed (exit 0, 1472-byte well-formed JSON, is_error:false); this is a clean first attempt (invalid_review_attempts:[]). Changed-file scope is honored: no active untracked implementation files were omitted, and unrelated dirty files (LDIP review result, the v2.0 .docx, workbook/) were correctly excluded and not attributed to this pack. No P0/P1/P2 issues found. One P3 informational observation about forward-declared evidence artifacts (benign, expected mid-pipeline state). PASS is appropriate and weakens no gate: enterprise trust remains gated behind human final approval, and the pack only proceeds through the remaining deterministic hardening steps.",
+      "findings": [
+        {
+          "id": "CP320-P3-01",
+          "severity": "P3",
+          "title": "Manifest forward-declares review-pipeline evidence artifacts not yet present at read-only review time",
+          "file": "docs/closeout-packs/cp00-320/manifest.json",
+          "line": 562,
+          "details": "manifest.evidence_refs and required_pack_artifacts list docs/closeout-packs/cp00-320/claude-review-result.json, adjudication.md, and construction-inspection.json, but at this review step only manifest.json and command-evidence.json exist on disk (verified via Glob). Likewise artifacts/closeout-pack-claude-review/cp00-320/ has no raw-output.json or review-receipt.json yet. This is the expected state of the pack_level_claude_review.hardening_sequence: the current step is read_only_claude_run_raw_capture, and the three missing docs artifacts plus raw-output/receipt are produced by the later normalize, finding_adjudication, and construction_inspection steps before commit. Confirmed benign by comparing against the already-closed CP00-319 pack, whose directory contains all five docs artifacts and both review-run artifacts. Not a defect in the CP00-320 descriptor implementation.",
+          "recommendation": "No change to the descriptor implementation is required. Ensure the final_closeout_validation gate (and closeout-pack:validate) confirms claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, and review-receipt.json all exist and are well-formed (non-zero, valid JSON, no fenced/prose/tool-call-shaped content) before the CP00-320 commit, so the forward-declared evidence_refs are satisfied at closeout.",
+          "post_review_disposition": "informational_expected_no_action_required"
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 1,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 1
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-320 crm core review closeout slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 110,
+    "goal_closeout_dirs_with_required_artifacts": 110,
+    "remaining_by_closeout_dir_proxy": 55146
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-320/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-320/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-320/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-320/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

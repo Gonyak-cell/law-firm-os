@@ -1,0 +1,2295 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-088",
+  "planned_pack_id": "CP00-088",
+  "requested_pack_id": "CP00-087",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "control_plane_failure_edge_recovery_evidence_review_handoff_verified",
+  "program_id": "RP00",
+  "planned_risk_class": "C",
+  "risk_class": "C",
+  "planned_unit_count": 56,
+  "unit_count": 56,
+  "primary_subphase_id": "RP00.P08.M04.S11",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-087 shifted to CP00-088 by live sequential cursor",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-088",
+    "planned_pack_id": "CP00-088",
+    "requested_pack_id": "CP00-087",
+    "title": "CP00-088 RP00.P07.M08.S01-RP00.P08.M04.S11 requested_locked_queue",
+    "risk_class": "C",
+    "planned_risk_class": "C",
+    "planned_unit_count": 56,
+    "unit_count": 56,
+    "range": {
+      "first_unit_id": "RP00.P07.M08.S01",
+      "last_unit_id": "RP00.P08.M04.S11",
+      "description": "RP00.P07.M08.S01-RP00.P08.M04.S11"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 56,
+    "correction_reason": "requested CP00-087 shifted to CP00-088 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P07.M08.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P07.M08.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M08.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP00.P07.M08",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M08",
+        "micro_title": "Hermes Evidence Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S07",
+        "title": "Cross-tenant failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S08",
+        "title": "Permission denied failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P07.M09.S09",
+        "title": "Ambiguous rule failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S10",
+        "title": "Stale reference failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M09.S11",
+        "title": "Lock conflict failure",
+        "source_micro_phase_id": "RP00.P07.M09",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M10.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP00.P07.M10",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M10.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP00.P07.M10",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P07.M10.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP00.P07.M10",
+        "program_id": "RP00",
+        "phase_id": "RP00.P07",
+        "micro_id": "M10",
+        "micro_title": "Closeout And Next Handoff",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP00.P08.M00.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP00.P08.M00",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M00",
+        "micro_title": "Scope Inventory",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M01.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP00.P08.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M01.S02",
+        "title": "Evidence field list",
+        "source_micro_phase_id": "RP00.P08.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M01.S03",
+        "title": "Changed-file receipt",
+        "source_micro_phase_id": "RP00.P08.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M01.S04",
+        "title": "Command result receipt",
+        "source_micro_phase_id": "RP00.P08.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M02.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP00.P08.M02",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M02.S02",
+        "title": "Evidence field list",
+        "source_micro_phase_id": "RP00.P08.M02",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M02.S03",
+        "title": "Changed-file receipt",
+        "source_micro_phase_id": "RP00.P08.M02",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M02.S04",
+        "title": "Command result receipt",
+        "source_micro_phase_id": "RP00.P08.M02",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S02",
+        "title": "Evidence field list",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S03",
+        "title": "Changed-file receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S04",
+        "title": "Command result receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S05",
+        "title": "Fixture summary receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S06",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S07",
+        "title": "Permission summary receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S08",
+        "title": "Audit summary receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S09",
+        "title": "No-real-data receipt",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M03.S10",
+        "title": "Claude dependency marker",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP00.P08.M03.S11",
+        "title": "Human approval marker",
+        "source_micro_phase_id": "RP00.P08.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P08.M04.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S02",
+        "title": "Evidence field list",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S03",
+        "title": "Changed-file receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S04",
+        "title": "Command result receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S05",
+        "title": "Fixture summary receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S06",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S07",
+        "title": "Permission summary receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S08",
+        "title": "Audit summary receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S09",
+        "title": "No-real-data receipt",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP00.P08.M04.S10",
+        "title": "Claude dependency marker",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP00.P08.M04.S11",
+        "title": "Human approval marker",
+        "source_micro_phase_id": "RP00.P08.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "included_units": [
+    {
+      "id": "RP00.P07.M08.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M08.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP00.P07.M08",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M08",
+      "micro_title": "Hermes Evidence Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S07",
+      "title": "Cross-tenant failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S08",
+      "title": "Permission denied failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S09",
+      "title": "Ambiguous rule failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S10",
+      "title": "Stale reference failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M09.S11",
+      "title": "Lock conflict failure",
+      "source_micro_phase_id": "RP00.P07.M09",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M10.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP00.P07.M10",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M10.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP00.P07.M10",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P07.M10.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP00.P07.M10",
+      "program_id": "RP00",
+      "phase_id": "RP00.P07",
+      "micro_id": "M10",
+      "micro_title": "Closeout And Next Handoff",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M00.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP00.P08.M00",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M00",
+      "micro_title": "Scope Inventory",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M01.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP00.P08.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M01.S02",
+      "title": "Evidence field list",
+      "source_micro_phase_id": "RP00.P08.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M01.S03",
+      "title": "Changed-file receipt",
+      "source_micro_phase_id": "RP00.P08.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M01.S04",
+      "title": "Command result receipt",
+      "source_micro_phase_id": "RP00.P08.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M02.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP00.P08.M02",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M02.S02",
+      "title": "Evidence field list",
+      "source_micro_phase_id": "RP00.P08.M02",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M02.S03",
+      "title": "Changed-file receipt",
+      "source_micro_phase_id": "RP00.P08.M02",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M02.S04",
+      "title": "Command result receipt",
+      "source_micro_phase_id": "RP00.P08.M02",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S02",
+      "title": "Evidence field list",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S03",
+      "title": "Changed-file receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S04",
+      "title": "Command result receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S05",
+      "title": "Fixture summary receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S06",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S07",
+      "title": "Permission summary receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S08",
+      "title": "Audit summary receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S09",
+      "title": "No-real-data receipt",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S10",
+      "title": "Claude dependency marker",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M03.S11",
+      "title": "Human approval marker",
+      "source_micro_phase_id": "RP00.P08.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S02",
+      "title": "Evidence field list",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S03",
+      "title": "Changed-file receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S04",
+      "title": "Command result receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S05",
+      "title": "Fixture summary receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S06",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S07",
+      "title": "Permission summary receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S08",
+      "title": "Audit summary receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S09",
+      "title": "No-real-data receipt",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S10",
+      "title": "Claude dependency marker",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    },
+    {
+      "id": "RP00.P08.M04.S11",
+      "title": "Human approval marker",
+      "source_micro_phase_id": "RP00.P08.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "C",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-088/manifest.json",
+        "docs/closeout-packs/cp00-088/command-evidence.json",
+        "docs/closeout-packs/cp00-088/claude-review-result.json",
+        "docs/closeout-packs/cp00-088/adjudication.md",
+        "docs/closeout-packs/cp00-088/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs",
+        "packages/control-plane/README.md"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-088/manifest.json",
+    "docs/closeout-packs/cp00-088/command-evidence.json",
+    "docs/closeout-packs/cp00-088/claude-review-result.json",
+    "docs/closeout-packs/cp00-088/adjudication.md",
+    "docs/closeout-packs/cp00-088/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-088/claude-review-result.json"
+  },
+  "gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "passed",
+    "claude_review": "passed_with_findings_non_blocking",
+    "adjudication": "passed",
+    "construction_inspection": "passed",
+    "included_units_production_ready": true
+  },
+  "closeout_state_policy": {
+    "production_ready_flag": "control_plane_failure_edge_recovery_evidence_review_handoff_verified",
+    "final_next_subphase": "RP00.P08.M05.S01",
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-088 failure edge recovery evidence review handoff pack"
+  }
+}

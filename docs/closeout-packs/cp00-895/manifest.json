@@ -1,0 +1,463 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-895",
+  "planned_pack_id": "CP00-895",
+  "status": "production_ready",
+  "production_ready": true,
+  "runtime_ready": false,
+  "implementation_layer": "descriptor",
+  "implementation_summary": {
+    "descriptor_only": true,
+    "opens_runtime": false,
+    "writes_product_state": false,
+    "uses_real_client_data": false,
+    "summary": "CP00-895 closes the RP29 Commercial Readiness P09 review packet tail across RP29.P09.M09.S04-RP29.P09.M09.S13. It binds audit-completeness, missing-test, UI-leak, downstream-readiness, risk-register, severity-taxonomy, go/no-go, finding-routing, human-approval, and Claude-review-packet rows as descriptor-only evidence with no review execution, workflow execution, runtime receipt emission, permission write, audit write, product-state write, credentials, secrets, or real client payloads.",
+    "source_refs": [
+      "packages/commercial/README.md",
+      "packages/commercial/src/registry.js",
+      "packages/commercial/src/validators.js",
+      "packages/commercial/src/model.js",
+      "packages/commercial/src/states.js",
+      "packages/commercial/src/policies.js",
+      "packages/commercial/src/service.js",
+      "packages/commercial/src/interface.js",
+      "packages/commercial/src/ui.js",
+      "packages/commercial/test/model.test.js",
+      "packages/commercial/test/service.test.js",
+      "contracts/commercial-readiness-contract.json",
+      "contracts/commercial-contract.json",
+      "scripts/validate-rp29-commercial-readiness-contract.mjs",
+      "package.json",
+      "packages/commercial/src/index.js",
+      "packages/commercial/package.json"
+    ]
+  },
+  "program_id": "RP29",
+  "risk_class": "A",
+  "planned_risk_class": "A",
+  "unit_count": 10,
+  "planned_unit_count": 10,
+  "primary_subphase_id": "RP29.P09.M09.S04",
+  "next_subphase": "RP29.P09.M09.S14",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "production_ready_flag": "commercial_readiness_review_packet_tail_descriptor_verified",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-895",
+    "planned_pack_id": "CP00-895",
+    "title": "CP00-895 RP29.P09.M09.S04-RP29.P09.M09.S13 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP29.P09.M09.S04",
+      "last_unit_id": "RP29.P09.M09.S13",
+      "description": "RP29.P09.M09.S04-RP29.P09.M09.S13"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP29.P09.M09.S04",
+        "title": "Audit completeness questions",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP29.P09.M09.S05",
+        "title": "Missing test questions",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP29.P09.M09.S06",
+        "title": "UI leak questions",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP29.P09.M09.S07",
+        "title": "Downstream readiness questions",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P09.M09.S08",
+        "title": "Risk register",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P09.M09.S09",
+        "title": "Severity taxonomy",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P09.M09.S10",
+        "title": "Go/no-go verdict format",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P09.M09.S11",
+        "title": "Finding routing map",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P09.M09.S12",
+        "title": "Human approval summary",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP29.P09.M09.S13",
+        "title": "Claude review packet",
+        "source_micro_phase_id": "RP29.P09.M09",
+        "program_id": "RP29",
+        "phase_id": "RP29.P09",
+        "micro_id": "M09",
+        "micro_title": "Claude Review Packet",
+        "deliverable_type": "claude_review"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP29.P09.M09.S04",
+      "title": "Audit completeness questions",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S05",
+      "title": "Missing test questions",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S06",
+      "title": "UI leak questions",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S07",
+      "title": "Downstream readiness questions",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S08",
+      "title": "Risk register",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S09",
+      "title": "Severity taxonomy",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S10",
+      "title": "Go/no-go verdict format",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S11",
+      "title": "Finding routing map",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S12",
+      "title": "Human approval summary",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    },
+    {
+      "id": "RP29.P09.M09.S13",
+      "title": "Claude review packet",
+      "source_micro_phase_id": "RP29.P09.M09",
+      "program_id": "RP29",
+      "phase_id": "RP29.P09",
+      "micro_id": "M09",
+      "micro_title": "Claude Review Packet",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-895/manifest.json",
+        "docs/closeout-packs/cp00-895/command-evidence.json"
+      ],
+      "implementation_refs": [
+        "packages/commercial/src/registry.js",
+        "packages/commercial/src/validators.js",
+        "contracts/commercial-readiness-contract.json"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-895/manifest.json",
+    "docs/closeout-packs/cp00-895/command-evidence.json",
+    "docs/closeout-packs/cp00-895/claude-review-result.json",
+    "docs/closeout-packs/cp00-895/adjudication.md",
+    "docs/closeout-packs/cp00-895/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": []
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-895/review-receipt.json",
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-895/review-receipt.json"
+    ],
+    "invalid_review_attempts": [
+      {
+        "attempt_id": "cp895-invalid-attempt-01",
+        "status": "invalid_not_accepted",
+        "reason": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing",
+        "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-895/invalid-attempt-01-raw-output.json",
+        "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-895/invalid-attempt-01-review-receipt.json",
+        "review_execution": {
+          "source": "claude_cli",
+          "runner": "scripts/run-closeout-pack-claude-review.mjs",
+          "model": "claude-opus-4-8",
+          "effort": "max",
+          "read_only": true,
+          "permission_mode": "dontAsk",
+          "tools": "Read,Grep,Glob",
+          "output_format": "json",
+          "json_schema": true,
+          "status": 1,
+          "signal": null,
+          "session_id": "dba02191-9c9a-49d2-85bd-5d3e920b9bfa",
+          "uuid": "ef875f10-9458-4f03-88cc-3da01b3fae2a",
+          "total_cost_usd": 1.9411777499999996,
+          "permission_denials": []
+        }
+      }
+    ]
+  },
+  "commit_policy": {
+    "required": true,
+    "status": "pending_commit_after_validation"
+  }
+}

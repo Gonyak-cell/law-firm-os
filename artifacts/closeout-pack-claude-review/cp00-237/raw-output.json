@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-237",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T12:20:28.097Z",
+  "finished_at": "2026-06-10T12:25:47.529Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":318786,\"duration_api_ms\":317790,\"ttft_ms\":4275,\"num_turns\":32,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — does not block pack or goal closeout; no P0/P1/P2.\\n\\nCP00-237 is a clean descriptor-only pack: scope/coverage, no-write/no-real-data boundaries, the appropriately-scoped (false) production_ready claim, the read-only/non-final-approver authority boundary, and review hardening all verify. The only finding is one P3 cosmetic nit — the contract's non-validated top-level `no_write_attestation` rollup carries a carryover CP235 label on a CP00-237 object, while the authoritative `cp237_no_write_attestation` is complete and correct.\",\"stop_reason\":\"end_turn\",\"session_id\":\"1b29709e-9da2-4a09-a1a6-ed54e6a7ce3c\",\"total_cost_usd\":2.0857512500000004,\"usage\":{\"input_tokens\":1799,\"cache_creation_input_tokens\":114549,\"cache_read_input_tokens\":1500596,\"output_tokens\":24373,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":114549,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":257,\"cache_read_input_tokens\":148976,\"cache_creation_input_tokens\":4177,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4177},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1097,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012020000000000002,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1799,\"outputTokens\":24373,\"cacheReadInputTokens\":1500596,\"cacheCreationInputTokens\":114549,\"webSearchRequests\":0,\"costUSD\":2.0845492500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-237 (RP07 search-core model binding slice, risk B, 40 units RP07.P01.M04.S07-RP07.P01.M06.S04) is a sound descriptor-only closeout pack. Independent read-only inspection (Read/Grep/Glob) confirms: (1) Scope/coverage integrity — the closeout-pack-plan entry, review baseline, registry.js binding (SEARCH_CORE_CP237_PACK_BINDING/REQUIREMENTS), and contract (current_pack + model_binding_slice_descriptor + historical_pack_bindings tail + cp237_requirements/cp237_no_write_attestation) all agree on risk B, 40 units, the range, deliverable distribution (impl 22, ui 6, fixture 2, test 6, hermes 2, claude 2), and micro-title distribution (Secondary Workflow Slice 14, Permission And Audit Binding 22, Synthetic Fixture Set 4); the M04/M05/M06 row sets match the baseline included_units. (2) No-write/no-real-data — product source (registry/service/validators/index.js) is pure Object.freeze descriptor construction with zero I/O, network, db, child_process, or env access (grep-confirmed); only test/validator infra reads JSON. Attestations and validators enforce no search/OCR/index/embedding runtime, no permission/audit evaluation, no state/storage writes, no Hermes runtime receipt, no raw payload, tenant cross-access=false, matter-trace required, ownership drift=false. (3) production_ready is correctly NOT claimed at this stage (command-evidence production_ready=false, gate_outcome implementation_gates_passed_post_review_closeout_pending; Hermes uses production_ready_candidate); the production_ready_flag is a descriptor-verification milestone, not an enterprise-trust claim. (4) Authority boundary holds — Claude is read-only reviewer, not final approver (claude_is_final_approval=false everywhere, human_final_approval_required=true, manifest claude_not_final_approver=true); Hermes H07 is a deterministic gate/receipt label only, hermes_runtime_embedded_in_product=false. (5) Review hardening — readiness auth-preflight passed (exit 0, 1436-byte valid JSON), tools restricted to Read/Grep/Glob, forbidden_tools_present=false; post-review artifacts (claude-review-result, adjudication, construction-inspection, raw-output, receipt) are expectedly absent at this point in the documented hardened_review_sequence. All listed pre-review validation commands report exit 0; closeout-pack:validate and the review chain are correctly gated to post-review. Unrelated untracked workstream dirs were not attributed to this pack. One P3 cosmetic finding only (a carryover label on the contract's non-validated top-level no_write_attestation object); no P0/P1/P2. Does not block pack or goal closeout. Final enterprise-trust closure remains a human decision outside this receipt.\",\"findings\":[{\"id\":\"CP00-237-P3-01\",\"severity\":\"P3\",\"title\":\"Contract top-level no_write_attestation carries stale CP235 label on a CP00-237 object\",\"file\":\"contracts/search-core-contract.json\",\"line\":34,\"details\":\"The contract's top-level `no_write_attestation` block (lines 32-52) has `pack_id: \\\"CP00-237\\\"` but is labeled `validates_scope_contract_foundation_descriptor_only: true` (the CP00-235 base-attestation label) and omits the `validates_model_storage_slice_descriptor_only`, `validates_model_binding_slice_descriptor_only`, and `ownership_drift_detected` fields that the pack-specific attestation carries. This is cosmetic only: every boundary fact the object states is true and accurate for CP00-237, the object is NOT deep-compared by any gate (the validator and model.test.js deep-equal only the authoritative `cp237_no_write_attestation` at lines 638-660, which is complete and correct), and the pattern matches prior packs. No functional, security, or boundary impact.\",\"recommendation\":\"Optionally relabel the top-level rollup `no_write_attestation` to the model-binding-slice descriptor flag (or align its field set with `cp237_no_write_attestation`) for clarity in a future pack. No action required for CP00-237 closeout.\",\"post_review_disposition\":\"open_non_blocking_nit\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"56f616a7-f1bb-4c3a-a460-da88ba61f1f7\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6284,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "1b29709e-9da2-4a09-a1a6-ed54e6a7ce3c",
+    "uuid": "56f616a7-f1bb-4c3a-a460-da88ba61f1f7",
+    "total_cost_usd": 2.0857512500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

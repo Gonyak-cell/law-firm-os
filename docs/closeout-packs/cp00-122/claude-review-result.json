@@ -1,0 +1,49 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-122",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-122-claude-review-output-valid.json",
+    "session_id": "4254da86-ff8f-47c9-94f4-f44c8e954e23",
+    "uuid": "6a4e2860-7eb9-4a3c-9fce-fe1a76b824aa",
+    "duration_ms": 250883,
+    "duration_api_ms": 252820,
+    "total_cost_usd": 0.8656050000000001,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "original_review_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Cross-tenant and leak-prevention behaviors are exercised only in the secondary_workflow phase",
+        "file": "packages/authz/src/permission-matrix-workflow-binding.js",
+        "evidence": "PERMISSION_MATRIX_TITLES has 22 entries and each phase takes a 20-wide window: RP02.P06.M04 uses start_index 3 (titles Search…Leak prevention) and RP02.P06.M05 uses start_index 1 (titles Permission matrix row…Denied). As a result the permission_audit_binding slice (RP02.P06.M05.S01-S20) substitutes permission_matrix_row and view_decision_binding for cross_tenant_test and leak_prevention_test, and validatePermissionKernelCp122Coverage only asserts cross_tenant_test/leak_prevention_test under the secondary_workflow prefix.",
+        "recommendation": "Confirm this per-unit behavior distribution matches the closeout-pack-plan intent for RP02.P06.M05.S01-S20. No boundary gap exists: cross-tenant fail-closed (cross_tenant_deny + redacted object) and leak-prevention assertions remain exercised via the secondary_workflow phase, and both phases cover search/trimming/deny. Non-blocking."
+      }
+    ],
+    "recommendation": "Approve and close out CP00-122.",
+    "rationale": "The diff adds a synthetic, metadata-only Risk B permission matrix workflow binding module that closes all 40 planned units (RP02.P06.M04.S03-RP02.P06.M05.S20) across two micro-phases, with first/last unit IDs, area counts (20/20), and deliverable counts (implementation 15, security_audit 9, ui 8, claude_review 2, test 6) all enforced by validatePermissionKernelCp122Coverage and the contract validation script. It inherits CP121 Risk A boundaries via the imported boundary catalog and approval-route case (inherited_boundary_case_count 10, approval_required_routing). Sensitive decisions are routed without execution: export/download and review route to review_required_routing, mutation/share/approval to approval_required_routing, and AI retrieval to blocked_ai_retrieval_boundary; evaluatePermission/trimSearchResults are read-only evaluators. Security trimming returns only the authorized resource id (d_cp122_document), omits unauthorized cross-tenant/ACL-denied rows without emitting counts, and renders only an allowlist of safe fields (privileged_note never surfaced). Audit cases stay preview-only (emitted_to_audit_ledger false), and fixtures/matrix rows carry persisted false. Every result passes through freezeNoWriteResult, which stamps synthetic_only/no_real_data true and sixteen no-write/no-leak flags false (policy mutation, audit/product/database writes, idempotency/lock persistence, rollback/retry, export/share/AI/analytics execution, approval grant, LDIP), and the validators reject any true flag. No runtime UI/API route, route registration, fs/network/db access, or HRX split appears; HRX stays embedded and handoff is fixed to CP00-123 / RP02.P06.M05.S21. Contract (v0.16), README, tests, and the validation script are internally consistent with the module. The single P3 is an intentional, non-blocking windowed-behavior observation."
+  }
+}

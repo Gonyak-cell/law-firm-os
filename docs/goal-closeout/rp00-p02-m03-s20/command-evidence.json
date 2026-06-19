@@ -1,0 +1,129 @@
+{
+  "subphase_id": "RP00.P02.M03.S20",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Unit test: denied path",
+  "created_at": "2026-06-05T15:11:57Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json docs/goal-closeout/rp00-p02-m03-s20/packet.json docs/goal-closeout/rp00-p02-m03-s20/command-evidence.json docs/goal-closeout/rp00-p02-m03-s20/claude-review-result.json docs/goal-closeout/rp00-p02-m03-s20/construction-inspection.json",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "test_count": 225,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "test_count": 309,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "requirement_count": 227,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "implementation_subphase_count": 54355,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "release_program_count": 30,
+      "micro_phase_count": 3300,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "Final S20 closeout gate rerun after evidence creation",
+      "writes_product_state": false
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "writes_product_state": false
+    }
+  ],
+  "production_ready": true,
+  "status": "passed",
+  "recorded_at": "2026-06-05T15:11:57Z",
+  "executed_at": "2026-06-05T15:11:57Z",
+  "micro_title": "Hermes Validation",
+  "blocked_claims": [],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "All commands are local validation, parser, test, Claude read-only review, or git whitespace checks; none execute service logic, create runtime routes, run Hermes validation as product runtime behavior, create Hermes evidence as product runtime behavior, enqueue retry work, execute retry work, write retry queues, write retry attempt records, persist retry schedules, start retry timers, dispatch retry workers, execute rollback behavior, run compensation behavior, notify customers, write incident traces, append observability events, append audit ledgers, write audit events, write databases, write storage, persist product state, invoke Claude runtime review, write review queues, write human approval records, create UI, replace human approval, or mutate product state.",
+    "Pre-closeout npm run rp00:control-plane:validate failed only because S20 evidence files were intentionally not created yet; this command is rerun after evidence creation as the final gate.",
+    "Claude C00 valid review completed once. Claude rated the S20 implementation GO with no P0/P1 findings. The single P2 reason-assertion hardening item was accepted and fixed in packages/control-plane/test/service.test.js by asserting each denied case's expectedFailClosedOn reason and exact Error.message. P3 notes are informational and explicitly deferred: non-closure is structurally enforced, and unrelated untracked local files are not staged."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "status": "passed"
+  },
+  "pre_closeout_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "docs/goal-closeout/rp00-p02-m03-s20/packet.json",
+      "docs/goal-closeout/rp00-p02-m03-s20/command-evidence.json",
+      "docs/goal-closeout/rp00-p02-m03-s20/claude-review-result.json",
+      "docs/goal-closeout/rp00-p02-m03-s20/adjudication.md",
+      "docs/goal-closeout/rp00-p02-m03-s20/construction-inspection.json"
+    ]
+  },
+  "evidence_summary": {
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready closeout",
+    "human_approval_boundary": "Human approval is not required for this deterministic synthetic denied-path unit-test boundary because no sensitive production mutation, client-facing output, external sharing, finance action, real data operation, runtime execution, Hermes execution, audit write, storage write, or product-state write occurs.",
+    "denied_path_test": "S20 proves the valid S18 retry behavior baseline remains green, all 36 denied cases fail closed with expected deterministic reason messages, the synthetic fixture and contract remain aligned, RP00.P02.M03 is complete, and the next executable subphase is RP00.P02.M04.S01."
+  },
+  "gate_outcome": "passed_after_evidence_creation"
+}

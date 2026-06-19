@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-680",
+  "normalized_at": "2026-06-14T12:46:20.021Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": false,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-680/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-680/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-680/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-680/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f702aacf-7fc3-49d2-a54f-f016e1d5b02b",
+    "uuid": "89949520-5058-4f4d-86ab-45a8e42203c4",
+    "total_cost_usd": 2.7856360000000002,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 8659,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-680 is a descriptor-only closeout pack (RP22 External Integrations I, P05 Primary Implementation Slice; risk A; 10 units RP22.P05.M03.S09-RP22.P05.M03.S18) and is well-formed with no overclaim. Direct read-only inspection: (1) registry pack binding (registry.js:2312) matches the baseline exactly (pack_id, risk A, unit_count 10, range, RP22, upstream CP00-679, next CP00-681/RP22.P05.M03.S19, production_ready_flag); (2) deliverable distribution {implementation:3,security_audit:2,fixture:1,test:3,hermes_evidence:1}=10 and micro_title {Primary Implementation Slice:10} match the prompt, and all 10 required rows (cross_tenant, missing_context, audit_hint, security_trimming, ai_retrieval_or_analytics, fixture_manifest, golden_test, failure_test, hermes_fixture_evidence, claude_missing_test_prompt) are present in registry requirements, the service case-set builder, the contract projection, the descriptor validator, and the tests; (3) service.js builds descriptor-only rows and freezeCp680Result forces synthetic_only=true, no_real_data=true, writes_product_state=false with all runtime/leak/bypass flags false; the 10 CP680 row keys have no ROW_EXTRAS entries, so no runtime/payload is injected; (4) validators.js coverage+descriptor+projection checks are real (per-row descriptor_only/no-runtime/customer-safe/no-raw-payload; cross-tenant access denied; AI-retrieval/analytics/fixture/test/UI/permission/audit/persistence runtimes all asserted closed; Claude not final approver); (5) model.test.js carries matching CP680 coverage and descriptor assertions plus dual-contract projection equality; (6) both contract files regenerated with generated_from_pack_id=CP00-680 / current_pack=CP00-680 / next_subphase RP22.P05.M03.S19, and a token/secret scan of the changed source found only negative boundary flags (persists_access_token:false etc.), no credential values. Authority boundary holds: claude_is_final_approval=false, promotes_claude_to_final_approval=false, read_only=true, hermes_runtime_opened=false; Hermes patterns are deterministic descriptor/evidence-packet handling only (command_result pending_until_closeout_pack_validation, runtime_receipt_emitted=false), not product runtime. CP178+ hardening: readiness/auth preflight passed (exit 0, 1434-byte non-empty valid JSON), request restricted to Read/Grep/Glob with forbidden_tools_present=false, summary_only review disallowed (security deliverables present), and no premature raw-output.json/review-receipt.json exist. Pack state is correctly pre-review: manifest production_ready=false/runtime_ready=false/in_progress, construction-inspection verdict PENDING_REVIEW with descriptor_verified=false, adjudication 'no', claude-review-result pending_review — so there is no unsupported production_ready assertion to reject. As-reported in command-evidence.json (NOT re-run; reviewer is read-only and cannot run Bash): 22/22 commands exit 0 including npm test, npm run build, and git diff --check. One non-blocking P2 found: validators.js:738 createExternalIntegrationsICp680CoverageSummary returns pack_id from the CP679 binding ('CP00-679') instead of the CP680 binding; sibling CP678 (line 683) and CP679 (line 713) summaries each reference their own binding, confirming a copy-paste regression. Impact is latent — neither the coverage validator, the validator script, nor the CP680 coverage test asserts summary.pack_id (they check valid, first/last unit, unit_count, and by_* distributions), and the summary is not projected into either contract file, so no validation gate, boundary, or production_ready gate is weakened. Scope reconciliation: changed-file-scope.json lists closeout-pack-plan.json and next-pack-queue.json under unrelated_dirty_files_preserved while the manifest's worktree list omits them; these are benign pack-generation outputs, not pack implementation refs, and represent no boundary violation. blocks_goal_closeout=false because the pack claims neither runtime nor enterprise-trust opening within this receipt (those remain human-gated outside it), and Claude's non-final-approver status is the expected authority boundary, not a defect.",
+    "findings": [
+      {
+        "id": "CP680-P2-01",
+        "severity": "P2",
+        "title": "CP00-680 coverage summary mislabels pack_id as CP00-679 (copy-paste regression)",
+        "file": "packages/integrations-core/src/validators.js",
+        "line": 738,
+        "details": "createExternalIntegrationsICp680CoverageSummary returns `pack_id: EXTERNAL_INTEGRATIONS_I_CP679_PACK_BINDING.pack_id` ('CP00-679') instead of EXTERNAL_INTEGRATIONS_I_CP680_PACK_BINDING.pack_id ('CP00-680'). The sibling summaries each correctly reference their own binding (CP678 at validators.js:683 -> CP678; CP679 at validators.js:713 -> CP679), confirming this is a copy-paste oversight in the new CP680 deliverable. Impact is latent and non-blocking: validateExternalIntegrationsICp680Coverage (validators.js:741) does not check the summary's pack_id; the validator script (scripts/validate-rp22-external-integrations-i-contract.mjs:249-250,425) only asserts coverage.valid and logs unit_count; the CP680 coverage test (packages/integrations-core/test/model.test.js:386-396) asserts first_unit_id, last_unit_id, unit_count, and by_* distributions but never summary.pack_id; and the coverage summary is not embedded in either contract projection. Consequently all 22 reported validation commands still pass and no boundary, no-real-data, authority, or production_ready gate is affected. The defect is confined to an objectively incorrect pack_id label emitted by an exported helper.",
+        "recommendation": "Change validators.js:738 to reference EXTERNAL_INTEGRATIONS_I_CP680_PACK_BINDING.pack_id, and consider adding `assert.equal(coverage.summary.pack_id, 'CP00-680')` to the CP00-680 coverage test to prevent recurrence. Safe to fix in a follow-up touch (e.g., during CP00-681); does not block CP00-680 descriptor-only closeout.",
+        "post_review_disposition": "Open, non-blocking P2. Referred to implementer; recommend correcting validators.js:738 and adding a summary.pack_id assertion in a follow-up. Does not gate CP00-680 closeout (verdict PASS_WITH_FINDINGS, no_unresolved_p0/p1=true)."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 1,
+      "reported_p3": 0
+    }
+  }
+}

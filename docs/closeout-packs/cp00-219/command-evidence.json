@@ -1,0 +1,147 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-219",
+  "subphase_id": "RP06.P06.M02.S20",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/dms/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/dms/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/dms/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/dms/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp06-dms-core-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/dms/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp05:matter-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp06:dms-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-219",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-219",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-219 --timeout_ms 1200000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-219",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-219",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check --cached",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data is used by CP00-219 evidence.",
+    "CP00-219 remains descriptor-only and does not evaluate permission runtime, execute file download or external share, dispatch AI runtime, or open any closed DMS runtime surface.",
+    "All implementation, test, contract, plan, and repo-wide validation commands above were executed and passed before the pack-level Claude review run.",
+    "All pre-closeout validation commands were executed and recorded as passing before the pack-level Claude review; the hardened review passed receipt validation and post-review closeout validators were executed and recorded before commit."
+  ],
+  "hermes_gate": {
+    "gate": "H06",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "evidence_refs": [
+      "npm run rp00:control-plane:validate",
+      "npm run spec:requirements:validate",
+      "npm run rp05:matter-core:validate",
+      "npm run rp06:dms-core:validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-219/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-219/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-219/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-219/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

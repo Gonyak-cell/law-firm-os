@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-224",
+  "normalized_at": "2026-06-10T09:41:51.957Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-224/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-224/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-224/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-224/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "37e46117-eff7-40af-af66-1e601f63bd70",
+    "uuid": "51200564-7c0b-48d8-a266-b3fcd148b899",
+    "total_cost_usd": 2.959603,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5557,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-224 is a descriptor-only failure-recovery slice pack (40 RP06 units, RP06.P07.M02.S13-RP06.P07.M04.S05, risk B). Full source inspection via Read/Grep/Glob confirms the pack-level claims are supported and no production_ready overclaim exists (manifest production_ready=false, status=implemented_pending_review, review status=pending; command-evidence production_ready=false). Coverage is data-driven and validated against the LIVE closeout plan: unit_count 40, micro-phase rows 10+25+5, and deliverable distribution {failure_recovery:18, implementation:7, hermes_evidence:4, fixture:2, test:4, security_audit:3, claude_review:2} all match across registry binding, requirements, contract projection, and plan. All 7 required public exports exist and are surfaced via index.js wildcard re-export and the validate script. Validators are substantive (not vacuous): they assert descriptor_only/runtime_execution=false/customer-safe/no-raw-payload per row, plus no silent success, no data leak, no cross-tenant access, no rollback/retry runtime, no-write attestation drift, Claude-not-final-approver, human-escalation-required, and contract/handoff drift. freezeCp224Result hard-freezes ~40 no-write/no-real-data boundary flags. Tests bind cp224PlanPack to the live plan and dmsContract to the real contract, asserting valid===true with error surfacing and the security boundaries. CP178+ review hardening is enforced: forbidden_review_evidence covers auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, claude_final_approval_claim, source_mutation_claim, production_or_enterprise_trust_claim, and the schema requires all fields. Hermes patterns are confined to deterministic descriptor review-packet/receipt evidence (receipt_shape descriptor_only..._no_write), not product runtime. Authority boundary (read-only reviewer, human final approval required, enterprise trust not claimed from local validation) holds across code, validators, manifest, and baseline. No TODO/FIXME/stub markers in scope; no-leak guards present on all permission/audit/hermes/fixture/lock rows. The post-review artifacts (raw-output, receipt, claude-review-result, adjudication, construction-inspection) are correctly absent for the pre-review state. No P0/P1/P2/P3 defects identified. Note: actual command execution results are taken from command-evidence.json (all exit_code 0) since execution is out of scope for a read-only review; static inspection of the traced assertions is consistent with those passing. This verdict is advisory; human final approval remains required for the enterprise trust claim.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

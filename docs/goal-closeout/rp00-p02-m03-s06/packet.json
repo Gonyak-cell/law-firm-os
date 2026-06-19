@@ -1,0 +1,52 @@
+{
+  "subphase_id": "RP00.P02.M03.S06",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Audit hint precheck",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T07:30:38Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S06 Hermes Validation Audit hint precheck surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S05 allow_metadata_only Permission precheck results, requires a carried permission_decision_ref and non-empty audit_event_ref, emits a frozen metadata-only audit hint reference for Matter-scoped or firm-level control-plane metadata, carries S02, S03, S04, S05, M00 refs, TEN-001 through TEN-008 trace refs, validation context IDs, and acceptance gate IDs, rejects unsafe audit, audit-write, permission/runtime/AuthZ/Hermes/evidence/bypass claims fail-closed, and hands off to RP00.P02.M03.S07 without appending audit ledgers, writing audit events, creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, evaluating runtime permissions, calling AuthZ, running a permission engine, replacing human approval, using real data, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_review_run": true,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "77c6442b-9209-46c2-a425-d0880f7648d9",
+    "uuid": "21c9530f-d60a-4ced-b849-7b25106ed10f",
+    "transcript_message_uuid": "b31002e9-dbda-41bc-8f88-02334ef4aad2",
+    "verdict": "PASS_WITH_FINDINGS",
+    "go_no_go": "GO",
+    "p0_p1_count": 0,
+    "p2_count_initial": 1,
+    "p3_count_initial": 2,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {
+    "S06_P2_01": "accepted_fixed",
+    "S06_P3_01": "accepted_fixed",
+    "S06_P3_02": "accepted_fixed"
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M03.S07"
+}

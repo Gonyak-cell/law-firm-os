@@ -1,0 +1,163 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-060",
+  "subphase_id": "RP00.P04.M05.S10",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "a592b6b1-2a07-4b88-b0c4-5283ca8fec15",
+    "uuid": "f3e42dbb-7d38-44a7-ac79-92477cf49359",
+    "duration_ms": 395503,
+    "duration_api_ms": 397563,
+    "total_cost_usd": 1.62343825,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-060-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "approve",
+    "raw_review_summary": "CP00-060 adds the Risk-A UI Operator Surface Permission And Audit Binding boundary suite for RP00.P04.M05.S01-S10 as a metadata-only, no-write closeout pack. The new policy, RESULT_FIELDS, module, assembler, result/policy validators, fixture, contract definition, and validate-script coverage are mutually consistent and strongly cross-checked: the validate script re-derives the result from the fixture input and JSON-compares it to the stored fixture result, and the result validator enforces an allow/deny completion triplet plus a fully false no-write/no-permission-engine/no-authz/no-audit-write/no-review-queue scope. The pack is plan-bound (planned CP00-060, requested CP00-059, deviation_from_plan=false, 10 units, risk A), and production_ready here means boundary-suite-verified under the C00 closeout_pack model with every runtime/write/permission-eval/audit-write flag false, so the production_ready claim is not unsafe within the established convention. No P0/P1 issues. Findings are non-blocking coverage gaps consistent with prior packs. NOTE: review is of the supplied diff only; the weighted-ledger entries for RP00.P04.M05.S01-S10 and the cp00-060 evidence docs are referenced by the validator but not shown in the focused diff (the +568 contract stat is consistent with ~70 elided weighted-ledger lines).",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "original_review_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 3,
+      "p3": 2
+    },
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [
+        {
+          "id": "CP00-060-P2-01",
+          "original_title": "Contract definition embedded result/result_summary/input/construction_inspection not validated against policy or assembler",
+          "status": "fixed",
+          "disposition": "Added RP00 validator coverage for definition input round-trip, embedded result/result_summary parity, and construction_inspection expected fields.",
+          "implementation_refs": [
+            "scripts/validate-rp00-control-plane-contract.mjs"
+          ],
+          "validation_refs": [
+            "npm run rp00:control-plane:validate"
+          ]
+        },
+        {
+          "id": "CP00-060-P2-02",
+          "original_title": "Missing negative tests for assembler fail-closed input guards",
+          "status": "fixed",
+          "disposition": "Expanded service tests to cover non-object request, missing required fields, entrypoint/source drift, upstream ref drift, evidence/gate array mismatch, forbidden claim, and unknown claim fail-closed guards.",
+          "implementation_refs": [
+            "packages/control-plane/test/service.test.js"
+          ],
+          "validation_refs": [
+            "node --test packages/control-plane/test/service.test.js"
+          ]
+        },
+        {
+          "id": "CP00-060-P2-03",
+          "original_title": "Result validator does not cross-check per-unit decision strings against their bound booleans",
+          "status": "fixed",
+          "disposition": "Result validator now cross-checks each per-unit decision string against its bound boolean for both allow and denied result shapes.",
+          "implementation_refs": [
+            "packages/control-plane/src/validators.js",
+            "packages/control-plane/test/service.test.js"
+          ],
+          "validation_refs": [
+            "node --test packages/control-plane/test/service.test.js"
+          ]
+        }
+      ],
+      "p3": [
+        {
+          "id": "CP00-060-P3-01",
+          "original_title": "Acceptance gate id source_micro_phase_open_for_error_copy depends on M05.S11 being the Error message copy subphase",
+          "status": "verified_by_ledger",
+          "disposition": "Live weighted ledger confirms RP00.P04.M05.S11 is Error message copy, so source_micro_phase_open_for_error_copy correctly keeps M05 open after S10.",
+          "validation_refs": [
+            "npm run weighted:validate",
+            "npm run rp00:control-plane:validate"
+          ]
+        },
+        {
+          "id": "CP00-060-P3-02",
+          "original_title": "Weighted-ledger entries for RP00.P04.M05.S01-S10 required by validator but not present in the focused diff",
+          "status": "verified_by_validation",
+          "disposition": "RP00 validator requires RP00.P04.M05.S01-S10 weighted boundaries with sourceMicroPhaseId=RP00.P04.M05 and terminal=false; final validators enforce the entries before closeout.",
+          "validation_refs": [
+            "npm run rp00:control-plane:validate",
+            "npm run weighted:validate"
+          ]
+        }
+      ]
+    },
+    "boundary_checks": {
+      "plan_binding": "pass - CP00-060 Risk A 10-unit plan binding is enforced across policy, module, contract, fixture, tests, README, and RP00 validator coverage.",
+      "source_micro_phase_completion": "pass - RP00.P04.M05 remains open after S10 and next_subphase is RP00.P04.M05.S11.",
+      "next_subphase_title": "pass - live ledger confirms RP00.P04.M05.S11 is Error message copy.",
+      "tenant_fail_closed": "pass - cross-tenant synthetic metadata returns blocked refs and production-ready completion flags remain false.",
+      "permission_decision_binding": "pass - permission decision refs are metadata-only and validators cross-check decisions against bound booleans.",
+      "audit_hint_binding": "pass - audit event refs are metadata-only and no audit ledger or event write is permitted.",
+      "no_runtime_permission_engine": "pass - runtime permission engine, AuthZ evaluator, and security trimming execution are forbidden by policy, assembler, fixture, and validators.",
+      "no_review_queue_or_assignment_write": "pass - review queue, assignment, notification, and audit write flags are false and unsafe claims are rejected.",
+      "no_runtime_ui_route_asset_or_storage": "pass - runtime UI rendering, route creation, external asset fetches, database/storage/idempotency/lock/product-state writes are all false.",
+      "upstream_evidence_binding": "pass - CP00-059 evidence refs are required by policy and request."
+    },
+    "notes": [
+      "Claude CLI execution succeeded with zero permission denials and exactly one pack-level invocation.",
+      "All original P2 findings were fixed before production_ready evidence finalization; unresolved P2 count is zero.",
+      "P3 observations are verified by live ledger and final validators and do not block pack closeout."
+    ],
+    "raw_findings": [
+      {
+        "severity": "P2",
+        "title": "Contract definition embedded result/result_summary/input/construction_inspection not validated against policy or assembler",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": 57326,
+        "detail": "The validator checks the definition's scalar fields, exports, arrays, no_write_scope, and closeout_state_policy, but never validates control_plane_ui_operator_surface_permission_audit_definition.result, .result_summary, .input, or .construction_inspection. Only the fixture's result is round-tripped against the assembler. The definition's embedded result block (all *_permitted=false, next_subphase) and construction_inspection could drift from the assembler/policy without detection.",
+        "recommendation": "Add validate-script assertions that definition.construction_inspection (expected_pack_id/expected_subphase_id/production_ready_flag/fixture_ref) matches CP00-060, and either round-trip definition.result against the assembler or assert its key no-write/handoff fields, mirroring the fixture checks."
+      },
+      {
+        "severity": "P2",
+        "title": "Missing negative tests for assembler fail-closed input guards",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": 23968,
+        "detail": "Tests cover happy assemble, tenant-drift denied path (with triplet-tamper throw), forbidden-claim throw, and unknown-claim throw. They do not exercise the other documented fail-closed guards in assembleControlPlaneUiOperatorSurfacePermissionAudit: non-object request, missing required input field, wrong entrypoint_id, source_micro_phase_id drift, upstream_type_workflow_ref/closeout_ref drift, and upstream_evidence_refs/acceptance_gate_ids array mismatch. These primary boundary protections are asserted only by code, not tests.",
+        "recommendation": "Add unit tests asserting each guard throws (overrides for entrypoint_id, source_micro_phase_id, upstream_type_workflow_ref, mutated upstream_evidence_refs/acceptance_gate_ids, and an omitted required field)."
+      },
+      {
+        "severity": "P2",
+        "title": "Result validator does not cross-check per-unit decision strings against their bound booleans",
+        "file": "packages/control-plane/src/validators.js",
+        "line": 21589,
+        "detail": "assertControlPlaneUiOperatorSurfacePermissionAuditResult validates the allow/deny triplet using only the *_bound booleans and validates each *_decision independently against {metadata_only_string, 'blocked'}. It never enforces decision/bound consistency (an allow result could carry decision='blocked' with bound=true, or vice versa). The assembler is the sole producer and always sets them consistently, and the fixture is pinned by the round-trip check, so this is latent, not active.",
+        "recommendation": "Tie each *_decision to its *_bound boolean in the triplet (metadata_only string when bound=true, 'blocked' when bound=false)."
+      },
+      {
+        "severity": "P3",
+        "title": "Acceptance gate id source_micro_phase_open_for_error_copy depends on M05.S11 being the Error message copy subphase",
+        "file": "contracts/control-plane-contract.json",
+        "line": 49435,
+        "detail": "acceptance_gate_ids include source_micro_phase_open_for_error_copy and the result sets next_subphase=RP00.P04.M05.S11 with completes_source_micro_phase=false. This gate name is borrowed from the M04 'Error message copy' (S11) pattern and is only semantically correct if RP00.P04.M05.S11 is likewise the Error message copy subphase keeping M05 open. The S01-S10 titles fit the 11-subphase UI template, so this is plausible but not provable from the diff.",
+        "recommendation": "Confirm RP00.P04.M05.S11 is the Error message copy subphase, or rename the gate to a phase-neutral id (e.g. source_micro_phase_open_for_next_subphase)."
+      },
+      {
+        "severity": "P3",
+        "title": "Weighted-ledger entries for RP00.P04.M05.S01-S10 required by validator but not present in the focused diff",
+        "file": "contracts/control-plane-contract.json",
+        "line": 55638,
+        "detail": "The validate script requires weighted-ledger boundaries for every RP00.P04.M05.S01-S10 subphase (getWeightedSubphaseBoundary loop asserting sourceMicroPhaseId=RP00.P04.M05 and terminal=false, plus inclusion in the large findWeightedSubphase loop). These ledger entries are not visible in the supplied focused diff, though the +568/-9 contract stat is consistent with ~70 elided lines. If absent or carrying terminal!=false / wrong sourceMicroPhaseId, validation fails closed and the pack cannot close out.",
+        "recommendation": "Verify the contract's weighted_subphase_ledger contains RP00.P04.M05.S01-S10 with sourceMicroPhaseId=RP00.P04.M05 and terminal=false before pack closeout."
+      }
+    ]
+  }
+}

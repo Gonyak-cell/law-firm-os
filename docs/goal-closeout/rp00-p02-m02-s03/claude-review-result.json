@@ -1,0 +1,104 @@
+{
+  "subphase_id": "RP00.P02.M02.S03",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": false,
+    "permission_mode": "dontAsk",
+    "session_id": "dab21bc4-2bcd-461d-9ec7-c304ed594f53",
+    "uuid": "5bbd1d67-85c9-4e1b-8eff-a2febed9b89c",
+    "total_cost_usd": 0.4333890000000001,
+    "duration_ms": 209396,
+    "duration_api_ms": 211715,
+    "num_turns": 1,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "raw_result_path": "codex_exec_output:claude-rp00-p02-m02-s03-session-dab21bc4",
+    "reviewed_input": "Provided RP00.P02.M02.S03 implementation summary plus validation summary; Claude tools were disabled with --tools \"\"."
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0_or_p1": true,
+    "findings": [
+      {
+        "severity": "P1",
+        "title": "Confirm missing actor or resource tenant context cannot allow absent equals absent",
+        "file": "packages/control-plane/src/validators.js",
+        "line": null,
+        "description": "Claude noted the review summary did not explicitly prove missing/null/empty actor_tenant_id or resource_tenant_id fails closed before tenant equality is checked.",
+        "recommendation": "Confirm or add tests for missing, null, empty, and blank actor/resource tenant context; keep firm-level no-Matter actor/resource mismatch denied.",
+        "status": "fixed",
+        "disposition": "S02 normalized request validation already requires actor_tenant_id and resource_tenant_id as trimmed nonblank strings. S03 tests now explicitly reject missing, null, empty, and blank actor/resource tenant fields before allow, and the RP00 validator repeats those executable checks. A firm-level no-Matter actor tenant mismatch is also denied with a tenant-boundary blocked ref."
+      },
+      {
+        "severity": "P1",
+        "title": "Confirm production_ready is gated by mandatory evidence, not validate-if-present evidence",
+        "file": "scripts/validate-rp00-control-plane-contract.mjs",
+        "line": null,
+        "description": "Claude noted closeout is unsafe if evidence artifacts are optional or only validated when present.",
+        "recommendation": "Require the five evidence artifacts before production_ready and re-run the RP00 gate after writing evidence.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "Before evidence, npm run rp00:control-plane:validate failed only on the five missing S03 evidence files. The RP00 validator requires packet.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json for the current S03 closeout before production_ready can pass."
+      },
+      {
+        "severity": "P2",
+        "title": "Distinguish tenant-boundary denials from generic blocked-claim denials",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude noted the top-level deny decision value is shared across tenant-boundary and blocked-claim denials.",
+        "recommendation": "Carry distinct tenant-boundary reason/sub-code for auditability.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "The top-level decision intentionally remains the current shared closeout enum, but every tenant-boundary denial carries distinct blocked refs for actor, resource, matter missing, and matter mismatch. No new result field is added in this slice to avoid widening the S03 contract; S04+ can add richer audit reason taxonomy if the audit hint precheck requires it."
+      },
+      {
+        "severity": "P2",
+        "title": "Avoid free-text denylist bypass for unsafe boundary claims",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude noted a denylist-only claim check may ignore unenumerated unsafe phrasing.",
+        "recommendation": "Confirm claims are closed enum or reject unknown truthy claims.",
+        "status": "fixed",
+        "disposition": "S03 now rejects any truthy unknown boundary claim as fail-closed, in addition to the explicit forbidden claim list. Service tests and the RP00 validator include unknown boundary claim rejection."
+      },
+      {
+        "severity": "P2",
+        "title": "Assert allow-decision coherence bidirectionally",
+        "file": "packages/control-plane/src/validators.js",
+        "line": null,
+        "description": "Claude asked that allow implies no mismatch and no blocked refs, not only that mismatch implies deny.",
+        "recommendation": "Keep allow results incompatible with blocked refs or mismatched tenant fields.",
+        "status": "fixed",
+        "disposition": "The result validator requires allowed results to have zero blocked refs, denied results to include at least one blocked ref, pass flag to match decision, and tenant or Matter mismatches to fail closed. Tests and RP00 validator exercise same-tenant allow and mismatch deny paths."
+      },
+      {
+        "severity": "P2",
+        "title": "Confirm S02 canonicalizes tenant fields before S03 equality",
+        "file": "packages/control-plane/src/validators.js",
+        "line": null,
+        "description": "Claude noted S03 equality depends on S02 normalized input quality.",
+        "recommendation": "Confirm tenant IDs are trimmed and nonblank before equality checks.",
+        "status": "fixed",
+        "disposition": "S02 normalized request validator requires tenant_id, actor_tenant_id, and resource_tenant_id to be trimmed nonblank strings and matter_tenant_id to be null or a trimmed nonblank string. S03 invokes that validator before boundary comparisons."
+      },
+      {
+        "severity": "P2",
+        "title": "Static no-write metadata cannot prove future runtime side-effect absence",
+        "file": "packages/control-plane/src/service.js",
+        "line": null,
+        "description": "Claude noted no-write/no-service/no-drafting/no-runtime are structural assertions at this metadata-only stage.",
+        "recommendation": "Add side-effect guards in later runtime-capable slices.",
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "S03 is synthetic metadata-only and has no runtime path. Side-effect spies or runtime guards are explicitly deferred to later runtime-capable subphases; S03 records no-write, no-service, no-runtime, no-drafting, and next_subphase RP00.P02.M02.S04."
+      }
+    ],
+    "summary": "Claude returned PASS_WITH_FINDINGS from a read-only tools-disabled review. P1 items were confirmed and fixed through explicit tests, validator checks, and mandatory evidence gating. P2 items were fixed where local to S03 or explicitly deferred where they belong to later runtime/audit slices.",
+    "residual_risk": "Low for S03 because it remains synthetic, no-write, no-runtime, no-service-execution, no implementation handoff drafting, no Hermes or Claude bypass, and no human approval bypass. Runtime side-effect enforcement remains an explicit future-slice responsibility."
+  },
+  "production_ready": true
+}

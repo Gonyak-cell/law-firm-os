@@ -1,0 +1,147 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L5-W02",
+  "title": "Ethical Wall five-path and emergency override verification",
+  "phase": "L5",
+  "gate": "G3, L5-EXIT",
+  "created_at": "2026-06-18T14:15:15Z",
+  "status": "blocked_pending_ethical_wall_matrix_override_rehearsal_harness_and_runtime_controls",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L2-W02": {
+      "status": "blocked_pending_l0_l1_decisions_persistence_and_auth_runtime",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L2-W04": {
+      "status": "blocked_pending_l2_w01_w02_w03_and_context_runtime",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L2-W05": {
+      "status": "blocked_pending_runtime_risk_controls_and_predecessors",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L5-W01": {
+      "status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "ethical_wall_test_directory_exists": false,
+    "ethical_wall_override_test_directory_exists": false,
+    "ethical_wall_matrix_exists": false,
+    "emergency_override_rehearsal_exists": false,
+    "break_glass_runbook_exists": true,
+    "permission_request_procedure_exists": true,
+    "ethical_wall_source_policy_exists": true,
+    "five_path_matrix_passed": false,
+    "override_rehearsal_passed": false,
+    "g3_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L5-W02-T01",
+      "title": "Ethical Wall five-path bypass matrix test",
+      "status": "blocked_waiting_on_l5_w01_harness_l2_w05_runtime_controls_and_ethical_wall_test_directory",
+      "acceptance": {
+        "required_paths": [
+          "api",
+          "ui",
+          "search",
+          "ai",
+          "export"
+        ],
+        "required_object_types": [
+          "matter",
+          "party",
+          "document",
+          "issue",
+          "employee-sensitive file"
+        ],
+        "matrix_result_json_exists": false,
+        "blocked_cell_count_verified": false,
+        "audit_reconciliation_100_percent": false,
+        "control_group_false_block_zero": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W02-T02",
+      "title": "Emergency override approval, time limit, audit, and evidence assembly",
+      "status": "blocked_waiting_on_t01_override_runtime_approval_record_audit_record_and_expiry_reblock_evidence",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "both_tuw_ids_present_in_command_evidence": true,
+        "unauthorized_override_denied": false,
+        "approved_override_audited": false,
+        "expired_override_reblocked": false,
+        "g3_satisfied": false,
+        "l5_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L5-W01\" or .wp_id==\"LT-L2-W05\" or .wp_id==\"LT-L2-W02\" or .wp_id==\"LT-L2-W04\") | [.wp_id,.title,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L2-W02\t신뢰 경계 재구축(Entra+MSAL/NAA, 서버측 권한 컨텍스트)\tblocked_pending_l0_l1_decisions_persistence_and_auth_runtime\tstandard_five_blocked",
+        "LT-L2-W04\t도메인 런타임화(Wave 1 bounded context 기동)\tblocked_pending_l2_w01_w02_w03_and_context_runtime\tstandard_five_blocked",
+        "LT-L2-W05\t리스크 통제 실재화(sync checker·QC gate·Ethical Wall 등)\tblocked_pending_runtime_risk_controls_and_predecessors\tstandard_five_blocked",
+        "LT-L5-W01\t보안 Verification Gate 7항목 수락 테스트화\tblocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W02 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "ethical_wall_artifact_presence",
+      "command": "test ethical-wall/override test dirs, matrix/rehearsal docs, and runbook/procedure docs",
+      "exit_code": 0,
+      "output_summary": [
+        "tests/launch/security-acceptance/ethical-wall absent.",
+        "tests/launch/security-acceptance/ethical-wall-override absent.",
+        "docs/launch/security-acceptance/ethical-wall-matrix.md absent.",
+        "docs/launch/security-acceptance/emergency-override-rehearsal.md absent.",
+        "docs/launch/runbooks/break-glass-runbook.md exists.",
+        "docs/launch/runbooks/permission-request-procedure.md exists."
+      ],
+      "purpose": "Verify W02 executable evidence is absent while related operating draft runbooks exist."
+    },
+    {
+      "id": "ethical_wall_source_policy",
+      "command": "rg -n \"Ethical Wall|ethical wall|wall 대상|emergency override|break-glass|긴급|override\" workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md docs/launch docs/goal-closeout packages apps tests -S --glob '!node_modules/**'",
+      "exit_code": 0,
+      "output_summary": [
+        "06_권한_보안_감사_거버넌스.md defines Ethical Wall effects and says emergency override requires separate approval and audit.",
+        "docs/launch/l2/risk-control-realization-blocker-survey.md records Ethical Wall runtime paths and emergency override as blocked.",
+        "docs/launch/runbooks/break-glass-runbook.md contains pending L5-W02 evidence rows and does not grant access.",
+        "No executable LT-L5-W02 ethical-wall or override acceptance suite was found."
+      ],
+      "purpose": "Verify source policy exists but executable evidence is absent."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L5-W02.",
+    "This record does not execute Ethical Wall bypass tests.",
+    "This record does not prove API, UI, search, AI, or export paths are blocked.",
+    "This record does not activate or verify emergency override.",
+    "This record does not access staging, production, real matters, or real HR-sensitive files.",
+    "This record does not satisfy G3 or L5-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

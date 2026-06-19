@@ -1,0 +1,151 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-090",
+  "planned_pack_id": "CP00-090",
+  "requested_pack_id": "CP00-089",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "control_plane_hermes_validation_human_approval_marker_verified",
+  "program_id": "RP00",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 1,
+  "unit_count": 1,
+  "primary_subphase_id": "RP00.P08.M05.S11",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-089 shifted to CP00-090 by live sequential cursor",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-090",
+    "planned_pack_id": "CP00-090",
+    "requested_pack_id": "CP00-089",
+    "title": "CP00-090 RP00.P08.M05.S11 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 1,
+    "unit_count": 1,
+    "range": {
+      "first_unit_id": "RP00.P08.M05.S11",
+      "last_unit_id": "RP00.P08.M05.S11",
+      "description": "RP00.P08.M05.S11"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 1,
+    "correction_reason": "requested CP00-089 shifted to CP00-090 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P08.M05.S11",
+        "title": "Human approval marker",
+        "source_micro_phase_id": "RP00.P08.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P08",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os",
+    "ldip_product_boundary": "internal_legal_data_intelligence_capability_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "included_units": [
+    {
+      "id": "RP00.P08.M05.S11",
+      "title": "Human approval marker",
+      "source_micro_phase_id": "RP00.P08.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P08",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "contracts/control-plane-contract.json",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-090/manifest.json",
+        "docs/closeout-packs/cp00-090/command-evidence.json",
+        "docs/closeout-packs/cp00-090/claude-review-result.json",
+        "docs/closeout-packs/cp00-090/adjudication.md",
+        "docs/closeout-packs/cp00-090/construction-inspection.json"
+      ],
+      "production_ready": true
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-090/manifest.json",
+    "docs/closeout-packs/cp00-090/command-evidence.json",
+    "docs/closeout-packs/cp00-090/claude-review-result.json",
+    "docs/closeout-packs/cp00-090/adjudication.md",
+    "docs/closeout-packs/cp00-090/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-090/claude-review-result.json"
+  },
+  "gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "passed_after_pack_evidence_creation",
+    "claude_review": "passed_with_findings_adjudicated",
+    "adjudication": "passed",
+    "construction_inspection": "passed",
+    "included_units_production_ready": true
+  },
+  "closeout_state_policy": {
+    "production_ready_flag": "control_plane_hermes_validation_human_approval_marker_verified",
+    "source_micro_phase_completed": true,
+    "phase_completed": false,
+    "next_subphase": "RP00.P08.M06.S01"
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-090 hermes validation human approval marker pack"
+  }
+}

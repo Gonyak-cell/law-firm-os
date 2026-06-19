@@ -1,0 +1,90 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M05.S09",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Optional field registry",
+  "entity": "HumanApproval",
+  "inspected_at": "2026-06-04T02:55:00Z",
+  "verdict": "PASS",
+  "status": "PASS",
+  "production_ready": true,
+  "human_approval_optional_field_registry_verified": true,
+  "optional_fields_verified": true,
+  "optional_field_count_verified": 4,
+  "matter_id_optional_nullable": true,
+  "blocked_claim_refs_optional_array": true,
+  "hermes_gate_refs_reference_only": true,
+  "claude_review_gate_refs_reference_only": true,
+  "gate_references_cannot_approve_or_mutate": true,
+  "absent_optional_fields_accepted": true,
+  "unknown_optional_fields_rejected": true,
+  "tenant_context_checked_when_supplied": true,
+  "matter_context_edge_covered": true,
+  "synthetic_fixture_optional_record_verified": true,
+  "registry_exposes_human_approval_optional_field_registry": true,
+  "registry_keeps_human_approval_model_future": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "cannot_synthesize_human_approval": true,
+  "state_transition_map_deferred_to": "RP00.P01.M05.S10",
+  "validation_helper_deferred_to": "RP00.P01.M05.S11",
+  "human_acceptance_or_explicit_next_goal_boundary": "Next boundary recorded as RP00.P01.M05.S10 State transition map; no sensitive production action approved by this subphase.",
+  "claude_findings": {
+    "p0_status": "none",
+    "p1_status": "fixed_by_closeout_evidence",
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed_or_deferred",
+    "findings": [
+      {
+        "id": "HA-S09-001",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Dead or misleading tenantContext parameter in validateHumanApprovalOptionalFields",
+        "details": "Claude found tenantContext was declared but unused in validateHumanApprovalOptionalFields.",
+        "recommendation": "Wire tenantContext to explicit tenant-scope validation or remove/document it.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "validateHumanApprovalOptionalFields now calls assertHumanApprovalTenantScope when tenantContext is supplied; model tests and RP00 validator cover matching and mismatched tenant context."
+      },
+      {
+        "id": "HA-S09-002",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Unknown optional keys were silently ignored",
+        "details": "Claude found typo keys could be skipped by the field-specific if-in checks.",
+        "recommendation": "Reject keys outside the optional field registry plus required identity fields.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "validateHumanApprovalOptionalFields now rejects unsupported keys; model tests and RP00 validator cover blocked_claim_ref as a typo case."
+      },
+      {
+        "id": "HA-S09-003",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Null matter_id with non-null Matter context edge was untested",
+        "details": "Claude found firm-level null matter_id with a provided Matter context was not pinned by a test.",
+        "recommendation": "Add a test asserting the intended fail-closed behavior.",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "model.test.js and scripts/validate-rp00-control-plane-contract.mjs now assert that matter_id:null with non-null Matter context fails closed."
+      },
+      {
+        "id": "HA-S09-004",
+        "severity": "P3_NOTE",
+        "title": "High metadata-mirroring surface backed by behavioral tests",
+        "details": "Claude noted maintenance overhead from duplicated metadata parity assertions, while also confirming real behavior coverage exists.",
+        "recommendation": "No action required for closeout.",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "accepted_as_maintenance_note",
+        "evidence": "S09 retains parity scaffolding because RP00 H00 gate intentionally requires model, contract, fixture, validator, and evidence agreement; runtime positive and negative tests remain the anti-theater coverage."
+      },
+      {
+        "id": "HA-S09-005",
+        "severity": "P1_MUST_FIX",
+        "title": "S09 closeout evidence artifacts not yet present",
+        "details": "Claude noted S09 could not be promoted until the five closeout artifacts exist under docs/goal-closeout/rp00-p01-m05-s09.",
+        "recommendation": "Record packet, command evidence, Claude review result, adjudication, and construction inspection; then rerun Hermes/local validation.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "fixed_by_recording_required_closeout_evidence",
+        "evidence": "S09 packet, command evidence, Claude review result, adjudication, and construction inspection are recorded under docs/goal-closeout/rp00-p01-m05-s09; final validation rerun is recorded in command evidence."
+      }
+    ]
+  }
+}

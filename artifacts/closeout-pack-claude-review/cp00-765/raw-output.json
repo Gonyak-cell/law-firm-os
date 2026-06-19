@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-765",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T14:42:05.879Z",
+  "finished_at": "2026-06-15T14:49:26.242Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":439167,\"duration_api_ms\":437352,\"ttft_ms\":4366,\"num_turns\":51,\"result\":\"Review complete. **Verdict: PASS** — CP00-765 passes the hardened read-only review with zero findings (no P0/P1/P2/P3), and does not block pack or goal closeout.\\n\\nThe pack is an honest descriptor-only artifact: it claims `production_ready: false` / `runtime_ready: false` and a descriptor-level verification flag, all fully supported by matching distributions, valid coverage/descriptor validation, passing tests (31 + 2979, 0 fail), all gate commands at exit 0, an enforced no-write/no-real-data attestation, a correct authority boundary (Claude non-final, human approval gated, no enterprise-trust claim), and Hermes used only for deterministic descriptor/receipt handling. The existing 0-byte review placeholder is correctly tracked as pending and not counted as valid evidence — this receipt is the gating input.\",\"stop_reason\":\"end_turn\",\"session_id\":\"025023f1-d954-47e9-ba0f-831e7276787c\",\"total_cost_usd\":3.0588504999999997,\"usage\":{\"input_tokens\":84,\"cache_creation_input_tokens\":141344,\"cache_read_input_tokens\":2876157,\"output_tokens\":29428,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":141344,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":419,\"cache_read_input_tokens\":134858,\"cache_creation_input_tokens\":6927,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6927},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1147,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001252,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":84,\"outputTokens\":29428,\"cacheReadInputTokens\":2876157,\"cacheCreationInputTokens\":141344,\"webSearchRequests\":0,\"costUSD\":3.0575984999999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-765 is a descriptor-only RP25 Migration Platform interface/permission/fixture pack (risk B, 40 units, RP25.P03.M04.S13-RP25.P03.M06.S10). The pack-level claim is production_ready:false / runtime_ready:false with descriptor-level flag migration_platform_interface_permission_fixture_descriptor_verified; it does NOT overclaim runtime or enterprise trust, and that claim is fully supported by implementation, tests, local/Hermes validation, and the no-write/no-real-data boundary.\\n\\nVerified consistency across all layers: registry.js CP765 binding (lines 162-177), service.js descriptor factory (715-770), validators.js coverage+descriptor checks (821-889), index.js export surface, model.test.js CP765 tests (362-408), README CP00-765 section (line 41-43), contract current_pack/latest_pack (lines 24-55), and plan live_state (line 35-41) all agree on pack_id, risk_class B, unit_count 40, range, upstream CP00-764, next CP00-766 / RP25.P03.M06.S11. Deliverable distribution (test:4, hermes_evidence:2, claude_review:2, implementation:19, contract:9, security_audit:4) and micro-title distribution (Secondary Workflow Slice:8, Permission And Audit Binding:22, Synthetic Fixture Set:10) match the pack baseline exactly; contract validation block (lines 32067-32129) shows coverage.valid=true and descriptor.valid=true with empty errors and validation.valid=true.\\n\\nTests and gates: command-evidence.json reports every required command at exit_code 0 (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check). node --test migration suite = 31/31 pass; full npm test = 2979/2979 pass, 0 fail; git diff --check clean. command-evidence status=passed, gate_outcome=passed_pending_hardened_review, no_real_data=true, writes_product_state=false.\\n\\nBoundaries: MIGRATION_PLATFORM_NO_WRITE_ATTESTATION (registry.js 193-207) asserts descriptor_only/synthetic_only/no real data and all source-system + product-state write surfaces closed; validators enforce descriptor_only, no runtime execution, no raw/source/credential/client payloads, no source-system runtime opening, no permission-decision/cross-tenant exposure, no audit event bodies; tests assert the same. Authority boundary is correct: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false. Hermes is used only for deterministic descriptor/receipt handling (emits_runtime_receipt=false, receipt_shape descriptor_only_migration_no_write); no Hermes runtime embedded in product. The contract validation script writes only the contract artifact, not product state.\\n\\nReview-evidence hardening (CP178+): the existing claude-review-result.json is a 0-byte-stdout placeholder with status pending_review and null execution fields, but it is explicitly NOT counted as valid evidence (manifest pack_level_claude_review.valid_review_receipts=[], adjudication.md and construction-inspection.json both PENDING_REVIEW with production_ready=false). No auth failure, malformed JSON, fenced-JSON-with-prose, tool-call-shaped output, or missing-field artifact is being passed off as a valid review receipt; the pending state is tracked correctly and this hardened read-only receipt is the gating input. Claude remains a read-only independent reviewer, not final approver. Changed-file scope is accurate (active_untracked_implementation_files_omitted=[]) and unrelated dirty files (workbook docs, progress-control-room, plan/queue regen) are correctly excluded from pack scope. No P0/P1/P2/P3 issues found; clean PASS contingent on this receipt being recorded by the closeout flow.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"a244d9eb-ad4a-417d-b352-9345f82ec36d\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6273,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "025023f1-d954-47e9-ba0f-831e7276787c",
+    "uuid": "a244d9eb-ad4a-417d-b352-9345f82ec36d",
+    "total_cost_usd": 3.0588504999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

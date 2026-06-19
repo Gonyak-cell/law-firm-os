@@ -1,0 +1,80 @@
+{
+  "work_package_id": "LT-L8-W03",
+  "title": "Cutover runbook and go/no-go operations",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_cutover_templates_and_boundaries_recorded",
+  "scope": {
+    "phase": "L8",
+    "tuws": [
+      "LT-L8-W03-T01",
+      "LT-L8-W03-T02",
+      "LT-L8-W03-T03",
+      "LT-L8-W03-T04",
+      "LT-L8-W03-T05",
+      "LT-L8-W03-T06",
+      "LT-L8-W03-T07"
+    ],
+    "gate_binding": [
+      "G9",
+      "G10",
+      "L8-EXIT"
+    ]
+  },
+  "implementation_summary": [
+    "Created the seven-step cutover runbook.",
+    "Created blocked templates for rollback criteria, cutover execution, go/no-go decision, and company-wide rollout.",
+    "Recorded that no production freeze, delta migration, go/no-go meeting, company-wide rollout, or 48-hour watch has been executed.",
+    "Recorded that LT-L8-W02 currently fails G1 through G10 and G10 signoff is absent."
+  ],
+  "changed_surfaces": [
+    "docs/launch/cutover-runbook.md",
+    "docs/launch/cutover-rollback-criteria.md",
+    "docs/launch/cutover-execution-log.md",
+    "docs/launch/go-no-go-decision.md",
+    "docs/launch/company-wide-rollout-record.md",
+    "docs/goal-closeout/lt-l8-w03/packet.json",
+    "docs/goal-closeout/lt-l8-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l8-w03/adjudication.md",
+    "docs/goal-closeout/lt-l8-w03/construction-inspection.json",
+    "docs/goal-closeout/lt-l8-w03/command-evidence.json"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l8-w03/packet.json",
+    "docs/goal-closeout/lt-l8-w03/command-evidence.json",
+    "docs/goal-closeout/lt-l8-w03/claude-review-result.json",
+    "docs/goal-closeout/lt-l8-w03/adjudication.md",
+    "docs/goal-closeout/lt-l8-w03/construction-inspection.json"
+  ],
+  "current_status": {
+    "runbook_step_count": 7,
+    "tabletop_performed": false,
+    "rollback_criteria_owner_approved": false,
+    "freeze_declared": false,
+    "final_delta_executed": false,
+    "integrity_health_check_green": false,
+    "go_no_go_meeting_held": false,
+    "company_wide_rollout_executed": false,
+    "forty_eight_hour_watch_complete": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  },
+  "boundaries": {
+    "go_live_approved": false,
+    "production_ready_claim": false,
+    "production_write_executed": false,
+    "m365_admin_action_executed": false,
+    "human_approval_claim": false,
+    "no_real_data": true,
+    "writes_product_state": false
+  },
+  "terminal_tuw": "LT-L8-W03-T07",
+  "gate_binding": [
+    "G9",
+    "G10",
+    "L8-EXIT"
+  ],
+  "phase": "L8"
+}

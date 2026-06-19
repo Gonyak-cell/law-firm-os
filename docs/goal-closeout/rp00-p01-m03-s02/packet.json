@@ -1,0 +1,62 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M03.S02",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Implement the HermesGate primary entity identifier policy only, using canonical hg_ lowercase snake-case gate_id values before tenant scope and full HermesGate model behavior are implemented.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m03-s02/packet.json",
+    "docs/goal-closeout/rp00-p01-m03-s02/command-evidence.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M03.S02 in implemented state.",
+    "Adds HERMES_GATE_IDENTIFIER_POLICY for the HermesGate gate_id primary identifier with stable hg_ prefix, canonical lowercase snake-case pattern, forbidden forms, no-real-data/no-write boundaries, tenant scope deferral to RP00.P01.M03.S03, and next boundary RP00.P01.M03.S03.",
+    "Adds normalizeHermesGateId and validateHermesGateId exports with fail-closed canonical identifier handling.",
+    "Exposes hermesGateIdentifierPolicy through CONTROL_PLANE_DOMAIN_MODEL_REGISTRY while keeping the HermesGate entity implementedInFutureSubphase=true and implementedSubphase=null.",
+    "Extends the synthetic fixture with hermes_gate_identifier evidence using hg_rp00_h00_control_plane.",
+    "Extends the RP00 validator and README with machine checks for the HermesGate primary identifier slice."
+  ],
+  "non_goals": [
+    "Does not implement HermesGate tenant scope, Matter trace reference, lifecycle status enum, ownership metadata, reference relationship map, required/optional field registry, state transition map, validation helper, or full HermesGate model factory.",
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not weaken or re-open ProductContract, AIControlRule, or HermesGate package-layout production_ready slices.",
+    "Does not implement ClaudeReviewGate, HumanApproval, or BlockedClaim.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M03.S03."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M03.S03"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M03.S02 implement only the HermesGate primary identifier policy and avoid claiming full HermesGate model completion?",
+    "Does HERMES_GATE_IDENTIFIER_POLICY enforce gate_id, hg_ stable prefix, lowercase snake-case canonical pattern, tenant scope deferral to RP00.P01.M03.S03, no-real-data/no-write boundaries, and next boundary RP00.P01.M03.S03?",
+    "Do normalizeHermesGateId and validateHermesGateId accept canonical fixture IDs, trim input for normalization, reject stored whitespace, and reject missing prefix, uppercase, hyphenated, double-underscore, and path/URL-like values?",
+    "Does CONTROL_PLANE_DOMAIN_MODEL_REGISTRY expose hermesGateIdentifierPolicy while keeping the HermesGate entity future-only with implementedSubphase=null?",
+    "Does the synthetic fixture record hermes_gate_identifier with gate_id=hg_rp00_h00_control_plane, policy_ref=HERMES_GATE_IDENTIFIER_POLICY, no_real_data=true, writes_product_state=false, and next_subphase=RP00.P01.M03.S03?",
+    "Does the validator enforce S02 exports, fixture evidence, invalid identifier rejection, no-write policy, actual Claude dependency, construction inspection, and next-boundary evidence before production_ready?"
+  ],
+  "risk_focus": [
+    "Accidentally claiming HermesGate full model completion from an identifier-only slice.",
+    "Accepting noncanonical or mutable HermesGate identifiers that would weaken command evidence and blocked-claim traceability.",
+    "Advancing tenant scope or model validation before RP00.P01.M03.S03-S11.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

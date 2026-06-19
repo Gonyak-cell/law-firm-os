@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-706",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "69880092-030c-4d05-a6f2-06a175817a9d",
+    "uuid": "06a898e8-065b-4dff-a750-2cc5fb4c5b81",
+    "total_cost_usd": 2.04369575,
+    "permission_denials": []
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-706/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-706/review-receipt.json",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-706 is a descriptor-only RP23 finance-integrations P04 permission/fixture bridge slice (RP23.P04.M05.S17-RP23.P04.M06.S04, risk A, 10 units) in the CP694-CP705 lineage. Baseline attributes (pack_id, risk class, unit_count, range, deliverable_distribution {test:1,hermes_evidence:1,claude_review:1,implementation:3,ui:4}, micro_title_distribution {Permission And Audit Binding:6,Synthetic Fixture Set:4}) match the registry binding, requirements, manifest, plan live_state, and contract current/latest_pack. No-write/no-real-data boundaries are fully attested (registry NO_WRITE_ATTESTATION propagated to the contract CP706 projection; command-evidence writes_product_state=false, no_real_data=true); bank/card/WEHAGO/Douzone/tax/DART runtimes, permission-decision detail, audit bodies, and Hermes runtime receipts are closed. Authority boundary holds: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-707, Claude packets read_only with promotes_claude_to_final_approval=false; Hermes packets are descriptor-only (emits_runtime_receipt=false), used for deterministic control-plane review packet/receipt handling, not product runtime. Tests (model.test.js) cover CP706 binding/coverage, runtime-closed descriptor/packets, and latest-vs-historical contract projection; the contract validator writes only the deterministic control-plane artifact. The 23/23 pre-review validation matrix maps to real package.json scripts (all exit_code 0); review-hardening preflight passed with valid JSON, tools restricted to Read/Grep/Glob, forbidden review-evidence enumerated, and no prior invalid attempts. The pack does not overclaim: production_ready=false, pack_level_claude_review_completed=false, inspection verdict PENDING_REVIEW, honestly awaiting exactly one valid review. One P3 cosmetic finding: the manifest commit_policy.commit_message references CP00-703 rather than CP00-706 - a vestigial, non-content-validated field that did not affect CP704/CP705 actual commits. No P0/P1/P2 issues; supports pack closeout and does not block this CP goal closeout.",
+    "findings": [
+      {
+        "id": "CP706-P3-01",
+        "severity": "P3",
+        "title": "Manifest commit_policy.commit_message references CP00-703 instead of CP00-706",
+        "file": "docs/closeout-packs/cp00-706/manifest.json",
+        "line": 407,
+        "details": "manifest.commit_policy.commit_message is \"Close CP00-703 finance integrations P02 review closeout P03 foundation pack\", which describes CP00-703, not this pack. This is a stale copy-paste carryover: the same string also appears in the CP00-704 and CP00-705 manifests, yet git log shows those packs were actually committed with correct per-pack messages (28fad9b2 Close CP00-705..., 42903c58 Close CP00-704...), confirming the field is vestigial. The closeout validator (scripts/validate-closeout-pack.mjs:250) only asserts commit_policy.required===true and never checks the message content, so the inaccuracy is not caught and does not gate closeout. It has no effect on the descriptor-only claim, no-write/no-real-data boundaries, authority boundary, or validation evidence.",
+        "recommendation": "Update the CP00-706 manifest commit_policy.commit_message to an accurate CP00-706 description (e.g., \"Close CP00-706 finance integrations P04 permission fixture bridge pack\") and ensure the actual commit message matches; optionally backfill the same field in CP00-704/CP00-705 manifests for consistency. Non-blocking.",
+        "post_review_disposition": "Corrected in docs/closeout-packs/cp00-706/manifest.json by updating commit_policy.commit_message to the CP00-706 commit message; accepted as non-blocking because it was a vestigial, non-content-validated manifest field and did not affect descriptor-only, no-write, runtime-closed evidence."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

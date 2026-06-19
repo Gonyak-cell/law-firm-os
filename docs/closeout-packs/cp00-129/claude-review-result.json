@@ -1,0 +1,104 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-129",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "39ef0219-7eb9-4629-856e-87d52f2a9644",
+    "uuid": "2ae27574-5371-4663-ba57-0d1d70395610",
+    "total_cost_usd": 0.7054555,
+    "duration_ms": 185480,
+    "num_turns": 1,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": [],
+    "blocks_pack_closeout": false,
+    "recommendation": "Proceed with CP00-129 closeout. The pack satisfies every in-scope requirement and introduces no prohibited runtime behavior.",
+    "rationale": "Scope verified against the diff. (1) Coverage: CP129_PHASES yields 1 (RP02.P08.M03.S22 operator summary, terminal) + 20 (RP02.P08.M04.S01-S20 secondary workflow) + 19 (RP02.P08.M05.S01-S19 permission/audit binding opening) = 40 units; first/last unit ids and per-phase/domain/deliverable counts (implementation 16, hermes_evidence 20, claude_review 2, test 2) match validatePermissionKernelCp129Coverage and the contract/script/test assertions, and source unit ids are unique. (2) Inheritance: createPermissionKernelCp129HermesEvidenceWorkflowBinding reads CP128 harness result_count (150), next-gate readiness, Claude non-execution, and audit-summary reference-only via imported CP128 functions; these are self-checked (inherited_* must be true/150 or coverage fails), so inheritance is metadata-only. (3) No-write/synthetic: freezeNoWriteResult and CP129_NO_WRITE_ATTESTATION force all 19 boundary flags false on every case result; operator_summary has hidden_fields_rendered=false and contains_real_data=false; hermes_evidence_binding is reference_only with writes_hermes_runtime/emitted_to_audit_ledger/changed_files_disclose_raw_diff/command_result_discloses_raw_output all false; permission_audit_binding does not emit to ledger or mutate policy or expose unauthorized counts. (4) Markers/semantics: claude_dependency_marker.executes_claude_review=false and read_only=true; human_approval_marker.grants_human_approval=false and reference_only; PASS/PASS_WITH_FINDINGS/BLOCK bound with block_prevents_production_ready=true; regression_receipt deterministic/non-persistent/no runtime harness; closeout_handoff commits_pack=false and marks_production_ready=false. (5) Prohibited additions: the new module is pure frozen-data logic under packages/authz/src with only an index.js re-export and read-only test/validation additions — no UI/API routes, no permission mutation, no audit/product/db writes, no idempotency/lock persistence, no retry/rollback/compensation, no export/share, no AI/analytics execution, no LDIP, and hrx_embedded_boundary stays embedded (no HRX split). Replay/command strings and Hermes command_anchors are stored as reference data and never executed. Contract bump (v0.23, current_pack CP00-129 Risk B 40 units, production_ready_flag updated, hermes_evidence_workflow_binding_pack block, 11 public_exports, 10 hidden_source_fields, 19-flag no_write_attestation) is internally consistent and cross-checked by the validation script; hidden_source_fields are declared suppression names, not real data. Handoff fixed to CP00-130 / RP02.P08.M05.S20. No P0-P3 issues identified."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 185480,
+    "duration_api_ms": 187049,
+    "ttft_ms": 173131,
+    "num_turns": 1,
+    "result": "Read-only review of the CP00-129 staged diff complete. Findings below.\n\n```json\n{\n  \"overall_verdict\": \"PASS\",\n  \"finding_counts\": { \"p0\": 0, \"p1\": 0, \"p2\": 0, \"p3\": 0 },\n  \"findings\": [],\n  \"blocks_pack_closeout\": false,\n  \"recommendation\": \"Proceed with CP00-129 closeout. The pack satisfies every in-scope requirement and introduces no prohibited runtime behavior.\",\n  \"rationale\": \"Scope verified against the diff. (1) Coverage: CP129_PHASES yields 1 (RP02.P08.M03.S22 operator summary, terminal) + 20 (RP02.P08.M04.S01-S20 secondary workflow) + 19 (RP02.P08.M05.S01-S19 permission/audit binding opening) = 40 units; first/last unit ids and per-phase/domain/deliverable counts (implementation 16, hermes_evidence 20, claude_review 2, test 2) match validatePermissionKernelCp129Coverage and the contract/script/test assertions, and source unit ids are unique. (2) Inheritance: createPermissionKernelCp129HermesEvidenceWorkflowBinding reads CP128 harness result_count (150), next-gate readiness, Claude non-execution, and audit-summary reference-only via imported CP128 functions; these are self-checked (inherited_* must be true/150 or coverage fails), so inheritance is metadata-only. (3) No-write/synthetic: freezeNoWriteResult and CP129_NO_WRITE_ATTESTATION force all 19 boundary flags false on every case result; operator_summary has hidden_fields_rendered=false and contains_real_data=false; hermes_evidence_binding is reference_only with writes_hermes_runtime/emitted_to_audit_ledger/changed_files_disclose_raw_diff/command_result_discloses_raw_output all false; permission_audit_binding does not emit to ledger or mutate policy or expose unauthorized counts. (4) Markers/semantics: claude_dependency_marker.executes_claude_review=false and read_only=true; human_approval_marker.grants_human_approval=false and reference_only; PASS/PASS_WITH_FINDINGS/BLOCK bound with block_prevents_production_ready=true; regression_receipt deterministic/non-persistent/no runtime harness; closeout_handoff commits_pack=false and marks_production_ready=false. (5) Prohibited additions: the new module is pure frozen-data logic under packages/authz/src with only an index.js re-export and read-only test/validation additions — no UI/API routes, no permission mutation, no audit/product/db writes, no idempotency/lock persistence, no retry/rollback/compensation, no export/share, no AI/analytics execution, no LDIP, and hrx_embedded_boundary stays embedded (no HRX split). Replay/command strings and Hermes command_anchors are stored as reference data and never executed. Contract bump (v0.23, current_pack CP00-129 Risk B 40 units, production_ready_flag updated, hermes_evidence_workflow_binding_pack block, 11 public_exports, 10 hidden_source_fields, 19-flag no_write_attestation) is internally consistent and cross-checked by the validation script; hidden_source_fields are declared suppression names, not real data. Handoff fixed to CP00-130 / RP02.P08.M05.S20. No P0-P3 issues identified.\"\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "39ef0219-7eb9-4629-856e-87d52f2a9644",
+    "total_cost_usd": 0.7054555,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 36806,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 18012,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 36806,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 18012,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 36806,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 36806
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 23479,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.023584,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 18012,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 36806,
+        "webSearchRequests": 0,
+        "costUSD": 0.6818715,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "2ae27574-5371-4663-ba57-0d1d70395610"
+  }
+}

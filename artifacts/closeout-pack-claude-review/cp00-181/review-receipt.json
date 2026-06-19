@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-181",
+  "normalized_at": "2026-06-09T17:35:48.764Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-181/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-181/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-181/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-181/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4de06429-1e0c-4436-8894-a93c6cb0b98a",
+    "uuid": "e5b3deed-5afd-4678-8257-82be316e562b",
+    "total_cost_usd": 3.84007625,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5748,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Read-only independent review of CP00-181 (RP05 Matter Core descriptor-only API/interface + early UI state bridge, risk_class C, 150 units) via Read/Grep/Glob only. The pack is honestly pre-closeout: production_ready=false with all gates pending across manifest, construction-inspection, command-evidence, and claude-review-result, so there is no unsupported production-ready or enterprise-trust claim to refute. Descriptor-only/no-write/no-real-data boundaries verified (all no-write attestation flags false; descriptor_only:true, runtime_dispatch_enabled:false; no fs/network/db/graph I/O; serialized result omits raw payload/descriptor body; synthetic_only:true, no_real_client_data:true). Claude is confirmed read-only reviewer and NOT final approver, with enterprise trust not claimed from local validation; Hermes patterns are review-packet/receipt only and not embedded in product runtime. Deliverable/phase/micro distributions all reconcile to 150 and match the validators; the manifest plan_binding_snapshot fallback is sound. Review-evidence hardening passes: readiness auth preflight returned non-empty valid JSON (not auth-fail/0-byte/malformed/fenced+prose/tool-call-shaped); raw-output and receipt are correctly absent. Unrelated dirty/untracked files were not inferred into pack scope. Verdict PASS_WITH_FINDINGS with a single non-blocking P3 (descriptor_ref id-precedence) and no P0/P1/P2; this review is one input to the C05 gate and is not final approval.",
+    "findings": [
+      {
+        "id": "CP00-181-P3-001",
+        "severity": "P3",
+        "title": "descriptor_ref precedence resolves to matter_id for all non-Matter model types, making the other id branches unreachable and descriptor_ref non-unique per entity",
+        "file": "packages/matter/src/service.js",
+        "line": 238,
+        "details": "descriptorRefFor (service.js:235-249) builds primaryId via the null-coalescing chain descriptor.matter_id ?? member_id ?? task_id ?? section_id ?? edge_id ?? node_id ?? wiki_id. Because matter_id is a required field on every non-Matter Matter Core type (member, task, section, edge, node, wiki), descriptor.matter_id is always populated and short-circuits the chain, so the subsequent branches are dead code. The resulting descriptor_ref is `${model_type}:${matter_id}` rather than `${model_type}:${entity_own_id}`, so two entities of the same model_type under the same matter (e.g. two MatterMember rows) collide on an identical descriptor_ref instead of being distinguished by their own primary id. This is benign in the current pack because descriptor_only:true and runtime_dispatch_enabled:false (service.js:371-372): descriptor_ref is a never-write reference/display hint and is not used for any persistence, lookup, permission, audit, or dispatch path, and the serialized API result omits the descriptor body. No correctness, security, or no-write-boundary impact under the current descriptor-only architecture.",
+        "recommendation": "Before any future pack enables runtime dispatch or uses descriptor_ref for entity identity/lookup, reorder the precedence so each model_type resolves to its own primary id (e.g. select by model_type, or place the entity-specific id ahead of matter_id), or remove the unreachable branches to make the matter-scoped intent explicit. No change required for CP00-181 closeout.",
+        "post_review_disposition": "open_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

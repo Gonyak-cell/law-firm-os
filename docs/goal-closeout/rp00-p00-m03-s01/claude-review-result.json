@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.subphase-claude-review-result.v0.1",
+  "subphase_id": "RP00.P00.M03.S01",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-03T09:33:25Z",
+  "requested_model": "claude-opus-4-8",
+  "requested_effort": "max",
+  "tool_policy": "read_only",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "per_gate": {
+      "C00": {
+        "verdict": "PASS_WITH_FINDINGS",
+        "summary": "Actual Claude CLI review confirmed lifecycle_gate_definition coverage and authority boundaries. No P0/P1 findings; two P3 notes."
+      }
+    },
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "Hermes evidence-only and HumanApproval non-delegable assertions are not inlined in lifecycle gate groups",
+        "file": "contracts/control-plane-contract.json",
+        "line": 1282,
+        "details": "The contract preserves these boundaries through authority_boundary and entity sensitive_action_policy, but the lifecycle block itself is not fully self-contained.",
+        "recommendation": "Optionally inline an evidence-only note on hermes_validation and a non-delegable note on human_approval."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "Previous C00 review result cited a stale line number for lifecycle-transition P3",
+        "file": "docs/goal-closeout/rp00-p00-m03-s01/claude-review-result.json",
+        "line": 29,
+        "details": "The older artifact cited line 1215, while lifecycle allowed transitions are now around lines 1251-1384.",
+        "recommendation": "Refresh line anchors in regenerated review evidence."
+      }
+    ],
+    "evidence_reviewed": [
+      "contracts/control-plane-contract.json",
+      "scripts/validate-rp00-control-plane-contract.mjs",
+      "packages/control-plane/README.md",
+      "docs/goal-closeout/rp00-p00-m03-s01/packet.json",
+      "docs/goal-closeout/rp00-p00-m03-s01/command-evidence.json",
+      "docs/goal-closeout/rp00-p00-m03-s01/adjudication.md",
+      "docs/goal-closeout/rp00-p00-m03-s01/construction-inspection.json",
+      "docs/goal-closeout/rp00-p00-m03-s01/claude-review-result.json",
+      "hermes/project.json",
+      "package.json"
+    ],
+    "review_notes": "Actual claude-opus-4-8 max read-only CLI review completed. No P0/P1 findings; P2 findings, if any, are absent; P3 notes are recorded in adjudication and do not block this subphase."
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "command": "claude -p --model claude-opus-4-8 --effort max --tools Read,Grep,Glob --permission-mode dontAsk --output-format json",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tool_policy": "read_only",
+    "session_id": "03b3edeb-7f3a-4d6c-9b6a-2a3687c89dfd",
+    "uuid": "bd2c8bf4-360e-4206-8cc9-10fb9e659c11",
+    "duration_ms": 149865,
+    "total_cost_usd": 0.891245,
+    "permission_denials": [],
+    "model_usage": {
+      "claude-opus-4-8": {
+        "output_tokens": 13513,
+        "cost_usd": 0.890308
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-456",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T06:47:10.209Z",
+  "finished_at": "2026-06-12T06:51:20.404Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":248893,\"duration_api_ms\":249159,\"ttft_ms\":3772,\"num_turns\":31,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-456 does not block pack or goal closeout.\\n\\nCP00-456 is a clean descriptor-only pack. The descriptor-verification claim is honest (manifest declares `production_ready:false`/`implementation_layer:\\\"descriptor\\\"`), the no-write/no-real-data boundary is structurally guaranteed (the analytics package has zero I/O primitives — only `*: false` attestation flags), Claude is correctly held as a read-only non-final-approver, and Hermes H15 is used only for deterministic evidence labels. Plan → manifest → registry → contract all trace to the pinned ledger SHA, and review-hardening preconditions hold (auth-preflight valid, post-review artifacts correctly deferred). No P0/P1/P2 issues; one non-blocking P3 noting that micro M06 (\\\"Synthetic Fixture Set\\\") carries canonical service-row titles without row-level write guards — faithful to the ledger and consistent with the already-closed CP00-454/455, flagged only for awareness when that micro later opens to runtime.\",\"stop_reason\":\"end_turn\",\"session_id\":\"4781369b-2769-4fd0-875e-40bcd68ce606\",\"total_cost_usd\":1.8302252500000002,\"usage\":{\"input_tokens\":9096,\"cache_creation_input_tokens\":123863,\"cache_read_input_tokens\":1013373,\"output_tokens\":20110,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":123863,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":407,\"cache_read_input_tokens\":122712,\"cache_creation_input_tokens\":9546,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":9546},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1065,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001165,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":9096,\"outputTokens\":20110,\"cacheReadInputTokens\":1013373,\"cacheCreationInputTokens\":123863,\"webSearchRequests\":0,\"costUSD\":1.8290602500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-456 is a clean descriptor-only closeout pack for RP15.P02.M06.S03–S12 (10 units; implementation:6, security_audit:2, ui:2). The pack-level claim is descriptor-verification only — the manifest honestly declares production_ready:false, runtime_ready:false, implementation_layer:\\\"descriptor\\\", status:\\\"implemented_pending_review\\\" — and that claim is fully supported. Plan, manifest plan_binding_snapshot, registry CP456 bindings/requirements, and the analytics-core contract projection (incl. historical_pack_bindings tail and p02_fixture_slice_descriptor) are mutually consistent and trace to the pinned source_ledger_sha. The analytics package is pure frozen data construction: no fs writes, child_process, network, env, or DB access exist (grep found only `*: false` attestation flags), so the no-write/no-real-data boundary is structurally guaranteed, not merely asserted. Claude is held as a read-only, non-final-approver reviewer (review-request read_only:true, tools Read/Grep/Glob; every descriptor sets claude_is_final_approval:false and local_validation_claims_enterprise_trust:false). Hermes H15 appears only as deterministic review/evidence-packet labels with emits_hermes_runtime_receipt:false — no product-runtime embedding. Review-hardening preconditions hold: auth-preflight passed (exit 0, 1446-byte valid JSON, not 0-byte/malformed/fenced/tool-shaped), no prior invalid attempts, and post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, raw-output.json, review-receipt.json) are correctly absent because they are produced downstream in the hardening sequence; closeout-pack:validate is appropriately deferred as post-review-gated. Tests (model.test.js) and recorded command-evidence (node --test plus all repo validates at exit 0, git diff --check exit 0) corroborate the descriptor-only posture. No P0/P1/P2 issues found. One P3 informational note is recorded; it is non-blocking and consistent with already-closed CP00-454/455.\",\"findings\":[{\"id\":\"CP00-456-P3-01\",\"severity\":\"P3\",\"title\":\"M06 micro labeled \\\"Synthetic Fixture Set\\\" carries canonical service-implementation row titles\",\"file\":\"docs/closeout-pack-plan/closeout-pack-plan.json\",\"line\":429,\"details\":\"The RP15.P02.M06 micro_title is \\\"Synthetic Fixture Set\\\", but its 10 descriptor rows (S03–S12) are titled with the canonical P02 service-implementation sequence: Tenant boundary precheck, Matter trace precheck, Permission precheck, Audit hint precheck, Primary happy path, Secondary workflow path, State transition enforcement, Idempotency key handling, Lock acquisition rule, Persistence boundary. Because the descriptor builder (service.js ANALYTICS_CORE_CP456_ROW_EXTRAS, inherited from CP453) only attaches per-row guard objects to foundation-style row keys, these rows receive only the base flags (descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false); rows whose titles imply state/lock/persistence/idempotency behavior do not carry row-level no-write guards. The no-write posture is instead enforced at the result level by freezeCp456Result (writes_state_transition:false, persists_idempotency_key:false, acquires_runtime_lock:false, etc.) and the no_write_attestation, and the package has no I/O primitives, so there is no actual write path. The label/row-title divergence is faithful to the pinned source_ledger_sha (13c7ed65...) and is consistent across plan, manifest, registry, and contract, and matches the already-closed CP00-454/455 pattern.\",\"recommendation\":\"No change required for this descriptor-only pack. When micro RP15.P02.M06 (and the analogous P02 service micros) is later opened to runtime, ensure the rows titled State transition enforcement, Idempotency key handling, Lock acquisition rule, and Persistence boundary acquire explicit row-level write/lock/idempotency guards rather than relying solely on result-level attestation, and confirm the \\\"Synthetic Fixture Set\\\" micro label still reflects intended semantics.\",\"post_review_disposition\":\"Accepted as designed and non-blocking; faithful to the pinned weighted-implementation ledger and consistent with closed CP00-454/455. Logged for human awareness ahead of any future runtime-opening pack; does not block CP00-456 pack or goal closeout.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e3a0bdb2-77f1-4173-80a9-a9271ef9ff9c\"}\n",
+  "stderr": "",
+  "stdout_bytes": 7059,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "4781369b-2769-4fd0-875e-40bcd68ce606",
+    "uuid": "e3a0bdb2-77f1-4173-80a9-a9271ef9ff9c",
+    "total_cost_usd": 1.8302252500000002,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

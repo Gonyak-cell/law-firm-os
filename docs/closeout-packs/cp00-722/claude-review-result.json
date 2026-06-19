@@ -1,0 +1,82 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-722",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-722/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-722/review-receipt.json"
+  ],
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "claude_api_529_overloaded",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-722/raw-output-invalid-attempt-01.json",
+      "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-722/review-receipt-invalid-attempt-01.json"
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "cdff7298-8732-4afe-91ee-09a7381c65b9",
+    "uuid": "40907e8c-591d-46a1-a9a9-f24d1c919a22",
+    "total_cost_usd": 1.95054075,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7874,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-722 is a descriptor-only RP24 \"Korean Legal Depth\" bootstrap pack (150 units, risk C). Independent read-only inspection (Read/Grep/Glob; no Bash, no writes) confirms the pack-level readiness claim is supported and the pack does not overclaim. Implementation (packages/korean-legal/ registry+service+validators+index+test, contracts/korean-legal-depth-contract.json, scripts/validate-rp24-korean-legal-depth-contract.mjs) is sound: every generated case-set row is descriptor_only with runtime_execution=false, no payloads/credentials/real-client data, and all Korean-legal runtime surfaces (HWPX, court filing, litigation deadline, corporate document, clause final authority) closed. validators.js actively enforces the authority boundary (Claude not final approver, human approval required to open runtime, local validation must not claim enterprise trust, no permission-decision or audit-body leakage). The generated contract embeds validation.valid=true with empty coverage/descriptor error arrays and by_deliverable {implementation 108, contract 8, security_audit 16, hermes_evidence 7, claude_review 3, ui 8}=150, matching the baseline; I corroborated this against the manifest unit list. The korean-legal test is wired into root npm test (package.json:10). Provenance note: command exit codes are runner-recorded in command-evidence.json (I did not re-execute them — correct for a read-only review); my coverage/boundary conclusions come from direct inspection of the source and the generated artifacts. CP178+ hardening is demonstrably working: the only review run so far returned API 529 (is_error=true, 0 output tokens) and was correctly normalized to invalid_review/valid_review=false/closeout_eligible=false (claude_api_529_overloaded), snapshotted to invalid-attempt-01, and did NOT advance closeout — no valid review-receipt.json exists and manifest/construction-inspection/adjudication/claude-review-result all remain pending with production_ready=false, runtime_ready=false. Authority boundary holds: review-request uses only Read,Grep,Glob (forbidden_tools_present=false), Hermes is used only for deterministic packet/receipt handling (emits_runtime_receipt=false, hermes_runtime_embedded_in_product=false), and the pack makes no runtime or enterprise-trust claim. No P0/P1 issues; two minor non-blocking P3 observations recorded. This read-only review provides the one valid review verdict; human final approval for any enterprise-trust claim remains outside this receipt and is not required here because the pack makes no such claim.",
+    "findings": [
+      {
+        "id": "CP722-P3-01",
+        "severity": "P3",
+        "title": "Public factory functions accept an unused input parameter",
+        "file": "packages/korean-legal/src/service.js",
+        "line": 111,
+        "details": "createKoreanLegalCp722ScopeContractFoundationCaseSet(input = {}), createKoreanLegalCp722ScopeContractFoundationDescriptor(input = {}), and the Hermes/Claude/Handoff factory wrappers all accept an `input` argument that is never read — the descriptor is fully determined by the frozen KOREAN_LEGAL_CP722_PACK_BINDING/REQUIREMENTS constants. The parameter suggests a configurability that does not exist. Purely cosmetic; it does not affect determinism, the no-write boundary, or any validation result.",
+        "recommendation": "Optionally drop the unused `input` parameter (or document it as a reserved placeholder) in a future RP24 descriptor pass for a clearer public API surface.",
+        "post_review_disposition": "Non-blocking; optional cleanup. Does not affect closeout eligibility."
+      },
+      {
+        "id": "CP722-P3-02",
+        "severity": "P3",
+        "title": "Pre-valid-review artifact state: raw-output.json mirrors the 529 failure and review-receipt.json is absent",
+        "file": "artifacts/closeout-pack-claude-review/cp00-722/raw-output.json",
+        "line": null,
+        "details": "Because the only review run so far failed with API 529, the canonical raw-output.json currently contains the failed attempt (is_error=true, api_error_status=529) — identical to raw-output-invalid-attempt-01.json — and the review-receipt.json referenced by manifest.review_artifacts and review-request.json does not yet exist on disk. This is the expected mid-flight state of the hardened review pipeline (the runner overwrites raw-output.json and writes the receipt only on a valid run), and the closeout gate correctly remains pending (valid_review_receipts=[], production_ready=false). Flagged only so a future reader does not mistake the stale failed output for the accepted review.",
+        "recommendation": "No action required. On the next valid review run, raw-output.json and review-receipt.json will be regenerated; confirm exactly one valid receipt is recorded before flipping production_ready.",
+        "post_review_disposition": "Non-blocking; expected behavior. Confirms the 529 attempt was correctly rejected and the gate held."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

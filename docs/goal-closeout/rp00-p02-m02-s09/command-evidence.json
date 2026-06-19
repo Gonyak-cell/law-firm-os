@@ -1,0 +1,97 @@
+{
+  "subphase_id": "RP00.P02.M02.S09",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "title": "State transition enforcement",
+  "status": "passed",
+  "recorded_at": "2026-06-05T03:50:18Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "All commands are local validation, parser, test, or git whitespace checks; none execute service logic, create runtime routes, append audit ledgers, write audit events, create UI, or mutate product state.",
+    "Pre-closeout npm run rp00:control-plane:validate failed only because S09 evidence files were intentionally not created yet; this command is rerun after evidence creation as the final gate.",
+    "Claude P3 finding S09-P3-01 was fixed by adding non-string and untrimmed state transition claim rejection tests.",
+    "Claude P3 finding S09-P3-02 was fixed by adding a runtime precheck output versus fixture precheck_result deepEqual.",
+    "Claude P3 finding S09-P3-03 was fixed by requiring all declared S09 required_acceptance_gates in the RP00 validator loop.",
+    "Claude P3 finding S09-P3-04 was adjudicated as informational: this subphase intentionally records a nominal synthetic metadata transition where the from-state is implied by a validated S08 allow_metadata_only result."
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json",
+      "exit_code": 0
+    },
+    {
+      "command": "jq empty packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "95 pass"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "179 pass"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "54355 implementation subphases"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "227 requirements"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "30 release programs, 3300 micro phases"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "Final S09 closeout gate rerun after evidence creation"
+    }
+  ],
+  "pre_closeout_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "docs/goal-closeout/rp00-p02-m02-s09/packet.json",
+      "docs/goal-closeout/rp00-p02-m02-s09/command-evidence.json",
+      "docs/goal-closeout/rp00-p02-m02-s09/claude-review-result.json",
+      "docs/goal-closeout/rp00-p02-m02-s09/adjudication.md",
+      "docs/goal-closeout/rp00-p02-m02-s09/construction-inspection.json"
+    ]
+  }
+}

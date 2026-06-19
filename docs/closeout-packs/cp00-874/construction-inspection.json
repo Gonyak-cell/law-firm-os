@@ -1,0 +1,30 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-874",
+  "subphase_id": "RP29.P01.M05.S14",
+  "verdict": "PASS",
+  "production_ready": true,
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0,
+    "p2_status": "fixed_or_deferred"
+  },
+  "commercial_readiness_incident_runbook_relationship_tail_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-874 is production_ready after exactly one valid hardened read-only Claude review receipt; the first API 529 overloaded attempt is preserved as invalid_not_accepted and not counted. The next explicit CP boundary is CP00-875 / RP29.P01.M06.S04. Runtime Commercial Readiness behavior, runbook activation, customer-plan mutation, relationship runtime dispatch, permission decisions, audit writes, runtime receipts, real client data, credentials, and secrets remain closed.",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-874/review-receipt.json",
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "cp00-874-attempt-01",
+      "status": "invalid_not_accepted",
+      "reason": "claude_api_529_overloaded",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-874/invalid-attempts/attempt-01-raw-output.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-874/invalid-attempts/attempt-01-review-receipt.json",
+      "counted_as_valid_review": false
+    }
+  ]
+}

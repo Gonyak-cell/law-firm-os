@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-937",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-18T01:48:11.701Z",
+  "finished_at": "2026-06-18T01:52:52.047Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":279875,\"duration_api_ms\":281216,\"ttft_ms\":4277,\"num_turns\":42,\"result\":\"PASS — no findings.\\n\\nCP00-937 is a clean descriptor-only HRX bridge pack whose modest claim (`production_ready=false`, `runtime_ready=false`, descriptor-only) is fully supported by aligned plan/manifest/binding/requirements/contract, thorough boundary enforcement in validators with matching test assertions, a correct read-only/non-final-approver authority boundary, deterministic (non-runtime) Hermes packet handling, and valid hardened review evidence. Does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e3484078-7bad-475d-89db-f3883ddcb623\",\"total_cost_usd\":1.9505519999999998,\"usage\":{\"input_tokens\":50,\"cache_creation_input_tokens\":113918,\"cache_read_input_tokens\":1625741,\"output_tokens\":16969,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":113918,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":179,\"cache_read_input_tokens\":110867,\"cache_creation_input_tokens\":3581,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3581},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1119,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001219,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":50,\"outputTokens\":16969,\"cacheReadInputTokens\":1625741,\"cacheCreationInputTokens\":113918,\"webSearchRequests\":0,\"costUSD\":1.9493329999999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-937 is a clean descriptor-only HRX CandidateFixture-tail + LeaveFixture-foundation bridge pack (RP30.P05.M02.S09-RP30.P05.M03.S09, risk A, 10 units = 1 CandidateFixture S09 tail row + 9 LeaveFixture S01-S09 foundation rows), and its modest claim (production_ready=false, runtime_ready=false, descriptor_only) is fully supported. HRX_CP937_PACK_BINDING, HRX_CP937_REQUIRED_SECTION_ROWS, and HRX_CP937_REQUIREMENTS (registry.js) match the live closeout-pack-plan.json CP00-937 entry and the manifest included_units exactly, with deviation_from_plan=false and next=CP00-938/RP30.P05.M04.S01. The createHrxCp937CandidateLeaveFixtureBridgeDescriptor factory and createHrxDomainRows hold every runtime/record-write/real-data/permission-bypass/request-runtime/identity-link flag at false, spread HRX_NO_WRITE_ATTESTATION and HRX_BLOCKED_CLAIMS; validators.js (validateHrxCp937CandidateLeaveFixtureBridgeCoverage/Descriptor and validateHrxPeopleContract) enforces these boundaries and three CP937 tests in model.test.js assert binding, coverage, runtime-closed descriptor, and contract projection. The regenerated contracts/hrx-people-contract.json pins CP00-937 as latest_pack/latest_projection (HrxCp937CandidateLeaveFixtureBridgeDescriptor) with validation.valid=true and a full no_write_attestation. Authority boundary is correct: Claude is read-only and not promoted to final approval (claude_packet.promotes_claude_to_final_approval=false, c30_read_only=true), human approval is required for any runtime opening (deferred to CP00-938), and the Hermes packet is deterministic review metadata (emits_runtime_receipt=false, deterministic_only=true), not embedded product runtime. Review-evidence hardening passes: readiness auth-preflight succeeded (exit 0, 1228-byte valid JSON ok:true, no auth failure/0-byte/malformed/fenced/tool-call-shaped output), prompt is 2397B < 25600B with no full diff/source, review-schema present, only Read/Grep/Glob tools, and no active untracked implementation files omitted. Changed-file scope is respected: unrelated dirty/untracked files (progress-control-room UI, workbook matter docs, ldip review result) are segregated and not attributed to this pack. blocks_goal_closeout=false because the pack claims neither runtime nor enterprise trust, so the expected human/enterprise-trust approval authority boundary lies outside this receipt. Provenance: this verdict rests on direct read-only source inspection (Read/Grep/Glob) as the packet mandates; the full npm validation ladder is orchestrator-run and recorded as command evidence (HRX syntax checks, node --test, npm run rp30:hrx:validate all exit 0), not re-executed in this review. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"03e7c99e-99b9-4e72-8ea7-db06c151f537\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4890,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e3484078-7bad-475d-89db-f3883ddcb623",
+    "uuid": "03e7c99e-99b9-4e72-8ea7-db06c151f537",
+    "total_cost_usd": 1.9505519999999998,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

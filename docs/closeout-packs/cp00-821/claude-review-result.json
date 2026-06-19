@@ -1,0 +1,94 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-821",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-821/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-821/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "039d4a2b-e474-4598-a93d-c0747a7e93c4",
+    "uuid": "46114f51-c3bf-4872-8fa2-5a4fd9366c5a",
+    "total_cost_usd": 1.9780425,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 15596,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-821 is the RP27 Platform Extensibility \"Permission And Audit Binding\" closeout-tail descriptor pack (risk A, 10 units, RP27.P01.M05.S12-RP27.P01.M05.S21), following CP00-820 (which took RP27.P00.M00.S01-RP27.P01.M05.S11). Reviewed read-only via Read/Grep/Glob only.\n\nProduction-ready claim is correctly scoped and honest. The manifest declares production_ready:false, runtime_ready:false, status:in_progress, production_ready_flag=\"platform_extensibility_domain_permission_audit_closeout_descriptor_verified\", implementation_summary descriptor_only:true, runtime_execution:false, no_real_data:true, writes_product_state:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true, production_ready_descriptor_verified:false. The pack makes no runtime or enterprise-trust claim.\n\nImplementation verified independently and consistent across all sources. registry.js PLATFORM_EXTENSIBILITY_CP821_PACK_BINDING (CP00-821, risk A, 10 units, RP27.P01.M05.S12-S21, upstream CP00-820, next CP00-822/RP27.P01.M05.S22, flag ...closeout_descriptor_verified) matches the baseline, manifest plan_binding_snapshot, the live closeout-pack-plan.json CP00-821 entry (10 included_units), and the contract current_pack/latest_pack. CP821_REQUIREMENTS.deliverable_counts {fixture:1,implementation:4,test:3,hermes_evidence:1,claude_review:1}=10 match my direct count of the live-plan units (S12 fixture; S13/S14/S20/S21 implementation; S15/S16/S17 test; S18 hermes; S19 claude). required_section_rows RP27.P01.M05 = DOMAIN_ROWS.slice(11,21) reproduces exactly the 10 unit titles (Fixture model … Documentation entry); CP820 took slice(0,11) and the 22nd row \"Index export check\" is reserved for CP00-822/S22 — clean, non-overlapping tiling. The CP821 descriptor (createPlatformExtensibilityCp821DomainPermissionAuditCloseoutDescriptor) sets source_descriptor=CP820, authority_boundary claude_is_final_approval:false / local_validation_claims_enterprise_trust:false / human_final_approval_required_for_runtime_opening:true / runtime_opening_pack_id:CP00-822, spreads NO_WRITE_ATTESTATION (api_key_issued/webhook_delivered/workflow_executed/permission_decision_written/audit_event_written/real_client_data_included/credential_or_secret_included all false), Hermes packet emits_runtime_receipt:false, Claude packet read_only:true + promotes_claude_to_final_approval:false, handoff to CP00-822/S22. The serialized contract projections.cp821 rows (fixture_model, serialization_shape, public_export, …) all carry descriptor_only:true, runtime_execution:false, and every *_included/issued/delivered/executed/written flag false with synthetic_only:true; validation.valid:true, latest_pack_id/plan_pack_id CP00-821, no_write_attestation all false, 6 no_leak_guards present. model.js models are tenant_scoped, require matter_trace_ref (via commonRequiredFields), and reference AuditEvent; states.js EXTENSION_RISK_CLAIMS has 6 entries. No API keys, secrets, private keys, passwords, or real emails found in the contract.\n\nTests and harness wired correctly. packages/platform/test/model.test.js adds three CP821 tests (binding+coverage match the live plan with by_deliverable deepEqual and micro RP27.P01.M05=10; descriptor closes the tail with api_key_issued/webhook_delivered/workflow_executed=false and source_descriptor=CP820 and handoff to next_pack_id; contract projection keeps CP00-821 current). All CP821 exports flow through index.js (export *), so the runner script and npm test glob (packages/platform/test/*.test.js) pick them up. scripts/validate-rp27-platform-extensibility-contract.mjs validates CP821 coverage+descriptor+contract+capabilities+gates and process.exit(1) on any error.\n\nAuthority and CP178+ hardening boundaries hold. Claude stays read_only_independent_reviewer (tools Read,Grep,Glob; claude_is_final_approval:false; promotes_claude_to_final_approval:false); the human/enterprise-trust approval boundary is external to this receipt and the pack does not claim it; Hermes is control-plane review-packet/receipt handling only (emits_runtime_receipt:false), not product runtime. readiness auth-preflight passed (exit 0, 1432-byte stdout, valid JSON {\"ok\":true}, no stderr); validation-report confirms summary_only_review_allowed:false, prompt_contains_full_diff_or_source:false, forbidden_tools_present:false, active_untracked_implementation_files_omitted:[]; forbidden_review_evidence is defined. No prior review receipt exists (this is the single pending review).\n\nProvenance: all PASS judgments are from direct source inspection. As a read-only reviewer I did NOT execute npm test / npm run *:validate / node scripts/validate-rp27-...mjs / git diff --check; command/test PASS is established by source consistency (registry/validators/test/contract/live-plan all reconcile, contract validation.valid:true) and CP820 precedent, not fresh execution. Closeout artifacts (command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json) are not yet present — the expected pre-closeout state, matching CP00-820 before its close. Four P3 informational/cosmetic notes only; no P0/P1/P2. These do not block pack closeout, and the external human/enterprise-trust approval boundary does not block this CP closeout goal. The cosmetic changed-file-scope.json dual-listing/mislabeling of docs/closeout-pack-plan/new-session-handoff.md (in both untracked_implementation_files and unrelated_dirty_files_preserved) noted as CP820-R02 persists but does not affect the authoritative active_pack_implementation_refs (the 6 platform files).",
+    "findings": [
+      {
+        "id": "CP821-R01",
+        "severity": "P3",
+        "title": "Closeout artifacts not yet present at review time; validation commands not independently executed (read-only)",
+        "file": "docs/closeout-packs/cp00-821/manifest.json",
+        "line": 226,
+        "details": "manifest.required_pack_artifacts lists manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, and construction-inspection.json, but docs/closeout-packs/cp00-821/ currently contains only manifest.json, and pack_level_claude_review.status is 'pending_review' with empty valid_review_receipts/invalid_review_attempts. This is the expected pre-closeout state: this review is the gate that precedes generating command-evidence (validation command results), claude-review-result, construction-inspection, and adjudication, then flips production_ready/runtime status — exactly as the prior closed pack CP00-820 demonstrates (it now has all five docs artifacts plus raw-output.json/review-receipt.json). As a read-only reviewer I could not run npm run closeout-pack:validate / npm test / npm run validate / npm run weighted:validate / node scripts/validate-rp27-platform-extensibility-contract.mjs / git diff --check, so command/test PASS is established by source consistency (registry/validators/model.test/contract/live-plan internally aligned, contract validation.valid:true) and CP820 precedent rather than fresh execution.",
+        "recommendation": "Proceed. At closeout, record exactly one valid pack-level review receipt for this run, then generate command-evidence.json (confirm npm test and the listed validators actually exit 0 on the CP00-821 tree, including node scripts/validate-rp27-platform-extensibility-contract.mjs), construction-inspection.json, adjudication.md, and claude-review-result.json before flipping status/production_ready.",
+        "post_review_disposition": "informational_expected_pre_closeout_state_not_blocking"
+      },
+      {
+        "id": "CP821-R02",
+        "severity": "P3",
+        "title": "CP821 descriptor validator omits two defense-in-depth row checks present in the CP820 validator",
+        "file": "packages/platform/src/validators.js",
+        "line": 211,
+        "details": "validatePlatformExtensibilityCp821DomainPermissionAuditCloseoutDescriptor (lines 197-217) checks each row for descriptor_only:true, runtime_execution:false, and real_client_data_included/permission_decision_detail_included/audit_event_body_included:false — the most theme-relevant flags for a Permission And Audit Binding pack. However it drops two checks that the analogous CP820 validator has: (a) the api_key_secret_included/webhook_secret_included/workflow_payload_included row check (CP820 validators.js lines 113-115), and (b) the rows-level api_key_issued/webhook_delivered/workflow_executed runtime-open assertion (CP820 lines 121-124). No unsafe data currently passes: createRow (registry.js lines 282-301) hardcodes all of those flags false, spreads NO_WRITE_ATTESTATION, and deepFreezes every row; the serialized contract projections.cp821 rows confirm all flags false; and the CP821 descriptor-level test asserts descriptor.api_key_issued/webhook_delivered/workflow_executed===false. So this is a validator-parity/defense-in-depth gap (the new validator is slightly less strict than its predecessor against hypothetical row drift), not an exploitable data leak.",
+        "recommendation": "Optionally add the two missing assertions to validatePlatformExtensibilityCp821... so it has parity with the CP820 validator: reject any row with api_key_secret_included/webhook_secret_included/workflow_payload_included !== false, and reject any row with api_key_issued/webhook_delivered/workflow_executed === true. No functional change to current safe data.",
+        "post_review_disposition": "defense_in_depth_validator_delta_non_blocking_next_pack_candidate"
+      },
+      {
+        "id": "CP821-R03",
+        "severity": "P3",
+        "title": "README 'Documentation entry' deliverable not reflected in README.md (still describes CP00-820 as current)",
+        "file": "packages/platform/README.md",
+        "line": 5,
+        "details": "CP00-821 includes unit S21 'Documentation entry' (deliverable_type implementation), represented in the case set as the descriptor row documentation_entry (registry.js ROW_EXTRAS documentation_entry → documentation_ref 'packages/platform/README.md'). Under the pack's descriptor-only methodology that row satisfies the deliverable, and README.md was not part of this pack's changed files (changed-file-scope active_pack_implementation_refs = contract, README.md, registry.js, validators.js, model.test.js, validate script — but README is unmodified per git_status_rows). As a result README.md still states 'CP00-820 is a scope and domain foundation pack' and contains no CP00-821 permission/audit-binding entry, so a human reader sees CP00-820 as the current pack even after CP00-821 closes. README still accurately describes the RP27 program scope and the mandatory README.md artifact exists, so this is a documentation-currency note, not a coverage gap.",
+        "recommendation": "Optionally add a short CP00-821 line to packages/platform/README.md (permission/audit binding tail closeout, runtime still closed, human approval required) for human-facing currency; no functional or boundary impact.",
+        "post_review_disposition": "documentation_current_pack_wording_note_non_blocking"
+      },
+      {
+        "id": "CP821-R04",
+        "severity": "P3",
+        "title": "program_contract.acceptance_risks lists 5 risks while blocked_claims/EXTENSION_RISK_CLAIMS treat cross-tenant extension access as a 6th",
+        "file": "contracts/platform-extensibility-contract.json",
+        "line": 30,
+        "details": "program_contract.acceptance_risks (contract lines 30-36; also registry.js PLATFORM_EXTENSIBILITY_PROGRAM_CONTRACT.acceptance_risks line 32 and the cp821 projection lines 4971-4977) lists 5 risks: API over-permission, webhook replay, workflow unsafe mutation, rate limit bypass, extension leak. states.js EXTENSION_RISK_CLAIMS and the descriptor blocked_claims list 6, adding cross_tenant_extension_access. The risk is fully covered elsewhere (blocked_claims superset of 6, safety_gate 'enforce tenant scope', per-row tenant_scope_field cross_tenant_extension_access_allowed:false), so this is a descriptive count inconsistency, not a coverage gap, and is the same carryover flagged as CP820-R03 — unchanged by this pack.",
+        "recommendation": "Optionally align the human-readable acceptance_risks list with blocked_claims (add 'cross-tenant extension access') or add a note that blocked_claims is intentionally a defense-in-depth superset; no functional or boundary impact.",
+        "post_review_disposition": "scope_summary_consistency_note_not_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 4,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 4
+    }
+  }
+}

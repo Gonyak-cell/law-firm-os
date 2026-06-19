@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M00.S01",
+  "source_micro_phase_id": "RP00.P00.M00",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Inventory the RP00 Product Constitution And AI Control Plane acceptance sources, owned concepts, non-goals, authority boundaries, validation commands, and blocked-claim risks.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "hermes/project.json",
+    "package.json",
+    "docs/goal-closeout/rp00-p00-m00-s01/packet.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal-closeout-protocol-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands.rp00_control_plane_contract_validate",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids"
+  ],
+  "requirement_refs": [],
+  "risk_focus": [
+    "scope_drift",
+    "ai_write_without_review",
+    "validation_theater",
+    "harness_product_boundary_confusion",
+    "missing_human_approval_boundary",
+    "Hermes_or_Claude_claiming_product_authority"
+  ],
+  "claude_questions": [
+    "Does the control-plane contract clearly prevent planning artifacts from being treated as production implementation?",
+    "Does the authority boundary keep Hermes as evidence/validation only and Claude Code as read-only review only?",
+    "Does the subphase include enough local validation to avoid packet-only validation theater?",
+    "Are the blocked-claim rules strong enough for scope drift, AI write without review, and harness/product boundary confusion?",
+    "Is anything missing before RP00.P00.M00.S01 can be promoted from implemented to production_ready?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate"
+  ]
+}

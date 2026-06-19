@@ -1,0 +1,89 @@
+{
+  "schema_version": "law-firm-os.go-live-readiness-input.v0.1",
+  "fixture_id": "lt-l8-w01-red-g7-missing-ai-off-evidence",
+  "fixture_policy": "synthetic validator behavior fixture only; intentionally missing one required evidence slot",
+  "gates": {
+    "G1": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G1-E01": { "status": "satisfied", "ref": "fixture://red/g1/final-product-completion-gate" },
+        "G1-E02": { "status": "satisfied", "ref": "fixture://red/g1/deferred-rejudgment" },
+        "G1-E03": { "status": "satisfied", "ref": "fixture://red/g1/hardening-coverage" }
+      }
+    },
+    "G2": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G2-E01": { "status": "satisfied", "ref": "fixture://red/g2/runtime-ready-matrix" },
+        "G2-E02": { "status": "satisfied", "ref": "fixture://red/g2/runtime-integration-tests" },
+        "G2-E03": { "status": "satisfied", "ref": "fixture://red/g2/rtg-attestations" }
+      }
+    },
+    "G3": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G3-E01": { "status": "satisfied", "ref": "fixture://red/g3/verification-gate" },
+        "G3-E02": { "status": "satisfied", "ref": "fixture://red/g3/ethical-wall" },
+        "G3-E03": { "status": "satisfied", "ref": "fixture://red/g3/pentest-adjudication" },
+        "G3-E04": { "status": "satisfied", "ref": "fixture://red/g3/bypass-map" }
+      }
+    },
+    "G4": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G4-E01": { "status": "satisfied", "ref": "fixture://red/g4/backup-restore" },
+        "G4-E02": { "status": "satisfied", "ref": "fixture://red/g4/worm-chain" },
+        "G4-E03": { "status": "satisfied", "ref": "fixture://red/g4/rollback-roundtrip" },
+        "G4-E04": { "status": "satisfied", "ref": "fixture://red/g4/performance" }
+      }
+    },
+    "G5": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G5-E01": { "status": "satisfied", "ref": "fixture://red/g5/admin-consent" },
+        "G5-E02": { "status": "satisfied", "ref": "fixture://red/g5/addin-release-gate" },
+        "G5-E03": { "status": "satisfied", "ref": "fixture://red/g5/sync-checker" }
+      }
+    },
+    "G6": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G6-E01": { "status": "satisfied", "ref": "fixture://red/g6/slo-alert" },
+        "G6-E02": { "status": "satisfied", "ref": "fixture://red/g6/tabletops" },
+        "G6-E03": { "status": "satisfied", "ref": "fixture://red/g6/break-glass" },
+        "G6-E04": { "status": "satisfied", "ref": "fixture://red/g6/support-channel" }
+      }
+    },
+    "G7": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G7-E01": { "status": "satisfied", "ref": "fixture://red/g7/pipa-retention" },
+        "G7-E03": { "status": "satisfied", "ref": "fixture://red/g7/hr-real-data-zero" }
+      }
+    },
+    "G8": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G8-E01": { "status": "satisfied", "ref": "fixture://red/g8/backfill" },
+        "G8-E02": { "status": "satisfied", "ref": "fixture://red/g8/delta-sync" },
+        "G8-E03": { "status": "satisfied", "ref": "fixture://red/g8/rollback-ready" }
+      }
+    },
+    "G9": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G9-E01": { "status": "satisfied", "ref": "fixture://red/g9/closeout-chain" },
+        "G9-E02": { "status": "satisfied", "ref": "fixture://red/g9/evidence-files" },
+        "G9-E03": { "status": "satisfied", "ref": "fixture://red/g9/g1-g8-report" }
+      }
+    },
+    "G10": {
+      "criteria_status": "satisfied",
+      "evidence": {
+        "G10-E01": { "status": "satisfied", "ref": "fixture://red/g10/signoff" },
+        "G10-E02": { "status": "satisfied", "ref": "fixture://red/g10/g1-g9-table" },
+        "G10-E03": { "status": "satisfied", "ref": "fixture://red/g10/decision-register" }
+      }
+    }
+  }
+}

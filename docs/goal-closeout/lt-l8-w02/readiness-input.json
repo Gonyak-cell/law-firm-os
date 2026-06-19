@@ -1,0 +1,188 @@
+{
+  "fixture_id": "lt-l8-w02-current-blocked-gate-evidence",
+  "description": "Current W02 evidence state. This is not a green fixture; it must fail until G1-G10 evidence and human approval are real.",
+  "gates": {
+    "G1": {
+      "criteria_status": "blocked_pending_human_acceptance",
+      "evidence": {
+        "G1-E01": {
+          "status": "satisfied",
+          "ref": "docs/launch/g1-completion-evidence-index.md"
+        },
+        "G1-E02": {
+          "status": "blocked_pending_human_acceptance",
+          "ref": "docs/launch/g1-completion-evidence-index.md"
+        },
+        "G1-E03": {
+          "status": "blocked_pending_human_acceptance",
+          "ref": "docs/launch/g1-completion-evidence-index.md"
+        }
+      }
+    },
+    "G2": {
+      "criteria_status": "blocked_pending_runtime_ready_evidence",
+      "evidence": {
+        "G2-E01": {
+          "status": "blocked_pending_wave1_matrix",
+          "ref": "docs/closeout-pack-plan/implementation-layer-ledger.json"
+        },
+        "G2-E02": {
+          "status": "blocked_pending_runtime_integration_output",
+          "ref": "scripts/validate-runtime-readiness.mjs"
+        },
+        "G2-E03": {
+          "status": "blocked_pending_rtg_links",
+          "ref": "contracts/runtime-readiness-contract.json"
+        }
+      }
+    },
+    "G3": {
+      "criteria_status": "blocked_pending_production_security_rerun",
+      "evidence": {
+        "G3-E01": {
+          "status": "blocked_pending_production_rerun",
+          "ref": "docs/launch/risk-control-reality-matrix.md"
+        },
+        "G3-E02": {
+          "status": "blocked_pending_ethical_wall_production_results",
+          "ref": "docs/launch/risk-control-reality-matrix.md"
+        },
+        "G3-E03": {
+          "status": "blocked_pending_pentest_adjudication",
+          "ref": "docs/launch/external-leadtime/pentest-scope-draft.md"
+        },
+        "G3-E04": {
+          "status": "blocked_pending_bypass_mapping_green",
+          "ref": "docs/launch/risk-control-reality-matrix.md"
+        }
+      }
+    },
+    "G4": {
+      "criteria_status": "blocked_pending_dr_performance_evidence",
+      "evidence": {
+        "G4-E01": {
+          "status": "blocked_pending_backup_restore_measurement",
+          "ref": "docs/launch/l3/rpo-rto-decision.md"
+        },
+        "G4-E02": {
+          "status": "blocked_pending_worm_operation_verification",
+          "ref": "contracts/audit-compliance-contract.json"
+        },
+        "G4-E03": {
+          "status": "blocked_pending_deployment_rollback_roundtrip",
+          "ref": "docs/launch/runbooks/rehearsal/change-rollback-demo.md"
+        },
+        "G4-E04": {
+          "status": "blocked_pending_performance_acceptance",
+          "ref": "docs/launch/perf/performance-acceptance-report.md"
+        }
+      }
+    },
+    "G5": {
+      "criteria_status": "blocked_pending_m365_external_evidence",
+      "evidence": {
+        "G5-E01": {
+          "status": "blocked_pending_admin_consent_reconciliation",
+          "ref": "docs/launch/external-leadtime/m365-admin-access-confirmation.md"
+        },
+        "G5-E02": {
+          "status": "blocked_pending_addin_release_gate",
+          "ref": "docs/product-ui/ia/outlook-addin-pane.md"
+        },
+        "G5-E03": {
+          "status": "blocked_pending_permission_sync_checker_log",
+          "ref": "docs/launch/external-leadtime/m365-admin-access-confirmation.md"
+        }
+      }
+    },
+    "G6": {
+      "criteria_status": "blocked_pending_operations_drill_evidence",
+      "evidence": {
+        "G6-E01": {
+          "status": "blocked_pending_dashboard_alert_fire",
+          "ref": "docs/launch/l3/monitoring-stack-decision.md"
+        },
+        "G6-E02": {
+          "status": "blocked_pending_tabletop_records",
+          "ref": "docs/launch/runbooks/incident-response-runbook.md"
+        },
+        "G6-E03": {
+          "status": "blocked_pending_break_glass_activation",
+          "ref": "docs/goal-closeout/lt-l6-w03/command-evidence.json"
+        },
+        "G6-E04": {
+          "status": "blocked_pending_support_roundtrip",
+          "ref": "docs/goal-closeout/lt-l6-w02/command-evidence.json"
+        }
+      }
+    },
+    "G7": {
+      "criteria_status": "blocked_pending_compliance_state_evidence",
+      "evidence": {
+        "G7-E01": {
+          "status": "blocked_pending_ratified_retention_reconciliation",
+          "ref": "docs/launch/pipa-retention-policy-draft.md"
+        },
+        "G7-E02": {
+          "status": "blocked_pending_ai_disabled_state_capture",
+          "ref": "docs/goal-closeout/lt-l6-w04/command-evidence.json"
+        },
+        "G7-E03": {
+          "status": "blocked_pending_hr_zero_count_query",
+          "ref": "docs/goal-closeout/lt-l6-w04/command-evidence.json"
+        }
+      }
+    },
+    "G8": {
+      "criteria_status": "blocked_pending_migration_evidence",
+      "evidence": {
+        "G8-E01": {
+          "status": "blocked_pending_backfill_reconciliation",
+          "ref": "workbook/launch-tuw/18_L7.md"
+        },
+        "G8-E02": {
+          "status": "blocked_pending_delta_sync_log",
+          "ref": "workbook/launch-tuw/18_L7.md"
+        },
+        "G8-E03": {
+          "status": "blocked_pending_rollback_ready_attestation",
+          "ref": "workbook/launch-tuw/18_L7.md"
+        }
+      }
+    },
+    "G9": {
+      "criteria_status": "blocked_pending_lower_gate_closure_and_governance_chain",
+      "evidence": {
+        "G9-E01": {
+          "status": "blocked_pending_g1_g8_closure",
+          "ref": "docs/goal-closeout/lt-l8-w02/command-evidence.json"
+        },
+        "G9-E02": {
+          "status": "satisfied",
+          "ref": "docs/goal-closeout/lt-l8-w02/packet.json"
+        },
+        "G9-E03": {
+          "status": "blocked_pending_g1_g8_pass_report",
+          "ref": "docs/goal-closeout/lt-l8-w02/readiness-input.json"
+        }
+      }
+    },
+    "G10": {
+      "criteria_status": "blocked_pending_owner_signoff",
+      "evidence": {
+        "G10-E01": {
+          "status": "blocked_pending_joint_signoff",
+          "ref": "docs/launch/approval-governance-decision-brief.md"
+        },
+        "G10-E02": {
+          "status": "blocked_pending_decision_table",
+          "ref": "docs/launch/approval-governance-decision-brief.md"
+        },
+        "G10-E03": {
+          "status": "blocked_pending_launch_decision_register_entry",
+          "ref": "docs/launch/launch-decision-register.md"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "subphase_id": "RP00.P02.M03.S04",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Matter trace precheck",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T06:32:09.288Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S04 Hermes Validation Matter trace precheck surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S03 allow_metadata_only tenant-boundary results, requires Matter when Matter context exists or Matter-required claims are asserted, emits allow_metadata_only for Matter-scoped or firm-level metadata and deny_blocked_claim_required for missing Matter context, carries TEN-001 through TEN-008 trace refs, validation context IDs, acceptance gate IDs, M00 refs, permission_decision_ref, and audit_event_ref, rejects unsafe runtime/Hermes/evidence/bypass claims fail-closed, and hands off to RP00.P02.M03.S05 without creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, replacing human approval, using real data, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_review_run": true,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "cf691c56-37a8-41b2-9310-875a003db512",
+    "uuid": "75d3900d-0fa5-4cdb-a28f-caba45516525",
+    "verdict": "PASS_WITH_FINDINGS",
+    "go_no_go": "GO",
+    "p0_p1_count": 0,
+    "p2_count_initial": 1,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {
+    "C00_S04_001": "accepted_fixed",
+    "C00_S04_002": "accepted_deferred_to_runtime_permission_and_execution_layers",
+    "C00_S04_003": "rejected_for_current_weighted_scope"
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M03.S05"
+}

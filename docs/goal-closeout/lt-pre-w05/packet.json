@@ -1,0 +1,44 @@
+{
+  "work_package_id": "LT-PRE-W05",
+  "title": "privilege and HR-sensitive confidentiality enum decision",
+  "created_at": "2026-06-18T14:42:07Z",
+  "status": "blocked_pending_mat_dec_08",
+  "phase": "PRE",
+  "gate_binding": [
+    "PRE-EXIT"
+  ],
+  "terminal_tuw": "LT-PRE-W05-T02",
+  "artifacts": [
+    "docs/launch/confidentiality-enum-extension-decision-brief.md",
+    "packages/domain/src/entities.js",
+    "workbook/absorption-package/06_오픈_결정_레지스터.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-pre-w05/packet.json",
+    "docs/goal-closeout/lt-pre-w05/command-evidence.json",
+    "docs/goal-closeout/lt-pre-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-pre-w05/adjudication.md",
+    "docs/goal-closeout/lt-pre-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "usage_file_count": 1,
+    "current_values": [
+      "public",
+      "internal",
+      "confidential",
+      "restricted"
+    ],
+    "privilege_family_value_decided": false,
+    "closed_value_list_decided": false,
+    "application_boundary_decided": false,
+    "extension_spec_present": false,
+    "value_mapping_table_present": false,
+    "synthetic_data_impact_judgment_present": false,
+    "pre_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

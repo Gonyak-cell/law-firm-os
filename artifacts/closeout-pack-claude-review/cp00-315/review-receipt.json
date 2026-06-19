@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-315",
+  "normalized_at": "2026-06-11T04:23:23.337Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-315/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-315/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-315/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-315/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0752973b-2c4a-4697-b474-3d3ba219000e",
+    "uuid": "ca7e320e-8105-4e4a-a594-1b650940bcf6",
+    "total_cost_usd": 2.7179085,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6654,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-315 is a descriptor-only RP09 CRM failure tail-slice pack (40 units, RP09.P07.M04.S17-RP09.P07.M06.S14) and its claims are well supported by independent read-only inspection. Coverage and the deliverable/micro-title distributions reconcile exactly to 40 across the review baseline, the contract failure_tail_slice_case_set, the CRM_CORE_CP315_REQUIREMENTS constants in registry.js, and the validator. Every case-set row is descriptor-only with runtime_execution:false, customer_safe_errors_only:true, and raw_payload_included:false; freezeCp315Result plus the contract/manifest no_write_attestation assert the full no-write/no-runtime/no-real-data surface (writes_product_state:false, no_real_data:true, no DB/object-storage/audit/Hermes-runtime writes, deny_over_allow, no cross-tenant access, no leak of permission/audit/blocked-claim/lock/fixture/hermes detail). Three dedicated CP315 tests and validate-rp09-crm-core-contract.mjs (which deep-equals the contract failure_tail_slice_descriptor, cp315_requirements, and cp315_no_write_attestation against the registry constants) pass, and command-evidence records every expected validation command at exit 0 with git diff --check clean. The pack does NOT over-claim production readiness: manifest and command-evidence hold production_ready:false / status implemented_pending_review, with production_ready_candidate:true scoped strictly to local validation and explicitly not an enterprise-trust claim. Authority boundaries are intact: Claude is read-only (tools Read,Grep,Glob), claude_is_final_approval:false, human final approval required before runtime opening (CP00-316), and CP178+ hardening lists all invalid-evidence blockers (auth failure, zero-byte, malformed JSON, fenced JSON, tool-call-shaped output, disabled tools, missing refs/inspection-basis, final-approval/source-mutation/enterprise-trust claims); readiness auth-preflight passed with valid non-empty JSON. Hermes patterns appear only as deterministic descriptor evidence packets (emits_hermes_runtime_receipt:false, hermes_runtime_embedded_in_product:false). One cosmetic metadata inconsistency was noted in the review scaffolding (not the pack deliverables); it does not affect implementation, tests, boundaries, or the closeout decision. No P0/P1/P2 issues. Final enterprise-trust sign-off remains with the human approver; this review is advisory and not final approval.",
+    "findings": [
+      {
+        "id": "CP315-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-classifies the pack's own cp00-315 evidence dir and the session handoff doc",
+        "file": "artifacts/closeout-pack-claude-review/cp00-315/changed-file-scope.json",
+        "line": 100,
+        "details": "The generated scope metadata lists docs/closeout-packs/cp00-315/ and docs/closeout-pack-plan/new-session-handoff.md in both untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). docs/closeout-packs/cp00-315/ is unambiguously this pack's own evidence directory and is in-scope, so its presence in the unrelated_dirty_files_preserved array is a cosmetic generator artifact rather than a true conflict. This is metadata in the review scaffolding only; the in-scope tracked product files are correctly and unambiguously enumerated in active_pack_implementation_refs, and no contract, source, test, attestation, or production_ready claim is affected. The instruction to not infer unrelated dirty files into the pack remains satisfied because the real unrelated files (the v2.0 .docx and the ldip-integration c-ldip-01 invalid-attempt JSON) are correctly excluded from active_pack_implementation_refs.",
+        "recommendation": "Optionally refine the changed-file-scope generator to exclude the pack's own docs/closeout-packs/<pack_id>/ directory (and pack-authored handoff docs) from unrelated_dirty_files_preserved so scope attribution is unambiguous. No change to pack deliverables is required.",
+        "post_review_disposition": "Informational only; does not block pack or goal closeout. Human final approver may disregard. Tracked as a non-blocking tooling refinement."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

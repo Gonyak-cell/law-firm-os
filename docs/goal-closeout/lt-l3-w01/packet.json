@@ -1,0 +1,36 @@
+{
+  "work_package_id": "LT-L3-W01",
+  "title": "docs/ui-reference font license audit and push allowance decision",
+  "created_at": "2026-06-18T14:49:34Z",
+  "status": "blocked_pending_human_signature",
+  "phase": "L3",
+  "gate_binding": [
+    "L3-EXIT"
+  ],
+  "terminal_tuw": "LT-L3-W01-T05",
+  "artifacts": [
+    "docs/launch/l3/license-audit-report.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l3-w01/packet.json",
+    "docs/goal-closeout/lt-l3-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l3-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l3-w01/adjudication.md",
+    "docs/goal-closeout/lt-l3-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "ui_reference_image_count": 90,
+    "license_report_img_rows": 90,
+    "mobbin_rows": 86,
+    "font_ofl_files_present": true,
+    "shared_or_public_remote_push": "prohibited_until_owner_or_legal_signature",
+    "private_remote_push": "conditionally_allowed_only_after_private_remote_confirmation_and_owner_or_legal_signature",
+    "human_signature_present": false,
+    "l3_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

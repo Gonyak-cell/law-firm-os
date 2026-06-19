@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-910",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T17:01:11.065Z",
+  "finished_at": "2026-06-17T17:06:29.760Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":318218,\"duration_api_ms\":318544,\"ttft_ms\":4474,\"num_turns\":47,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-910's descriptor-only HRX recruitment→risk workflow bridge is internally consistent across registry/validators/tests/contract/plan, with no-write, no-real-data, and authority boundaries all enforced; no P0/P1 issues. One non-blocking P3 records that the full validation ladder isn't captured in evidence and can't be re-run under read-only review, so promotion stays contingent on the deterministic closeout step plus human final approval. Neither pack nor this-CP goal closeout is blocked.\",\"stop_reason\":\"end_turn\",\"session_id\":\"a07e0410-28c4-4b75-83fb-82a561cbfc43\",\"total_cost_usd\":2.00611275,\"usage\":{\"input_tokens\":201,\"cache_creation_input_tokens\":102029,\"cache_read_input_tokens\":1577705,\"output_tokens\":23094,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":102029,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":232,\"cache_read_input_tokens\":96983,\"cache_creation_input_tokens\":5572,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5572},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1119,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001224,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":201,\"outputTokens\":23094,\"cacheReadInputTokens\":1577705,\"cacheCreationInputTokens\":102029,\"webSearchRequests\":0,\"costUSD\":2.00488875,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-910 is a descriptor-only RP30 embedded-HRX bridge pack (10 units, risk A, RP30.P02.M03.S10-RP30.P02.M04.S06: 4 RecruitmentWorkflow tail + 6 RiskWorkflow slices). Read-only verification confirms the pack-level descriptor-verified claim is supported and that production_ready/runtime_ready correctly remain false pending the post-review closeout sequence. registry.js (HRX_CP910_PACK_BINDING, HRX_CP910_REQUIREMENTS, createHrxCp910RecruitmentRiskWorkflowBridgeDescriptor) is internally consistent and matches the baseline, manifest, plan, and regenerated contracts/hrx-people-contract.json exactly. validators.js enforces descriptor-only, no-write (HRX_NO_WRITE_ATTESTATION), no-real-data, deferred runtime/decision/record/score, and authority-boundary checks (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, Hermes emits_runtime_receipt=false, runtime_opening deferred to CP00-911). model.test.js gives meaningful CP910 coverage including the on-disk contract projection. The validation script chains all CP897-CP910 bindings; all referenced npm scripts exist; README documents the scope; unrelated dirty files are correctly excluded; readiness auth-preflight passed (exit 0, valid JSON). Claude remains a read-only independent reviewer and not final approval authority; Hermes patterns are used only for deterministic review packet/receipt handling, not product runtime. No P0/P1 findings. One non-blocking P3: command-evidence.json captures only the 6 HRX-specific commands (all exit 0); the full deterministic validation ladder and git diff --check are pending and cannot be re-executed under read-only review, so promotion remains contingent on those steps plus adjudication, commit, and human final approval for any enterprise-trust/runtime claim.\",\"findings\":[{\"id\":\"CP910-P3-01\",\"severity\":\"P3\",\"title\":\"Full closeout validation ladder not captured in evidence and not re-executable under read-only review\",\"file\":\"docs/closeout-packs/cp00-910/command-evidence.json\",\"line\":17,\"details\":\"command-evidence.json documents only six HRX-specific commands (hrx_syntax_check_initial, hrx_model_test, rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate), all exit_code 0, with hermes_gate.status=pending and gate_outcome=pending_pack_review. The broader closeout ladder required by the review baseline (closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not captured in this evidence file, and as a read-only reviewer (Read/Grep/Glob only, no Bash) I cannot independently re-execute any command. This review's assurance is therefore based on static code/artifact consistency plus the recorded HRX command exit codes, not on independent re-execution. This is expected for the pre-promotion state: the pack transparently keeps production_ready=false / runtime_ready=false and its own notes state the full deterministic ladder, adjudication, queue regeneration, and commit are required before production_ready.\",\"recommendation\":\"During the deterministic post-review closeout step, run and capture the full validation ladder and git diff --check before promoting production_ready, and ensure the manifest/adjudication/construction-inspection are updated from PENDING only after those pass. Retain human final approval for any enterprise-trust or runtime-opening claim (runtime opening deferred to CP00-911).\",\"post_review_disposition\":\"Non-blocking and by design for this pre-promotion state; does not block pack or this-CP goal closeout. Tracked as an evidence/provenance note: descriptor-only static verification is complete, full-ladder execution remains a deterministic closeout dependency outside this read-only receipt.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"2b3e5a36-34ff-4330-bf64-5ffb50afb100\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6093,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "a07e0410-28c4-4b75-83fb-82a561cbfc43",
+    "uuid": "2b3e5a36-34ff-4330-bf64-5ffb50afb100",
+    "total_cost_usd": 2.00611275,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

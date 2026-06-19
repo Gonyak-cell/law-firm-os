@@ -1,0 +1,22 @@
+{
+  "work_package_id": "LT-L1-W05",
+  "inspected_at": "2026-06-18T14:46:00Z",
+  "verdict": "BLOCKED_OWNER_APPROVAL_GOVERNANCE_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "candidate_approval_model_present": true,
+    "signoff_artifact_format_present": true,
+    "claude_no_approval_authority_present": true,
+    "launch_decision_register_l1_5_row_present": false,
+    "owner_signature_reference_present": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "real_person_approvers_synthesized": false,
+    "g10_signoff_synthesized": false,
+    "review_waiver_treated_as_approval": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

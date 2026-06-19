@@ -1,0 +1,357 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-058",
+  "planned_pack_id": "CP00-058",
+  "planned_risk_class": "C",
+  "planned_unit_count": 5,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-057 shifted to CP00-058 by live sequential cursor",
+  "override_reason": "small C boundary before B",
+  "title": "Control-plane UI Operator Surface Inventory boundary suite pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-07T04:20:53.326Z",
+  "completed_at": "2026-06-07T04:20:53.326Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "C",
+  "risk_reason": "Closes the planned CP00-058 Risk C UI And Operator Surface metadata-only opening pack for UI surface inventory, data dependency map, loading state, and empty state units, with accessibility and design-consistency acceptance gates, without runtime UI rendering, external asset fetching, runtime routes, service logic, database/storage/idempotency/lock/audit, or product-state writes.",
+  "primary_subphase_id": "RP00.P04.M01.S04",
+  "production_ready_flag": "control_plane_ui_operator_surface_inventory_verified",
+  "unit_count": 5,
+  "source_micro_phases_completed": true,
+  "phase_completed": false,
+  "next_subphase": "RP00.P04.M02.S01",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-058",
+    "planned_pack_id": "CP00-058",
+    "requested_pack_id": "CP00-057",
+    "title": "CP00-058 RP00.P04.M00.S01-RP00.P04.M01.S04 requested_locked_queue",
+    "risk_class": "C",
+    "planned_risk_class": "C",
+    "planned_unit_count": 5,
+    "unit_count": 5,
+    "range": {
+      "first_unit_id": "RP00.P04.M00.S01",
+      "last_unit_id": "RP00.P04.M01.S04",
+      "description": "RP00.P04.M00.S01-RP00.P04.M01.S04"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 5,
+    "correction_reason": "requested CP00-057 shifted to CP00-058 by live sequential cursor",
+    "override_reason": "small C boundary before B",
+    "within_default_risk_range": false,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P04.M00.S01",
+        "title": "UI surface inventory",
+        "source_micro_phase_id": "RP00.P04.M00",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M00",
+        "micro_title": "Scope Inventory",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M01.S01",
+        "title": "UI surface inventory",
+        "source_micro_phase_id": "RP00.P04.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M01.S02",
+        "title": "Data dependency map",
+        "source_micro_phase_id": "RP00.P04.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P04.M01.S03",
+        "title": "Loading state",
+        "source_micro_phase_id": "RP00.P04.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P04.M01.S04",
+        "title": "Empty state",
+        "source_micro_phase_id": "RP00.P04.M01",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "ui"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP00.P04.M00.S01",
+      "title": "UI surface inventory",
+      "source_micro_phase_id": "RP00.P04.M00",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M00",
+      "micro_title": "Scope Inventory",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-058",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-058/manifest.json",
+        "docs/closeout-packs/cp00-058/command-evidence.json",
+        "docs/closeout-packs/cp00-058/claude-review-result.json",
+        "docs/closeout-packs/cp00-058/adjudication.md",
+        "docs/closeout-packs/cp00-058/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M01.S01",
+      "title": "UI surface inventory",
+      "source_micro_phase_id": "RP00.P04.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-058",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-058/manifest.json",
+        "docs/closeout-packs/cp00-058/command-evidence.json",
+        "docs/closeout-packs/cp00-058/claude-review-result.json",
+        "docs/closeout-packs/cp00-058/adjudication.md",
+        "docs/closeout-packs/cp00-058/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M01.S02",
+      "title": "Data dependency map",
+      "source_micro_phase_id": "RP00.P04.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "implementation",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-058",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-058/manifest.json",
+        "docs/closeout-packs/cp00-058/command-evidence.json",
+        "docs/closeout-packs/cp00-058/claude-review-result.json",
+        "docs/closeout-packs/cp00-058/adjudication.md",
+        "docs/closeout-packs/cp00-058/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M01.S03",
+      "title": "Loading state",
+      "source_micro_phase_id": "RP00.P04.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-058",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-058/manifest.json",
+        "docs/closeout-packs/cp00-058/command-evidence.json",
+        "docs/closeout-packs/cp00-058/claude-review-result.json",
+        "docs/closeout-packs/cp00-058/adjudication.md",
+        "docs/closeout-packs/cp00-058/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P04.M01.S04",
+      "title": "Empty state",
+      "source_micro_phase_id": "RP00.P04.M01",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "ui",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-058",
+      "risk_class": "C",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-058/manifest.json",
+        "docs/closeout-packs/cp00-058/command-evidence.json",
+        "docs/closeout-packs/cp00-058/claude-review-result.json",
+        "docs/closeout-packs/cp00-058/adjudication.md",
+        "docs/closeout-packs/cp00-058/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-058/command-evidence.json",
+    "docs/closeout-packs/cp00-058/claude-review-result.json",
+    "docs/closeout-packs/cp00-058/adjudication.md",
+    "docs/closeout-packs/cp00-058/construction-inspection.json"
+  ],
+  "upstream_evidence_refs": [
+    "docs/closeout-packs/cp00-057/manifest.json",
+    "docs/closeout-packs/cp00-057/command-evidence.json",
+    "docs/closeout-packs/cp00-057/claude-review-result.json",
+    "docs/closeout-packs/cp00-057/adjudication.md",
+    "docs/closeout-packs/cp00-057/construction-inspection.json"
+  ],
+  "implementation_refs": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "passed",
+    "claude_opus_4_8_max_read_only_review": "passed",
+    "finding_adjudication": "passed",
+    "construction_inspection": "passed",
+    "included_units_production_ready": "passed",
+    "commit_required": true
+  },
+  "scope_boundaries": {
+    "metadata_only": true,
+    "no_real_data": true,
+    "writes_product_state": false,
+    "runtime_ui_render_permitted": false,
+    "external_asset_fetch_permitted": false,
+    "runtime_route_created": false,
+    "service_logic_execution_permitted": false,
+    "database_write_permitted": false,
+    "storage_write_permitted": false,
+    "idempotency_record_write_permitted": false,
+    "runtime_lock_acquisition_permitted": false,
+    "audit_event_write_permitted": false
+  },
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-058/manifest.json",
+    "docs/closeout-packs/cp00-058/command-evidence.json",
+    "docs/closeout-packs/cp00-058/claude-review-result.json",
+    "docs/closeout-packs/cp00-058/adjudication.md",
+    "docs/closeout-packs/cp00-058/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_ref": "docs/closeout-packs/cp00-058/claude-review-result.json"
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-058 ui operator surface inventory pack"
+  }
+}

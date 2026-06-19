@@ -1,0 +1,364 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.changed-file-scope.v0.1",
+  "pack_id": "CP00-194",
+  "active_pack_scope_available": true,
+  "active_pack_implementation_refs": [
+    "contracts/matter-core-contract.json",
+    "packages/matter/README.md",
+    "packages/matter/src/registry.js",
+    "packages/matter/src/service.js",
+    "packages/matter/src/validators.js",
+    "packages/matter/test/model.test.js",
+    "scripts/validate-rp05-matter-core-contract.mjs"
+  ],
+  "active_pack_required_untracked_files": [],
+  "git_status_rows": [
+    {
+      "status": " M",
+      "file": ".gitignore",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "apps/web/index.html",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "apps/web/src/main.jsx",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "apps/web/src/styles.css",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "contracts/matter-core-contract.json",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/matter/README.md",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/matter/src/registry.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/matter/src/service.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/matter/src/validators.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/matter/test/model.test.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "scripts/validate-rp05-matter-core-contract.mjs",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": ".DS_Store",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "Law Firm OS UI/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "apps/web/public/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "assets/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/.DS_Store",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-pack-plan/new-session-handoff.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-packs/cp00-194/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/enterprise-v2-loop-roadmap/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/loop-system-integration/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/spec-v2-integration/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/ui-reference/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "law-firm-os-progress-control-room.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "matter-by-amic-byline-font-options.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270 2.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270 3.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "matter-by-amic-logo-animation-black-badge.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "matter-by-amic-logo-animation.html",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "progress-control-room-live-data.js",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/audit-matter-amplitude-pixel-parity.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/capture-matter-amplitude-parity.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/extract-amplitude-visual-tokens.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/generate-amplitude-ui-reference.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/generate-matter-amplitude-coverage-ledger.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/progress-control-room-data.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/serve-progress-control-room.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/verify-matter-amplitude-screenshot-states.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "scripts/verify-matter-ui-flows.mjs",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    }
+  ],
+  "untracked_implementation_files": [
+    "apps/web/public/",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-194/",
+    "scripts/audit-matter-amplitude-pixel-parity.mjs",
+    "scripts/capture-matter-amplitude-parity.mjs",
+    "scripts/extract-amplitude-visual-tokens.mjs",
+    "scripts/generate-amplitude-ui-reference.mjs",
+    "scripts/generate-matter-amplitude-coverage-ledger.mjs",
+    "scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
+    "scripts/progress-control-room-data.mjs",
+    "scripts/serve-progress-control-room.mjs",
+    "scripts/verify-matter-amplitude-screenshot-states.mjs",
+    "scripts/verify-matter-ui-flows.mjs"
+  ],
+  "active_untracked_implementation_files_omitted": [],
+  "unrelated_dirty_files_preserved": [
+    ".DS_Store",
+    ".gitignore",
+    "Law Firm OS UI/",
+    "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+    "apps/web/index.html",
+    "apps/web/public/",
+    "apps/web/src/main.jsx",
+    "apps/web/src/styles.css",
+    "assets/",
+    "docs/.DS_Store",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-194/",
+    "docs/enterprise-v2-loop-roadmap/",
+    "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+    "docs/loop-system-integration/",
+    "docs/spec-v2-integration/",
+    "docs/ui-reference/",
+    "law-firm-os-progress-control-room.html",
+    "matter-by-amic-byline-font-options.html",
+    "matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270 2.html",
+    "matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270 3.html",
+    "matter-by-amic-logo-animation \\353\\263\\265\\354\\202\\254\\353\\263\\270.html",
+    "matter-by-amic-logo-animation-black-badge.html",
+    "matter-by-amic-logo-animation.html",
+    "progress-control-room-live-data.js",
+    "scripts/audit-matter-amplitude-pixel-parity.mjs",
+    "scripts/capture-matter-amplitude-parity.mjs",
+    "scripts/extract-amplitude-visual-tokens.mjs",
+    "scripts/generate-amplitude-ui-reference.mjs",
+    "scripts/generate-matter-amplitude-coverage-ledger.mjs",
+    "scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
+    "scripts/progress-control-room-data.mjs",
+    "scripts/serve-progress-control-room.mjs",
+    "scripts/verify-matter-amplitude-screenshot-states.mjs",
+    "scripts/verify-matter-ui-flows.mjs"
+  ]
+}

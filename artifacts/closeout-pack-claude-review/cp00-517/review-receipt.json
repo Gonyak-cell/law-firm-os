@@ -1,0 +1,76 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-517",
+  "normalized_at": "2026-06-12T15:27:50.072Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-517/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-517/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-517/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-517/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "1a18d62a-727b-47b8-b80a-400f8e98c46c",
+    "uuid": "83ed8b5c-b8f8-46bc-a83b-9afd7e76cab6",
+    "total_cost_usd": 2.394083,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6681,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-517 is a descriptor-only AI Governance (RP17) closeout pack covering exactly 150 planned units (RP17.P01.M06.S05-RP17.P02.M02.S22). Read-only inspection of registry.js/service.js/validators.js/index.js/test/contract/manifest/plan confirms: (1) coverage math is exact — deliverable distribution (impl 77, ui 23, fixture 4, test 20, hermes 4, claude_review 7, contract 3, security_audit 6, failure_recovery 6 = 150) and micro-phase/micro-title counts match the baseline, registry requirements, validator, and tests; (2) the pack honestly claims production_ready=false and runtime_ready=false (status implemented_pending_review) with no overclaim; (3) descriptor-only/no-real-data/no-write/no-runtime/no-leak/deny-over-allow boundaries are rigorously frozen across every result object, and the package source performs no fs/network/db/child_process/env I/O; (4) Claude is held as read-only and not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false, manifest claude_not_final_approver=true, enterprise_trust_not_claimed_from_local_validation=true); (5) Hermes patterns are descriptor-only (no_hermes_runtime_receipt=true), used solely for deterministic review packet/receipt summaries, not product runtime; (6) CP178+ review hardening is functioning — tools restricted to Read/Grep/Glob, auth preflight passed, and the prior API-Overloaded attempt-01 was correctly preserved as invalid_not_accepted and not counted as valid evidence; (7) contract current_pack, closeout-pack-plan.json entry, and registry binding all agree (deep-equal cross-checks). No P0/P1/P2 defects found. Two P3 informational notes cover the expected-pending post-review artifacts and the read-only verification basis. This review does not block pack or goal closeout, both of which correctly remain gated on post-review artifacts and human final approval.",
+    "findings": [
+      {
+        "id": "CP517-P3-01",
+        "severity": "P3",
+        "title": "Post-review closeout artifacts not yet present (expected pending state)",
+        "file": "docs/closeout-packs/cp00-517/manifest.json",
+        "line": 5977,
+        "details": "manifest required_pack_artifacts and evidence_refs list claude-review-result.json, adjudication.md, and construction-inspection.json, and review_hardening references raw-output.json and review-receipt.json (artifacts/closeout-pack-claude-review/cp00-517/). Currently only manifest.json and command-evidence.json exist in the pack dir, and the accepted raw-output.json/review-receipt.json are absent because they are produced FROM this review run. This is the correct mid-flow state: pack_level_claude_review.status is 'pending' and valid_review_receipts is empty, so the pack is not prematurely closed. Not a defect.",
+        "recommendation": "Keep closeout gated until the post-review steps (normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation) generate and validate the five required artifacts; do not commit CP00-517 as closed until exactly one valid review receipt and the adjudication/inspection artifacts exist.",
+        "post_review_disposition": "informational_track_to_closeout_non_blocking"
+      },
+      {
+        "id": "CP517-P3-02",
+        "severity": "P3",
+        "title": "Validation command results taken as attested; corroborated by static inspection only",
+        "file": "docs/closeout-packs/cp00-517/command-evidence.json",
+        "line": 6,
+        "details": "command-evidence.json records exit_code 0 for node --check/--test on all sources, rp05-rp17 validates, closeout-pack-plan/weighted/spec/rp00/goal/fullplan validate, npm test, npm run validate, npm run build, and git diff --check. As a read-only reviewer I cannot execute these; I corroborated correctness by static inspection of source/contract/plan/manifest consistency (validator deep-equals contract<->registry<->descriptors; coverage counts and ranges match across all references), which strongly supports the recorded exit codes. production_ready=false and no_real_data=true are independently supported by inspection (no I/O in package src).",
+        "recommendation": "Continue to require the recorded post-review gated validation (closeout-pack:review:run/normalize/receipt:validate, closeout-pack:validate, git diff --check --cached) before commit so the attested command results are re-verified deterministically at closeout.",
+        "post_review_disposition": "informational_no_action_required_pre_commit"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  }
+}

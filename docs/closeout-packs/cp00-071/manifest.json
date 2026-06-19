@@ -1,0 +1,573 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-071",
+  "planned_pack_id": "CP00-071",
+  "requested_pack_id": "CP00-070",
+  "planned_risk_class": "A",
+  "planned_unit_count": 10,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-070 shifted to CP00-071 by live sequential cursor",
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-071",
+    "planned_pack_id": "CP00-071",
+    "requested_pack_id": "CP00-070",
+    "title": "CP00-071 RP00.P06.M03.S14-RP00.P06.M04.S03 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP00.P06.M03.S14",
+      "last_unit_id": "RP00.P06.M04.S03",
+      "description": "RP00.P06.M03.S14-RP00.P06.M04.S03"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 10,
+    "correction_reason": "requested CP00-070 shifted to CP00-071 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P06.M03.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP00.P06.M03.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP00.P06.M03.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P06.M03.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P06.M03.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P06.M03.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP00.P06.M03.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP00.P06.M03",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP00.P06.M04.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP00.P06.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP00.P06.M04.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP00.P06.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P06.M04.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP00.P06.M04",
+        "program_id": "RP00",
+        "phase_id": "RP00.P06",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "status": "production_ready",
+  "production_ready": true,
+  "program_id": "RP00",
+  "risk_class": "A",
+  "unit_count": 10,
+  "primary_subphase_id": "RP00.P06.M04.S03",
+  "source_micro_phase_id": "RP00.P06.M04",
+  "next_subphase": "RP00.P06.M04.S04",
+  "implementation_surface": "ControlPlanePermissionAuditReviewApprovalSecondaryMatrix",
+  "implementation_summary": {
+    "implemented_surface": "ControlPlanePermissionAuditReviewApprovalSecondaryMatrix",
+    "implemented_slice": "control_plane_permission_audit_review_approval_secondary_matrix",
+    "policy_ref": "CONTROL_PLANE_PERMISSION_AUDIT_REVIEW_APPROVAL_SECONDARY_MATRIX_POLICY",
+    "module_ref": "CONTROL_PLANE_PERMISSION_AUDIT_REVIEW_APPROVAL_SECONDARY_MATRIX_MODULE",
+    "assembler_ref": "assembleControlPlanePermissionAuditReviewApprovalSecondaryMatrix",
+    "validator_refs": [
+      "assertControlPlanePermissionAuditReviewApprovalSecondaryMatrixPolicy",
+      "assertControlPlanePermissionAuditReviewApprovalSecondaryMatrixResult"
+    ],
+    "review_route_rows": 2,
+    "proof_rows": 3,
+    "test_expectation_rows": 2,
+    "secondary_matrix_rows": 1,
+    "secondary_decision_bindings": 2,
+    "result_fields": 125
+  },
+  "included_unit_ids": [
+    "RP00.P06.M03.S14",
+    "RP00.P06.M03.S15",
+    "RP00.P06.M03.S16",
+    "RP00.P06.M03.S17",
+    "RP00.P06.M03.S18",
+    "RP00.P06.M03.S19",
+    "RP00.P06.M03.S20",
+    "RP00.P06.M04.S01",
+    "RP00.P06.M04.S02",
+    "RP00.P06.M04.S03"
+  ],
+  "included_units": [
+    {
+      "id": "RP00.P06.M03.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M03.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M03.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M03.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M03.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M03.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M03.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP00.P06.M03",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M04.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP00.P06.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M04.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP00.P06.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    },
+    {
+      "id": "RP00.P06.M04.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP00.P06.M04",
+      "program_id": "RP00",
+      "phase_id": "RP00.P06",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-071/manifest.json",
+        "docs/closeout-packs/cp00-071/command-evidence.json",
+        "docs/closeout-packs/cp00-071/claude-review-result.json",
+        "docs/closeout-packs/cp00-071/adjudication.md",
+        "docs/closeout-packs/cp00-071/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-071/manifest.json",
+    "docs/closeout-packs/cp00-071/command-evidence.json",
+    "docs/closeout-packs/cp00-071/claude-review-result.json",
+    "docs/closeout-packs/cp00-071/adjudication.md",
+    "docs/closeout-packs/cp00-071/construction-inspection.json"
+  ],
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-071/manifest.json",
+    "docs/closeout-packs/cp00-071/command-evidence.json",
+    "docs/closeout-packs/cp00-071/claude-review-result.json",
+    "docs/closeout-packs/cp00-071/adjudication.md",
+    "docs/closeout-packs/cp00-071/construction-inspection.json"
+  ],
+  "upstream_evidence_refs": [
+    "docs/closeout-packs/cp00-070/manifest.json",
+    "docs/closeout-packs/cp00-070/command-evidence.json",
+    "docs/closeout-packs/cp00-070/claude-review-result.json",
+    "docs/closeout-packs/cp00-070/adjudication.md",
+    "docs/closeout-packs/cp00-070/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "dirty_worktree_handling": "preserve_existing_untracked_.DS_Store_Law_Firm_OS_UI_new_session_handoff_and_invalid_c_ldip_attempt"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "valid_review_ref": "docs/closeout-packs/cp00-071/claude-review-result.json",
+    "invalid_attempts_recorded": 1
+  },
+  "closeout_state_policy": {
+    "production_ready_flag": "control_plane_permission_audit_review_approval_secondary_matrix_verified",
+    "evidence_model": "closeout_pack",
+    "closeout_pack_ref": "CP00-071",
+    "evidence_root": "docs/closeout-packs/cp00-071",
+    "completes_source_micro_phase": false,
+    "phase_completed": false,
+    "next_subphase": "RP00.P06.M04.S04"
+  },
+  "production_ready_flag": "control_plane_permission_audit_review_approval_secondary_matrix_verified",
+  "gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "recorded",
+    "claude_review": "completed_once",
+    "adjudication": "completed",
+    "construction_inspection": "PASS",
+    "included_units": "production_ready",
+    "commit": "pending"
+  },
+  "closeout_gates": [
+    "implementation",
+    "tests",
+    "Hermes evidence",
+    "Claude Opus 4.8 max read-only review exactly once",
+    "finding adjudication",
+    "construction inspection",
+    "included units production_ready",
+    "commit pending until git commit completes"
+  ],
+  "severity_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 3
+  },
+  "no_real_data": true,
+  "writes_product_state": false,
+  "ldip_implementation_allowed": false,
+  "next_pack": "CP00-072",
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-071 permission audit review approval secondary matrix pack"
+  }
+}

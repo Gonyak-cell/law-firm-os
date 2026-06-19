@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-834",
+  "normalized_at": "2026-06-16T10:33:38.130Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-834/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-834/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-834/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-834/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "0f03d116-ea98-4e5a-afea-d71b60bb7abd",
+    "uuid": "74f73783-a52d-4a98-b46c-6ec1097b414c",
+    "total_cost_usd": 2.4012187500000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7820,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-834 is a descriptor-only continuation of the RP27 Platform Extensibility bridge chain (permission-matrix runtime/workflow bridge, range RP27.P06.M03.S05-RP27.P06.M09.S22, 150 units). Static read-only inspection of all five in-scope implementation refs plus the closeout-pack artifacts confirms the pack-level claim (platform_extensibility_permission_matrix_runtime_workflow_bridge_descriptor_verified) is supported and stays within every declared boundary. registry.js CP834 binding/requirements/case-set/descriptor/Hermes+Claude packets/closeout-handoff are internally consistent: deliverable distribution 53/34/28/7/28=150, micro-phase counts M03=18 (PERMISSION_ROWS.slice(4)) + M04-M09=22 each, next pack CP00-835/RP27.P06.M10.S01. validators.js coverage and descriptor validators actively enforce descriptor_only=true, runtime_execution=false, no api_key/webhook/workflow-payload secrets, no real client data / permission-decision detail / audit-event body, no api_key_issued/webhook_delivered/workflow_executed, no permission_decision_written/audit_event_written/writes_product_state, Hermes emits_runtime_receipt=false, Claude read_only=true & not final approver, and human_final_approval_required_for_runtime_opening=true. createRow defaults all guards safe and no ROW_EXTRAS/override flips any guard unsafe (NO_WRITE_ATTESTATION applied). contract JSON reflects CP00-834 as latest_pack/latest_projection, validation.valid=true, handoff routed to CP00-835, and carries the required capabilities/safety_gates/no_leak_guards/mandatory_artifacts the validator checks. model.test.js asserts binding/coverage/descriptor-runtime-closed/contract-projection; the validate script exits non-zero on any drift. The pending states in manifest (production_ready=false, runtime_ready=false), construction-inspection (PENDING_REVIEW), command-evidence (pending), adjudication (pending), and claude-review-result (valid_review_receipts=[], exactly_one_valid_pack_level_claude_review_run=false) are the correct pre-review posture, not false claims; the readiness auth-preflight passed and the pending 0-byte review output is correctly NOT counted as valid evidence. Claude remains a read-only, non-final-approval reviewer and Hermes patterns are used only for deterministic evidence-packet/receipt handling, not product runtime. Pack does not over-claim runtime or enterprise trust, so neither pack nor this CP closeout goal is blocked. Provenance: findings are from read-only static inspection of code/contract/tests; the validation commands (npm test, rp27 validate, etc.) were not re-executed in this review, but the logic and contract were verified internally consistent so the command-evidence exit_code=0 claims are credible. One non-blocking P3 (inert/unreachable closeoutOverride branch in the CP834 case-set builder) noted.",
+    "findings": [
+      {
+        "id": "CP834-P3-01",
+        "severity": "P3",
+        "title": "Unreachable closeoutOverride branch in CP834 case-set builder (no functional impact)",
+        "file": "packages/platform/src/registry.js",
+        "line": 1750,
+        "details": "createPlatformExtensibilityCp834PermissionMatrixRuntimeWorkflowBridgeCaseSet defines closeoutOverride and applies it only when a row title === \"Closeout handoff\" (registry.js:1739-1742,1750). CP834 sections are built from PERMISSION_ROWS (M03 = PERMISSION_ROWS.slice(4) = 18 rows; M04-M09 = full 22 rows), and PERMISSION_ROWS (registry.js:437-460) does not contain \"Closeout handoff\" (that title lives in DOMAIN_ROWS). The branch is therefore never exercised for CP834 — it is shared-template carryover from DOMAIN_ROWS-based case-set builders. No functional or safety impact: the descriptor's actual closeout_handoff is produced by createPlatformExtensibilityCp834CloseoutHandoff() (registry.js:2340-2348) and the validator independently confirms it routes to CP00-835 / RP27.P06.M10.S01 (validators.js:1617). The contract JSON latest_projection.closeout_handoff matches (to_pack_id CP00-835, next_subphase_id RP27.P06.M10.S01).",
+        "recommendation": "Optional cleanup only: drop the inert closeoutOverride from this permission-matrix case-set builder, or leave it as shared-template code. No change required for CP00-834 closeout.",
+        "post_review_disposition": "Informational; non-blocking. Does not affect descriptor correctness, no-write/no-real-data/no-runtime boundaries, the authority boundary, or pack/goal closeout. No action required for CP00-834."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

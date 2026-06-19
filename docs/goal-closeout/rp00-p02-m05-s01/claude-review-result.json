@@ -1,0 +1,124 @@
+{
+  "subphase_id": "RP00.P02.M05.S01",
+  "source_micro_phase_id": "RP00.P02.M05",
+  "title": "Service entrypoint contract",
+  "micro_title": "Permission And Audit Binding",
+  "created_at": "2026-06-05T23:50:01.000Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "bypassPermissions",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "invalid_partial_claude_attempt_notes": [],
+  "raw_review_file": "/tmp/lfos-rp00-p02-m05-s01-claude-review.stream.jsonl",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m05-s01-review-packet.diff",
+  "session_id": "6211b77a-bcb9-4035-be02-e4d88f9f3d70",
+  "uuid": "1156259e-c593-49cd-9ebf-a23b6d7032f8",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 0.9904202499999999,
+  "duration_ms": 180958,
+  "usage": {
+    "input_tokens": 17,
+    "cache_creation_input_tokens": 56875,
+    "cache_read_input_tokens": 554803,
+    "output_tokens": 14255,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 56875,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS_WITH_FINDINGS",
+  "production_ready_verdict": "APPROVE",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "p3_observations": [
+    {
+      "id": "P3-1",
+      "title": "Drift unit test omits negative cases for several no-write/boundary flags",
+      "status": "fixed",
+      "file": "packages/control-plane/test/service.test.js",
+      "line_or_area": "Permission And Audit Binding validator drift test",
+      "issue": "Claude noted the validator rejects drift test omitted unit-level negative cases for doesNotMutateEntityRegistry, doesNotReplaceHumanApproval, doesNotWriteDatabase, doesNotWriteStorage, doesNotPersistProductState, and array drift for evidence refs, context ids, schema fields, and acceptance gates.",
+      "recommendation": "Extend the override table with no-write and array-drift cases.",
+      "resolution": "Added negative drift cases for entity registry mutation, human approval replacement, database write, storage write, product-state persistence, required evidence drift, binding context drift, schema expectation drift, and acceptance gate drift."
+    }
+  ],
+  "review_text": "PASS_WITH_FINDINGS. The S01 Permission And Audit Binding service entrypoint contract is a correctly scoped, metadata-only addition that satisfies every required criterion and is internally consistent across contract, policy, service module, validator, fixture, README, RP00 validator, and tests. The single P3 finding concerned partial unit-level negative-test coverage and was fixed before production_ready.",
+  "required_fixes": [],
+  "deferred_or_informational": [
+    "Claude verified dependency on RP00.P02.M04.S14 and production_ready closeout evidence refs.",
+    "Claude verified all eight binding contexts are declared and mirrored in acceptance gates.",
+    "Claude verified non-execution boundaries for runtime permission, AuthZ, permission engine, security trimming, audit ledger, audit event, database, storage, product-state persistence, and human approval replacement.",
+    "Claude verified RP00.P02.M05 remains open and hands off to RP00.P02.M05.S02 without overclaiming RP00.P02 or RP00 completion."
+  ],
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "6211b77a-bcb9-4035-be02-e4d88f9f3d70",
+    "uuid": "1156259e-c593-49cd-9ebf-a23b6d7032f8",
+    "total_cost_usd": 0.9904202499999999,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m05-s01-claude-review.stream.jsonl",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m05-s01-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_verdict": "APPROVE",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3_NICE_TO_HAVE",
+        "title": "Drift unit test omits negative cases for several no-write/boundary flags",
+        "file": "packages/control-plane/test/service.test.js",
+        "line_or_area": "Permission And Audit Binding validator drift test",
+        "details": "The unit-level validator rejects drift test omitted several no-write and array-drift negative cases. RP00 validator already enforced these boundaries, so the finding was non-blocking.",
+        "required_action": "Extend unit-level negative drift coverage.",
+        "status": "fixed"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T23:50:01.000Z",
+  "production_ready": true
+}

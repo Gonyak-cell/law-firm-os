@@ -1,0 +1,536 @@
+{
+  "schema_version": "law-firm-os.launch-evidence-integrity-audit.v0.1",
+  "generated_at": "2026-06-18T15:42:54.129Z",
+  "source_refs": [
+    "workbook/launch-tuw/launch-tuw-ledger.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/goal-closeout/<launch-goal-id>/packet.json",
+    "docs/goal-closeout/<launch-goal-id>/command-evidence.json",
+    "docs/goal-closeout/<launch-goal-id>/claude-review-result.json",
+    "docs/goal-closeout/<launch-goal-id>/construction-inspection.json"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "validates_metadata_integrity_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "work_package_count": 72,
+    "standard_evidence_file_count_per_wp": 5,
+    "integrity_pass_count": 72,
+    "integrity_failed_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "rows": [
+    {
+      "wp_id": "LT-PRE-W01",
+      "goal_id": "lt-pre-w01",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w01"
+    },
+    {
+      "wp_id": "LT-PRE-W02",
+      "goal_id": "lt-pre-w02",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w02"
+    },
+    {
+      "wp_id": "LT-PRE-W03",
+      "goal_id": "lt-pre-w03",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w03"
+    },
+    {
+      "wp_id": "LT-PRE-W04",
+      "goal_id": "lt-pre-w04",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w04"
+    },
+    {
+      "wp_id": "LT-PRE-W05",
+      "goal_id": "lt-pre-w05",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w05"
+    },
+    {
+      "wp_id": "LT-PRE-W06",
+      "goal_id": "lt-pre-w06",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w06"
+    },
+    {
+      "wp_id": "LT-PRE-W07",
+      "goal_id": "lt-pre-w07",
+      "phase": "PRE",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-pre-w07"
+    },
+    {
+      "wp_id": "LT-L0-W01",
+      "goal_id": "lt-l0-w01",
+      "phase": "L0",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l0-w01"
+    },
+    {
+      "wp_id": "LT-L0-W02",
+      "goal_id": "lt-l0-w02",
+      "phase": "L0",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l0-w02"
+    },
+    {
+      "wp_id": "LT-L0-W03",
+      "goal_id": "lt-l0-w03",
+      "phase": "L0",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l0-w03"
+    },
+    {
+      "wp_id": "LT-L0-W04",
+      "goal_id": "lt-l0-w04",
+      "phase": "L0",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l0-w04"
+    },
+    {
+      "wp_id": "LT-L0-W05",
+      "goal_id": "lt-l0-w05",
+      "phase": "L0",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l0-w05"
+    },
+    {
+      "wp_id": "LT-L1-W01",
+      "goal_id": "lt-l1-w01",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w01"
+    },
+    {
+      "wp_id": "LT-L1-W02",
+      "goal_id": "lt-l1-w02",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w02"
+    },
+    {
+      "wp_id": "LT-L1-W03",
+      "goal_id": "lt-l1-w03",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w03"
+    },
+    {
+      "wp_id": "LT-L1-W04",
+      "goal_id": "lt-l1-w04",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w04"
+    },
+    {
+      "wp_id": "LT-L1-W05",
+      "goal_id": "lt-l1-w05",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w05"
+    },
+    {
+      "wp_id": "LT-L1-W06",
+      "goal_id": "lt-l1-w06",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w06"
+    },
+    {
+      "wp_id": "LT-L1-W07",
+      "goal_id": "lt-l1-w07",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w07"
+    },
+    {
+      "wp_id": "LT-L1-W08",
+      "goal_id": "lt-l1-w08",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w08"
+    },
+    {
+      "wp_id": "LT-L1-W09",
+      "goal_id": "lt-l1-w09",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w09"
+    },
+    {
+      "wp_id": "LT-L1-W10",
+      "goal_id": "lt-l1-w10",
+      "phase": "L1",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l1-w10"
+    },
+    {
+      "wp_id": "LT-L2-W01",
+      "goal_id": "lt-l2-w01",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w01"
+    },
+    {
+      "wp_id": "LT-L2-W02",
+      "goal_id": "lt-l2-w02",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w02"
+    },
+    {
+      "wp_id": "LT-L2-W03",
+      "goal_id": "lt-l2-w03",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w03"
+    },
+    {
+      "wp_id": "LT-L2-W04",
+      "goal_id": "lt-l2-w04",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w04"
+    },
+    {
+      "wp_id": "LT-L2-W05",
+      "goal_id": "lt-l2-w05",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w05"
+    },
+    {
+      "wp_id": "LT-L2-W06",
+      "goal_id": "lt-l2-w06",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w06"
+    },
+    {
+      "wp_id": "LT-L2-W07",
+      "goal_id": "lt-l2-w07",
+      "phase": "L2",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l2-w07"
+    },
+    {
+      "wp_id": "LT-L3-W01",
+      "goal_id": "lt-l3-w01",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w01"
+    },
+    {
+      "wp_id": "LT-L3-W02",
+      "goal_id": "lt-l3-w02",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w02"
+    },
+    {
+      "wp_id": "LT-L3-W03",
+      "goal_id": "lt-l3-w03",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w03"
+    },
+    {
+      "wp_id": "LT-L3-W04",
+      "goal_id": "lt-l3-w04",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w04"
+    },
+    {
+      "wp_id": "LT-L3-W05",
+      "goal_id": "lt-l3-w05",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w05"
+    },
+    {
+      "wp_id": "LT-L3-W06",
+      "goal_id": "lt-l3-w06",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w06"
+    },
+    {
+      "wp_id": "LT-L3-W07",
+      "goal_id": "lt-l3-w07",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w07"
+    },
+    {
+      "wp_id": "LT-L3-W08",
+      "goal_id": "lt-l3-w08",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w08"
+    },
+    {
+      "wp_id": "LT-L3-W09",
+      "goal_id": "lt-l3-w09",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w09"
+    },
+    {
+      "wp_id": "LT-L3-W10",
+      "goal_id": "lt-l3-w10",
+      "phase": "L3",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l3-w10"
+    },
+    {
+      "wp_id": "LT-L4-W01",
+      "goal_id": "lt-l4-w01",
+      "phase": "L4",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l4-w01"
+    },
+    {
+      "wp_id": "LT-L4-W02",
+      "goal_id": "lt-l4-w02",
+      "phase": "L4",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l4-w02"
+    },
+    {
+      "wp_id": "LT-L4-W03",
+      "goal_id": "lt-l4-w03",
+      "phase": "L4",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l4-w03"
+    },
+    {
+      "wp_id": "LT-L4-W04",
+      "goal_id": "lt-l4-w04",
+      "phase": "L4",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l4-w04"
+    },
+    {
+      "wp_id": "LT-L4-W05",
+      "goal_id": "lt-l4-w05",
+      "phase": "L4",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l4-w05"
+    },
+    {
+      "wp_id": "LT-L4-W06",
+      "goal_id": "lt-l4-w06",
+      "phase": "L4",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l4-w06"
+    },
+    {
+      "wp_id": "LT-L5-W01",
+      "goal_id": "lt-l5-w01",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w01"
+    },
+    {
+      "wp_id": "LT-L5-W02",
+      "goal_id": "lt-l5-w02",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w02"
+    },
+    {
+      "wp_id": "LT-L5-W03",
+      "goal_id": "lt-l5-w03",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w03"
+    },
+    {
+      "wp_id": "LT-L5-W04",
+      "goal_id": "lt-l5-w04",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w04"
+    },
+    {
+      "wp_id": "LT-L5-W05",
+      "goal_id": "lt-l5-w05",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w05"
+    },
+    {
+      "wp_id": "LT-L5-W06",
+      "goal_id": "lt-l5-w06",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w06"
+    },
+    {
+      "wp_id": "LT-L5-W07",
+      "goal_id": "lt-l5-w07",
+      "phase": "L5",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l5-w07"
+    },
+    {
+      "wp_id": "LT-L6-W01",
+      "goal_id": "lt-l6-w01",
+      "phase": "L6",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l6-w01"
+    },
+    {
+      "wp_id": "LT-L6-W02",
+      "goal_id": "lt-l6-w02",
+      "phase": "L6",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l6-w02"
+    },
+    {
+      "wp_id": "LT-L6-W03",
+      "goal_id": "lt-l6-w03",
+      "phase": "L6",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l6-w03"
+    },
+    {
+      "wp_id": "LT-L6-W04",
+      "goal_id": "lt-l6-w04",
+      "phase": "L6",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l6-w04"
+    },
+    {
+      "wp_id": "LT-L6-W05",
+      "goal_id": "lt-l6-w05",
+      "phase": "L6",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l6-w05"
+    },
+    {
+      "wp_id": "LT-L6-W06",
+      "goal_id": "lt-l6-w06",
+      "phase": "L6",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l6-w06"
+    },
+    {
+      "wp_id": "LT-L7-W01",
+      "goal_id": "lt-l7-w01",
+      "phase": "L7",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l7-w01"
+    },
+    {
+      "wp_id": "LT-L7-W02",
+      "goal_id": "lt-l7-w02",
+      "phase": "L7",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l7-w02"
+    },
+    {
+      "wp_id": "LT-L7-W03",
+      "goal_id": "lt-l7-w03",
+      "phase": "L7",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l7-w03"
+    },
+    {
+      "wp_id": "LT-L7-W04",
+      "goal_id": "lt-l7-w04",
+      "phase": "L7",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l7-w04"
+    },
+    {
+      "wp_id": "LT-L7-W05",
+      "goal_id": "lt-l7-w05",
+      "phase": "L7",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l7-w05"
+    },
+    {
+      "wp_id": "LT-L7-W06",
+      "goal_id": "lt-l7-w06",
+      "phase": "L7",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l7-w06"
+    },
+    {
+      "wp_id": "LT-L8-W01",
+      "goal_id": "lt-l8-w01",
+      "phase": "L8",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l8-w01"
+    },
+    {
+      "wp_id": "LT-L8-W02",
+      "goal_id": "lt-l8-w02",
+      "phase": "L8",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l8-w02"
+    },
+    {
+      "wp_id": "LT-L8-W03",
+      "goal_id": "lt-l8-w03",
+      "phase": "L8",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l8-w03"
+    },
+    {
+      "wp_id": "LT-L9-W01",
+      "goal_id": "lt-l9-w01",
+      "phase": "L9",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l9-w01"
+    },
+    {
+      "wp_id": "LT-L9-W02",
+      "goal_id": "lt-l9-w02",
+      "phase": "L9",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l9-w02"
+    },
+    {
+      "wp_id": "LT-L9-W03",
+      "goal_id": "lt-l9-w03",
+      "phase": "L9",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l9-w03"
+    },
+    {
+      "wp_id": "LT-L9-W04",
+      "goal_id": "lt-l9-w04",
+      "phase": "L9",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l9-w04"
+    },
+    {
+      "wp_id": "LT-L9-W05",
+      "goal_id": "lt-l9-w05",
+      "phase": "L9",
+      "integrity_status": "pass",
+      "evidence_base": "docs/goal-closeout/lt-l9-w05"
+    }
+  ],
+  "findings": []
+}

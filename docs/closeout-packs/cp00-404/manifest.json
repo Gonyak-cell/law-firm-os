@@ -1,0 +1,1804 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-404",
+  "planned_pack_id": "CP00-404",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "payments_core_p06_contract_implementation_slice_descriptor_verified",
+  "implementation_layer": "descriptor",
+  "runtime_ready": false,
+  "program_id": "RP13",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "delivery_counts": {
+    "ui": 8,
+    "claude_review": 2,
+    "security_audit": 10,
+    "test": 4,
+    "implementation": 16
+  },
+  "micro_phase_row_counts": {
+    "RP13.P06.M01": 8,
+    "RP13.P06.M02": 20,
+    "RP13.P06.M03": 12
+  },
+  "primary_subphase_id": "RP13.P06.M03.S12",
+  "next_subphase": "RP13.P06.M03.S13",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-404",
+    "planned_pack_id": "CP00-404",
+    "title": "CP00-404 RP13.P06.M01.S13-RP13.P06.M03.S12 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP13.P06.M01.S13",
+      "last_unit_id": "RP13.P06.M03.S12",
+      "description": "RP13.P06.M01.S13-RP13.P06.M03.S12"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP13.P06.M01.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M01.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP13.P06.M01.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M01.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M01.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M01.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M01.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP13.P06.M01.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP13.P06.M01",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M01",
+        "micro_title": "Contract Draft",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP13.P06.M02.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M02.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M02.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M02.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M02.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M02.S13",
+        "title": "Object ACL interaction",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M02.S14",
+        "title": "Review-required route",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP13.P06.M02.S15",
+        "title": "Approval-required route",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M02.S16",
+        "title": "Security trimming proof",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M02.S17",
+        "title": "Audit event expectation",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M02.S18",
+        "title": "Permission fixture",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M02.S19",
+        "title": "Allowed test",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP13.P06.M02.S20",
+        "title": "Denied test",
+        "source_micro_phase_id": "RP13.P06.M02",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP13.P06.M03.S01",
+        "title": "Permission matrix row",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M03.S02",
+        "title": "View decision binding",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S03",
+        "title": "Search decision binding",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S04",
+        "title": "Mutation decision binding",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S05",
+        "title": "Export/download decision binding",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S06",
+        "title": "Share decision binding",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S07",
+        "title": "AI retrieval decision binding",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S08",
+        "title": "Audit hint fields",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP13.P06.M03.S09",
+        "title": "Matched rule capture",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S10",
+        "title": "Deny-over-allow check",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP13.P06.M03.S11",
+        "title": "Legal hold interaction",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      },
+      {
+        "id": "RP13.P06.M03.S12",
+        "title": "Ethical wall interaction",
+        "source_micro_phase_id": "RP13.P06.M03",
+        "program_id": "RP13",
+        "phase_id": "RP13.P06",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "ui"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP13.P06.M01.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M01.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP13.P06.M01",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M01",
+      "micro_title": "Contract Draft",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S13",
+      "title": "Object ACL interaction",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S14",
+      "title": "Review-required route",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S15",
+      "title": "Approval-required route",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S16",
+      "title": "Security trimming proof",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S17",
+      "title": "Audit event expectation",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S18",
+      "title": "Permission fixture",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S19",
+      "title": "Allowed test",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M02.S20",
+      "title": "Denied test",
+      "source_micro_phase_id": "RP13.P06.M02",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S01",
+      "title": "Permission matrix row",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S02",
+      "title": "View decision binding",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S03",
+      "title": "Search decision binding",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S04",
+      "title": "Mutation decision binding",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S05",
+      "title": "Export/download decision binding",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S06",
+      "title": "Share decision binding",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S07",
+      "title": "AI retrieval decision binding",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S08",
+      "title": "Audit hint fields",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S09",
+      "title": "Matched rule capture",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S10",
+      "title": "Deny-over-allow check",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S11",
+      "title": "Legal hold interaction",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP13.P06.M03.S12",
+      "title": "Ethical wall interaction",
+      "source_micro_phase_id": "RP13.P06.M03",
+      "program_id": "RP13",
+      "phase_id": "RP13.P06",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "ui",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/payments-core-contract.json",
+        "packages/payments/README.md",
+        "packages/payments/src/index.js",
+        "packages/payments/src/registry.js",
+        "packages/payments/src/service.js",
+        "packages/payments/src/validators.js",
+        "packages/payments/test/model.test.js",
+        "scripts/validate-rp13-payments-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-404/manifest.json",
+        "docs/closeout-packs/cp00-404/command-evidence.json",
+        "docs/closeout-packs/cp00-404/claude-review-result.json",
+        "docs/closeout-packs/cp00-404/adjudication.md",
+        "docs/closeout-packs/cp00-404/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-404 implements descriptor-only coverage of the RP13.P06 contract implementation slice: the M01 Contract Draft tail (the eight remaining rows), the full M02 Type And Shape Definition cycle (twenty rows), and the M03 Primary Implementation Slice head (the first twelve rows) as three descriptor-only sections over 40 planned rows with Hermes evidence (H13), Claude review packet (C13), and CP00-405 handoff, without opening payments, payment matching, AR aging, or journal entry runtime or any other closed runtime surface.",
+    "source_refs": [
+      "contracts/payments-core-contract.json",
+      "packages/payments/README.md",
+      "packages/payments/src/index.js",
+      "packages/payments/src/registry.js",
+      "packages/payments/src/service.js",
+      "packages/payments/src/validators.js",
+      "packages/payments/test/model.test.js",
+      "scripts/validate-rp13-payments-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_payments_runtime": true,
+    "no_payment_matching_runtime": true,
+    "no_ar_aging_runtime": true,
+    "no_journal_entry_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_api_handler_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_unauthorized_count_leak": true,
+    "no_permission_bypass_detected": true,
+    "no_leak_detected": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_lock_token_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-404/manifest.json",
+    "docs/closeout-packs/cp00-404/command-evidence.json",
+    "docs/closeout-packs/cp00-404/claude-review-result.json",
+    "docs/closeout-packs/cp00-404/adjudication.md",
+    "docs/closeout-packs/cp00-404/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-404/manifest.json",
+    "docs/closeout-packs/cp00-404/command-evidence.json",
+    "docs/closeout-packs/cp00-404/claude-review-result.json",
+    "docs/closeout-packs/cp00-404/adjudication.md",
+    "docs/closeout-packs/cp00-404/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "\"workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "workbook/matter_development_documentation_pack.zip",
+      "workbook/matter_document_index.md",
+      "workbook/matter_master_specification_combined.md",
+      "workbook/plan-vs-plan-verdict.md"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-404/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-404/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "e5af09ee-d777-43c4-99ea-38cf47bcbea7",
+      "uuid": "ea8692b4-8ebe-47a9-82b2-01e1b52cd3a1",
+      "total_cost_usd": 1.6380035,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-404 is a clean, descriptor-only closeout pack for the RP13 payments-core P06 contract implementation slice (RP13.P06.M01.S13-RP13.P06.M03.S12, risk B, 40 units), following the established CP392-CP403 pattern. All eight in-scope files (contract JSON, README, index/registry/service/validators, test, validator script) are internally consistent. The CP404 pack binding, requirements, no-write attestation, descriptor/case-set builders, coverage/descriptor validators, and Hermes/Claude/handoff packet builders all align with the baseline: risk_class B, unit_count 40, range RP13.P06.M01.S13-RP13.P06.M03.S12, next_pack CP00-405, next_subphase RP13.P06.M03.S13. Deliverable distribution {ui:8, claude_review:2, security_audit:10, test:4, implementation:16} and micro-title distribution {Contract Draft:8, Type And Shape Definition:20, Primary Implementation Slice:12} match the baseline and sum to 40; required_section_rows enumerate exactly the 40 planned unit titles and validatePaymentsCoreCp404Coverage enforces every distribution/section check. The pack-level production_ready claim is correctly NOT asserted (production_ready:false, status implemented_pending_review); production_ready_flag is a stage label, not a trust assertion. No-write/no-runtime/no-real-data/no-leak guards are uniformly set across registry attestation, service freezeCp404Result, contract projection, and manifest boundary. Authority boundary is preserved: claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true; the Claude review packet is read_only with allowed tools Read/Grep/Glob. CP178+ review hardening is encoded via forbidden_review_evidence (auth-failure, zero-byte, malformed/fenced JSON, tool-call-shaped, missing fields, claude final-approval claim, enterprise-trust claim) and hardened_review_sequence; readiness auth-preflight passed with valid JSON; pack_level_claude_review status pending with empty valid_review_receipts and invalid_review_attempts; post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) correctly do not yet exist. Hermes patterns are used only for deterministic descriptor evidence packet/receipt handling (emits_hermes_runtime_receipt:false), not product runtime. command-evidence records all 25 validation commands at exit 0 (node --check/--test, rp05-rp13 validators, closeout-pack-plan/weighted/spec/rp00-control-plane/goal-closeout/fullplan validators, npm test, npm run validate, npm run build, git diff --check), with closeout-pack:validate correctly gated to post-review. No P0/P1/P2/P3 findings; the descriptor-only implementation is sound, bounded, and validated. This review is a read-only independent reviewer verdict and does not grant final approval or enterprise trust, which require human sign-off.",
+      "findings": [],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 0,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 0
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-404 payments core p06 contract implementation slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "remaining_by_closeout_dir_proxy": 55133
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-404/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-404/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-404/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-404/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "production_ready_at": "2026-06-12T00:25:19.453Z"
+}

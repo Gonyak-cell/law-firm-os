@@ -1,0 +1,224 @@
+{
+  "schema_version": "law-firm-os.v2-spec-overlay-closeout-pack-map.v0.1",
+  "generated_at": "2026-06-09T00:00:00+09:00",
+  "status": "planning_only",
+  "source_spec": "docs/spec-v2-integration/v2-missing-requirements-spec.md",
+  "source_index": "docs/spec-v2-integration/v2-source-index.md",
+  "live_boundary": {
+    "latest_completed_pack": "CP00-144",
+    "next_pack": "CP00-145",
+    "parallel_development_range": "CP00-145-CP00-176",
+    "first_v2_spine_consumption_pack": "CP00-177",
+    "allowed_edit_scope": [
+      "docs/spec-v2-integration/*"
+    ],
+    "forbidden_edit_scope": [
+      "contracts/*",
+      "packages/*",
+      "scripts/*",
+      "docs/closeout-pack-plan/*",
+      "docs/closeout-packs/*",
+      "docs/weighted-implementation-ledger.*"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "V2-MISS-KNOW-001",
+      "theme": "Matter Wiki Entity",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP05",
+      "first_cp": "CP00-177",
+      "dependent_rps": ["RP06", "RP07", "RP17", "RP18"],
+      "validation_surfaces": ["matter-wiki:validate"],
+      "blocking_conditions": ["matter_wiki_is_only_free_form_note", "client_visible_unreviewed_ai_candidate"]
+    },
+    {
+      "id": "V2-MISS-KNOW-002",
+      "theme": "LLM Wiki Retrieval Layer",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP07",
+      "first_cp": "CP00-235",
+      "dependent_rps": ["RP17", "RP18", "RP27"],
+      "validation_surfaces": ["llm-wiki:validate"],
+      "blocking_conditions": ["candidate_and_confirmed_knowledge_flattened", "retrieval_packet_without_permission_decision"]
+    },
+    {
+      "id": "V2-MISS-KNOW-003",
+      "theme": "Obsidian-Compatible Export",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP27",
+      "first_cp": "CP00-814",
+      "dependent_rps": ["RP05", "RP17", "RP22"],
+      "validation_surfaces": ["wiki-export:validate"],
+      "blocking_conditions": ["export_without_dlp_gate", "export_includes_unreviewed_client_visible_ai_output"]
+    },
+    {
+      "id": "V2-MISS-GRAPH-001",
+      "theme": "Graph Provider Boundary",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP05",
+      "first_cp": "CP00-177",
+      "dependent_rps": ["RP06", "RP07", "RP08", "RP17", "RP18"],
+      "validation_surfaces": ["matter-graph:validate"],
+      "blocking_conditions": ["provider_specific_runtime_without_contract", "graph_query_returns_hidden_label"]
+    },
+    {
+      "id": "V2-MISS-GRAPH-002",
+      "theme": "Matter Graph Node And Edge Vocabulary",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP05",
+      "first_cp": "CP00-177",
+      "dependent_rps": ["RP06", "RP07", "RP08", "RP17", "RP24"],
+      "validation_surfaces": ["matter-graph:vocabulary:validate"],
+      "blocking_conditions": ["fact_issue_risk_without_source_or_citation", "review_decision_inferred_from_ui_only"]
+    },
+    {
+      "id": "V2-MISS-GRAPH-003",
+      "theme": "Graph Views",
+      "priority": "P1",
+      "decision": "partial_mapped",
+      "primary_rp": "RP05",
+      "first_cp": "CP00-177",
+      "dependent_rps": ["RP06", "RP07", "RP08", "RP17", "RP18", "RP24"],
+      "validation_surfaces": ["matter-graph:views:validate"],
+      "blocking_conditions": ["hidden_node_labels_exposed", "graph_view_creates_legal_authority_claim"]
+    },
+    {
+      "id": "V2-MISS-CITE-001",
+      "theme": "Product-Wide Citation Ledger",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP06",
+      "first_cp": "CP00-198",
+      "dependent_rps": ["RP07", "RP17", "RP18", "RP24"],
+      "validation_surfaces": ["citation-ledger:validate"],
+      "blocking_conditions": ["high_risk_uncited_output_allowed", "citation_not_bound_to_immutable_source_version"]
+    },
+    {
+      "id": "V2-MISS-CITE-002",
+      "theme": "Source Panel And Evidence UX Contract",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP06",
+      "first_cp": "CP00-198",
+      "dependent_rps": ["RP07", "RP17", "RP18", "RP19"],
+      "validation_surfaces": ["source-panel:validate"],
+      "blocking_conditions": ["unauthorized_source_excerpt_exposed", "stale_or_rejected_citation_not_marked"]
+    },
+    {
+      "id": "V2-MISS-AI-001",
+      "theme": "Local AI Worker",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18", "RP26", "RP27", "RP29"],
+      "validation_surfaces": ["local-ai-worker:validate"],
+      "blocking_conditions": ["confidential_job_silently_reroutes_external", "model_version_not_recorded"]
+    },
+    {
+      "id": "V2-MISS-AI-002",
+      "theme": "Hybrid Model Routing",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18", "RP26", "RP27"],
+      "validation_surfaces": ["model-routing:validate"],
+      "blocking_conditions": ["user_can_bypass_policy_by_direct_model_selection", "external_model_use_without_audit_decision"]
+    },
+    {
+      "id": "V2-MISS-AI-003",
+      "theme": "AI Result Lifecycle And Provenance",
+      "priority": "P0",
+      "decision": "mapped",
+      "primary_rp": "RP17",
+      "first_cp": "CP00-515",
+      "dependent_rps": ["RP18", "RP19", "RP29"],
+      "validation_surfaces": ["ai-result-lifecycle:validate"],
+      "blocking_conditions": ["delivered_to_client_without_confirmation_or_approval", "rejected_output_in_confirmed_retrieval"]
+    },
+    {
+      "id": "V2-MISS-DMS-001",
+      "theme": "Document Register",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP06",
+      "first_cp": "CP00-198",
+      "dependent_rps": ["RP07", "RP08", "RP16", "RP25"],
+      "validation_surfaces": ["document-register:validate"],
+      "blocking_conditions": ["matter_filed_document_without_register_row", "register_row_not_permission_trimmed"]
+    },
+    {
+      "id": "V2-MISS-DMS-002",
+      "theme": "Extended Source And Lineage",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP06",
+      "first_cp": "CP00-198",
+      "dependent_rps": ["RP07", "RP08", "RP25"],
+      "validation_surfaces": ["document-lineage:validate"],
+      "blocking_conditions": ["reprocessing_overwrites_prior_evidence", "zip_or_email_child_source_unlinked"]
+    },
+    {
+      "id": "V2-MISS-NEG-001",
+      "theme": "Negotiation Ledger",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP08",
+      "first_cp": "CP00-272",
+      "dependent_rps": ["RP05", "RP06", "RP18"],
+      "validation_surfaces": ["negotiation-ledger:validate"],
+      "blocking_conditions": ["ai_negotiation_summary_confirmed_without_review", "clause_change_unlinked_from_document_version"]
+    },
+    {
+      "id": "V2-MISS-AUTH-001",
+      "theme": "Authority Graph",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP24",
+      "first_cp": "CP00-716",
+      "dependent_rps": ["RP07", "RP17", "RP18"],
+      "validation_surfaces": ["authority-graph:validate"],
+      "blocking_conditions": ["uncited_model_memory_used_as_authority", "superseded_authority_not_review_required"]
+    },
+    {
+      "id": "V2-MISS-DEPLOY-001",
+      "theme": "Private/Sovereign And Hybrid Deployment",
+      "priority": "P1",
+      "decision": "mapped",
+      "primary_rp": "RP26",
+      "first_cp": "CP00-782",
+      "dependent_rps": ["RP27", "RP29"],
+      "validation_surfaces": ["deployment-mode:validate"],
+      "blocking_conditions": ["deployment_mode_does_not_affect_routing_or_residency", "hybrid_worker_trust_boundary_undefined"]
+    },
+    {
+      "id": "V2-MISS-PLAN-001",
+      "theme": "v2 Stage Overlay Map",
+      "priority": "P2",
+      "decision": "mapped",
+      "primary_rp": "docs/spec-v2-integration",
+      "first_cp": "planning-only",
+      "dependent_rps": ["RP05", "RP06", "RP07", "RP08", "RP17", "RP18", "RP24", "RP26", "RP27", "RP29"],
+      "validation_surfaces": ["v2-spec-overlay:validate"],
+      "blocking_conditions": ["cp_plan_renumbered_by_overlay", "overlay_claims_production_ready"]
+    }
+  ],
+  "coverage_summary": {
+    "requirement_count": 17,
+    "p0_count": 9,
+    "p1_count": 7,
+    "p2_count": 1,
+    "mapped_count": 16,
+    "partial_mapped_count": 1,
+    "deferred_count": 0,
+    "rejected_count": 0,
+    "planning_missing_count": 0
+  }
+}

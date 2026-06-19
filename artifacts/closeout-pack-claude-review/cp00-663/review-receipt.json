@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-663",
+  "normalized_at": "2026-06-14T06:52:32.495Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-663/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-663/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-663/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-663/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "81d14265-04cd-4cf5-9a05-60efd0cd805a",
+    "uuid": "5c497a3c-329e-48df-8b37-6032a47d81d3",
+    "total_cost_usd": 2.68047125,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6754,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-663 (RP21 Admin Console review readiness bridge, Risk C, 150 units RP21.P08.M06.S18-RP21.P09.M07.S02) is a descriptor-only closeout slice that correctly does NOT overclaim production readiness: manifest production_ready=false, runtime_ready=false, status=in_progress; command-evidence production_ready=false/writes_product_state=false/no_real_data=true; construction-inspection verdict=PENDING_REVIEW; adjudication pending. The production_ready_flag (admin_console_review_readiness_bridge_descriptor_verified) is a descriptor-verification marker finalized only after this review. [Directly verified by Read/Grep] (1) Deliverable/phase/micro-title distributions in registry.js ADMIN_CONSOLE_CP663_REQUIREMENTS match the prompt exactly and sum to 150 (impl 63, test 9, hermes 38, claude 21, security 14, ui 5; P08 73 + P09 77). (2) service.js CP663 builders are pure frozen-object constructors; freezeCp663Result stamps no_real_data=true, synthetic_only=true, writes_product_state=false and all runtime flags false. (3) validators.js validateAdminConsoleCp663ReviewReadinessBridgeDescriptor enforces descriptor_only/runtime_execution=false/raw_payload_included=false per row, no-leak guards, ~33 false runtime-write flags, real_*_data_loaded=false, and promotes_claude_to_final_approval!==false (line 3333). (4) model.test.js:1412-1470 asserts coverage, descriptor-only boundaries, Claude read_only, blocks_pack_on_p0_p1_p2, handoff to CP00-664. (5) Contract projection current_pack/cp663_no_write_attestation/cp663_closeout_handoff and validate-rp21-admin-console-contract.mjs deep-equal checks are consistent; top-level runtime_opened=false. Authority boundary holds: Claude is read-only (Read,Grep,Glob; forbidden_tools_present=false), not final approver; claims_enterprise_trust_from_local_validation=false; Hermes used only for deterministic evidence packet/receipt labeling with hermes_runtime_opened/emits_hermes_runtime_receipt/executes_hermes_command_runtime all false. Review-evidence hardening: readiness auth_preflight passed (exit 0, 1434-byte valid JSON, no tool-call/fenced-prose shape). [Reported, not re-run by me] The 22-command validation matrix in command-evidence.json (closeout-pack-plan/closeout-pack validate, rp21:admin-console:validate, npm test, validate, spec/weighted/fullplan/goal/rp00 validators, git diff --check, build) all report exit 0; I independently confirmed the source consistency those commands assert. One non-blocking P3 observation noted. No P0/P1/P2 findings; pack closeout and this CP closeout goal are not blocked. Human final approval for any enterprise-trust claim remains outside this receipt by design.",
+    "findings": [
+      {
+        "id": "C-663-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json dual-lists unrelated handoff doc as untracked implementation and preserved-unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-663/changed-file-scope.json",
+        "line": 176,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 176) and unrelated_dirty_files_preserved (line 184). The authoritative pack scope active_pack_required_untracked_files lists only the five docs/closeout-packs/cp00-663/ artifacts and excludes the handoff doc, and active_untracked_implementation_files_omitted is empty, so the unrelated file is not attributed to CP00-663. The overlap is cosmetic and may be by design (the field captures untracked files under plan/impl paths while the preserved list is the explicit exclusion). It does not affect pack scope integrity, the no-write/no-real-data boundary, or closeout eligibility.",
+        "recommendation": "Optionally exclude files already enumerated in unrelated_dirty_files_preserved from untracked_implementation_files in the scope generator for clarity. No action required before CP00-663 closeout.",
+        "post_review_disposition": "Non-blocking informational; authoritative pack scope (active_pack_required_untracked_files) is correct and active_untracked_implementation_files_omitted is empty. Does not gate pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

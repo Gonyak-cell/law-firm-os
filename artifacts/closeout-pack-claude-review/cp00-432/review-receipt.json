@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-432",
+  "normalized_at": "2026-06-12T03:52:48.229Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-432/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-432/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-432/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-432/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "3e467850-2b8c-4eb6-9d1e-72da65c69cad",
+    "uuid": "7c6eb6a9-06cd-4137-b2b7-557adc41ad97",
+    "total_cost_usd": 3.3522477499999996,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5352,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-432 (settlement core, Risk C, 150 units, RP14.P02.M06.S09-RP14.P03.M04.S05) passes read-only review with one non-blocking P3. The pack correctly does NOT claim production_ready (production_ready: false; status implementation_and_plan_gates_passed_pending_final_closeout); the claim actually under review is descriptor-layer verification, which is fully supported by registry bindings (SETTLEMENT_CORE_CP432_PACK_BINDING + REQUIREMENTS), service descriptors (createSettlementCoreCp432P02CloseoutP03FoundationDescriptor, freezeCp432Result), validators (coverage + foundation descriptor + Hermes/Claude packet builders), tests (model.test.js CP00-432 cases), and contract consistency (contracts/settlement-core-contract.json current_pack + historical tail = CP00-432, validated by scripts/validate-rp14-settlement-core-contract.mjs). No-write/no-real-data boundaries are enforced via frozen attestations (synthetic_only, no_real_data true, writes_product_state false, dispatches_*_runtime false). Authority boundary is intact: claude_is_final_approval false, human_final_approval_required_for_runtime_opening true, local_validation_claims_enterprise_trust false — Claude stays a read-only reviewer, not final approver. Hermes patterns are confined to deterministic review packet/receipt handling, not product runtime. CP178+ review hardening is present: forbidden_review_evidence and invalid_review_blockers reject auth failures, zero-byte stdout, malformed/fenced JSON, tool-call-shaped output, and missing fields; auth preflight passed with valid JSON result. All four coverage distributions match the prompt baseline (unit_count 150, RP14-only, correct first/last units, deliverable/micro_title/phase/section-row counts). No TODO/FIXME/placeholder/throw stubs in the settlement package. No P0, P1, or P2 issues found.",
+    "findings": [
+      {
+        "id": "CP432-P3-01",
+        "severity": "P3",
+        "title": "Pack's own untracked closeout dir is dual-classified in scope manifest",
+        "file": "artifacts/closeout-pack-claude-review/cp00-432/changed-file-scope.json",
+        "line": 138,
+        "details": "The pack's own untracked closeout artifacts — docs/closeout-packs/cp00-432/ (line 138) and docs/closeout-pack-plan/new-session-handoff.md (line 137) — appear in BOTH untracked_implementation_files (lines 130-133, i.e. classified as part of this pack) AND unrelated_dirty_files_preserved (lines 135-145, i.e. classified as unrelated). This is a benign cosmetic inconsistency in the changed-file-scope manifest. It has no effect on the review outcome because manifest.json's worktree_transition_policy.unrelated_dirty_files_preserved correctly EXCLUDES the pack directory, and the truly unrelated dirty files (the v2.0.docx, workbook/* matter docs, the c-ldip-01 invalid-attempt JSON) are independent of CP00-432 and were correctly not inferred as pack scope.",
+        "recommendation": "Optionally de-duplicate the changed-file-scope.json classification so the pack's own untracked closeout artifacts appear only under untracked_implementation_files and not also under unrelated_dirty_files_preserved. No action required for closeout; informational only.",
+        "post_review_disposition": "Accepted as non-blocking; informational only. Does not block CP00-432 pack closeout or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

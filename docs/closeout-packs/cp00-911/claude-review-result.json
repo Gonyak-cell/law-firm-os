@@ -1,0 +1,53 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-911",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-911/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-911/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "60d5741c-7eaf-4bb3-bdbb-896dadabb377",
+    "uuid": "28b2fb6d-7381-4fb2-bf9e-dd87fa1f835a",
+    "total_cost_usd": 1.95333975,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5051,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-911 is a descriptor-only RP30 embedded-HRX bridge (RiskWorkflow tail M04.S07-S12 implementation -> ApprovalWorkflow M05.S01-S04 security_audit), 10 units, risk class A. Read-only inspection (Read/Grep/Glob) confirms the pack-level descriptor production_ready claim is supported and all closed boundaries hold. (1) Implementation is consistent across all three layers: HRX_CP911_PACK_BINDING (registry.js:321), createHrxCp911RiskApprovalWorkflowBridgeDescriptor (registry.js:3218) and createHrxDomainRows (registry.js:1162) emit deep-frozen rows with every runtime/write/real-data/payload/score/delegation flag set false; the generated contracts/hrx-people-contract.json latest_projection matches the generator (descriptor HrxCp911RiskApprovalWorkflowBridgeDescriptor, source_descriptor HrxCp910..., baseline_decisions all deferred). (2) Coverage matches baseline exactly: 6 implementation + 4 security_audit, phase RP30.P02=10, micro M04=6/M05=4, titles RiskWorkflow=6/ApprovalWorkflow=4, range and binding chain CP910->CP911->CP912 / next subphase RP30.P02.M05.S05. (3) validateHrxCp911...Descriptor (validators.js:2446) and ...Coverage (validators.js:2407) enforce the chain, authority boundary, distribution, and every deferral flag; validateHrxPeopleContract (validators.js:2580) pins latest pack/projection. (4) Tests in model.test.js (lines 805/827/861) are substantive and read the real contract. (5) No-write / no-real-data / no-runtime boundaries enforced via HRX_NO_WRITE_ATTESTATION plus per-row flags; Hermes packet emits_runtime_receipt=false (review packet/receipt only, not product runtime); Claude packet read_only=true and promotes_claude_to_final_approval=false, so Claude remains an independent read-only reviewer, not final approver. (6) All validation npm scripts exist in package.json and validate-rp30-hrx-people-contract.mjs is a deterministic exit-1-on-drift gate; command-evidence records exit_code 0 for syntax/test/rp30/hrx validators (verified by code inspection, not re-executed, per read-only mandate). (7) Manifest production_ready=false / runtime_ready=false / status in_progress is the correct pre-review state; no runtime or enterprise-trust claim is made, so the human-final-approval boundary is preserved and out of scope for this receipt. (8) Review harness is healthy: readiness auth-preflight passed with valid JSON, prompt is 2415 bytes (<25600), contains no full source/diff, source_inspection_mode=read_tools_used, summary-only correctly prohibited and not used; no malformed/0-byte/tool-call-shaped prior evidence counted. (9) Unrelated dirty files (progress-control-room, workbook/*, .docx) are correctly excluded from pack scope. No P0-P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  },
+  "invalid_review_attempts": []
+}

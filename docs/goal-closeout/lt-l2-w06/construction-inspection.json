@@ -1,0 +1,23 @@
+{
+  "work_package_id": "LT-L2-W06",
+  "inspected_at": "2026-06-18T14:49:34Z",
+  "verdict": "BLOCKED_CANONICAL_ENUM_DECISIONS_REQUIRED",
+  "production_ready": false,
+  "quality_gates": {
+    "canonical_status_map_draft_exists": true,
+    "canonical_proposal_rows": 7,
+    "terminology_glossary_exists": true,
+    "homonym_resolution_rows": 5,
+    "live_app_old_ui_brand_phrase_count": 0,
+    "owner_decisions_resolved": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_enum_decisions_synthesized": false,
+    "packages_code_modified": false,
+    "closed_cp_evidence_rewritten": false,
+    "review_waiver_counted_as_valid_review": false
+  }
+}

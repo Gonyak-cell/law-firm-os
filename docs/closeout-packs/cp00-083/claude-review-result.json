@@ -1,0 +1,124 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-083",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "f57f2f3e-0dff-40d8-a78f-8caac95161fa",
+    "uuid": "c6c4d587-bf7a-4a32-a6c1-42b29beffeff",
+    "total_cost_usd": 1.23016325,
+    "permission_denials": [],
+    "duration_ms": 278580,
+    "duration_api_ms": 280527
+  },
+  "parsed_review": {
+    "review_target": "CP00-083 Failure Edge Recovery Secondary Workflow Binding",
+    "gate": "C00",
+    "review_mode": "read_only_diff",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Diff consumes the CP00-082 typed-primary result, binds RP00.P07.M03.S20 Hermes failure evidence plus RP00.P07.M04.S01-S14 secondary failure taxonomy/contracts/recovery expectations, completes M03+M04, and hands off to RP00.P07.M05.S01. All boundaries preserved: every runtime/write/permission/audit/LDIP flag is false, contracts are metadata_only, synthetic IDs only, and boundaryClaims are deny-all (forbidden + unknown both throw). Upstream handoff is hard-pinned (pack_id CP00-082, next_subphase RP00.P07.M03.S20, source_micro_phase_completed=false, decision=bound_metadata_only) before assertControlPlaneFailureEdgeRecoveryTypedPrimaryResult runs. assembleControlPlaneFailureEdgeRecoverySecondaryWorkflow output is deep-equal asserted against both the contract definition.result and the fixture.result (anti-theater parity), policy/result validators pin exact field sets, and the rp00 validator advances the cursor to RP00.P07.M04.S14 and gates the new subphases on control_plane_failure_edge_recovery_secondary_workflow_verified. 15 units / unit_count 15 / range and subphase_closeouts all reconcile. requested_pack_id=CP00-082 with deviation_from_plan=false is the same live-cursor-lag convention used by CP00-080/081/082, not drift. Only minor non-blocking P3 observations.",
+    "findings": [
+      {
+        "id": "CP00-083-F1",
+        "severity": "P3",
+        "title": "Secondary taxonomy typed_primary_unit_id cross-refs are static metadata, not validated against the consumed CP00-082 result",
+        "evidence": "policies.js CONTROL_PLANE_FAILURE_EDGE_RECOVERY_SECONDARY_FAILURES embeds typed_primary_unit_id RP00.P07.M03.S02-S11; assembleControlPlaneFailureEdgeRecoverySecondaryWorkflow validates upstream pack_id/next_subphase/boundary flags and calls assertControlPlaneFailureEdgeRecoveryTypedPrimaryResult, but never asserts these typed_primary_unit_id values exist in the consumed CP00-082 failure taxonomy. IDs fall within CP00-082's covered M02.S01-M03.S19 range, so they are plausibly correct.",
+        "recommended_action": "No action required for closeout (metadata-only, no runtime dependency, consistent with prior packs). If the primary taxonomy is renumbered later, add a parity assertion so the cross-reference cannot silently desync."
+      },
+      {
+        "id": "CP00-083-F2",
+        "severity": "P3",
+        "title": "Minor happy-path test coverage gaps",
+        "evidence": "service.test.js 'assembles metadata-only secondary workflow receipt' asserts missing_matter/resource/unknown_action/etc. bound flags but skips direct assertions for missing_tenant_failure_bound and missing_actor_failure_bound (still enforced via assertControlPlaneFailureEdgeRecoverySecondaryWorkflowResult). No dedicated negative test for non-object/array upstream input or non-object boundaryClaims guards, though those guards exist in the assembler.",
+        "recommended_action": "Optional symmetry: add the two missing bound-flag assertions and a guard test for non-object inputs. Non-blocking; core fail-closed paths (pack drift, handoff drift, decision/boundary drift, forbidden claim, ldip claim, unknown claim) are already covered by the 7 passing tests."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    }
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 278580,
+    "duration_api_ms": 280527,
+    "ttft_ms": 264175,
+    "num_turns": 1,
+    "result": "I reviewed the CP00-083 diff across all eight scoped files for correctness, boundary drift, validation theater, and production_ready risk. It follows the established closeout-pack pattern with strong code↔artifact parity and genuine fail-closed gating; no boundary violations found.\n\n```json\n{\n  \"review_target\": \"CP00-083 Failure Edge Recovery Secondary Workflow Binding\",\n  \"gate\": \"C00\",\n  \"review_mode\": \"read_only_diff\",\n  \"overall_verdict\": \"PASS_WITH_FINDINGS\",\n  \"blocks_pack_closeout\": false,\n  \"blocks_goal_closeout\": false,\n  \"no_unresolved_p0\": true,\n  \"no_unresolved_p1\": true,\n  \"summary\": \"Diff consumes the CP00-082 typed-primary result, binds RP00.P07.M03.S20 Hermes failure evidence plus RP00.P07.M04.S01-S14 secondary failure taxonomy/contracts/recovery expectations, completes M03+M04, and hands off to RP00.P07.M05.S01. All boundaries preserved: every runtime/write/permission/audit/LDIP flag is false, contracts are metadata_only, synthetic IDs only, and boundaryClaims are deny-all (forbidden + unknown both throw). Upstream handoff is hard-pinned (pack_id CP00-082, next_subphase RP00.P07.M03.S20, source_micro_phase_completed=false, decision=bound_metadata_only) before assertControlPlaneFailureEdgeRecoveryTypedPrimaryResult runs. assembleControlPlaneFailureEdgeRecoverySecondaryWorkflow output is deep-equal asserted against both the contract definition.result and the fixture.result (anti-theater parity), policy/result validators pin exact field sets, and the rp00 validator advances the cursor to RP00.P07.M04.S14 and gates the new subphases on control_plane_failure_edge_recovery_secondary_workflow_verified. 15 units / unit_count 15 / range and subphase_closeouts all reconcile. requested_pack_id=CP00-082 with deviation_from_plan=false is the same live-cursor-lag convention used by CP00-080/081/082, not drift. Only minor non-blocking P3 observations.\",\n  \"findings\": [\n    {\n      \"id\": \"CP00-083-F1\",\n      \"severity\": \"P3\",\n      \"title\": \"Secondary taxonomy typed_primary_unit_id cross-refs are static metadata, not validated against the consumed CP00-082 result\",\n      \"evidence\": \"policies.js CONTROL_PLANE_FAILURE_EDGE_RECOVERY_SECONDARY_FAILURES embeds typed_primary_unit_id RP00.P07.M03.S02-S11; assembleControlPlaneFailureEdgeRecoverySecondaryWorkflow validates upstream pack_id/next_subphase/boundary flags and calls assertControlPlaneFailureEdgeRecoveryTypedPrimaryResult, but never asserts these typed_primary_unit_id values exist in the consumed CP00-082 failure taxonomy. IDs fall within CP00-082's covered M02.S01-M03.S19 range, so they are plausibly correct.\",\n      \"recommended_action\": \"No action required for closeout (metadata-only, no runtime dependency, consistent with prior packs). If the primary taxonomy is renumbered later, add a parity assertion so the cross-reference cannot silently desync.\"\n    },\n    {\n      \"id\": \"CP00-083-F2\",\n      \"severity\": \"P3\",\n      \"title\": \"Minor happy-path test coverage gaps\",\n      \"evidence\": \"service.test.js 'assembles metadata-only secondary workflow receipt' asserts missing_matter/resource/unknown_action/etc. bound flags but skips direct assertions for missing_tenant_failure_bound and missing_actor_failure_bound (still enforced via assertControlPlaneFailureEdgeRecoverySecondaryWorkflowResult). No dedicated negative test for non-object/array upstream input or non-object boundaryClaims guards, though those guards exist in the assembler.\",\n      \"recommended_action\": \"Optional symmetry: add the two missing bound-flag assertions and a guard test for non-object inputs. Non-blocking; core fail-closed paths (pack drift, handoff drift, decision/boundary drift, forbidden claim, ldip claim, unknown claim) are already covered by the 7 passing tests.\"\n    }\n  ]\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "f57f2f3e-0dff-40d8-a78f-8caac95161fa",
+    "total_cost_usd": 1.23016325,
+    "usage": {
+      "input_tokens": 1,
+      "cache_creation_input_tokens": 81925,
+      "cache_read_input_tokens": 3058,
+      "output_tokens": 26435,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 81925,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [
+        {
+          "input_tokens": 1,
+          "output_tokens": 26435,
+          "cache_read_input_tokens": 3058,
+          "cache_creation_input_tokens": 81925,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 81925
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 55628,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.055722999999999995,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 1,
+        "outputTokens": 26435,
+        "cacheReadInputTokens": 3058,
+        "cacheCreationInputTokens": 81925,
+        "webSearchRequests": 0,
+        "costUSD": 1.17444025,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "c6c4d587-bf7a-4a32-a6c1-42b29beffeff"
+  }
+}

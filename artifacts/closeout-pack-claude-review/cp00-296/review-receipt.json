@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-296",
+  "normalized_at": "2026-06-11T00:41:24.469Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-296/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-296/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-296/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-296/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "875dabdb-f09c-4b27-a4f6-3a1e57c138ec",
+    "uuid": "c8c0a259-98eb-485c-96ca-f3ee508e3c30",
+    "total_cost_usd": 2.7531015000000005,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6024,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-296 is a descriptor-only pack closing the RP08.P08 Hermes phase (M06 fixture tail, M07-M08 Hermes cycles, M09 Claude review packet, M10 closeout head) and opening the RP08.P09 review foundation (M00-M03), as nine descriptor-only sections over 150 planned units (RP08.P08.M06.S09-RP08.P09.M03.S22, risk C). Independent read-only inspection (Read/Grep/Glob) confirms the pack-level claim is correctly scoped and NOT overclaimed: command-evidence.json and manifest.json both report production_ready=false / implemented_pending_review, and the production_ready_flag is a descriptor-verification label rather than an enterprise-trust claim. Unit count and the deliverable (15 claude_review / 42 hermes_evidence / 73 implementation / 8 security_audit / 8 test / 4 ui), phase (P08=88, P09=62), micro-phase, and micro-title distributions reconcile across registry.js, service.js, validators.js, the contract, the plan, the queue, and the manifest, and are deterministically enforced by validateEmailDmsCoreCp296Coverage and the contract validator (assertions at validate-rp08-email-dms-core-contract.mjs:1195-1221) plus three dedicated tests (model.test.js:1568-1619). No-write/no-real-data/no-runtime boundaries are strongly attested (freezeCp296Result service.js:3385; CP296_NO_WRITE_ATTESTATION registry.js:2266; manifest.json:5905-5940) and the package contains zero side-effecting patterns (require/exec/fs.write/fetch/http/process.env/eval). The authority boundary holds at every enforcement point: Claude is read-only and explicitly not the final approver, human final approval is required for any runtime opening, and enterprise trust is not claimed from local validation. CP178+ review hardening is present (forbidden_review_evidence covers auth failures, zero-byte stdout, malformed/fenced JSON, tool-call-shaped output, missing fields, and final-approval/enterprise-trust claims), and the readiness auth-preflight passed with valid non-empty JSON. Hermes control-plane patterns are confined to deterministic review packet/receipt descriptors (emits_hermes_runtime_receipt=false; hermes_runtime_embedded_in_product=false). No P0/P1/P2 issues found; one non-blocking P3 documentation nit in the changed-file-scope classification. Final approval and enterprise trust remain a human responsibility outside this read-only review.",
+    "findings": [
+      {
+        "id": "CP00-296-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json dual-classifies pack-related untracked paths under 'unrelated_dirty_files_preserved'",
+        "file": "artifacts/closeout-pack-claude-review/cp00-296/changed-file-scope.json",
+        "line": 100,
+        "details": "'docs/closeout-pack-plan/new-session-handoff.md' and 'docs/closeout-packs/cp00-296/' appear in both untracked_implementation_files (correctly identifying them as part of this pack) and unrelated_dirty_files_preserved. The latter field's name implies the paths are not part of the pack, yet docs/closeout-packs/cp00-296/ holds this pack's own manifest.json and command-evidence.json. The genuinely unrelated dirty files (the v2.0 .docx and docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json) are correctly excluded, and the authoritative pack scope (active_pack_implementation_refs / tracked-modified files) is unambiguous, so this has no effect on the review outcome or on pack scoping.",
+        "recommendation": "Clarify the semantics of unrelated_dirty_files_preserved (e.g. rename to untracked_or_preserved_dirty_files, or exclude paths already listed in untracked_implementation_files) so a strict reader is not misled into treating the pack's own docs directory as unrelated.",
+        "post_review_disposition": "Informational only; non-blocking. Does not affect pack or goal closeout. Recommend cosmetic cleanup in the scope-generation tooling at a future convenience."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

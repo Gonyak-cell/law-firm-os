@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-945",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-18T03:46:20.584Z",
+  "finished_at": "2026-06-18T03:52:15.329Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":354006,\"duration_api_ms\":355827,\"ttft_ms\":3184,\"num_turns\":48,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-945 does not block pack or goal closeout.\\n\\nThe descriptor-only pack is internally consistent across the registry binding, requirements, generated descriptor/rows, validators, the committed contract artifact, tests, and the upstream plan/source ledger. All runtime/write/decision/real-data/permission-bypass boundaries are held false and enforced by exit-on-error validators; the manifest honestly claims `production_ready=false`/`runtime_ready=false`; Hermes is control-plane only; and Claude's read-only non-final authority boundary is respected.\\n\\nOne non-blocking **P3** transparency note: `command-evidence.json` captures only the HRX-scoped commands (all exit 0), not the full closeout validation ladder — expected pre-closeout state that the closeout runner should complete and capture before flipping status and writing the receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"5b031034-a925-41d2-a6c2-b8da736a73c5\",\"total_cost_usd\":2.4435217499999995,\"usage\":{\"input_tokens\":62,\"cache_creation_input_tokens\":130665,\"cache_read_input_tokens\":2054923,\"output_tokens\":23915,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":130665,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":338,\"cache_read_input_tokens\":121960,\"cache_creation_input_tokens\":9229,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":9229},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1119,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001219,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":62,\"outputTokens\":23915,\"cacheReadInputTokens\":2054923,\"cacheCreationInputTokens\":130665,\"webSearchRequests\":0,\"costUSD\":2.4423027499999996,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-945 is a clean, descriptor-only RP30 P06 pack bridging HRPermission tail rows (RP30.P06.M00.S11-S13) and SensitiveGuard foundation rows (RP30.P06.M01.S01-S07). The pack-level claim is narrow and honest: manifest declares production_ready=false, runtime_ready=false, descriptor_only=true, with the only positive flag being hrx_hr_permission_sensitive_guard_bridge_descriptor_verified. That claim is fully supported by static inspection: (1) the registry binding (registry.js:899-914) and requirements (registry.js:3480-3532) match the upstream plan (closeout-pack-plan.json:392-524), manifest plan_binding_snapshot, baseline, and source microphase ledger (M00=HRPermission, M01=SensitiveGuard); (2) the generated descriptor and domain rows hold every runtime/record-write/decision-emission/real-data/permission-bypass flag false and keep sensitive_hr_guard_required/h30_review_only/c30_read_only/human_final_approval_required true (registry.js:3583-3885, 10604-10679); (3) the coverage/descriptor/contract validators enforce all of these and exit-on-error (validators.js:8362-8547); (4) the committed contract artifact hrx-people-contract.json is consistent with the projection (current_pack/latest_pack CP00-945; SensitiveGuard subphase_7 boundaries all false, entity_name SensitiveGuard); (5) tests (model.test.js:2383-2472) assert binding, distribution counts, descriptor boundaries, and validate the real contract file; (6) the validate script is read-only and chains CP897->CP945. No-write attestation is comprehensive, no real/credential data appears, and Hermes is used only as a deterministic control-plane gate/review packet (emits_runtime_receipt=false), not embedded product runtime. The authority boundary is respected: Claude remains a read-only independent reviewer and not final approver, and the pack does not assert runtime or enterprise-trust, so blocks_goal_closeout is false. The PENDING state of adjudication.md, construction-inspection.json, and claude-review-result.json is the expected pre-review state, not a defect. Provenance note: test/validation green status is taken from command-evidence.json exit codes (all 0) plus my static reading of internally consistent code and artifacts; as a read-only reviewer I did not independently re-execute the validation ladder. No P0/P1/P2 issues found; one P3 transparency note on validation-ladder evidence.\",\"findings\":[{\"id\":\"CP945-P3-01\",\"severity\":\"P3\",\"title\":\"Broader closeout validation ladder not yet captured in command-evidence.json\",\"file\":\"docs/closeout-packs/cp00-945/command-evidence.json\",\"line\":9,\"details\":\"command-evidence.json records only 5 HRX-scoped commands (node --check x3, node --test packages/hrx/test/*.test.js, npm run rp30:hrx:validate), all exit_code 0, with status 'pending_final_validation' and hermes_gate 'pending'. The 10 closeout validation commands listed in the review prompt (npm run closeout-pack-plan:validate, npm run closeout-pack:validate, npm test, npm run validate, npm run spec:requirements:validate, npm run weighted:validate, npm run fullplan:validate, npm run goal:closeout:validate, npm run rp00:control-plane:validate, git diff --check) are not yet evidenced here. This is the expected pre-closeout state, and as a read-only reviewer I cannot execute them; the descriptor-only claim itself is independently supported by the consistent registry/validators/contract/tests inspected. Flagged only for provenance transparency.\",\"recommendation\":\"Closeout runner should execute and capture the full validation ladder (including git diff --check) with exit 0 before flipping manifest and included_units status from in_progress to closed and writing the review receipt; ensure command-evidence/Hermes gate reflect the completed ladder rather than 'pending'.\",\"post_review_disposition\":\"Non-blocking; expected pre-closeout state. Deferred to the pack closeout runner at final validation.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"5b33117e-1619-463c-9139-0c6a5aa92e65\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6504,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "5b031034-a925-41d2-a6c2-b8da736a73c5",
+    "uuid": "5b33117e-1619-463c-9139-0c6a5aa92e65",
+    "total_cost_usd": 2.4435217499999995,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "subphase_id": "RP00.P02.M03.S16",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Blocked-claim output",
+  "created_at": "2026-06-05T12:21:46Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m03-s16-claude-review.json",
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 452609,
+  "duration_api_ms": 452302,
+  "session_id": "71c4fbda-04c3-4d20-9010-a42dd93c4b1c",
+  "uuid": "849a3b4c-2d7b-463c-9165-1b71d78bb446",
+  "total_cost_usd": 2.6024167500000006,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 34,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_evidence": "GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude reported GO for S16 with no P0/P1/P2 findings. Two P3 notes were informational and require no code change.",
+  "findings": [
+    {
+      "id": "CLAUDE-S16-P3-001",
+      "severity": "P3",
+      "title": "Untracked artifacts out of scope",
+      "status": "informational_no_code_change",
+      "summary": "Claude noted that .DS_Store and Law Firm OS UI/ appear in git status but are unrelated to S16 and outside this diff.",
+      "resolution": "No S16 action. These untracked artifacts are not staged or committed in the S16 closeout."
+    },
+    {
+      "id": "CLAUDE-S16-P3-002",
+      "severity": "P3",
+      "title": "Receipt carries additional validated metadata fields",
+      "status": "informational_no_code_change",
+      "summary": "Claude noted that blocked_claim_output_receipt includes matter_id and decision_reason beyond the receipt field list, and that the validator explicitly asserts them consistently with the S12-S15 pattern.",
+      "resolution": "No code change. The additional metadata is intentional, validated, mirrored in the fixture, and not a defect."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T12:21:46Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "71c4fbda-04c3-4d20-9010-a42dd93c4b1c",
+    "uuid": "849a3b4c-2d7b-463c-9165-1b71d78bb446",
+    "duration_ms": 452609,
+    "duration_api_ms": 452302,
+    "total_cost_usd": 2.6024167500000006,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s16-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline prompt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s16-claude-review.json",
+    "duration_ms": 452609,
+    "duration_api_ms": 452302,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "849a3b4c-2d7b-463c-9165-1b71d78bb446",
+    "session_id": "71c4fbda-04c3-4d20-9010-a42dd93c4b1c"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "GO",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Untracked artifacts out of scope",
+        "location": "git status",
+        "status": "not_applicable_after_adjudication",
+        "summary": ".DS_Store and Law Firm OS UI/ are not part of the S16 staged closeout."
+      },
+      {
+        "severity": "P3",
+        "title": "Receipt carries additional validated metadata",
+        "location": "packages/control-plane/src/service.js",
+        "status": "not_applicable_after_adjudication",
+        "summary": "matter_id and decision_reason are intentionally carried and separately validated."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S17 Rollback behavior as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S16 metadata-only blocked-claim output boundary, S15 dependency, canonical blocked refs and output entries, correction route metadata, no-write flags, validators, fixture parity, and S17 successor behavior.",
+      "There were no P0, P1, or P2 findings."
+    ],
+    "summary": "Claude reported GO with no blocking or should-fix findings. S16 is ready for closeout after evidence and final gate validation."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s16-claude-review.json",
+    "summary": "Claude returned GO with no P0/P1/P2 findings; P3 notes are informational."
+  },
+  "overall_verdict": "PASS"
+}

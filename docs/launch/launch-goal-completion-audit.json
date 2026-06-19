@@ -1,0 +1,1258 @@
+{
+  "schema_version": "law-firm-os.launch-goal-completion-audit.v0.1",
+  "generated_at": "2026-06-18T15:07:09.053Z",
+  "source_refs": [
+    "docs/launch/launch-authority-traceability-audit.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-evidence-integrity-audit.json",
+    "docs/launch/launch-tuw-evidence-coverage-audit.json",
+    "docs/launch/launch-phase-exit-readiness-audit.json",
+    "docs/launch/launch-blocker-surface-audit.json",
+    "docs/launch/launch-closure-dependency-graph.json",
+    "docs/launch/launch-deferral-coverage-audit.json",
+    "docs/launch/launch-deferral-decision-id-contract-audit.json",
+    "docs/launch/launch-deferral-action-crosswalk-audit.json",
+    "docs/launch/launch-deferral-resolution-lanes-audit.json",
+    "docs/launch/launch-deferral-decision-register-template-validation.json",
+    "docs/launch/launch-deferral-intake-batches-validation.json",
+    "docs/launch/launch-deferral-coverage-options-validation.json",
+    "docs/launch/launch-minimum-deferral-decision-packet-validation.json",
+    "docs/launch/launch-minimum-deferral-target-annex.json",
+    "docs/launch/launch-minimum-deferral-target-annex-validation.json",
+    "docs/launch/launch-minimum-deferral-application-audit.json",
+    "docs/launch/launch-owner-decision-intake-runbook.json",
+    "docs/launch/launch-owner-decision-intake-runbook-validation.json",
+    "docs/launch/launch-owner-approval-receipt-ledger.json",
+    "docs/launch/launch-owner-approval-receipt-ledger-validation.json",
+    "docs/launch/launch-owner-approval-request-packet-validation.json",
+    "docs/launch/launch-owner-response-intake-validation.json",
+    "docs/launch/launch-owner-response-receipt-candidates-validation.json",
+    "docs/launch/launch-owner-response-receipt-application-audit.json",
+    "docs/launch/launch-owner-response-receipt-reconciliation-audit.json",
+    "docs/launch/launch-decision-register-import-candidates.json",
+    "docs/launch/launch-decision-register-import-candidates-validation.json",
+    "docs/launch/launch-decision-register-import-application-audit.json",
+    "docs/launch/launch-decision-register-import-reconciliation-audit.json",
+    "docs/launch/launch-deferral-source-extraction-audit.json",
+    "docs/launch/launch-no-go-claim-policy-audit.json",
+    "docs/launch/launch-boundary-policy-audit.json",
+    "docs/launch/launch-review-waiver-policy-audit.json",
+    "docs/launch/launch-decision-register-validation.json",
+    "docs/launch/launch-decision-register-owner-evidence-audit.json",
+    "docs/launch/launch-manual-evidence-intake-validation.json",
+    "docs/launch/launch-evidence-acceptance-matrix-validation.json",
+    "docs/launch/launch-manual-evidence-completion-path-audit.json",
+    "docs/launch/owner-action-deferral-request-validation.json",
+    "docs/launch/stabilization-closure.md",
+    "contracts/go-live-gate-contract.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "verdict": "NOT_COMPLETE",
+  "boundary": {
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "requirements": {
+    "cp_closeout_completed_before_launch": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "scripts/validate-final-product-completion-gate.mjs",
+        "docs/closeout-pack-plan/closeout-pack-plan.json"
+      ],
+      "notes": []
+    },
+    "launch_tuw_ledger_valid_72_wp_344_tuw": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "workbook/launch-tuw/launch-tuw-ledger.json",
+        "workbook/launch-tuw/validate-launch-tuw-ledger.mjs"
+      ],
+      "notes": []
+    },
+    "launch_planning_authority_traceable": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "/Users/jws/Downloads/LAUNCH_TUW_PACKAGE_PART1_COMBINED.md",
+        "workbook/launch-tuw",
+        "docs/launch/launch-authority-traceability-audit.json"
+      ],
+      "notes": [
+        "Combined package and expanded workbook ledger remain traceable planning authority."
+      ]
+    },
+    "implementation_layer_ledger_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/closeout-pack-plan/implementation-layer-ledger.json",
+        "scripts/validate-implementation-layer-ledger.mjs"
+      ],
+      "notes": []
+    },
+    "all_launch_wp_have_standard_five_evidence": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-tuw-status-audit.json",
+        "docs/goal-closeout/*"
+      ],
+      "notes": []
+    },
+    "launch_evidence_integrity_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-evidence-integrity-audit.json",
+        "scripts/audit-launch-evidence-integrity.mjs"
+      ],
+      "notes": [
+        "Launch standard evidence metadata matches the 72-WP ledger and preserves review waiver and no-go boundaries."
+      ]
+    },
+    "launch_tuw_evidence_coverage_audit_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-tuw-evidence-coverage-audit.json",
+        "scripts/audit-launch-tuw-evidence-coverage.mjs"
+      ],
+      "notes": [
+        "Each ledger TUW is checked for direct command/manual evidence coverage."
+      ]
+    },
+    "all_launch_tuws_have_evidence_coverage": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-tuw-evidence-coverage-audit.json",
+        "workbook/launch-tuw/launch-tuw-ledger.json",
+        "docs/goal-closeout/<launch-goal-id>/command-evidence.json"
+      ],
+      "notes": [
+        "Every ledger TUW is represented by command/manual evidence coverage; blocked coverage rows remain non-completion evidence."
+      ]
+    },
+    "pre_l9_phase_exit_readiness_recorded": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-phase-exit-readiness-audit.json",
+        "scripts/audit-launch-phase-exit-readiness.mjs"
+      ],
+      "notes": [
+        "PRE through L9 phase exits are recorded as closed, owner-deferred, or blocked."
+      ]
+    },
+    "pre_l9_phase_exits_closed_or_owner_deferred": {
+      "status": "blocked_missing_owner_approved_deferrals",
+      "evidence_refs": [
+        "docs/launch/launch-phase-exit-readiness-audit.json",
+        "docs/launch/launch-decision-register.md"
+      ],
+      "notes": [
+        "One or more PRE-L9 phase exits remain blocked and the launch decision register has no valid owner-approved deferrals."
+      ]
+    },
+    "no_cp_evidence_rewrite_boundary_preserved": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/owner-action-deferral-request.json",
+        "contracts/go-live-gate-contract.json"
+      ],
+      "notes": [
+        "Current generated packages state closed CP evidence is read-only."
+      ]
+    },
+    "launch_boundary_policy_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-boundary-policy-audit.json",
+        "scripts/audit-launch-boundary-policy.mjs"
+      ],
+      "notes": [
+        "Launch command evidence is synthetic-data-only, no product-write, and closed CP evidence remains read-only."
+      ]
+    },
+    "synthetic_only_until_policy_gates_allow_otherwise": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-tuw-status-audit.json",
+        "docs/launch/owner-action-deferral-request.json"
+      ],
+      "notes": [
+        "Runtime, pilot, production, M365, and real-data tasks are blocked rather than claimed."
+      ]
+    },
+    "launch_review_waiver_policy_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-review-waiver-policy-audit.json",
+        "scripts/audit-launch-review-waiver-policy.mjs"
+      ],
+      "notes": [
+        "Full Claude review is waived and the waiver is not valid review evidence."
+      ]
+    },
+    "launch_decision_register_structurally_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-decision-register.md",
+        "docs/launch/launch-decision-register-validation.json"
+      ],
+      "notes": []
+    },
+    "launch_decision_register_owner_evidence_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-decision-register-owner-evidence-audit.json",
+        "scripts/audit-launch-decision-register-owner-evidence.mjs",
+        "docs/launch/launch-decision-register.md"
+      ],
+      "notes": [
+        "Owner decision rows are checked for placeholder-free owner/basis/date/signature evidence; an empty register remains non-approval."
+      ]
+    },
+    "manual_evidence_intake_register_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-manual-evidence-intake-register.json",
+        "docs/launch/launch-manual-evidence-intake-validation.json",
+        "scripts/validate-launch-manual-evidence-intake.mjs"
+      ],
+      "notes": [
+        "Current failed G1-G10 evidence slots and L9 closure criteria are represented as pending intake rows."
+      ]
+    },
+    "launch_evidence_acceptance_matrix_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-evidence-acceptance-matrix.json",
+        "docs/launch/launch-evidence-acceptance-matrix-validation.json",
+        "scripts/validate-launch-evidence-acceptance-matrix.mjs"
+      ],
+      "notes": [
+        "Failed G1-G10 evidence slots and L9 closure criteria have explicit future evidence/owner-deferral acceptance requirements."
+      ]
+    },
+    "launch_manual_evidence_completion_path_audit_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-manual-evidence-completion-path-audit.json",
+        "scripts/audit-launch-manual-evidence-completion-path.mjs"
+      ],
+      "notes": [
+        "Manual intake row states are mirrored into acceptance rows so evidence-satisfied completion paths cannot drift from the goal audit inputs."
+      ]
+    },
+    "owner_action_package_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/owner-action-deferral-request-validation.json",
+        "scripts/validate-launch-owner-action-package.mjs"
+      ],
+      "notes": []
+    },
+    "launch_blocker_surface_audit_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-blocker-surface-audit.json",
+        "scripts/audit-launch-blocker-surface.mjs"
+      ],
+      "notes": [
+        "Blocked work packages, failed gate evidence slots, manual intake rows, and phase-exit blockers are cross-checked."
+      ]
+    },
+    "launch_closure_dependency_graph_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-closure-dependency-graph.json",
+        "scripts/audit-launch-closure-dependency-graph.mjs"
+      ],
+      "notes": [
+        "Phase exits, failed gates, acceptance rows, L9 closure rows, and blocked work packages are linked without orphan blockers."
+      ]
+    },
+    "launch_deferral_coverage_audit_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-coverage-audit.json",
+        "scripts/audit-launch-deferral-coverage.mjs"
+      ],
+      "notes": [
+        "Owner-approved deferral coverage is evaluated by target scope rather than by mere presence of one deferral row."
+      ]
+    },
+    "launch_deferral_decision_id_contract_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-decision-id-contract-audit.json",
+        "scripts/audit-launch-deferral-decision-id-contract.mjs",
+        "scripts/lib/launch-decision-register.mjs"
+      ],
+      "notes": [
+        "Accepted owner-deferral decision IDs are classified into the same coverage domains that the deferral coverage audit expects."
+      ]
+    },
+    "launch_deferral_action_crosswalk_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-action-crosswalk-audit.json",
+        "scripts/audit-launch-deferral-action-crosswalk.mjs"
+      ],
+      "notes": [
+        "Every missing deferral target is linked to an actionable owner, manual-intake, or phase-exit source."
+      ]
+    },
+    "launch_deferral_resolution_lanes_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-resolution-lanes-audit.json",
+        "scripts/audit-launch-deferral-resolution-lanes.mjs"
+      ],
+      "notes": [
+        "Missing deferral targets are grouped into owner, external, runtime, policy, evidence, go-live, L9, and phase-exit resolution lanes."
+      ]
+    },
+    "launch_deferral_decision_register_template_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-decision-register-template.json",
+        "docs/launch/launch-deferral-decision-register-template-validation.json",
+        "scripts/generate-launch-deferral-decision-register-template.mjs",
+        "scripts/validate-launch-deferral-decision-register-template.mjs"
+      ],
+      "notes": [
+        "Missing deferral targets have placeholder-only decision-register template rows, while the real launch decision register remains unmodified."
+      ]
+    },
+    "launch_deferral_intake_batches_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-intake-batches.json",
+        "docs/launch/launch-deferral-intake-batches-validation.json",
+        "scripts/generate-launch-deferral-intake-batches.mjs",
+        "scripts/validate-launch-deferral-intake-batches.mjs"
+      ],
+      "notes": [
+        "Missing deferral targets are ordered into owner-action intake batches and matched to placeholder-only decision-register template rows."
+      ]
+    },
+    "launch_deferral_coverage_options_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-coverage-options.json",
+        "docs/launch/launch-deferral-coverage-options-validation.json",
+        "scripts/generate-launch-deferral-coverage-options.mjs",
+        "scripts/validate-launch-deferral-coverage-options.mjs"
+      ],
+      "notes": [
+        "Coverage-eligible aggregate decision IDs are checked as routing options only; the minimum all-target bundle still requires real owner rows."
+      ]
+    },
+    "launch_minimum_deferral_decision_packet_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-minimum-deferral-decision-packet.json",
+        "docs/launch/launch-minimum-deferral-decision-packet-validation.json",
+        "scripts/generate-launch-minimum-deferral-decision-packet.mjs",
+        "scripts/validate-launch-minimum-deferral-decision-packet.mjs"
+      ],
+      "notes": [
+        "The four aggregate deferral options are rendered as placeholder-only decision-register rows; real owner evidence is still required before coverage can close."
+      ]
+    },
+    "launch_minimum_deferral_target_annex_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-minimum-deferral-target-annex.json",
+        "docs/launch/launch-minimum-deferral-target-annex-validation.json",
+        "scripts/generate-launch-minimum-deferral-target-annex.mjs",
+        "scripts/validate-launch-minimum-deferral-target-annex.mjs"
+      ],
+      "notes": [
+        "The target annex enumerates all 117 targets covered by the four placeholder-only aggregate deferral rows and verifies each aggregate decision ID is accepted for its target set."
+      ]
+    },
+    "launch_owner_decision_intake_runbook_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-decision-intake-runbook.json",
+        "docs/launch/launch-owner-decision-intake-runbook-validation.json",
+        "scripts/generate-launch-owner-decision-intake-runbook.mjs",
+        "scripts/validate-launch-owner-decision-intake-runbook.mjs"
+      ],
+      "notes": [
+        "The owner intake runbook summarizes the four minimum rows, signature-reference formats, and validation sequence without modifying the decision register or treating placeholders as approval evidence."
+      ]
+    },
+    "launch_owner_approval_receipt_ledger_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-approval-receipt-ledger.json",
+        "docs/launch/launch-owner-approval-receipt-ledger-validation.json",
+        "scripts/generate-launch-owner-approval-receipt-ledger.mjs",
+        "scripts/validate-launch-owner-approval-receipt-ledger.mjs"
+      ],
+      "notes": [
+        "The receipt ledger provides four pending owner-approval evidence slots and verifies pending slots cannot be counted as deferral approval or copied into the launch decision register."
+      ]
+    },
+    "launch_owner_approval_request_packet_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-approval-request-packet.json",
+        "docs/launch/launch-owner-approval-request-packet-validation.json",
+        "scripts/generate-launch-owner-approval-request-packet.mjs",
+        "scripts/validate-launch-owner-approval-request-packet.mjs"
+      ],
+      "notes": [
+        "The owner approval request packet renders pending receipt slots into request cards without counting those cards as owner evidence or decision-register copy permission."
+      ]
+    },
+    "launch_owner_response_intake_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-response-intake.json",
+        "docs/launch/launch-owner-response-intake-validation.json",
+        "scripts/generate-launch-owner-response-intake.mjs",
+        "scripts/validate-launch-owner-response-intake.mjs"
+      ],
+      "notes": [
+        "The owner response intake preserves future human response fields while pending entries remain non-approval and cannot be copied into the receipt ledger."
+      ]
+    },
+    "launch_owner_response_receipt_candidates_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-response-receipt-candidates.json",
+        "docs/launch/launch-owner-response-receipt-candidates-validation.json",
+        "scripts/generate-launch-owner-response-receipt-candidates.mjs",
+        "scripts/validate-launch-owner-response-receipt-candidates.mjs"
+      ],
+      "notes": [
+        "Only real copy-ready owner responses can produce receipt-update candidates; pending responses produce no owner-evidence receipt updates."
+      ]
+    },
+    "launch_owner_response_receipt_application_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-response-receipt-application-audit.json",
+        "scripts/audit-launch-owner-response-receipt-application.mjs",
+        "docs/launch/launch-owner-approval-receipt-ledger.json",
+        "docs/launch/launch-owner-response-receipt-candidates.json"
+      ],
+      "notes": [
+        "Validated receipt-update candidates are audited as applied, pending manual application, or mismatched without modifying the receipt ledger or counting pending application as approval."
+      ]
+    },
+    "launch_owner_response_receipt_reconciliation_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-owner-response-receipt-reconciliation-audit.json",
+        "scripts/audit-launch-owner-response-receipt-reconciliation.mjs",
+        "docs/launch/launch-owner-approval-receipt-ledger.json",
+        "docs/launch/launch-owner-response-receipt-candidates.json"
+      ],
+      "notes": [
+        "Real receipt ledger slots must reconcile to validated receipt-update candidates; empty real-receipt state remains non-approval."
+      ]
+    },
+    "launch_decision_register_import_candidates_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-decision-register-import-candidates.json",
+        "docs/launch/launch-decision-register-import-candidates-validation.json",
+        "scripts/generate-launch-decision-register-import-candidates.mjs",
+        "scripts/validate-launch-decision-register-import-candidates.mjs"
+      ],
+      "notes": [
+        "Import candidates are generated only from real copy-allowed owner receipt slots; pending receipt slots produce no decision-register rows."
+      ]
+    },
+    "launch_decision_register_import_application_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-decision-register-import-application-audit.json",
+        "scripts/audit-launch-decision-register-import-application.mjs",
+        "docs/launch/launch-decision-register.md",
+        "docs/launch/launch-decision-register-import-candidates.json"
+      ],
+      "notes": [
+        "Validated decision-register import candidates are audited as applied, pending manual application, or mismatched without modifying the register or counting pending application as approval."
+      ]
+    },
+    "launch_decision_register_import_reconciliation_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-decision-register-import-reconciliation-audit.json",
+        "scripts/audit-launch-decision-register-import-reconciliation.mjs",
+        "docs/launch/launch-decision-register.md",
+        "docs/launch/launch-decision-register-import-candidates.json"
+      ],
+      "notes": [
+        "Decision-register rows must reconcile to validated import candidates; empty register remains non-approval."
+      ]
+    },
+    "launch_minimum_deferral_application_audit_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-minimum-deferral-application-audit.json",
+        "scripts/audit-launch-minimum-deferral-application.mjs",
+        "docs/launch/launch-decision-register.md"
+      ],
+      "notes": [
+        "The minimum decision packet application is monitored against the real launch decision register without treating missing owner rows as approval evidence."
+      ]
+    },
+    "launch_deferral_source_extraction_audit_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-source-extraction-audit.json",
+        "scripts/audit-launch-deferral-source-extraction.mjs",
+        "docs/launch/deferral-review-register.md"
+      ],
+      "notes": [
+        "LT-L0-W03 source markers are classified so broad P2/overlay tokens are not mistaken for unresolved owner-approved deferrals."
+      ]
+    },
+    "launch_deferral_coverage_complete": {
+      "status": "blocked_missing_owner_approved_deferrals",
+      "evidence_refs": [
+        "docs/launch/launch-deferral-coverage-audit.json",
+        "docs/launch/launch-decision-register.md"
+      ],
+      "notes": [
+        "Required gate, L9, blocked-WP, and phase-exit deferral targets are not fully covered by valid owner-approved deferral rows."
+      ]
+    },
+    "launch_no_go_claim_policy_valid": {
+      "status": "satisfied",
+      "evidence_refs": [
+        "docs/launch/launch-no-go-claim-policy-audit.json",
+        "scripts/audit-launch-no-go-claim-policy.mjs"
+      ],
+      "notes": [
+        "Launch markdown and JSON artifacts are guarded against approval, execution, production-ready, and go-live claims while No-Go remains active."
+      ]
+    },
+    "g1_g10_go_live_closed_or_owner_deferred": {
+      "status": "blocked_missing_owner_approved_deferrals",
+      "evidence_refs": [
+        "docs/launch/launch-tuw-status-audit.json",
+        "contracts/go-live-gate-contract.json",
+        "docs/launch/launch-evidence-acceptance-matrix-validation.json",
+        "docs/launch/launch-deferral-coverage-audit.json"
+      ],
+      "notes": [
+        "G1-G10 all pass is false, failed gate evidence slots are not all evidence-satisfied, and valid owner-approved deferrals do not cover every failed go-live evidence slot."
+      ]
+    },
+    "l9_stabilization_closed_or_owner_deferred": {
+      "status": "blocked_missing_four_week_hypercare_and_owner_deferral",
+      "evidence_refs": [
+        "docs/launch/stabilization-closure.md",
+        "docs/launch/launch-evidence-acceptance-matrix-validation.json",
+        "docs/launch/launch-deferral-coverage-audit.json"
+      ],
+      "notes": [
+        "L9 work packages are standard-five blocked, L9 acceptance rows are not all evidence-satisfied, and valid owner-approved deferrals do not cover every L9 stabilization closure criterion."
+      ]
+    }
+  },
+  "launch_readiness": {
+    "go_live_all_pass": false,
+    "failed_gate_ids": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9",
+      "G10"
+    ],
+    "owner_approved_deferrals_present": false,
+    "blocked_or_pending_count": 70,
+    "standard_five_present_count": 72,
+    "command_evidence_present_count": 72,
+    "missing_evidence_count": 0
+  },
+  "phase_exit_readiness": {
+    "all_phase_exits_closed_or_owner_deferred": false,
+    "blocked_phase_count": 11,
+    "total_blocked_work_package_count": 70
+  },
+  "decision_register_owner_evidence": {
+    "decision_register_total_rows": 0,
+    "owner_evidence_row_count": 0,
+    "owner_evidence_quality_pass_count": 0,
+    "owner_evidence_quality_blocked_count": 0,
+    "weak_owner_evidence_row_count": 0,
+    "agent_inferred_owner_evidence_row_count": 0,
+    "finding_count": 0
+  },
+  "evidence_integrity": {
+    "integrity_pass_count": 72,
+    "integrity_failed_count": 0,
+    "finding_count": 0
+  },
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 344,
+    "covered_ledger_tuw_count": 344,
+    "missing_ledger_tuw_count": 0,
+    "terminal_tuw_missing_evidence_count": 0,
+    "wp_with_missing_tuw_evidence_count": 0
+  },
+  "blocker_surface": {
+    "blocked_work_package_count": 70,
+    "failed_gate_evidence_slot_count": 31,
+    "total_manual_intake_row_count": 36,
+    "pending_manual_intake_row_count": 36,
+    "evidence_satisfied_manual_intake_row_count": 0,
+    "owner_deferred_manual_intake_row_count": 0,
+    "blocked_phase_count": 11
+  },
+  "manual_evidence_intake": {
+    "gate_intake_count": 31,
+    "l9_stabilization_intake_count": 5,
+    "total_intake_row_count": 36,
+    "pending_intake_count": 36,
+    "evidence_satisfied_count": 0,
+    "owner_deferred_count": 0,
+    "valid_decision_register_deferred_rows": 0,
+    "coverage_eligible_valid_deferred_rows": 0,
+    "non_coverage_valid_deferred_rows": 0,
+    "finding_count": 0
+  },
+  "evidence_acceptance_matrix": {
+    "gate_acceptance_row_count": 31,
+    "l9_acceptance_row_count": 5,
+    "total_acceptance_row_count": 36,
+    "pending_acceptance_row_count": 36,
+    "evidence_satisfied_acceptance_row_count": 0,
+    "owner_deferred_acceptance_row_count": 0,
+    "missing_intake_acceptance_row_count": 0,
+    "gate_pending_acceptance_row_count": 31,
+    "gate_evidence_satisfied_acceptance_row_count": 0,
+    "gate_owner_deferred_acceptance_row_count": 0,
+    "l9_pending_acceptance_row_count": 5,
+    "l9_evidence_satisfied_acceptance_row_count": 0,
+    "l9_owner_deferred_acceptance_row_count": 0,
+    "finding_count": 0
+  },
+  "manual_evidence_completion_path": {
+    "total_manual_intake_row_count": 36,
+    "total_acceptance_row_count": 36,
+    "pending_manual_intake_row_count": 36,
+    "pending_acceptance_row_count": 36,
+    "evidence_satisfied_manual_intake_row_count": 0,
+    "evidence_satisfied_acceptance_row_count": 0,
+    "owner_deferred_manual_intake_row_count": 0,
+    "owner_deferred_acceptance_row_count": 0,
+    "missing_intake_acceptance_row_count": 0,
+    "go_live_evidence_completion_path_ready": false,
+    "l9_evidence_completion_path_ready": false,
+    "all_evidence_completion_paths_ready": false,
+    "owner_deferred_rows_require_coverage": false,
+    "finding_count": 0
+  },
+  "closure_dependency_graph": {
+    "phase_node_count": 11,
+    "failed_gate_node_count": 10,
+    "gate_acceptance_node_count": 31,
+    "l9_closure_node_count": 5,
+    "pending_acceptance_node_count": 36,
+    "evidence_satisfied_acceptance_node_count": 0,
+    "owner_deferred_acceptance_node_count": 0,
+    "missing_intake_acceptance_node_count": 0,
+    "blocked_wp_node_count": 70,
+    "finding_count": 0
+  },
+  "deferral_coverage": {
+    "valid_deferred_decision_count": 0,
+    "coverage_eligible_valid_deferred_decision_count": 0,
+    "non_coverage_valid_deferred_decision_count": 0,
+    "all_required_deferrals_covered": false,
+    "go_live_missing_deferral_count": 31,
+    "l9_missing_deferral_count": 5,
+    "blocked_wp_missing_deferral_count": 70,
+    "phase_exit_missing_deferral_count": 11
+  },
+  "deferral_decision_id_contract": {
+    "accepted_decision_id_mention_count": 346,
+    "unique_accepted_decision_id_count": 153,
+    "unclassified_decision_id_count": 0,
+    "domain_mismatch_count": 0,
+    "cross_domain_decision_id_count": 0,
+    "finding_count": 0
+  },
+  "deferral_action_crosswalk": {
+    "missing_deferral_target_count": 117,
+    "crosswalk_row_count": 117,
+    "action_linked_count": 117,
+    "missing_action_source_count": 0,
+    "gate_manual_intake_link_count": 31,
+    "l9_manual_intake_link_count": 5,
+    "blocked_wp_owner_action_link_count": 70,
+    "phase_exit_link_count": 11,
+    "finding_count": 0
+  },
+  "deferral_resolution_lanes": {
+    "missing_deferral_target_count": 117,
+    "classified_target_count": 117,
+    "primary_lane_count": 8,
+    "lane_mention_count": 146,
+    "unclassified_target_count": 0,
+    "finding_count": 0,
+    "primary_lane_counts": [
+      {
+        "value": "go_live_gate_evidence",
+        "count": 31
+      },
+      {
+        "value": "owner_decision_signature",
+        "count": 27
+      },
+      {
+        "value": "runtime_operational_evidence",
+        "count": 24
+      },
+      {
+        "value": "phase_exit_closure_or_deferral",
+        "count": 11
+      },
+      {
+        "value": "external_dependency",
+        "count": 10
+      },
+      {
+        "value": "evidence_completion",
+        "count": 6
+      },
+      {
+        "value": "l9_stabilization_measurement",
+        "count": 5
+      },
+      {
+        "value": "policy_scope_decision",
+        "count": 3
+      }
+    ]
+  },
+  "deferral_decision_register_template": {
+    "template_row_count": 117,
+    "source_missing_deferral_target_count": 117,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "placeholder_row_count": 117,
+    "finding_count": 0
+  },
+  "deferral_intake_batches": {
+    "intake_target_count": 117,
+    "source_missing_deferral_target_count": 117,
+    "template_row_count": 117,
+    "batch_count": 8,
+    "non_empty_batch_count": 8,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "not_approved_target_count": 117,
+    "template_matched_target_count": 117,
+    "finding_count": 0
+  },
+  "deferral_coverage_options": {
+    "missing_deferral_target_count": 117,
+    "minimum_bundle_decision_id_count": 4,
+    "minimum_bundle_covered_target_count": 117,
+    "minimum_bundle_uncovered_target_count": 0,
+    "option_count": 153,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "finding_count": 0
+  },
+  "minimum_deferral_decision_packet": {
+    "placeholder_decision_row_count": 4,
+    "minimum_bundle_decision_id_count": 4,
+    "covered_target_count_if_owner_rows_are_completed": 117,
+    "minimum_bundle_covered_target_count": 117,
+    "uncovered_target_count_if_owner_rows_are_completed": 0,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "placeholder_row_count": 4,
+    "finding_count": 0
+  },
+  "minimum_deferral_target_annex": {
+    "minimum_decision_row_count": 4,
+    "unique_target_id_count": 117,
+    "expected_unique_target_id_count": 117,
+    "unmatched_target_count": 0,
+    "aggregate_not_accepted_target_count": 0,
+    "source_missing_deferral_target_count": 117,
+    "finding_count": 0
+  },
+  "owner_decision_intake_runbook": {
+    "minimum_owner_row_count": 4,
+    "target_count_if_minimum_owner_rows_are_completed": 117,
+    "decision_register_total_rows": 0,
+    "valid_applied_minimum_decision_row_count": 0,
+    "remaining_target_count_after_valid_applied_rows": 117,
+    "validation_command_count": 6,
+    "signature_ref_format_count": 7,
+    "finding_count": 0
+  },
+  "owner_approval_receipt_ledger": {
+    "receipt_slot_count": 4,
+    "pending_receipt_slot_count": 4,
+    "real_owner_receipt_count": 0,
+    "copy_allowed_count": 0,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "target_count_if_all_receipts_are_completed": 117,
+    "finding_count": 0
+  },
+  "owner_approval_request_packet": {
+    "request_card_count": 4,
+    "pending_receipt_slot_count": 4,
+    "real_owner_receipt_count": 0,
+    "copy_allowed_count": 0,
+    "target_count_by_pending_requests": 117,
+    "response_field_count": 7,
+    "finding_count": 0
+  },
+  "owner_response_intake": {
+    "response_entry_count": 4,
+    "request_card_count": 4,
+    "pending_response_count": 4,
+    "real_owner_response_count": 0,
+    "copy_allowed_count": 0,
+    "target_count_if_all_responses_received": 117,
+    "target_count_by_real_responses": 0,
+    "finding_count": 0
+  },
+  "owner_response_receipt_candidates": {
+    "receipt_update_candidate_count": 0,
+    "expected_receipt_update_candidate_count": 0,
+    "response_entry_count": 4,
+    "real_owner_response_count": 0,
+    "copy_allowed_response_count": 0,
+    "target_count_by_candidates": 0,
+    "receipt_ledger_current_real_receipt_count": 0,
+    "receipt_ledger_current_copy_allowed_count": 0,
+    "finding_count": 0
+  },
+  "owner_response_receipt_application": {
+    "receipt_update_candidate_count": 0,
+    "applied_candidate_count": 0,
+    "pending_application_count": 0,
+    "mismatched_application_count": 0,
+    "missing_receipt_slot_count": 0,
+    "receipt_ledger_current_real_receipt_count": 0,
+    "receipt_ledger_current_copy_allowed_count": 0,
+    "finding_count": 0
+  },
+  "owner_response_receipt_reconciliation": {
+    "receipt_slot_count": 4,
+    "pending_receipt_slot_count": 4,
+    "real_owner_receipt_count": 0,
+    "copy_allowed_count": 0,
+    "receipt_update_candidate_count": 0,
+    "reconciled_real_receipt_count": 0,
+    "unreconciled_real_receipt_count": 0,
+    "field_mismatch_count": 0,
+    "finding_count": 0
+  },
+  "decision_register_import_candidates": {
+    "import_candidate_count": 0,
+    "expected_import_candidate_count": 0,
+    "covered_target_count_by_candidates": 0,
+    "real_owner_receipt_count": 0,
+    "pending_receipt_slot_count": 4,
+    "copy_allowed_count": 0,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "finding_count": 0
+  },
+  "decision_register_import_application": {
+    "import_candidate_count": 0,
+    "applied_candidate_count": 0,
+    "pending_application_count": 0,
+    "mismatched_application_count": 0,
+    "duplicate_register_row_count": 0,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "finding_count": 0
+  },
+  "decision_register_import_reconciliation": {
+    "decision_register_total_rows": 0,
+    "valid_deferred_rows": 0,
+    "import_candidate_count": 0,
+    "reconciled_row_count": 0,
+    "unreconciled_row_count": 0,
+    "field_mismatch_count": 0,
+    "finding_count": 0
+  },
+  "minimum_deferral_application": {
+    "minimum_packet_decision_row_count": 4,
+    "valid_applied_minimum_decision_row_count": 0,
+    "missing_minimum_decision_row_count": 4,
+    "invalid_minimum_decision_row_count": 0,
+    "application_coverage_ready": false,
+    "target_count_if_fully_applied": 117,
+    "covered_target_count_by_valid_applied_rows": 0,
+    "remaining_target_count_after_valid_applied_rows": 117,
+    "decision_register_total_rows": 0,
+    "decision_register_valid_deferred_rows": 0,
+    "finding_count": 0
+  },
+  "deferral_source_extraction": {
+    "p2_broad_marker_source_file_count": 3794,
+    "p2_positive_count_statement_file_count": 11,
+    "p2_positive_count_statement_sum": 18,
+    "p2_explicit_item_line_count": 18,
+    "p2_unresolved_item_line_count": 0,
+    "ldip_actual_defer_decision_count": 0,
+    "hrx_actual_defer_decision_count": 0,
+    "mat_dec_mention_line_count": 53,
+    "finding_count": 0
+  },
+  "no_go_claim_policy": {
+    "scanned_file_count": 196,
+    "no_go_active": true,
+    "forbidden_true_claim_count": 0,
+    "finding_count": 0
+  },
+  "l9_stabilization": {
+    "closure": {
+      "exists": true,
+      "status": "blocked_pending_four_week_hypercare_and_owner_signoff",
+      "blocked_criteria": [
+        {
+          "criterion": "Last 14 days P0/P1 count equals zero",
+          "current_status": "blocked_not_measured"
+        },
+        {
+          "criterion": "Four consecutive weeks SLO met",
+          "current_status": "blocked_not_measured"
+        },
+        {
+          "criterion": "Four weeks audit completeness green",
+          "current_status": "blocked_not_measured"
+        },
+        {
+          "criterion": "Every incident has post-analysis link",
+          "current_status": "blocked_not_measured"
+        },
+        {
+          "criterion": "Owner signoff",
+          "current_status": "missing"
+        }
+      ]
+    },
+    "work_packages": [
+      {
+        "wp_id": "LT-L9-W01",
+        "title": "하이퍼케어 체제(4주)",
+        "classification": "standard_five_blocked",
+        "command_status": "blocked_hypercare_templates_recorded",
+        "evidence_base": "docs/goal-closeout/lt-l9-w01"
+      },
+      {
+        "wp_id": "LT-L9-W02",
+        "title": "KPI 베이스라인 실측",
+        "classification": "standard_five_blocked",
+        "command_status": "blocked_kpi_baseline_templates_recorded",
+        "evidence_base": "docs/goal-closeout/lt-l9-w02"
+      },
+      {
+        "wp_id": "LT-L9-W03",
+        "title": "레거시 소스 처분(동결→보존 연계 폐기)",
+        "classification": "standard_five_blocked",
+        "command_status": "blocked_legacy_disposition_templates_recorded",
+        "evidence_base": "docs/goal-closeout/lt-l9-w03"
+      },
+      {
+        "wp_id": "LT-L9-W04",
+        "title": "Wave 2 개방 게이트(AI 활성화)",
+        "classification": "standard_five_blocked",
+        "command_status": "t01_wave2_opening_gate_definition_draft_blocked_pending_l6_w04_external_ai_prerequisites_and_runtime_verdict",
+        "evidence_base": "docs/goal-closeout/lt-l9-w04"
+      },
+      {
+        "wp_id": "LT-L9-W05",
+        "title": "Wave 3 개방 게이트(Portal·HR·Obsidian 등)",
+        "classification": "standard_five_blocked",
+        "command_status": "t01_wave3_opening_gate_definition_draft_blocked_pending_external_identity_hr_sensitivity_oq006_and_owner_signoff",
+        "evidence_base": "docs/goal-closeout/lt-l9-w05"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "node scripts/validate-final-product-completion-gate.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"schema_version\": \"law-firm-os.final-product-completion-gate.validation.v0.1\",\n  \"contract_path\": \"contracts/final-product-completion-gate-contract.json\",\n  \"scope_revision\": {\n    \"path\": \"docs/launch/scope-revision-register.json\",\n    \"approved\": true,\n    \"status\": \"approved\",\n    \"revision_type\": \"no_scope_delta_after_cp_closeout\"\n  },\n  \"units\": {\n    \"law_firm_os_units\": 54355,\n    \"hrx_embedded_people_units\": 901,\n    \"expanded_total_units\": 55256,\n    \"law_firm_os_ledger_path\": \"docs/weighted-implementation-ledger.json\",\n    \"hrx_ledger_path\": \"docs/hrx-weighted-implementation-ledger.json\"\n  },\n  \"production_ready\": {\n    \"closeout_complete\": true,\n    \"live_latest_pack_id\": \"CP00-987\",\n    \"manifest_count\": 987,\n    \"production_ready_pack_count\": 987,\n    \"manifest_unit_proxy_count\": 55131,\n    \"satisfied_units\": 55256,\n    \"required_units\": 55256,\n    \"source\": \"closeout_plan_completion\",\n    \"structured_review_p0_count\": 0,\n    \"structured_review_p1_count\": 0\n  },\n  \"ldip\": {\n    \"source_index_path\": \"docs/ldip-integration/ldip-source-index.md\",\n    \"source_sections_total\": 68,\n    \"classified_sections\": 68,\n    \"classification_rate_percent\": 100\n  },\n  \"invariants\": {\n    \"required_count\": 8,\n    \"passed_count\": 8,\n    \"rows\": [\n      {\n        \"id\": \"matter_first\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\"\n        ]\n      },\n      {\n        \"id\": \"permission_first\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"audit_first\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"evidence_bound_ai\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"human_review\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"contracts/law-firm-os.product-contract.json\",\n          \"docs/ldip-integration/ldip-no-omission-coverage-matrix.md\"\n        ]\n      },\n      {\n        \"id\": \"read_only_default\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"docs/ldip-integration/ldip-no-omission-coverage-matrix.md\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"external_share_safety\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"docs/ldip-integration/ldip-no-omission-coverage-matrix.md\",\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\"\n        ]\n      },\n      {\n        \"id\": \"vendor_neutral_architecture\",\n        \"pass\": true,\n        \"source_refs\": [\n          \"docs/closeout-pack-plan/latest-total-closeout-execution-plan.md\",\n          \"docs/ldip-integration/ldip-gap-adjudication.md\"\n        ]\n      }\n    ]\n  },\n  \"pack_gate_chain\": {\n    \"pack_count\": 987,\n    \"required_artifact_complete_count\": 987,\n    \"implementation_evidence_count\": 987,\n    \"tests_evidence_count\": 987,\n    \"hermes_evidence_count\": 987,\n    \"valid_review_count\": 952,\n    \"review_waiver_count\": 35,\n    \"review_satisfied_count\": 987,\n    \"adjudication_count\": 987,\n    \"construction_inspection_pass_count\": 987,\n    \"included_units_production_ready_count\": 987,\n    \"final_validation_count\": 987,\n    \"commit_evidence_count\": 987,\n    \"review_waiver_is_not_valid_review_evidence\": true,\n    \"missing_pack_count\": 0,\n    \"missing_packs\": []\n  },\n  \"p0_p1_counts\": {\n    \"validator_p0_count\": 0,\n    \"validator_p1_count\": 0,\n    \"structured_review_p0_count\": 0,\n    \"structured_review_p1_count\": 0\n  },\n  \"findings\": [],\n  \"verdict\": \"PASS\"\n}"
+    },
+    {
+      "command": "node scripts/validate-implementation-layer-ledger.mjs",
+      "exit_code": 0,
+      "stdout": "Implementation layer ledger validation passed.\npacks: 987"
+    },
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "stdout": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}\n게이트 커버리지: G1:5 G2:7 G3:7 G4:8 G5:5 G6:7 G7:5 G8:4 G9:3 G10:3 PRE-EXIT:14 L0-EXIT:18 L1-EXIT:32 L2-EXIT:87 L3-EXIT:44 L4-EXIT:37 L5-EXIT:30 L6-EXIT:14 L7-EXIT:35 L8-EXIT:20 L9-EXIT:13\n위반 0건 — PASS"
+    },
+    {
+      "command": "node scripts/audit-launch-authority-traceability.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-authority-traceability-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-authority-traceability-audit.md\",\n  \"verdict\": \"PASS\",\n  \"work_package_count\": 72,\n  \"tuw_count\": 344,\n  \"tuw_markdown_coverage_count\": 344,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-tuw-status.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-tuw-status-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-tuw-status-audit.md\",\n  \"work_package_count\": 72,\n  \"tuw_count\": 344,\n  \"missing_evidence_count\": 0,\n  \"blocked_or_pending_count\": 70,\n  \"go_live_all_pass\": false,\n  \"failed_gate_ids\": [\n    \"G1\",\n    \"G2\",\n    \"G3\",\n    \"G4\",\n    \"G5\",\n    \"G6\",\n    \"G7\",\n    \"G8\",\n    \"G9\",\n    \"G10\"\n  ],\n  \"owner_approved_deferrals_present\": false,\n  \"valid_deferred_rows\": 0,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"invalid_decision_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-evidence-integrity.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-integrity-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-integrity-audit.md\",\n  \"verdict\": \"PASS\",\n  \"work_package_count\": 72,\n  \"integrity_pass_count\": 72,\n  \"integrity_failed_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-phase-exit-readiness.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-phase-exit-readiness-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-phase-exit-readiness-audit.md\",\n  \"verdict\": \"PASS\",\n  \"phase_count\": 11,\n  \"all_phase_exits_closed_or_owner_deferred\": false,\n  \"blocked_phase_count\": 11,\n  \"total_blocked_work_package_count\": 70,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"phase_exit_missing_owner_deferral_count\": 11\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-boundary-policy.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-boundary-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-boundary-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"work_package_count\": 72,\n  \"no_real_data_true_count\": 72,\n  \"writes_product_state_false_count\": 72,\n  \"closed_cp_evidence_read_only_count\": 72,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-review-waiver-policy.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-review-waiver-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-review-waiver-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"work_package_count\": 72,\n  \"review_waived_count\": 72,\n  \"valid_review_evidence_false_count\": 72,\n  \"source_plan_review_requirement_ref_count\": 6,\n  \"source_plan_review_requirement_overlay_count\": 6,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-decision-register.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-decision-register-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-decision-register-validation.md\",\n  \"verdict\": \"PASS\",\n  \"owner_approved_deferrals_present\": false,\n  \"valid_deferred_rows\": 0,\n  \"invalid_decision_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-decision-register-owner-evidence.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-decision-register-owner-evidence-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-decision-register-owner-evidence-audit.md\",\n  \"verdict\": \"PASS\",\n  \"decision_register_total_rows\": 0,\n  \"owner_evidence_quality_pass_count\": 0,\n  \"weak_owner_evidence_row_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-manual-evidence-intake.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-intake-register.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-intake-register.md\",\n  \"failed_gate_evidence_slot_count\": 31,\n  \"l9_stabilization_closure_slot_count\": 5,\n  \"total_intake_row_count\": 36,\n  \"owner_approved_deferrals_present\": false,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-manual-evidence-intake.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-intake-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-intake-validation.md\",\n  \"verdict\": \"PASS\",\n  \"total_intake_row_count\": 36,\n  \"pending_intake_count\": 36,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-evidence-acceptance-matrix.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-acceptance-matrix.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-acceptance-matrix.md\",\n  \"gate_acceptance_row_count\": 31,\n  \"l9_acceptance_row_count\": 5,\n  \"total_acceptance_row_count\": 36,\n  \"pending_acceptance_row_count\": 36,\n  \"evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_deferred_acceptance_row_count\": 0,\n  \"missing_intake_acceptance_row_count\": 0,\n  \"gate_evidence_satisfied_acceptance_row_count\": 0,\n  \"l9_evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_approved_deferrals_present\": false,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-evidence-acceptance-matrix.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-evidence-acceptance-matrix-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-evidence-acceptance-matrix-validation.md\",\n  \"verdict\": \"PASS\",\n  \"total_acceptance_row_count\": 36,\n  \"pending_acceptance_row_count\": 36,\n  \"evidence_satisfied_acceptance_row_count\": 0,\n  \"owner_deferred_acceptance_row_count\": 0,\n  \"missing_intake_acceptance_row_count\": 0,\n  \"gate_evidence_satisfied_acceptance_row_count\": 0,\n  \"l9_evidence_satisfied_acceptance_row_count\": 0,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-owner-action-package.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/owner-action-deferral-request.json\",\n  \"report_markdown\": \"docs/launch/owner-action-deferral-request.md\",\n  \"blocked_work_package_count\": 70,\n  \"recorded_work_package_count\": 2,\n  \"failed_gate_ids\": [\n    \"G1\",\n    \"G2\",\n    \"G3\",\n    \"G4\",\n    \"G5\",\n    \"G6\",\n    \"G7\",\n    \"G8\",\n    \"G9\",\n    \"G10\"\n  ],\n  \"owner_approved_deferrals_present\": false,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-owner-action-package.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/owner-action-deferral-request-validation.json\",\n  \"report_markdown\": \"docs/launch/owner-action-deferral-request-validation.md\",\n  \"verdict\": \"PASS\",\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0,\n  \"go_live_all_pass\": false,\n  \"owner_approved_deferrals_present\": false,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-blocker-surface.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-blocker-surface-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-blocker-surface-audit.md\",\n  \"verdict\": \"PASS\",\n  \"blocked_work_package_count\": 70,\n  \"failed_gate_evidence_slot_count\": 31,\n  \"total_manual_intake_row_count\": 36,\n  \"pending_manual_intake_row_count\": 36,\n  \"evidence_satisfied_manual_intake_row_count\": 0,\n  \"owner_deferred_manual_intake_row_count\": 0,\n  \"blocked_phase_count\": 11,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-closure-dependency-graph.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-closure-dependency-graph.json\",\n  \"report_markdown\": \"docs/launch/launch-closure-dependency-graph.md\",\n  \"verdict\": \"PASS\",\n  \"phase_node_count\": 11,\n  \"failed_gate_node_count\": 10,\n  \"gate_acceptance_node_count\": 31,\n  \"l9_closure_node_count\": 5,\n  \"pending_acceptance_node_count\": 36,\n  \"evidence_satisfied_acceptance_node_count\": 0,\n  \"owner_deferred_acceptance_node_count\": 0,\n  \"missing_intake_acceptance_node_count\": 0,\n  \"blocked_wp_node_count\": 70,\n  \"coverage_eligible_valid_deferred_rows\": 0,\n  \"non_coverage_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-deferral-coverage.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-coverage-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-coverage-audit.md\",\n  \"verdict\": \"PASS\",\n  \"valid_deferred_decision_count\": 0,\n  \"coverage_eligible_valid_deferred_decision_count\": 0,\n  \"non_coverage_valid_deferred_decision_count\": 0,\n  \"all_required_deferrals_covered\": false,\n  \"go_live_missing_deferral_count\": 31,\n  \"l9_missing_deferral_count\": 5,\n  \"blocked_wp_missing_deferral_count\": 70,\n  \"phase_exit_missing_deferral_count\": 11,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-deferral-decision-id-contract.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-decision-id-contract-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-decision-id-contract-audit.md\",\n  \"verdict\": \"PASS\",\n  \"accepted_decision_id_mention_count\": 346,\n  \"unique_accepted_decision_id_count\": 153,\n  \"unclassified_decision_id_count\": 0,\n  \"domain_mismatch_count\": 0,\n  \"cross_domain_decision_id_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-deferral-action-crosswalk.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-action-crosswalk-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-action-crosswalk-audit.md\",\n  \"verdict\": \"PASS\",\n  \"missing_deferral_target_count\": 117,\n  \"action_linked_count\": 117,\n  \"missing_action_source_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-deferral-resolution-lanes.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-resolution-lanes-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-resolution-lanes-audit.md\",\n  \"verdict\": \"PASS\",\n  \"missing_deferral_target_count\": 117,\n  \"classified_target_count\": 117,\n  \"primary_lane_count\": 8,\n  \"unclassified_target_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-deferral-decision-register-template.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-decision-register-template.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-decision-register-template.md\",\n  \"template_row_count\": 117,\n  \"recommended_decision_id_count\": 117,\n  \"placeholder_row_count\": 117,\n  \"unclassified_target_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-deferral-decision-register-template.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-decision-register-template-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-decision-register-template-validation.md\",\n  \"verdict\": \"PASS\",\n  \"template_row_count\": 117,\n  \"decision_register_total_rows\": 0,\n  \"decision_register_valid_deferred_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-deferral-intake-batches.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-intake-batches.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-intake-batches.md\",\n  \"intake_target_count\": 117,\n  \"batch_count\": 8,\n  \"non_empty_batch_count\": 8,\n  \"template_matched_target_count\": 117,\n  \"not_approved_target_count\": 117\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-deferral-intake-batches.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-intake-batches-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-intake-batches-validation.md\",\n  \"verdict\": \"PASS\",\n  \"intake_target_count\": 117,\n  \"batch_count\": 8,\n  \"non_empty_batch_count\": 8,\n  \"decision_register_total_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-deferral-coverage-options.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-coverage-options.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-coverage-options.md\",\n  \"missing_deferral_target_count\": 117,\n  \"minimum_bundle_decision_id_count\": 4,\n  \"minimum_bundle_covered_target_count\": 117,\n  \"minimum_bundle_uncovered_target_count\": 0,\n  \"domain_aggregate_option_count\": 4,\n  \"not_approved_option_count\": 153\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-deferral-coverage-options.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-coverage-options-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-coverage-options-validation.md\",\n  \"verdict\": \"PASS\",\n  \"missing_deferral_target_count\": 117,\n  \"minimum_bundle_decision_id_count\": 4,\n  \"minimum_bundle_covered_target_count\": 117,\n  \"minimum_bundle_uncovered_target_count\": 0,\n  \"decision_register_total_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-minimum-deferral-decision-packet.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-minimum-deferral-decision-packet.json\",\n  \"report_markdown\": \"docs/launch/launch-minimum-deferral-decision-packet.md\",\n  \"placeholder_decision_row_count\": 4,\n  \"covered_target_count_if_owner_rows_are_completed\": 117,\n  \"uncovered_target_count_if_owner_rows_are_completed\": 0,\n  \"placeholder_row_count\": 4\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-minimum-deferral-decision-packet.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-minimum-deferral-decision-packet-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-minimum-deferral-decision-packet-validation.md\",\n  \"verdict\": \"PASS\",\n  \"placeholder_decision_row_count\": 4,\n  \"covered_target_count_if_owner_rows_are_completed\": 117,\n  \"uncovered_target_count_if_owner_rows_are_completed\": 0,\n  \"decision_register_total_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-minimum-deferral-target-annex.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-minimum-deferral-target-annex.json\",\n  \"report_markdown\": \"docs/launch/launch-minimum-deferral-target-annex.md\",\n  \"minimum_decision_row_count\": 4,\n  \"unique_target_id_count\": 117,\n  \"source_missing_deferral_target_count\": 117,\n  \"unmatched_target_count\": 0,\n  \"aggregate_not_accepted_target_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-minimum-deferral-target-annex.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-minimum-deferral-target-annex-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-minimum-deferral-target-annex-validation.md\",\n  \"verdict\": \"PASS\",\n  \"minimum_decision_row_count\": 4,\n  \"unique_target_id_count\": 117,\n  \"unmatched_target_count\": 0,\n  \"aggregate_not_accepted_target_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-minimum-deferral-application.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-minimum-deferral-application-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-minimum-deferral-application-audit.md\",\n  \"verdict\": \"PASS\",\n  \"application_coverage_ready\": false,\n  \"minimum_packet_decision_row_count\": 4,\n  \"valid_applied_minimum_decision_row_count\": 0,\n  \"missing_minimum_decision_row_count\": 4,\n  \"covered_target_count_by_valid_applied_rows\": 0,\n  \"remaining_target_count_after_valid_applied_rows\": 117,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-owner-decision-intake-runbook.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-decision-intake-runbook.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-decision-intake-runbook.md\",\n  \"minimum_owner_row_count\": 4,\n  \"target_count_if_minimum_owner_rows_are_completed\": 117,\n  \"valid_applied_minimum_decision_row_count\": 0,\n  \"remaining_target_count_after_valid_applied_rows\": 117,\n  \"intake_batch_count\": 8\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-owner-decision-intake-runbook.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-decision-intake-runbook-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-decision-intake-runbook-validation.md\",\n  \"verdict\": \"PASS\",\n  \"minimum_owner_row_count\": 4,\n  \"target_count_if_minimum_owner_rows_are_completed\": 117,\n  \"decision_register_total_rows\": 0,\n  \"valid_applied_minimum_decision_row_count\": 0,\n  \"remaining_target_count_after_valid_applied_rows\": 117,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-owner-approval-receipt-ledger.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-approval-receipt-ledger.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-approval-receipt-ledger.md\",\n  \"receipt_slot_count\": 4,\n  \"pending_receipt_slot_count\": 4,\n  \"real_owner_receipt_count\": 0,\n  \"copy_allowed_count\": 0,\n  \"target_count_if_all_receipts_are_completed\": 117\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-owner-approval-receipt-ledger.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-approval-receipt-ledger-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-approval-receipt-ledger-validation.md\",\n  \"verdict\": \"PASS\",\n  \"receipt_slot_count\": 4,\n  \"pending_receipt_slot_count\": 4,\n  \"real_owner_receipt_count\": 0,\n  \"copy_allowed_count\": 0,\n  \"decision_register_total_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-owner-approval-request-packet.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-approval-request-packet.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-approval-request-packet.md\",\n  \"request_card_count\": 4,\n  \"pending_receipt_slot_count\": 4,\n  \"target_count_by_pending_requests\": 117,\n  \"real_owner_receipt_count\": 0,\n  \"copy_allowed_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-owner-approval-request-packet.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-approval-request-packet-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-approval-request-packet-validation.md\",\n  \"verdict\": \"PASS\",\n  \"request_card_count\": 4,\n  \"pending_receipt_slot_count\": 4,\n  \"target_count_by_pending_requests\": 117,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-owner-response-intake.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-response-intake.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-response-intake.md\",\n  \"response_entry_count\": 4,\n  \"pending_response_count\": 4,\n  \"real_owner_response_count\": 0,\n  \"copy_allowed_count\": 0,\n  \"target_count_if_all_responses_received\": 117\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-owner-response-intake.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-response-intake-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-response-intake-validation.md\",\n  \"verdict\": \"PASS\",\n  \"response_entry_count\": 4,\n  \"pending_response_count\": 4,\n  \"real_owner_response_count\": 0,\n  \"copy_allowed_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-owner-response-receipt-candidates.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-response-receipt-candidates.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-response-receipt-candidates.md\",\n  \"receipt_update_candidate_count\": 0,\n  \"real_owner_response_count\": 0,\n  \"copy_allowed_response_count\": 0,\n  \"target_count_by_candidates\": 0,\n  \"receipt_ledger_current_real_receipt_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-owner-response-receipt-candidates.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-response-receipt-candidates-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-response-receipt-candidates-validation.md\",\n  \"verdict\": \"PASS\",\n  \"receipt_update_candidate_count\": 0,\n  \"expected_receipt_update_candidate_count\": 0,\n  \"real_owner_response_count\": 0,\n  \"copy_allowed_response_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-owner-response-receipt-application.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-response-receipt-application-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-response-receipt-application-audit.md\",\n  \"verdict\": \"PASS\",\n  \"receipt_update_candidate_count\": 0,\n  \"applied_candidate_count\": 0,\n  \"pending_application_count\": 0,\n  \"mismatched_application_count\": 0,\n  \"missing_receipt_slot_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-owner-response-receipt-reconciliation.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-owner-response-receipt-reconciliation-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-owner-response-receipt-reconciliation-audit.md\",\n  \"verdict\": \"PASS\",\n  \"real_owner_receipt_count\": 0,\n  \"receipt_update_candidate_count\": 0,\n  \"reconciled_real_receipt_count\": 0,\n  \"unreconciled_real_receipt_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/generate-launch-decision-register-import-candidates.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-decision-register-import-candidates.json\",\n  \"report_markdown\": \"docs/launch/launch-decision-register-import-candidates.md\",\n  \"import_candidate_count\": 0,\n  \"covered_target_count_by_candidates\": 0,\n  \"real_owner_receipt_count\": 0,\n  \"pending_receipt_slot_count\": 4\n}"
+    },
+    {
+      "command": "node scripts/validate-launch-decision-register-import-candidates.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-decision-register-import-candidates-validation.json\",\n  \"report_markdown\": \"docs/launch/launch-decision-register-import-candidates-validation.md\",\n  \"verdict\": \"PASS\",\n  \"import_candidate_count\": 0,\n  \"expected_import_candidate_count\": 0,\n  \"covered_target_count_by_candidates\": 0,\n  \"decision_register_total_rows\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-decision-register-import-application.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-decision-register-import-application-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-decision-register-import-application-audit.md\",\n  \"verdict\": \"PASS\",\n  \"import_candidate_count\": 0,\n  \"applied_candidate_count\": 0,\n  \"pending_application_count\": 0,\n  \"mismatched_application_count\": 0,\n  \"duplicate_register_row_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-decision-register-import-reconciliation.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-decision-register-import-reconciliation-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-decision-register-import-reconciliation-audit.md\",\n  \"verdict\": \"PASS\",\n  \"decision_register_total_rows\": 0,\n  \"import_candidate_count\": 0,\n  \"reconciled_row_count\": 0,\n  \"unreconciled_row_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-deferral-source-extraction.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-deferral-source-extraction-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-deferral-source-extraction-audit.md\",\n  \"verdict\": \"PASS\",\n  \"p2_broad_marker_source_file_count\": 3794,\n  \"p2_positive_count_statement_file_count\": 11,\n  \"p2_positive_count_statement_sum\": 18,\n  \"explicit_p2_item_line_count\": 18,\n  \"unresolved_p2_line_count\": 0,\n  \"ldip_actual_decision_count\": 0,\n  \"hrx_actual_decision_count\": 0,\n  \"mat_dec_mention_line_count\": 53,\n  \"finding_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-no-go-claim-policy.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-no-go-claim-policy-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-no-go-claim-policy-audit.md\",\n  \"verdict\": \"PASS\",\n  \"scanned_file_count\": 196,\n  \"no_go_active\": true,\n  \"forbidden_true_claim_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-tuw-evidence-coverage.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-tuw-evidence-coverage-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-tuw-evidence-coverage-audit.md\",\n  \"verdict\": \"PASS\",\n  \"ledger_tuw_count\": 344,\n  \"covered_ledger_tuw_count\": 344,\n  \"missing_ledger_tuw_count\": 0,\n  \"terminal_tuw_missing_evidence_count\": 0,\n  \"wp_with_missing_tuw_evidence_count\": 0,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    },
+    {
+      "command": "node scripts/audit-launch-manual-evidence-completion-path.mjs",
+      "exit_code": 0,
+      "stdout": "{\n  \"report_json\": \"docs/launch/launch-manual-evidence-completion-path-audit.json\",\n  \"report_markdown\": \"docs/launch/launch-manual-evidence-completion-path-audit.md\",\n  \"verdict\": \"PASS\",\n  \"total_manual_intake_row_count\": 36,\n  \"total_acceptance_row_count\": 36,\n  \"evidence_satisfied_manual_intake_row_count\": 0,\n  \"evidence_satisfied_acceptance_row_count\": 0,\n  \"go_live_evidence_completion_path_ready\": false,\n  \"l9_evidence_completion_path_ready\": false,\n  \"finding_count\": 0,\n  \"p0_count\": 0,\n  \"p1_count\": 0\n}"
+    }
+  ]
+}

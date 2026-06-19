@@ -1,0 +1,608 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-309",
+  "planned_pack_id": "CP00-309",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "crm_core_fixture_binding_slice_descriptor_verified",
+  "program_id": "RP09",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP09.P05.M06.S07",
+  "next_subphase": "RP09.P05.M06.S08",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-309",
+    "planned_pack_id": "CP00-309",
+    "title": "CP00-309 RP09.P05.M05.S18-RP09.P05.M06.S07 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP09.P05.M05.S18",
+      "last_unit_id": "RP09.P05.M06.S07",
+      "description": "RP09.P05.M05.S18-RP09.P05.M06.S07"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP09.P05.M05.S18",
+        "title": "Claude missing-test prompt",
+        "source_micro_phase_id": "RP09.P05.M05",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP09.P05.M05.S19",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP09.P05.M05",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP09.P05.M05.S20",
+        "title": "No-real-data check",
+        "source_micro_phase_id": "RP09.P05.M05",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP09.P05.M06.S01",
+        "title": "Base tenant fixture",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP09.P05.M06.S02",
+        "title": "Base user fixture",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP09.P05.M06.S03",
+        "title": "Base matter fixture",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP09.P05.M06.S04",
+        "title": "Base document fixture",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP09.P05.M06.S05",
+        "title": "Primary golden case",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP09.P05.M06.S06",
+        "title": "Secondary golden case",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP09.P05.M06.S07",
+        "title": "Review-required case",
+        "source_micro_phase_id": "RP09.P05.M06",
+        "program_id": "RP09",
+        "phase_id": "RP09.P05",
+        "micro_id": "M06",
+        "micro_title": "Synthetic Fixture Set",
+        "deliverable_type": "claude_review"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP09.P05.M05.S18",
+      "title": "Claude missing-test prompt",
+      "source_micro_phase_id": "RP09.P05.M05",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "test",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M05.S19",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP09.P05.M05",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M05.S20",
+      "title": "No-real-data check",
+      "source_micro_phase_id": "RP09.P05.M05",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S01",
+      "title": "Base tenant fixture",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S02",
+      "title": "Base user fixture",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S03",
+      "title": "Base matter fixture",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S04",
+      "title": "Base document fixture",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S05",
+      "title": "Primary golden case",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S06",
+      "title": "Secondary golden case",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P05.M06.S07",
+      "title": "Review-required case",
+      "source_micro_phase_id": "RP09.P05.M06",
+      "program_id": "RP09",
+      "phase_id": "RP09.P05",
+      "micro_id": "M06",
+      "micro_title": "Synthetic Fixture Set",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-309/manifest.json",
+        "docs/closeout-packs/cp00-309/command-evidence.json",
+        "docs/closeout-packs/cp00-309/claude-review-result.json",
+        "docs/closeout-packs/cp00-309/adjudication.md",
+        "docs/closeout-packs/cp00-309/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-309 implements descriptor-only coverage of the RP09.P05.M05 permission/audit binding fixture tail (Claude missing-test prompt, closeout handoff, no-real-data check) and the M06 synthetic fixture head (base tenant/user/matter/document fixtures, golden/review-required cases) across two sections over 10 planned rows with a pack-local row-extras constant, Hermes evidence (H09), Claude review packet (C09), and CP00-310 handoff, without opening AI runtime dispatch, test runtime paths, state writes, object storage, command runtime execution, Hermes runtime receipts, Citation Ledger, or Loop behavior.",
+    "source_refs": [
+      "contracts/crm-core-contract.json",
+      "packages/crm/README.md",
+      "packages/crm/src/index.js",
+      "packages/crm/src/registry.js",
+      "packages/crm/src/service.js",
+      "packages/crm/src/validators.js",
+      "packages/crm/test/model.test.js",
+      "scripts/validate-rp09-crm-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_crm_runtime": true,
+    "no_campaign_runtime": true,
+    "no_proposal_runtime": true,
+    "no_referral_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "deny_over_allow_enforced": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_unauthorized_count_leak": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-309/manifest.json",
+    "docs/closeout-packs/cp00-309/command-evidence.json",
+    "docs/closeout-packs/cp00-309/claude-review-result.json",
+    "docs/closeout-packs/cp00-309/adjudication.md",
+    "docs/closeout-packs/cp00-309/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-309/manifest.json",
+    "docs/closeout-packs/cp00-309/command-evidence.json",
+    "docs/closeout-packs/cp00-309/claude-review-result.json",
+    "docs/closeout-packs/cp00-309/adjudication.md",
+    "docs/closeout-packs/cp00-309/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-309/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-309/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "c7c5f780-162b-4f36-972e-e46a37b649b0",
+      "uuid": "09bfb5cc-8904-4a0c-aa25-f5d5aff864c4",
+      "total_cost_usd": 1.8819590000000002,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-309 (risk A, 10 units, RP09.P05.M05.S18-RP09.P05.M06.S07) is a clean descriptor-only CRM-core pack that closes the RP09.P05.M05 Permission And Audit Binding fixture tail (3 rows) and opens the M06 Synthetic Fixture Set head (7 rows). Static read-only review found the implementation internally consistent and all boundaries intact.\n\nVerified: (1) Live queue — next-pack-queue.json live_latest CP00-308 / live_next_unit RP09.P05.M05.S18 matches CP00-309 first_unit; pack is the legitimate next live pack. (2) Implementation — registry.js adds CP309 pack binding/requirements/no-write attestation; service.js + validators.js add the case-set, descriptor, Hermes/Claude packets, handoff, and coverage/slice validators; CP309_ROW_EXTRAS inheritance chain supplies every field the slice validator asserts (claude_final_approval_claimed:false, real_client_data_loaded:false, expected_outcome review_required); index.js wildcard re-export surfaces new functions without modification. (3) Distributions — deliverable {test:1,implementation:2,fixture:6,claude_review:1} and micro-title {Permission And Audit Binding:3,Synthetic Fixture Set:7}=10 match CRM_CORE_CP309_REQUIREMENTS and the contract. (4) Contract/tests — contract current_pack=CP00-309, fixture_binding_slice_descriptor registered and deep-equal-checked against the generated descriptor; package test + validator script assert all CP309 invariants and pass per command-evidence (all exit 0). (5) Boundaries — production_ready:false / implemented_pending_review (no over-claim); Claude read-only and non-final-approver (request read_only:true, tools Read,Grep,Glob; descriptor claude_is_final_approval:false; attestation promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false); Hermes evidence/gate-only (emits_hermes_runtime_receipt:false); no-real-data/no-write enforced in code and tests. (6) CP178+ hardening — inherited forbidden_review_evidence covers auth failures, zero-byte stdout, malformed JSON, fenced JSON, tool-call-shaped output, missing raw-output reference, and production enterprise-trust claim; readiness auth_preflight passed (exit 0, 1434-byte valid JSON); no prior invalid attempts; post-review artifacts correctly pending this run. (7) Scope hygiene — unrelated dirty files (docx, ldip invalid-attempt JSON, handoff note) correctly classified as out-of-pack and not inferred in.\n\nNo P0/P1/P2/P3 findings. The pack correctly defers final/enterprise-trust approval to a human; nothing in this review blocks pack or goal closeout.",
+      "findings": [],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 0,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 0
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-309 crm core fixture binding slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 110,
+    "goal_closeout_dirs_with_required_artifacts": 110,
+    "remaining_by_closeout_dir_proxy": 55146
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-309/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-309/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-309/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-309/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

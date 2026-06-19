@@ -1,0 +1,217 @@
+{
+  "schema_version": "law-firm-os.launch-blocker-surface-audit.v0.1",
+  "generated_at": "2026-06-18T15:39:47.991Z",
+  "source_refs": [
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-phase-exit-readiness-audit.json",
+    "docs/launch/launch-manual-evidence-intake-register.json",
+    "docs/launch/launch-manual-evidence-intake-validation.json",
+    "docs/launch/owner-action-deferral-request.json",
+    "docs/launch/owner-action-deferral-request-validation.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "summarizes_blockers_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "blocked_work_package_count": 70,
+    "recorded_work_package_count": 2,
+    "failed_gate_count": 10,
+    "failed_gate_evidence_slot_count": 31,
+    "l9_stabilization_closure_slot_count": 5,
+    "total_manual_intake_row_count": 36,
+    "pending_manual_intake_row_count": 36,
+    "evidence_satisfied_manual_intake_row_count": 0,
+    "owner_deferred_manual_intake_row_count": 0,
+    "phase_count": 11,
+    "blocked_phase_count": 11,
+    "all_phase_exits_closed_or_owner_deferred": false,
+    "owner_approved_deferrals_present": false,
+    "coverage_eligible_valid_deferred_rows": 0,
+    "non_coverage_valid_deferred_rows": 0,
+    "manual_intake_validation_pass": true,
+    "owner_action_validation_pass": true,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "phase_blockers": [
+    {
+      "phase": "PRE",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 6,
+      "recorded_work_package_count": 1,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L0",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 5,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L1",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 10,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L2",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 7,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L3",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 10,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L4",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 6,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L5",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 7,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L6",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 6,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L7",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 6,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L8",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 2,
+      "recorded_work_package_count": 1,
+      "missing_evidence_count": 0
+    },
+    {
+      "phase": "L9",
+      "status": "blocked_missing_owner_approved_deferrals",
+      "blocked_work_package_count": 5,
+      "recorded_work_package_count": 0,
+      "missing_evidence_count": 0
+    }
+  ],
+  "gate_blockers": [
+    {
+      "gate_id": "G1",
+      "status": "fail",
+      "failed_evidence_slot_count": 2,
+      "manual_intake_row_count": 2,
+      "related_blocked_work_package_count": 5
+    },
+    {
+      "gate_id": "G2",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 7
+    },
+    {
+      "gate_id": "G3",
+      "status": "fail",
+      "failed_evidence_slot_count": 4,
+      "manual_intake_row_count": 4,
+      "related_blocked_work_package_count": 7
+    },
+    {
+      "gate_id": "G4",
+      "status": "fail",
+      "failed_evidence_slot_count": 4,
+      "manual_intake_row_count": 4,
+      "related_blocked_work_package_count": 8
+    },
+    {
+      "gate_id": "G5",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 5
+    },
+    {
+      "gate_id": "G6",
+      "status": "fail",
+      "failed_evidence_slot_count": 4,
+      "manual_intake_row_count": 4,
+      "related_blocked_work_package_count": 7
+    },
+    {
+      "gate_id": "G7",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 5
+    },
+    {
+      "gate_id": "G8",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 4
+    },
+    {
+      "gate_id": "G9",
+      "status": "fail",
+      "failed_evidence_slot_count": 2,
+      "manual_intake_row_count": 2,
+      "related_blocked_work_package_count": 2
+    },
+    {
+      "gate_id": "G10",
+      "status": "fail",
+      "failed_evidence_slot_count": 3,
+      "manual_intake_row_count": 3,
+      "related_blocked_work_package_count": 3
+    }
+  ],
+  "blocker_category_counts": [
+    {
+      "value": "runtime_or_operational_evidence",
+      "count": 36
+    },
+    {
+      "value": "owner_decision_or_signature",
+      "count": 31
+    },
+    {
+      "value": "policy_or_scope_decision",
+      "count": 16
+    },
+    {
+      "value": "external_dependency",
+      "count": 10
+    },
+    {
+      "value": "evidence_completion",
+      "count": 6
+    }
+  ],
+  "findings": []
+}

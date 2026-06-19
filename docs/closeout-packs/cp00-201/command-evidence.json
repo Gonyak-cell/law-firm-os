@@ -1,0 +1,140 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-201",
+  "subphase_id": "RP06.P02.M02.S22",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/dms/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/dms/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/dms/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/dms/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp06-dms-core-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/dms/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp06:dms-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-201",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-201",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-201 --timeout_ms 1200000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-201",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-201",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp06:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data is used by CP00-201 evidence.",
+    "CP00-201 remains descriptor-only and does not dispatch DMS runtime services, acquire runtime locks, persist idempotency keys, perform rollback/retry runtime, or execute object storage, OCR, search, email, Citation Ledger, or Loop behavior.",
+    "Command evidence was populated before the accepted closeout-eligible Claude review so the reviewer does not have to infer validation from source descriptors."
+  ],
+  "hermes_gate": {
+    "gate": "H06",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "evidence_refs": [
+      "npm run rp00:control-plane:validate",
+      "npm run spec:requirements:validate",
+      "npm run rp06:dms-core:validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-201/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-201/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-201/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-201/review-receipt.json",
+    "invalid_attempts_preserved": [
+      "attempt-01",
+      "attempt-02"
+    ]
+  }
+}

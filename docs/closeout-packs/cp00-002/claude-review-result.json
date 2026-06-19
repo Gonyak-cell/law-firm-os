@@ -1,0 +1,33 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-002",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "5010324c-7827-4dc7-9a44-315ea5d7c21c",
+    "uuid": "8073d7ed-2b94-492c-84e4-88f558896334",
+    "total_cost_usd": 3.53239775,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "findings": []
+  },
+  "read_only_confirmation": true,
+  "adjudication_notes": [
+    "No P0/P1/P2 findings.",
+    "RP00.P02.M05.S06 satisfies the stated no-write audit-hint precheck intent.",
+    "No P2 deferrals required."
+  ]
+}

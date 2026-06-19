@@ -1,0 +1,187 @@
+{
+  "subphase_id": "RP00.P02.M03.S19",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Unit test: happy path",
+  "created_at": "2026-06-05T13:51:38Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m03-s19-claude-review.json",
+  "stderr_path": "/tmp/lfos-rp00-p02-m03-s19-claude-review.stderr",
+  "stderr_bytes": 0,
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 645594,
+  "duration_api_ms": 646345,
+  "session_id": "59e86726-de3a-4af9-9f3c-821a53673a36",
+  "uuid": "9029820c-cd03-4cba-b51b-ac3178c7b9f4",
+  "total_cost_usd": 4.11533025,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 53,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_evidence": "NO-GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude rated the S19 engineering deliverable complete and correct, but reported closeout NO-GO because the five evidence artifacts did not exist yet. The one P0 closeout finding is resolved by this evidence set and final RP00 control-plane validation. The P2 fixture exact-equality execution risk is resolved by local validator execution. The P3 wording note is informational.",
+  "findings": [
+    {
+      "id": "CLAUDE-S19-P0-001",
+      "severity": "P0",
+      "title": "S19 production_ready evidence absent before closeout",
+      "status": "fixed_by_closeout_evidence",
+      "summary": "Claude noted that contracts/control-plane-contract.json already marked S19 production_ready while docs/goal-closeout/rp00-p02-m03-s19 did not yet contain packet, command evidence, Claude review result, adjudication, and construction inspection.",
+      "resolution": "Added the S19 closeout evidence set under docs/goal-closeout/rp00-p02-m03-s19 and reran RP00 control-plane validation."
+    },
+    {
+      "id": "CLAUDE-S19-P2-001",
+      "severity": "P2",
+      "title": "Fixture exact-equality not empirically run by Claude",
+      "status": "fixed",
+      "summary": "Claude statically confirmed fixture parity but could not execute the validator because Bash was disallowed by the read-only review constraint.",
+      "resolution": "Local validation executes scripts/validate-rp00-control-plane-contract.mjs, whose S19 block enforces exact equality between control_plane_hermes_validation_unit_test_happy_path.golden_result and the S18 retry behavior fixture precheck_result."
+    },
+    {
+      "id": "CLAUDE-S19-P3-001",
+      "severity": "P3",
+      "title": "Contract wording says runtime work in a metadata-only handoff",
+      "status": "informational_deferred",
+      "summary": "Claude noted the phrase 'hands runtime work' is slightly awkward for a metadata-only S18 to S19 to S20 handoff.",
+      "resolution": "No behavior or gate impact. The wording is semantically consistent with the handoff chain and may be cleaned up with S20 or M03 closeout documentation if desired."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T13:51:38Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "59e86726-de3a-4af9-9f3c-821a53673a36",
+    "uuid": "9029820c-cd03-4cba-b51b-ac3178c7b9f4",
+    "duration_ms": 645594,
+    "duration_api_ms": 646345,
+    "total_cost_usd": 4.11533025,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s19-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline prompt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s19-claude-review.json",
+    "stderr_file": "/tmp/lfos-rp00-p02-m03-s19-claude-review.stderr",
+    "stderr_bytes": 0,
+    "duration_ms": 645594,
+    "duration_api_ms": 646345,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "9029820c-cd03-4cba-b51b-ac3178c7b9f4",
+    "session_id": "59e86726-de3a-4af9-9f3c-821a53673a36"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "NO-GO_CLOSEOUT_GATE_IMPLEMENTATION_GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "NO-GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "NO-GO_CLOSEOUT_GATE_IMPLEMENTATION_GO",
+    "go_no_go": "GO_AFTER_ADJUDICATION",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P0",
+        "title": "S19 production_ready evidence absent before closeout",
+        "location": "docs/goal-closeout/rp00-p02-m03-s19",
+        "status": "fixed_by_closeout_evidence",
+        "summary": "S19 evidence files are required before production_ready."
+      },
+      {
+        "severity": "P2",
+        "title": "Fixture exact-equality not empirically run by Claude",
+        "location": "scripts/validate-rp00-control-plane-contract.mjs",
+        "status": "fixed",
+        "summary": "The local validator enforces the exact fixture parity check."
+      },
+      {
+        "severity": "P3",
+        "title": "Contract wording",
+        "location": "contracts/control-plane-contract.json completion_gates",
+        "status": "informational_deferred",
+        "summary": "Optional wording cleanup; no semantic or validation issue."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S20 Unit test: denied path as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the S19 policy, validator, module descriptor, fixture, README, service tests, contract definition, S18 dependency, S01-S18 golden chain, synthetic fixture integrity, no-write boundaries, M03 open state, and S20 successor behavior.",
+      "There were no P1 findings and no S19 implementation code defects."
+    ],
+    "summary": "Claude reported implementation GO and closeout NO-GO due to missing evidence. Evidence and executable gates resolve the closeout blocker, so S19 is ready for final gate validation."
+  },
+  "finding_counts": {
+    "p0": 1,
+    "p1": 0,
+    "p2": 1,
+    "p3": 1
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s19-claude-review.json",
+    "summary": "Claude returned implementation GO and closeout NO-GO; P0/P2 closeout items are resolved by evidence creation and executable gates."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

@@ -1,0 +1,111 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-159",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "2b7a729a-f296-4c89-9c8c-a2d24796d46f",
+    "uuid": "36c7a021-7a80-42d8-8736-c2ccc5372812",
+    "duration_ms": 354943,
+    "duration_api_ms": 357141,
+    "total_cost_usd": 0.9954225000000001,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-159-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-159.master_data_service_evidence_review_packet",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-159-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-159 advances the RP04 master-data closeout chain from CP00-158 by adding descriptor-only service review-path and integration-smoke evidence cases plus H04/C04 evidence and review-packet builders, with matching contract service_evidence block, pack binding, no-write attestation, and validator coverage. The diff is internally consistent: pack chain (CP158 upstream, CP160/RP04.P02.M09.S19 next), gates (H04/C04, claude-opus-4-8/max/read_only), production_ready_flag, public_exports, and unit/deliverable/micro-phase distributions all align across contract, registry, validators, tests, and the validation script. The no-write boundary holds (no IO, no route dispatch, no persistence, no Hermes/Claude execution) and the integration smoke test verifies hidden-field sanitization, descriptor-only routing, four distinct tail outcomes, and safe blocked-output codes. No P0/P1 issues found.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "notes": "CP00-159 builds service evidence and review packet descriptors only; package code does not execute Hermes or Claude and does not write product state."
+    },
+    "findings": [
+      {
+        "id": "P2-01",
+        "severity": "P2",
+        "title": "CP00-159 closeout manifest not yet written; closeout-pack:validate covers only through CP00-158",
+        "evidence": "Per the supplied evidence, closeout-pack:validate passes only through CP00-158 because CP00-159 closeout artifacts are not yet written. The package gracefully falls back: tests and validate-rp04-master-data-contract.mjs resolve cp159PlanPack from the closeout plan (which contains CP00-159 as queue head) when the manifest is missing, so all stated validations still pass. This is expected sequencing (review the code/contract diff, then finalize the closeout artifact), not a code defect in the diff.",
+        "recommended_action": "As the closing step, generate docs/closeout-packs/cp00-159/manifest.json and re-run closeout-pack:validate so it covers CP00-159 before final close.",
+        "post_review_disposition": "fixed: generated docs/closeout-packs/cp00-159 closeout artifacts and reran closeout-pack validation for CP00-159 before commit."
+      },
+      {
+        "id": "P3-01",
+        "severity": "P3",
+        "title": "validateMasterDataCp159ServiceEvidence is largely self-referential",
+        "evidence": "The function checks that MASTER_DATA_CP159_SERVICE_EVIDENCE_REQUIREMENTS.required_service_evidence_fields contains each of an 18-entry list that is duplicated literally inside the same function, and asserts the attestation booleans. This will pass as long as the requirements constant matches the inlined literal; it does not verify that the generated descriptors/packets actually surface or exercise those 18 fields. Behavioral coverage of the fields comes from the smoke/review tests and the inherited CP157/158 descriptors, which is good, but the validator itself adds limited independent assurance.",
+        "recommended_action": "Optional: assert the 18 fields against the contract's service_tail/service_evidence projection (or against generated descriptor keys) rather than an inlined literal, to give real drift detection.",
+        "post_review_disposition": "fixed: validateMasterDataCp159ServiceEvidence now accepts a contract service_evidence projection and checks required fields/outcomes/no-write boundary against it; tests and script pass the contract projection."
+      },
+      {
+        "id": "P3-02",
+        "severity": "P3",
+        "title": "Hidden-field sanitization checks key on a literal sentinel string",
+        "evidence": "Both checks compute !JSON.stringify(tail).includes(\"must not leak\"). They confirm the blocked-case test fixture's secret value is stripped, but they only detect that specific sentinel, not the general class of declared hidden_source_fields. The actual sanitization is performed by the CP00-158 createMasterDataServiceTailDescriptor and is already validated; these are smoke assertions, which is acceptable for their purpose.",
+        "recommended_action": "Optional: assert against the contract hidden_source_fields set (e.g., confirm none of those keys appear in serialized descriptor output) for a more general guarantee.",
+        "post_review_disposition": "fixed: integration smoke now injects per-hidden-field probe values and asserts all probe values are absent from serialized descriptors."
+      },
+      {
+        "id": "P3-03",
+        "severity": "P3",
+        "title": "CP159 no_write_attestation redundantly re-asserts fields already inherited from the CP158 spread",
+        "evidence": "The object spreads ...MASTER_DATA_CP158_NO_WRITE_ATTESTATION and then explicitly re-sets eight already-false keys (executes_hermes_command, executes_claude_review, sends_claude_prompt, dispatches_review_route, dispatches_approval_route, writes_persistence_boundary, executes_rollback, executes_retry). The explicit overrides read as intentional defensive documentation for the pack that builds (but never executes) Hermes/Claude packets. The side effect is that these eight values are now decoupled from CP158: if an upstream attestation value changed, the override would silently force it back, masking divergence. Relying on the stated rp04:master-data:validate pass, all eight keys are present in contract.no_write_attestation, so the validator loop is satisfied.",
+        "recommended_action": "Optional: drop the redundant overrides (rely on the spread) unless the explicitness is deliberate; if kept, treat it as intentional re-assertion.",
+        "post_review_disposition": "explicitly deferred as intentional defensive re-assertion: CP159 repeats inherited no-write booleans because it builds Hermes/Claude packet descriptors without executing either runtime path."
+      },
+      {
+        "id": "P3-04",
+        "severity": "P3",
+        "title": "Minor contract-validator coverage gaps (schema_version, service_evidence.no_write_boundary)",
+        "evidence": "schema_version was bumped v0.3 -> v0.4 (appropriate for the new service_evidence block) but the validator does not assert schema_version, and contract.service_evidence.no_write_boundary is present and consistent with the requirements constant but is not asserted (review_packet_mode is asserted). Drift in either field would not be caught. This is a pre-existing pattern, not introduced functionality.",
+        "recommended_action": "Optional: add requireEqual checks for schema_version and service_evidence.no_write_boundary.",
+        "post_review_disposition": "fixed: validate-rp04-master-data-contract now asserts schema_version and service_evidence.no_write_boundary."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "reported_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 4
+    },
+    "p2_status": "fixed_or_deferred",
+    "p3_disposition": "three P3 findings fixed; one P3 explicitly deferred as intentional defensive no-write re-assertion",
+    "post_review_validation": {
+      "focused_master_data_tests": "21 pass",
+      "full_workspace_tests": "1189 pass",
+      "rp04_master_data_validate": "passed",
+      "closeout_pack_plan_validate": "passed",
+      "product_validate": "passed",
+      "build": "passed"
+    }
+  }
+}

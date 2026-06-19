@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-502",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T13:05:59.890Z",
+  "finished_at": "2026-06-12T13:11:10.827Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":309829,\"duration_api_ms\":311989,\"ttft_ms\":5232,\"num_turns\":46,\"result\":\"CP00-502 review complete — verdict **PASS** with zero findings.\\n\\nThe pack is a descriptor-only governance slice that cleanly repeats the validated CP480–CP501 pattern. Binding, distributions, and all 10 row titles are consistent across registry/service/validators/contract/plan/queue/README/tests/manifest; descriptor-only and no-write/no-real-data boundaries hold; the `production_ready` claim is correctly left false (descriptor layer only); and the authority boundary keeps Claude as a read-only reviewer with human approval still required. Validation evidence (exit 0) and a clean auth-preflight are recorded, and the post-review artifacts are expectedly generated downstream.\\n\\nDoes not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"30e23c2e-9f07-46f4-bffb-6f2fa16d32ab\",\"total_cost_usd\":1.878021,\"usage\":{\"input_tokens\":58,\"cache_creation_input_tokens\":84850,\"cache_read_input_tokens\":1650399,\"output_tokens\":20842,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":84850,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":249,\"cache_read_input_tokens\":90928,\"cache_creation_input_tokens\":2317,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2317},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1074,\"outputTokens\":19,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011690000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":58,\"outputTokens\":20842,\"cacheReadInputTokens\":1650399,\"cacheCreationInputTokens\":84850,\"webSearchRequests\":0,\"costUSD\":1.876852,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-502 is a descriptor-only governance-core pack (RP16.P06.M05.S17-RP16.P06.M06.S04, risk A, 10 units) that faithfully repeats the validated CP00-480..CP00-501 pattern. Pack binding is consistent across registry.js (GOVERNANCE_CORE_CP502_PACK_BINDING), service.js (descriptor/case-set), validators.js (coverage + slice validation), the governance-core-contract.json projection (current_pack and p06_permission_fixture_slice_descriptor), closeout-pack-plan, next-pack-queue, README, test/model.test.js, and the pack manifest. Deliverable distribution (security_audit 3 / test 4 / implementation 3), micro-phase row counts (RP16.P06.M05=6, RP16.P06.M06=4), and all 10 planned row titles match the plan included_units exactly. Every descriptor row is descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false; the no-write attestation pins all governance/DLP/retention/legal-hold runtime, state writes, audit writes, Hermes runtime receipt, and real-data loading to false. The production_ready claim is correctly NOT overclaimed (production_ready=false, runtime_ready=false, flag governance_core_p06_permission_fixture_slice_descriptor_verified); the Hermes production_ready_candidate=true is a coverage/slice validity candidate distinct from production readiness. Authority boundary holds: claude_is_final_approval=false, claims_enterprise_trust_from_local_validation=false, human final approval required; Claude remains a read-only reviewer. Hermes patterns are confined to deterministic evidence-packet/receipt metadata, not product runtime. command-evidence.json records all implementation/plan/repo-wide validation commands at exit 0, and the readiness auth-preflight passed (exit 0, 1436-byte valid JSON, no auth failure, no 0-byte/malformed/tool-call-shaped output). The post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are expectedly absent at review time and produced downstream in the hardening sequence, matching the CP00-501 precedent. Unrelated dirty files (progress-control-room UI, workbook docs) are correctly classified outside pack scope; index.js is unmodified because it wildcard re-exports. No P0/P1/P2/P3 findings. This review is independent and read-only and does not close the enterprise trust claim; human final approval remains required.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"be6d9465-273e-4c6f-af3e-40f840287dc0\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4771,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "30e23c2e-9f07-46f4-bffb-6f2fa16d32ab",
+    "uuid": "be6d9465-273e-4c6f-af3e-40f840287dc0",
+    "total_cost_usd": 1.878021,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

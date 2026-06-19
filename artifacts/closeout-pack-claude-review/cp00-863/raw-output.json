@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-863",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T06:25:52.904Z",
+  "finished_at": "2026-06-17T06:31:52.392Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":358667,\"duration_api_ms\":359220,\"ttft_ms\":5360,\"num_turns\":45,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** (no P0/P1/P2; one non-blocking P3).\\n\\nCP00-863's descriptor-only implementation is sound and internally consistent: binding/requirements match the baseline exactly, no-write/no-real-data boundaries are enforced in code and validators, the authority boundary holds (Claude read-only and not final approver; Hermes control-plane only with no runtime receipts/state writes), tests and the contract/validation script back the pack, and all state files honestly report `production_ready=false`/pending with no premature claim. The single P3 notes that the full 10-command validation suite is sequenced post-review by design and not directly attestable from this read-only receipt — already gated by the pack, so it does not block closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"48e05919-0a29-4547-bc4b-182076a80155\",\"total_cost_usd\":2.1591192500000003,\"usage\":{\"input_tokens\":44,\"cache_creation_input_tokens\":122119,\"cache_read_input_tokens\":1459875,\"output_tokens\":26577,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":122119,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":257,\"cache_read_input_tokens\":112379,\"cache_creation_input_tokens\":10132,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":10132},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1193,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001293,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":44,\"outputTokens\":26577,\"cacheReadInputTokens\":1459875,\"cacheCreationInputTokens\":122119,\"webSearchRequests\":0,\"costUSD\":2.1578262500000003,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"Independent read-only review of CP00-863 (RP28 Marketplace failure-recovery foundation bridge, Risk C, 150 units, RP28.P06.M09.S03-RP28.P07.M05.S04). The descriptor-only implementation is sound and internally consistent. MARKETPLACE_CP863_PACK_BINDING and MARKETPLACE_CP863_REQUIREMENTS match the baseline exactly: pack_id, risk_class C, unit_count 150, first/last unit, upstream CP00-862, next CP00-864/RP28.P07.M05.S05, and the deliverable_distribution (implementation 23, security_audit 19, ui 8, claude_review 5, test 16, failure_recovery 64, hermes_evidence 10, fixture 5) and micro_title_distribution all match. required_section_rows slicing correctly yields the S03 first unit and M05.S04 last unit. No-write/no-real-data boundaries are thoroughly enforced via createRow/ROW_EXTRAS defaults, MARKETPLACE_NO_WRITE_ATTESTATION, and the CP863 descriptor/coverage/contract validators (descriptor_only=true, runtime_execution=false, writes_product_state=false, no real data/secrets/tokens/payloads, no runtime-open). The authority boundary holds: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false; Claude packet is read_only with promotes_claude_to_final_approval=false; Hermes packet is control-plane only (emits_runtime_receipt=false, writes_product_state=false, no_real_data=true). model.test.js carries meaningful CP863 assertions (errors==[], row_count==150, runtime-closed, contract current); the contract JSON shows CP00-863 current/latest with validation.valid=true; the validate script checks the full CP845->CP863 upstream chain plus CP863 coverage/descriptor/contract. All pack state files honestly report production_ready=false / pending_review / in_progress with no premature production_ready=true claim. Review-hardening checks pass: auth preflight succeeded (exit 0), the 0-byte placeholder is correctly classified as pending (no valid receipt claimed), the prior CP862 receipt is explicitly not counted, and unrelated dirty files are correctly segregated. One non-blocking P3: the full 10-command validation suite is sequenced post-review by design and only the two marketplace commands are evidenced as passing, so suite pass/fail is not directly attestable from this receipt (already gated by the pack). No P0/P1/P2 issues. This review does not constitute final human/enterprise-trust approval, which remains outside this receipt.\",\"findings\":[{\"id\":\"CP863-P3-01\",\"severity\":\"P3\",\"title\":\"Full validation suite execution is sequenced post-review and not directly observable in this receipt\",\"file\":\"docs/closeout-packs/cp00-863/command-evidence.json\",\"line\":9,\"details\":\"command-evidence.json records only two passing commands prior to review (rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0) and sets gate_outcome=\\\"pending_valid_pack_review_and_full_validation\\\". The full closeout suite required before promotion (npm run closeout-pack-plan:validate, closeout-pack:validate, npm test, npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) has not been executed/recorded yet. As a read-only reviewer (Read/Grep/Glob only, no Bash) I cannot run these, so their pass/fail is not directly attestable from this receipt. The pack correctly does not assert production_ready=true and gates promotion on these steps.\",\"recommendation\":\"Before flipping production_ready / marketplace_failure_recovery_foundation_bridge_descriptor_verified, run and record the full validation suite as passing, normalize exactly one valid hardened read-only review receipt, complete adjudication/inspection, and regenerate the queue.\",\"post_review_disposition\":\"Non-blocking. Already enforced by the pack's gate_outcome=pending_valid_pack_review_and_full_validation and pack_level_claude_review.status=pending_valid_review; no code change required. Reviewer confirms no premature production_ready=true claim exists.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"213089d4-136b-47f3-9a57-bc00b6a6fe42\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6524,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "48e05919-0a29-4547-bc4b-182076a80155",
+    "uuid": "213089d4-136b-47f3-9a57-bc00b6a6fe42",
+    "total_cost_usd": 2.1591192500000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

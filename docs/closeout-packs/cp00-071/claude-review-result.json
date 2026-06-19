@@ -1,0 +1,92 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-071",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"You are a read-only code reviewer with no tools. Review only the provided diff. Never say you need to inspect files or run commands. Output the final verdict in the requested structure.\" --output-format json < /tmp/cp00-071-review-prompt-valid.txt > /tmp/cp00-071-claude-review-output-valid.json",
+    "output_ref": "/tmp/cp00-071-claude-review-output-valid.json",
+    "session_id": "92264481-bcdc-4c9a-a4c6-a8af57309ca8",
+    "uuid": "76be412b-ee5c-4b22-b9d7-171bb0991009",
+    "total_cost_usd": 0.94983725,
+    "duration_ms": 226667,
+    "permission_denials": [],
+    "invalid_attempts_excluded": 1
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_recommendation": "approve",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "CP00-071-F1",
+        "source_id": "CP071-01",
+        "severity": "P3",
+        "area": "model_reference",
+        "title": "Forward-looking review model identifier is embedded in metadata",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "blocking": false,
+        "details": "review_route_rows[0].review_model_ref is set to claude-opus-4-8 as declarative metadata. It is never executed and runtime review queue writes are prohibited.",
+        "recommendation": "Confirm the model id remains intentional or replace with a stable symbolic ref in a future hardening pack if model naming churn becomes noisy."
+      },
+      {
+        "id": "CP00-071-F2",
+        "source_id": "CP071-02",
+        "severity": "P3",
+        "area": "consistency",
+        "title": "Contract forbidden claim list is static while policy list is computed",
+        "file": "contracts/control-plane-contract.json",
+        "line": null,
+        "blocking": false,
+        "details": "The contract records forbidden_boundary_suite_claims as a static JSON list while policies.js computes the policy list by extending CP00-070. Claude found both lists comprehensive for this pack, but no cross-check asserts equality.",
+        "recommendation": "Add a future consistency assertion if this provenance duplication becomes a maintenance risk."
+      },
+      {
+        "id": "CP00-071-F3",
+        "source_id": "CP071-03",
+        "severity": "P3",
+        "area": "provenance",
+        "title": "requested_pack_id matches the upstream pack id by live cursor correction",
+        "file": "docs/closeout-pack-plan/closeout-pack-plan.json",
+        "line": null,
+        "blocking": false,
+        "details": "requested_pack_id, upstream_primary_action_closeout_ref, and required_evidence_refs all point to CP00-070. This is consistent with the established sequential cursor pattern but can be misread.",
+        "recommendation": "No action required; keep correction_reason as the audit trail."
+      }
+    ],
+    "residual_risks": [
+      "Low. CP00-071 is metadata-only and forward-looking; runtime enforcement of review/approval, security trimming, audit emission, and secondary permission matrix behavior is explicitly deferred.",
+      "Remaining risk is informational: model id metadata churn, static-vs-computed forbidden claim provenance, and live-cursor requested_pack_id semantics."
+    ],
+    "overall_summary": "CP00-071 ControlPlanePermissionAuditReviewApprovalSecondaryMatrix covers the planned 10 Risk-A units, consumes the CP00-070 primary action boundary, completes M03 metadata, opens M04, and preserves all no-write/fail-closed/LDIP-planning-only boundaries. Claude reported no P0/P1/P2 findings and three non-blocking P3 observations."
+  },
+  "raw_result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 226667,
+    "duration_api_ms": 229168,
+    "num_turns": 1,
+    "stop_reason": "end_turn",
+    "session_id": "92264481-bcdc-4c9a-a4c6-a8af57309ca8",
+    "total_cost_usd": 0.94983725,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "uuid": "76be412b-ee5c-4b22-b9d7-171bb0991009",
+    "result_excerpt": "Verdict APPROVE. P0=0, P1=0, P2=0, P3=3. Blocking findings none. Required fixes none. Residual risk low."
+  },
+  "raw_output_ref": "/tmp/cp00-071-claude-review-output-valid.json"
+}

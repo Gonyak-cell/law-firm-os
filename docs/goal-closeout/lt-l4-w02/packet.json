@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L4-W02",
+  "title": "Promote contract-screen-map wiring order 0-5",
+  "created_at": "2026-06-18T14:06:46Z",
+  "status": "blocked_pending_official_wiring_roadmap_live_client_runtime_and_gap_tracker",
+  "phase": "L4",
+  "gate_binding": [
+    "L4-EXIT"
+  ],
+  "terminal_tuw": "LT-L4-W02-T05",
+  "artifacts": [
+    "docs/launch/l4/wiring-order-roadmap-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l4-w02/packet.json",
+    "docs/goal-closeout/lt-l4-w02/command-evidence.json",
+    "docs/goal-closeout/lt-l4-w02/claude-review-result.json",
+    "docs/goal-closeout/lt-l4-w02/adjudication.md",
+    "docs/goal-closeout/lt-l4-w02/construction-inspection.json"
+  ],
+  "current_status": {
+    "contract_screen_map_exists": true,
+    "source_recommended_step_count": 6,
+    "source_gap_row_count": 12,
+    "official_wiring_roadmap_exists": false,
+    "launch_decision_register_entry_verified": false,
+    "live_client_exists": false,
+    "api_client_uses_live_client": false,
+    "client_permission_context_header_removed": false,
+    "live_mode_default_verified": false,
+    "live_data_verification_passed": false,
+    "l4_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

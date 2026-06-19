@@ -1,0 +1,151 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-034",
+  "subphase_id": "RP00.P02.M07.S06",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T17:47:49.967Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "blocked_claims": [
+    "skip_audit",
+    "omit_audit_hint",
+    "write_audit_event",
+    "append_audit_ledger",
+    "mutate_audit_ledger",
+    "execute_service_logic",
+    "writes_product_state",
+    "create_runtime_route",
+    "evaluate_runtime_permission",
+    "call_authz_evaluator",
+    "run_permission_engine",
+    "apply_security_trimming",
+    "execute_tests",
+    "generate_golden_fixture",
+    "persist_golden_fixture",
+    "write_database",
+    "write_storage",
+    "persist_product_state",
+    "mutate_entity_registry",
+    "mutate_golden_case_catalog",
+    "mutate_unit_test_contract",
+    "replace_human_approval",
+    "bypass_human_approval",
+    "bypass_permission_audit",
+    "bypass_permission",
+    "bypass_audit_hint",
+    "use_real_client_data",
+    "use_real_matter_data",
+    "use_credentials_or_secrets",
+    "complete_source_micro_phase",
+    "unknown_truthy_audit_claim"
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-034 is a metadata-only Audit hint precheck pack: it accepts only RP00.P02.M07.S05 Test And Golden Case Set Permission precheck results, requires allow_metadata_only with a fixed metadata audit_event_ref, and rejects audit bypass, audit writes, runtime permission, AuthZ evaluator, permission engine, security trimming, test execution, golden fixture generation or persistence, runtime route, service execution, database/storage/product-state write, real-data/secret, catalog mutation, unit-test-contract mutation, source completion, and unknown truthy claims.",
+    "A preliminary RP00 validation run before evidence creation failed only because docs/closeout-packs/cp00-034 evidence files did not exist yet.",
+    "The completed read-only Claude run is the single valid pack-level review for CP00-034; raw verdict was request_changes, raw findings were P0=0/P1=1/P2=1/P3=1, and the P1/P2 items were resolved by creating pack evidence and correcting requiredClosedSubphases to stop at S05 while currentContractSubphaseId remains S06."
+  ],
+  "evidence_summary": {
+    "implementation": "RP00.P02.M07.S06 Audit hint result fields, policy, prechecker, service function, validators, fixture mirror, README entry, contract ledger row, and RP00 validator coverage were added.",
+    "tests": "Control-plane service tests include policy binding, metadata audit hint allow receipt, unsafe claim fail-closed coverage, prechecker no-write handoff, wrong source rejection, and fixture mirror checks.",
+    "hermes_evidence": "H00 command ids rp00_control_plane_contract_validate and spec_requirement_validate are represented in the final command evidence.",
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready; raw blocking findings were resolved/adjudicated before final gates.",
+    "human_approval_boundary": "Human approval remains outside this metadata-only S06 Audit hint precheck pack; the explicit next goal boundary is RP00.P02.M07.S07 Primary happy path."
+  },
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "expected": true,
+      "summary": "Pre-evidence RP00 validation failed only because docs/closeout-packs/cp00-034 evidence files did not exist yet."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "509 tests passed after CP00-034 implementation."
+    },
+    {
+      "command": "claude --no-session-persistence -p --model claude-opus-4-8 --effort max --permission-mode bypassPermissions --system-prompt \"read-only pack-level code reviewer\" --output-format json --max-budget-usd 5",
+      "exit_code": 0,
+      "summary": "Single valid pack-level read-only review completed; raw verdict request_changes, raw findings P0=0/P1=1/P2=1/P3=1, unresolved after fixes/adjudication P0=0/P1=0/P2=0."
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Final Closeout Pack validation passed for CP00-001 through CP00-034."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Full test suite passed after CP00-034."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M07.S06 after CP00-034 evidence finalization and requiredClosedSubphases correction."
+    }
+  ]
+}

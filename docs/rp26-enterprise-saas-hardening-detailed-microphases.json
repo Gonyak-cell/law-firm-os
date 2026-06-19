@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP26",
+  "program_title": "Enterprise SaaS Hardening",
+  "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+  "ai_owner": "Codex",
+  "hermes_gate": "H26",
+  "claude_gate": "C26",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP26.P00.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract dedicated DB/storage/index/key, SSO, MFA, SCIM requirements and identify tenant isolation breach, SSO misconfiguration, and MFA bypass as explicit acceptance risks.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Enterprise SaaS Hardening contract shape for TenantIsolationPolicy, DedicatedResource, SSOConfig, MFARequirement, SCIMUser, KeyPolicy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns TenantIsolationPolicy, DedicatedResource, and SSOConfig, and which modules may only reference them.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for tenant provisioning, SSO login, and MFA enforcement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Enterprise SaaS Hardening records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Enterprise SaaS Hardening behavior can run.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Enterprise SaaS Hardening examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Enterprise SaaS Hardening planning and later implementation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H26 preflight",
+      "objective": "Define the fields Hermes records before Enterprise SaaS Hardening implementation starts.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C26 design brief",
+      "objective": "Prepare Claude Code questions around tenant isolation breach, SSO misconfiguration, MFA bypass, and missing tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P00.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP26.P00 handoff",
+      "objective": "Hand off a contract-first Enterprise SaaS Hardening implementation scope to AI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "contracts/enterprise-contract.json",
+        "packages/enterprise/README.md",
+        "contracts/enterprise-saas-hardening-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/enterprise.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement TenantIsolationPolicy model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for TenantIsolationPolicy.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement DedicatedResource model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for DedicatedResource.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement SSOConfig model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for SSOConfig.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement MFARequirement model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for MFARequirement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement SCIMUser model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for SCIMUser.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among TenantIsolationPolicy, DedicatedResource, SSOConfig, MFARequirement, SCIMUser, KeyPolicy and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Enterprise SaaS Hardening model definitions through a stable package interface.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P01.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Enterprise SaaS Hardening model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/model.js",
+        "packages/enterprise/src/states.js",
+        "packages/enterprise/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for tenant provisioning, SSO login, and MFA enforcement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement tenant provisioning",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for tenant provisioning.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement SSO login",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for SSO login.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement MFA enforcement",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for MFA enforcement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement SCIM sync",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for SCIM sync.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement dedicated resource routing",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for dedicated resource routing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for tenant isolation breach, SSO misconfiguration, and MFA bypass.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Enterprise SaaS Hardening operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H26.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Enterprise SaaS Hardening outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P02.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Enterprise SaaS Hardening services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/service.js",
+        "packages/enterprise/src/policies.js",
+        "packages/enterprise/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Enterprise SaaS Hardening models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define tenant provisioning API",
+      "objective": "Lock request, response, permission, audit, and error shape for tenant provisioning.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define SSO login API",
+      "objective": "Lock request, response, permission, audit, and error shape for SSO login.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define MFA enforcement API",
+      "objective": "Lock request, response, permission, audit, and error shape for MFA enforcement.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define SCIM sync API",
+      "objective": "Lock request, response, permission, audit, and error shape for SCIM sync.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define dedicated resource routing API",
+      "objective": "Lock request, response, permission, audit, and error shape for dedicated resource routing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Enterprise SaaS Hardening API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for tenant isolation breach, SSO misconfiguration, MFA bypass, SCIM stale user, and review_required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H26 evidence without making Hermes product authority.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C26 cross-validation.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P03.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Enterprise SaaS Hardening public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/index.js",
+        "packages/enterprise/src/api-contract.js",
+        "packages/enterprise/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify enterprise security settings, SSO setup, SCIM sync status, and tenant isolation report in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan enterprise security settings",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for enterprise security settings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan SSO setup",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for SSO setup.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan SCIM sync status",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for SCIM sync status.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan tenant isolation report",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for tenant isolation report.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Enterprise SaaS Hardening outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Enterprise SaaS Hardening rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Enterprise SaaS Hardening context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Enterprise SaaS Hardening service decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P04.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp26-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define SSO login succeeds golden case",
+      "objective": "Create a synthetic golden case proving SSO login succeeds.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define MFA required golden case",
+      "objective": "Create a synthetic golden case proving MFA required.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define SCIM deprovision disables user golden case",
+      "objective": "Create a synthetic golden case proving SCIM deprovision disables user.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define dedicated storage enforced golden case",
+      "objective": "Create a synthetic golden case proving dedicated storage enforced.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define tenant isolation breach failure fixture",
+      "objective": "Create a synthetic failing case that proves tenant isolation breach is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define SSO misconfiguration failure fixture",
+      "objective": "Create a synthetic failing case that proves SSO misconfiguration is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define MFA bypass failure fixture",
+      "objective": "Create a synthetic failing case that proves MFA bypass is blocked or reviewed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Enterprise SaaS Hardening fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Enterprise SaaS Hardening appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P05.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Enterprise SaaS Hardening fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/fixtures.js",
+        "packages/enterprise/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for tenant provisioning, SSO login, MFA enforcement, and SCIM sync.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Enterprise SaaS Hardening view and search surfaces.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Enterprise SaaS Hardening mutations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Enterprise SaaS Hardening export, download, or external-share actions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Enterprise SaaS Hardening where applicable.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Enterprise SaaS Hardening obey security trimming.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H26 audit evidence",
+      "objective": "Record which Enterprise SaaS Hardening decisions require downstream audit event persistence.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P06.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Enterprise SaaS Hardening cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/src/security-contract.js",
+        "packages/enterprise/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define tenant isolation breach failure",
+      "objective": "Fail closed or require review when tenant isolation breach appears in Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define SSO misconfiguration failure",
+      "objective": "Fail closed or require review when SSO misconfiguration appears in Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define MFA bypass failure",
+      "objective": "Fail closed or require review when MFA bypass appears in Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define SCIM stale user failure",
+      "objective": "Fail closed or require review when SCIM stale user appears in Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define key routing error failure",
+      "objective": "Fail closed or require review when key routing error appears in Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Enterprise SaaS Hardening operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Enterprise SaaS Hardening operations.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Enterprise SaaS Hardening micro phase is corrected before advancing.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P07.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Enterprise SaaS Hardening ambiguity fails closed or requires review.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "packages/enterprise/test/failure-cases.test.js",
+        "docs/rp26-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/enterprise/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H26 command matrix",
+      "objective": "Record exact product commands Hermes should run for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H26 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H26 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H26 no-real-data evidence",
+      "objective": "Record that Enterprise SaaS Hardening fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H26 blocked-claim evidence",
+      "objective": "Record unsafe Enterprise SaaS Hardening claims rejected by validators or tests.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H26 Claude dependency",
+      "objective": "Mark C26 review mandatory before Enterprise SaaS Hardening closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H26 human approval note",
+      "objective": "Record what the human must approve for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H26 command availability",
+      "objective": "Ensure npm scripts required by H26 exist before handoff.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H26 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Enterprise SaaS Hardening implementation closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H26 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H26.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P08.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Enterprise SaaS Hardening behavior without owning product code.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp26-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M00",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP26 architecture review questions",
+      "objective": "Ask whether Enterprise SaaS Hardening module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M01",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP26 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M02",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP26 bypass review questions",
+      "objective": "Ask Claude to find tenant isolation breach, SSO misconfiguration, MFA bypass, SCIM stale user, and key routing error bypasses.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M03",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP26 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Enterprise SaaS Hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M04",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP26 downstream readiness questions",
+      "objective": "Ask whether Enterprise SaaS Hardening is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M05",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP26 risk register",
+      "objective": "List unresolved Enterprise SaaS Hardening risks and route them to future RP corrections.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M06",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Enterprise SaaS Hardening findings.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M07",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Enterprise SaaS Hardening closeout.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M08",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP26.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M09",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Enterprise SaaS Hardening can be considered ready.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP26.P09.M10",
+      "program_id": "RP26",
+      "program_title": "Enterprise SaaS Hardening",
+      "program_scope": "dedicated DB/storage/index/key, SSO, MFA, SCIM",
+      "phase_id": "RP26.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP26 detailed plan",
+      "objective": "Confirm Enterprise SaaS Hardening is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex",
+      "hermes_gate": "H26",
+      "claude_gate": "C26",
+      "target_files": [
+        "docs/rp26-claude-cross-validation-brief.md",
+        "docs/rp26-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H26 evidence or blocked reason can be recorded.",
+        "Claude C26 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

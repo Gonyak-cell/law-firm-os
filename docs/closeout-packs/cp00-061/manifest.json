@@ -1,0 +1,145 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-061",
+  "planned_pack_id": "CP00-061",
+  "requested_pack_id": "CP00-060",
+  "planned_risk_class": "A",
+  "planned_unit_count": 1,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-060 shifted to CP00-061 by live sequential cursor",
+  "title": "Control-plane UI Operator Surface Permission And Audit Error Copy boundary pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-07T05:41:02Z",
+  "completed_at": "2026-06-07T05:41:02Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "A",
+  "risk_reason": "Closes the planned CP00-061 Risk A UI Operator Surface permission/audit error-copy boundary for RP00.P04.M05.S11, exposing only safe synthetic permission and audit references in operator-facing copy while hiding raw permission policy and internal audit payloads, without runtime UI rendering, route creation, service logic, permission engine execution, AuthZ evaluation, security trimming, audit ledger/event writes, review queue writes, database/storage/idempotency/lock writes, or product-state mutation.",
+  "primary_subphase_id": "RP00.P04.M05.S11",
+  "production_ready_flag": "control_plane_ui_operator_surface_permission_audit_error_copy_verified",
+  "unit_count": 1,
+  "source_micro_phase_completed": true,
+  "phase_completed": false,
+  "next_subphase": "RP00.P04.M06.S01",
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-061",
+    "planned_pack_id": "CP00-061",
+    "requested_pack_id": "CP00-060",
+    "title": "CP00-061 RP00.P04.M05.S11 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 1,
+    "unit_count": 1,
+    "range": {
+      "first_unit_id": "RP00.P04.M05.S11",
+      "last_unit_id": "RP00.P04.M05.S11",
+      "description": "RP00.P04.M05.S11"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 1,
+    "correction_reason": "requested CP00-060 shifted to CP00-061 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P04.M05.S11",
+        "title": "Error message copy",
+        "source_micro_phase_id": "RP00.P04.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P04",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP00.P04.M05.S11",
+      "title": "Error message copy",
+      "source_micro_phase_id": "RP00.P04.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P04",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "status": "production_ready",
+      "production_ready": true,
+      "evidence_root": "docs/closeout-packs/cp00-061",
+      "risk_class": "A",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-061/manifest.json",
+        "docs/closeout-packs/cp00-061/command-evidence.json",
+        "docs/closeout-packs/cp00-061/claude-review-result.json",
+        "docs/closeout-packs/cp00-061/adjudication.md",
+        "docs/closeout-packs/cp00-061/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ]
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-061/manifest.json",
+    "docs/closeout-packs/cp00-061/command-evidence.json",
+    "docs/closeout-packs/cp00-061/claude-review-result.json",
+    "docs/closeout-packs/cp00-061/adjudication.md",
+    "docs/closeout-packs/cp00-061/construction-inspection.json"
+  ],
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "review_result_ref": "docs/closeout-packs/cp00-061/claude-review-result.json"
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-061 ui operator surface permission audit error copy pack"
+  }
+}

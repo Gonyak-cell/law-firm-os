@@ -1,0 +1,78 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-090",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "63835923-6829-4c69-b4f0-4aaa09e7c6f2",
+    "uuid": "63835923-6829-4c69-b4f0-4aaa09e7c6f2",
+    "total_cost_usd": 1.09885075,
+    "permission_denials": [],
+    "duration_ms": 288429,
+    "invalid_attempt_counted_as_valid": false
+  },
+  "invalid_attempts": [],
+  "parsed_review": {
+    "review_id": "CP00-090-RP00.P08.M05.S11-human-approval-marker-review-2026-06-08",
+    "pack_id": "CP00-090",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "CP00-090-001",
+        "severity": "P2",
+        "title": "cp00-090 self-evidence pack referenced by contract/validator but absent from this diff",
+        "detail": "The contract now registers current_subphase and a subphase_closeouts entry pointing at evidence_root 'docs/closeout-packs/cp00-090' and construction_inspection_ref 'docs/closeout-packs/cp00-090/construction-inspection.json' with production_ready_flag 'control_plane_hermes_validation_human_approval_marker_verified'. scripts/validate-rp00-control-plane-contract.mjs adds S11 to requiredClosedSubphases and requires inspection.subphase_id=='RP00.P08.M05.S11' plus inspection.control_plane_hermes_validation_human_approval_marker_verified===true, else it pushes 'construction inspection missing'/verify errors. This diff does not create construction-inspection.json (nor manifest/command-evidence/claude-review-result/adjudication) for cp00-090, and git status shows no such untracked directory. required_evidence_refs correctly point only at upstream cp00-089, so this is a self-evidence sequencing concern, not an upstream-binding defect.",
+        "recommendation": "Assemble the cp00-090 closeout pack (construction-inspection.json with subphase_id RP00.P08.M05.S11, human_acceptance_or_explicit_next_goal_boundary, and control_plane_hermes_validation_human_approval_marker_verified=true, plus manifest/command-evidence/claude-review-result/adjudication) and commit it alongside these changes before running the contract validator or finalizing closeout.",
+        "blocks_closeout": false,
+        "adjudication": "fixed_by_cp00_090_closeout_pack_artifacts_created_and_rp00_validator_rerun_required"
+      },
+      {
+        "id": "CP00-090-002",
+        "severity": "P3",
+        "title": "completedSourceMicroPhaseIds appends RP00.P08.M05 without a uniqueness guard",
+        "detail": "In policies.js the policy builds completedSourceMicroPhaseIds as [...CP00-089 policy.completedSourceMicroPhaseIds, 'RP00.P08.M05']. The result (ending ...M04, M05) and the assembler's fail-closed requirement that upstream source_micro_phase_completed===false make a duplicate impossible today, but the validator only asserts .includes('RP00.P08.M05') and does not assert uniqueness, so a future change that added M05 to the upstream list would silently produce a duplicate id.",
+        "recommendation": "Optionally de-duplicate via a Set (mirroring the forbiddenBoundarySuiteClaims construction) or add a uniqueness assertion in assertControlPlaneHermesValidationHumanApprovalMarkerPolicy; non-blocking for this pack.",
+        "blocks_closeout": false,
+        "adjudication": "accepted_non_blocking_robustness_note"
+      },
+      {
+        "id": "CP00-090-003",
+        "severity": "P3",
+        "title": "Upstream entrypoint_id not explicitly validated though declared in fail_closed_on",
+        "detail": "fail_closed_on lists 'non_hermes_validation_human_approval_marker_entrypoint', and the output entrypoint_id is sourced from policy.acceptedEntrypointId. assembleControlPlaneHermesValidationHumanApprovalMarker does not inspect the upstream's entrypoint_id; correct upstream identity is instead enforced via pack_id/planned_pack_id==CP00-089, next_subphase==RP00.P08.M05.S11, the decision string, the boundary-flag block, and the full assertControlPlaneHermesValidationPermissionAuditBindingResult call. This matches the established pattern from prior packs and is sufficient, but the declared fail-closed reason has no direct runtime check.",
+        "recommendation": "No change required; if stricter symmetry is desired, add an explicit upstream entrypoint_id assertion. Informational only.",
+        "blocks_closeout": false,
+        "adjudication": "accepted_non_blocking_robustness_note"
+      }
+    ],
+    "required_followups": [
+      "Run npm run rp00:control-plane:validate after CP00-090 evidence files exist.",
+      "Continue to CP00-091 after commit; CP00-090 hands off to RP00.P08.M06.S01."
+    ],
+    "summary": "CP00-090 correctly binds a metadata-only Human approval marker (RP00.P08.M05.S11) by consuming the CP00-089 permission-audit-binding result. The marker is explicitly declared not-an-approval, preserves human_approval_required_for_sensitive_actions, and forbids runtime approval creation, record writes, decision synthesis, and bypass. All runtime/permission/AuthZ/engine, audit, Hermes/command evidence, product-state, real-data/secret, and LDIP flags remain false. The assembler is fail-closed (upstream pack/handoff/decision/boundary checks plus full upstream result assertion, and any truthy boundary claim throws). It completes RP00.P08.M05 (phase_completed=false, open=[RP00.P08.M06]) and hands off to RP00.P08.M06.S01. Contract definition, synthetic fixture, policy, module, validators, and tests are mutually consistent with exact field-set and ordering assertions. No P0/P1 issues found; only a sequencing dependency on the cp00-090 evidence pack and two minor robustness notes."
+  }
+}

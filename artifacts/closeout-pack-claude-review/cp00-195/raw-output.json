@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-195",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-09T21:38:42.388Z",
+  "finished_at": "2026-06-09T21:47:45.495Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":542500,\"duration_api_ms\":542377,\"ttft_ms\":3785,\"num_turns\":55,\"result\":\"Review submitted. **Verdict: PASS** — CP00-195 cleared independent read-only review with 0 P0–P3 findings.\\n\\nWhat I confirmed directly from source this pass:\\n- Deliverable/phase/micro-title distributions (registry.js:2296) match the prompt baseline exactly and sum to 150; coverage + bridge validators (validators.js:5230, 5287) enforce them.\\n- No-write/no-network boundary holds — zero write/exec/network primitives anywhere in `packages/matter/src`.\\n- Authority boundary intact — validators reject Claude-as-final-approver and enterprise-trust-from-local-validation; Claude packet is read-only (Read/Grep/Glob).\\n- No overclaim — all artifacts honestly report `production_ready: false`; `production_ready_candidate` is local-only and distinct from enterprise trust.\\n- CP178+ hardening satisfied — no prior invalid/0-byte/malformed output is misrepresented as valid evidence; auth-preflight passed.\\n\\nThe verdict does not block pack or goal closeout; final enterprise production-ready/trust closure remains gated on the closeout-time full validation suite and human approval, both outside Claude's authority.\",\"stop_reason\":\"end_turn\",\"session_id\":\"04a7b4e7-ad77-463a-b12e-9aa817a8ea12\",\"total_cost_usd\":3.9552742500000004,\"usage\":{\"input_tokens\":1774,\"cache_creation_input_tokens\":170147,\"cache_read_input_tokens\":3413743,\"output_tokens\":30332,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":170147,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":457,\"cache_read_input_tokens\":90687,\"cache_creation_input_tokens\":3781,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3781},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1160,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.00126,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3663,\"outputTokens\":40168,\"cacheReadInputTokens\":3635461,\"cacheCreationInputTokens\":178203,\"webSearchRequests\":0,\"costUSD\":3.95401425,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-195 (RP05 Matter Core, Risk C, 150 units, RP05.P08.M06.S18-RP05.P09.M07.S02) passes independent read-only review with no P0-P3 findings. Verified via Read/Grep/Glob only; no Bash, edits, writes, or connector calls.\\n\\nSCOPE & DISTRIBUTION INTEGRITY: registry.js:2296 deliverable_counts {implementation:63,test:9,hermes_evidence:38,claude_review:21,security_audit:14,ui:5} and phase_counts {RP05.P08:73,RP05.P09:77} sum to 150 and match the prompt baseline and review-baseline.json exactly. micro_title_row_counts (registry.js:2283) match the prompt micro_title_distribution exactly. validateMatterCoreCp195Coverage (validators.js:5230) enforces pack_id/risk_class/unit_count/first+last unit/no-duplicate-IDs/RP05-only plus all four distributions (deliverable, phase, micro_phase, micro_title) and required micro-phases/unit titles. contracts/matter-core-contract.json current_pack is CP00-195 with matching evidence_review_handoff_terminal_bridge section.\\n\\nNO-WRITE / NO-REAL-DATA BOUNDARY: A grep sweep for fetch/child_process/writeFile/appendFile/exec/spawn/process.env/network primitives across packages/matter/src returned zero matches, corroborating descriptor-only behavior at the code level. validateMatterCoreCp195EvidenceReviewHandoffTerminalBridge (validators.js:5299-5320) hard-rejects product-state writes, runtime permission evaluation, audit-event writes, review/approval route dispatch, rollback/retry execution, live DOM, API-handler execution, permission-decision-detail and audit-event-body leaks, and Loop engine. Descriptor enforces required terminal controls, customer-safe error codes, required outcomes (blocked permission_bypass_questions, review_required architecture_review_questions, approval_required human_approval_summary), security_audit/ui row counts, and leak guards. command-evidence.json: 8 commands all exit 0; no_real_data true; writes_product_state false.\\n\\nAUTHORITY BOUNDARY HELD: validators.js:5315 rejects promotes_claude_to_final_approval; 5318 rejects claims_enterprise_trust_from_local_validation. construction-inspection.json sets claude_not_final_approver true and enterprise_trust_not_claimed_from_local_validation true. Claude review packet is read_only with allowed_tools Read,Grep,Glob. Matches required boundary: claude_role read_only_independent_reviewer, claude_is_final_approver false, human_final_approval_required_for_enterprise_trust_claim true.\\n\\nHERMES = DETERMINISTIC CONTROL-PLANE ONLY: Hermes appears solely as deterministic evidence-packet/receipt labels (gate H05) and assert-based contract validation (scripts/validate-rp05-matter-core-contract.mjs); production_ready_candidate is computed locally as coverage.valid && bridge.valid and is explicitly distinct from enterprise trust. No Hermes runtime is embedded in product code.\\n\\nNO OVERCLAIM: claude-review-result.json status pending_hardened_review; construction-inspection.json verdict PENDING with production_ready false; manifest/command-evidence report production_ready false. The pack does not assert enterprise production-readiness; it is correctly in pre-closeout state pending the full validation suite and human approval.\\n\\nCP178+ REVIEW HARDENING: valid_review_receipts [] and invalid_review_attempts [] are both empty; the placeholder self-declares 'This placeholder is not valid review evidence' (raw_output stdout_bytes 0); readiness auth_preflight passed (exit 0, 1449-byte valid JSON result). No auth-failed, 0-byte, malformed, fenced-with-prose, or tool-call-shaped output is misrepresented as valid review evidence.\\n\\nFinal enterprise production-ready and enterprise-trust status remain correctly gated on the closeout-time full validation suite and human final approval, both outside Claude's authority. This review neither grants nor blocks that closure; it records no blocking findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"71a04bbb-39d1-4936-b65f-f3b1ff34e633\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6655,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "04a7b4e7-ad77-463a-b12e-9aa817a8ea12",
+    "uuid": "71a04bbb-39d1-4936-b65f-f3b1ff34e633",
+    "total_cost_usd": 3.9552742500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

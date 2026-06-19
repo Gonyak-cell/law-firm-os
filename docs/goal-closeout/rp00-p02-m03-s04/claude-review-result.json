@@ -1,0 +1,145 @@
+{
+  "subphase_id": "RP00.P02.M03.S04",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Matter trace precheck",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T06:33:48Z",
+  "exactly_one_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "cf691c56-37a8-41b2-9310-875a003db512",
+    "uuid": "75d3900d-0fa5-4cdb-a28f-caba45516525",
+    "duration_ms": 415775,
+    "duration_api_ms": 417880,
+    "total_cost_usd": 1.5478935000000003,
+    "permission_denials": [],
+    "write_tools_granted": false
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json",
+    "prompt_file": "/tmp/lfos-rp00-p02-m03-s04-claude-prompt.txt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s04-claude-review.json",
+    "duration_ms": 415775,
+    "duration_api_ms": 417880,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "75d3900d-0fa5-4cdb-a28f-caba45516525",
+    "session_id": "cf691c56-37a8-41b2-9310-875a003db512"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "PASS_WITH_FINDINGS",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "id": "C00-S04-001",
+        "severity": "P2",
+        "title": "The matter_tenant_missing and matter_tenant_mismatch deny outcomes cannot be emitted by the public precheck function. The top-of-function assertControlPlaneHermesValidationTenantBoundaryPrecheckResult precondition rejects a carried S03 result whose matter_tenant_id is null/mismatched (with matter_id present) before S04 logic runs (this is forced by the passing tests: the drift regexes /missing matter tenant must fail closed/ and /matter tenant mismatch must fail closed/ can only match if the S03 validator throws, since the service builds a consistent deny with matter_trace_satisfied=false and S04's own 'must fail closed' guards only fire when satisfied!==false, which the service never constructs). Net: the two drift tests exercise the S03 validator, not S04's deny logic.",
+        "status": "fixed",
+        "disposition": "accepted_fixed",
+        "file": "packages/control-plane/src/service.js, packages/control-plane/src/validators.js, packages/control-plane/test/service.test.js",
+        "line_or_symbol": "precheckControlPlaneHermesValidationMatterTrace (matterTenantMissing/matterTenantMismatch branches); assertControlPlaneHermesValidationMatterTracePrecheckResult ('missing matter tenant must fail closed' / 'matter tenant mismatch must fail closed' guards); test 'Hermes validation Matter trace precheck rejects S03 Matter tenant precondition drift'",
+        "impact": "S04's policy/contract advertise matter_tenant_missing and matter_tenant_mismatch blocked-claim refs, failClosedOn reasons, and a deny decision the implementation cannot actually produce, and the tests give false assurance of coverage: deleting S04's matterTenantMissing/matterTenantMismatch pushes would not fail any test. This is the validation-theater pattern this program explicitly screens for. No isolation hole (behavior is fail-closed), but advertised vs reachable behavior diverge and a security-relevant branch is untested at the S04 layer.",
+        "recommendation": "Pick one: (a) document these as deliberate defense-in-depth backstops against a future S03 loosening and add a direct unit test of assertControlPlaneHermesValidationMatterTracePrecheckResult that drives the satisfied!==false guards with a crafted inconsistent object, proving the branch; or (b) remove the redundant S04 matter-tenant branches plus their policy/contract/fixture surface so the contract only advertises reachable outcomes. Keep matter_required_missing, which is reachable and correctly tested."
+      },
+      {
+        "id": "C00-S04-002",
+        "severity": "P3",
+        "title": "Matter-required claims are self-declared metadata with no runtime tie to actual data access (deferred to S05+/execution), and the truthiness gate treats any value other than undefined/null/false (including 0 and '') as 'claimed'.",
+        "status": "deferred_with_explicit_boundary",
+        "disposition": "accepted_deferred_to_runtime_permission_and_execution_layers",
+        "file": "packages/control-plane/src/service.js",
+        "line_or_symbol": "precheckControlPlaneHermesValidationMatterTrace claim loop (value !== undefined && value !== null && value !== false)",
+        "impact": "A caller that touches Matter data but omits the touches_* claim would be allowed firm-level here; the metadata precheck must not be mistaken for a runtime isolation control. The truthiness handling is fail-safe (more values force Matter) but surprising.",
+        "recommendation": "Document that claims are self-declared and authoritative Matter-scope enforcement happens at execution time; optionally constrain claim values to strict booleans."
+      },
+      {
+        "id": "C00-S04-003",
+        "severity": "P3",
+        "title": "The Matter trace precheck anchors requirement trace solely to tenant requirements (TEN-001..008), identical to S03, plus a non-trace reference to matter-first trace rules (RP00.P00.M04.S01).",
+        "status": "not_applicable_after_adjudication",
+        "disposition": "rejected_for_current_weighted_scope",
+        "file": "contracts/control-plane-contract.json, packages/control-plane/src/policies.js",
+        "line_or_symbol": "tenant_requirement_trace_refs (TEN-001..TEN-008)",
+        "impact": "If the requirement catalog defines Matter-specific requirements, this Matter-focused subphase may under-anchor them. spec:requirements:validate passes, so advisory only.",
+        "recommendation": "Confirm whether Matter-specific requirement IDs should be primary anchors for S04 and add them if so."
+      }
+    ],
+    "boundary_assessment": {
+      "metadata_only_preserved": true,
+      "matter_trace_precheck_enforced": true,
+      "blocked_claim_denials_recorded": true,
+      "no_runtime_route_preserved": true,
+      "no_hermes_execution_preserved": true,
+      "no_evidence_creation_preserved": true,
+      "permission_audit_deferred": true,
+      "single_review_sufficient_for_closeout_after_p2_fix": true
+    },
+    "summary": "S04 Matter trace precheck is architecturally consistent with S01-S03 and fail-closed. Tenant/Matter isolation is correct: it requires a carried allow_metadata_only + precheck_passed S03 result, rejects non-hermes entrypoints, forbidden and unknown-truthy claims, denied/drifted upstream results, and matter-tenant drift. The one genuinely new rule (a Matter-required claim forces a Matter; firm-level vs matter-scoped scoping) is reachable, correct, and tested. No P0/P1. One P2: the matter_tenant_missing/matter_tenant_mismatch deny paths are unreachable via the public function and their 'drift' tests pass via the S03 precondition validator, not S04 logic."
+  },
+  "adjudicated_findings": {
+    "p0": [],
+    "p1": [],
+    "p2": [
+      {
+        "id": "C00-S04-001",
+        "severity": "P2",
+        "finding": "S04 Matter tenant missing/mismatch deny refs were advertised as S04 behavior but public path reaches S03 validator first.",
+        "disposition": "accepted_fixed",
+        "rationale": "Added explicit defense-in-depth service comment and direct result-validator tests that prove missing/mismatched Matter tenant fail-closed guards and specific blocked-claim refs.",
+        "blocks_subphase_closeout": false
+      }
+    ],
+    "p3": [
+      {
+        "id": "C00-S04-002",
+        "severity": "P3",
+        "disposition": "accepted_deferred_to_runtime_permission_and_execution_layers",
+        "blocks_subphase_closeout": false
+      },
+      {
+        "id": "C00-S04-003",
+        "severity": "P3",
+        "disposition": "rejected_for_current_weighted_scope",
+        "blocks_subphase_closeout": false
+      }
+    ]
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "num_turns": 1,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s04-claude-review.json",
+    "summary": "Claude returned PASS_WITH_FINDINGS with one P2 and two P3 findings; P2 was fixed before production_ready evidence promotion."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

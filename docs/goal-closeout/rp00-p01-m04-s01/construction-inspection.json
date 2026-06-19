@@ -1,0 +1,38 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M04.S01",
+  "source_micro_phase_id": "RP00.P01.M04",
+  "title": "Package directory layout",
+  "inspected_at": "2026-06-04T03:29:27+09:00",
+  "verdict": "PASS",
+  "production_ready": true,
+  "claude_review_gate_package_layout_verified": true,
+  "implementation_verified": true,
+  "tests_verified": true,
+  "hermes_evidence_verified": true,
+  "claude_review_verified": true,
+  "no_real_data_verified": true,
+  "writes_product_state_verified": false,
+  "scope_boundaries_verified": {
+    "implements_only_ClaudeReviewGate_package_layout": true,
+    "does_not_implement_ClaudeReviewGate_identifier": true,
+    "does_not_implement_ClaudeReviewGate_tenant_scope": true,
+    "does_not_implement_ClaudeReviewGate_matter_trace": true,
+    "does_not_implement_full_ClaudeReviewGate_model": true,
+    "does_not_complete_RP00_P01": true,
+    "does_not_replace_H00_or_C00": true,
+    "does_not_replace_human_approval": true,
+    "does_not_create_ui": true
+  },
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p3_count": 2,
+    "p2_status": "fixed_or_deferred",
+    "blocking_findings_remaining": false
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Explicit next boundary recorded as RP00.P01.M04.S02; no sensitive production mutation, real data import, client-facing output, finance action, external share, or human approval replacement occurs in this subphase.",
+  "final_validation_required_before_commit": true,
+  "next_subphase": "RP00.P01.M04.S02"
+}

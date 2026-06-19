@@ -1,0 +1,38 @@
+{
+  "work_package_id": "LT-L0-W05",
+  "title": "Hardening coverage aggregation",
+  "created_at": "2026-06-18T12:56:50Z",
+  "status": "blocked_pending_owner_ratification_and_cell_evidence",
+  "phase": "L0",
+  "gate_binding": [
+    "G1",
+    "L0-EXIT"
+  ],
+  "terminal_tuw": "LT-L0-W05-T02",
+  "artifacts": [
+    "docs/launch/hardening-coverage-matrix.md",
+    "contracts/critical-rp-saas-hardening-contract.json"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l0-w05/packet.json",
+    "docs/goal-closeout/lt-l0-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l0-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l0-w05/adjudication.md",
+    "docs/goal-closeout/lt-l0-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "contract_shape_recorded": true,
+    "critical_rp_count": 16,
+    "control_count": 17,
+    "required_cell_count": 272,
+    "critical_rp_owner_ratified": false,
+    "cell_level_evidence_complete": false,
+    "unmet_dispositions_complete": false,
+    "g1_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

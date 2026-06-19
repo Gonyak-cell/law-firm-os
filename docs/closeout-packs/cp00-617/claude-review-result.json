@@ -1,0 +1,47 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-617",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-617/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-617/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "2d3017c2-609e-4cee-b803-9f78cb6454ad",
+    "uuid": "1dbead2a-c40e-4919-8bda-ed835d7dae00",
+    "total_cost_usd": 1.9888002499999995,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Read-only static review of CP00-617 (RP20 Data Room & VDR, P02.M07.S03-S12; risk A; 10 units; 6 implementation / 2 security_audit / 2 ui; all micro \"Test And Golden Case Set\"). The descriptor-only implementation is internally consistent and complete: registry CP617 binding and PROGRAM_CONTRACT pointers are correct (upstream CP00-616, next CP00-618, next_subphase RP20.P02.M07.S13); section rows P02_SERVICE_ROWS.slice(2,12) map exactly to S03-S12, and the 6/2/2 deliverable split is verified against the actual title-classification sets (Permission/Audit precheck -> security_audit; State transition/Lock -> ui). freezeCp617Result forces all runtime-dispatch/write/persistence flags false and references CP617_NO_WRITE_ATTESTATION, which extends the CP616 attestation with test_golden_case_core_runtime_opened:false; validators enforce coverage, descriptor-only boundaries, and the authority boundary; tests cover coverage, descriptor-only, and contract-projection deepEqual; the validator .mjs script is fully wired; contract projections (cp617_pack_binding/requirements/no_write_attestation incl. the new field at line 1577, and packs.cp617_*) match package code; README has the #cp00-617 anchor and index.js re-exports via export *. No-write/no-real-data boundaries are attested and tested. Authority boundary is preserved: Claude is read-only and not final approver, human final approval is required for enterprise trust/runtime opening, local validation does not claim enterprise trust, and Hermes is used only for a deterministic evidence-packet/receipt descriptor (emits_hermes_runtime_receipt:false), not product runtime. CP178+ review-evidence hardening is satisfied: auth preflight passed (exit 0, valid JSON, non-zero stdout), prompt is 2135B with no embedded full diff/source, read tools were used, no forbidden tools, and no active untracked implementation files were omitted; the unrelated dirty files (progress-control-room, workbook/*, ldip-integration, docx) are correctly recorded as preserved and out of pack scope. The pack is in the expected pre-review pending_review state (manifest production_ready:false/in_progress; command-evidence, adjudication, construction-inspection all pending_review; claude-review-result.json is the PENDING_REVIEW placeholder) awaiting normalization of this review. production_ready denotes descriptor-verified only; runtime_ready remains false (no runtime opened). Final closeout validation execution and human approval remain gates outside this read-only review. No P0-P3 findings identified; this review does not block pack closeout and does not block goal closeout.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-invalid-attempts.v0.1",
+  "pack_id": "CP00-332",
+  "attempts": [
+    {
+      "attempt_id": "cp00-332-usage-limit-01",
+      "status": "invalid_not_accepted",
+      "reason": "claude_cli_usage_limit_429",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-332/invalid-usage-limit-raw-output-01.json",
+      "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-332/invalid-usage-limit-review-receipt-01.json",
+      "exit_code": 1,
+      "api_error_status": 429,
+      "message": "auth_or_cli_error; structured_output_missing; required_field_error: parsed_review missing"
+    }
+  ]
+}

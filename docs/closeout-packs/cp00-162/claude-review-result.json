@@ -1,0 +1,98 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-162",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "6805f18c-11da-4d51-b5eb-76d29504fa3f",
+    "uuid": "2a3426c6-2e92-4ca8-bfae-64fbf77faaa3",
+    "duration_ms": 389494,
+    "duration_api_ms": 391716,
+    "total_cost_usd": 1.320536,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-162-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-162.master_data_permission_audit_binding",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-162-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-162 adds descriptor-only Master Data permission/audit binding descriptors, contract v0.7 parity checks, tests, H04/C04 packets, and CP00-163 handoff. Claude found no P0/P1/P2 blockers. Three P3 items were fixed and one P3 was explicitly deferred as a safe no-error-state hardening note for later packs.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "notes": "CP00-162 builds permission/audit display descriptors only; package code does not execute runtime permission checks, audit appends, API handlers, UI rendering, Hermes, or Claude."
+    },
+    "findings": [
+      {
+        "id": "P3-01",
+        "severity": "P3",
+        "title": "Test/validator depend on the live plan entry; manifest fallback is unpopulated",
+        "file": "packages/master-data/test/model.test.js",
+        "line": 111,
+        "evidence": "cp162PlanPack resolves via closeoutPlan.packs.find(... 'CP00-162') ?? cp162Manifest?.plan_binding_snapshot. The plan currently contains CP00-162 (verified: 10 units S06-S15, deliverable split implementation=3/security_audit=2/ui=4/claude_review=1, all RP04), so validation passes. However docs/closeout-packs/cp00-162/manifest.json does not exist (no pack cp00-15x/cp00-16x has a manifest dir), so the fallback is a no-op. If the plan is ever pruned of closed packs, coverage validation here and in the contract script would silently flip to valid=false. Non-blocking today.",
+        "recommended_action": "Either keep the closed pack in the plan permanently or emit a cp00-162 manifest with plan_binding_snapshot so the documented fallback is real.",
+        "post_review_disposition": "fixed: CP00-162 manifest now carries plan_binding_snapshot, so the documented fallback is real after this closeout artifact is created."
+      },
+      {
+        "id": "P3-02",
+        "severity": "P3",
+        "title": "Prohibited-output guard scans only customer_facing_descriptor via substring match",
+        "file": "packages/master-data/src/service.js",
+        "line": 953,
+        "evidence": "prohibited_outputs_absent is computed as prohibited_outputs.every(v => !JSON.stringify(customer_facing_descriptor).includes(v)). The broader returned object exposes internal binding vocabulary (binding_states like 'review_badge_visible_without_dispatch', interaction_contract, layout_contract) at top level, outside the scanned subtree. None of those strings are in the prohibited list and this pack performs no rendering, so it is safe; but the safe surface is specifically customer_facing_descriptor, not the whole result.",
+        "recommended_action": "Document (or enforce downstream) that only customer_facing_descriptor is renderable, so a future UI binding does not surface the internal descriptor vocabulary carried alongside it.",
+        "post_review_disposition": "fixed: permission/audit binding descriptors now declare renderable_surface=customer_facing_descriptor_only and catalog/contract/validator parity checks preserve that boundary."
+      },
+      {
+        "id": "P3-03",
+        "severity": "P3",
+        "title": "Contract validator omits parity checks for two descriptor sub-fields",
+        "file": "scripts/validate-rp04-master-data-contract.mjs",
+        "line": 360,
+        "evidence": "The script asserts nearly every permission_audit_binding field but does not assert safe_error_contract.source ('safe_error_code_only') nor the permission_audit_binding.binding pack-level pack_id (the contract block carries binding_id only, not pack_id). Both values are present and correct in contract+registry, so there is no current drift; this is only a gap in drift detection.",
+        "recommended_action": "Add requireEqual checks for permission_audit_binding.safe_error_contract.source to close the parity gap, consistent with the other looped field assertions.",
+        "post_review_disposition": "fixed: contract and validator now assert permission_audit_binding.pack_id, renderable_surface, and safe_error_contract.source parity in addition to the existing arrays and state checks."
+      },
+      {
+        "id": "P3-04",
+        "severity": "P3",
+        "title": "safe_error_code resolves to null for non-enumerated scenarios",
+        "file": "packages/master-data/src/service.js",
+        "line": 871,
+        "evidence": "When both permission_ref and audit_hint_ref are present and scenario is neither 'denied' nor 'review_required' (e.g. an arbitrary caller passing scenario='primary_interaction'), safeErrorCode falls through to null and error_message_copy.message becomes 'Descriptor references are linked.'. This is a safe no-error state and is not exercised by the four catalog fixtures or the three tests (all of which yield allowed codes), so it is correct as-is. Note the catalog's safe_error_copy_only check would reject a null code, but no built fixture hits that path.",
+        "recommended_action": "No change required for this descriptor pack; optionally constrain scenario to the enumerated set if arbitrary external callers are anticipated in a later pack.",
+        "post_review_disposition": "deferred: non-enumerated scenarios remain a safe no-error descriptor state; catalog fixtures and production-gated validators exercise only enumerated review, denied, permission-missing, and audit-missing states."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p2": 0,
+      "reported_p3": 4
+    }
+  }
+}

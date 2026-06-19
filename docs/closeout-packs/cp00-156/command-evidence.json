@@ -1,0 +1,176 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-156",
+  "subphase_id": "RP04.P01.M08.S05",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "npm install --package-lock-only --ignore-scripts",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "workspace lock metadata reconciliation for new packages/master-data workspace"
+    },
+    {
+      "command": "node --check packages/master-data/src/registry.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-156 registry syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/src/model.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-156 model syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/src/validators.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-156 validator syntax validation"
+    },
+    {
+      "command": "node --check packages/master-data/test/model.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "CP00-156 test syntax validation"
+    },
+    {
+      "command": "node --check scripts/validate-rp04-master-data-contract.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 master data validator syntax validation"
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('contracts/master-data-contract.json','utf8')); console.log('master-data contract json ok')\"",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "master data contract JSON parse validation"
+    },
+    {
+      "command": "node --test packages/master-data/test/*.test.js",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "focused CP00-156 master data package tests"
+    },
+    {
+      "command": "npm run rp04:master-data:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 master data contract and coverage validator"
+    },
+    {
+      "command": "npm run rp04:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP04 detailed plan validator"
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan validation before CP00-156 closeout"
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "spec requirement ledger validation"
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "weighted implementation ledger validation"
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full microphase plan validation"
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "goal closeout protocol validation"
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "RP00 control-plane validation"
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack validator syntax validation"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full closeout pack validation before CP00-156 evidence creation"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full workspace test suite"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "web production build"
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "product contract validation"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "whitespace validation"
+    },
+    {
+      "command": "npm run closeout-pack:validate CP00-156",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "focused CP00-156 closeout pack validation after evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "full closeout pack validation after evidence creation"
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "closeout pack plan regeneration after CP00-156 evidence creation"
+    }
+  ],
+  "hermes_gate": {
+    "id": "H04",
+    "status": "passed",
+    "command_ids": [
+      "spec_requirement_validate",
+      "rp00_control_plane_contract_validate"
+    ],
+    "evidence_packet": "H04.CP00-156.master_data_foundation_model_registry"
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used in CP00-156 validation.",
+    "Hermes evidence is recorded as closeout command evidence and descriptor packet references; the CP00-156 package itself does not execute Hermes commands or emit runtime receipts.",
+    "CP00-156 creates descriptor-only Master Data model and validation surfaces for RP04 and hands off to CP00-157 / RP04.P01.M08.S06."
+  ]
+}

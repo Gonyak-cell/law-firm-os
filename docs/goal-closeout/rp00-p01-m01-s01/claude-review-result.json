@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M01.S01",
+  "source_micro_phase_id": "RP00.P01.M01",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "permission_mode": "dontAsk",
+    "output_format": "json",
+    "session_id": "ccd6475f-1806-4a75-966d-1813b61249b9",
+    "uuid": "177a1d16-c45d-456c-972a-8af0e90068ca",
+    "duration_ms": 233598,
+    "duration_api_ms": 234516,
+    "total_cost_usd": 1.6534752499999998,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "reviewed_at": "2026-06-03T12:39:42Z"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P3_NOTE",
+        "title": "matter_refs required_when policy is declarative-only",
+        "evidence": "ProductContract model records six data-touch triggers in matterReferencePolicy.requiredWhen, while validateProductContract does not yet receive a data-touch context field. This is consistent with M01 nullable Matter-reference scope and no real matter data is used.",
+        "recommendation": "Record as declarative until a later ProductContract context/call-path subphase introduces data-touch context, then enforce required_when."
+      },
+      {
+        "severity": "P3_NOTE",
+        "title": "shared synthetic fixture provenance still names the M00 layout origin",
+        "evidence": "synthetic-control-plane.json keeps subphase_id RP00.P01.M00.S01 while now carrying the M01 ProductContract record.",
+        "recommendation": "Record as non-blocking provenance debt and refresh provenance when the fixture is next extended."
+      }
+    ],
+    "review_notes": "ProductContract model binding is correct for RP00.P01.M01.S01/RP00.P01.M01; stable pc_ identifiers, tenant scope, status lifecycle, nullable matter_refs, audit_event_ref, created_at, and updated_at are enforced and tested. Synthetic fixture remains no-real-data/no-write. Other entities remain future. Weighted-ledger generic title/deliverable_type/UI gate defer is auditable and not hand-edited. Closeout gating for actual Claude metadata, construction inspection, and next boundary RP00.P01.M02.S01 is intact. No P0/P1/P2 findings remain."
+  },
+  "model_usage": {
+    "claude-opus-4-8": {
+      "input_tokens": 34,
+      "output_tokens": 16693,
+      "cache_read_input_tokens": 1426680,
+      "cache_creation_input_tokens": 83461,
+      "cost_usd": 1.65246625
+    },
+    "claude-haiku-4-5-20251001": {
+      "input_tokens": 924,
+      "output_tokens": 17,
+      "cost_usd": 0.001009
+    }
+  }
+}

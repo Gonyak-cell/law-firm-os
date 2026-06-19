@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-result.v0.1",
+  "pack_id": "CP00-774",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-774/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-774/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "bf82b01c-3139-4608-9595-0f0e74c557a5",
+    "uuid": "8d6fb0ca-505f-42ad-8d44-d2af0844cdcd",
+    "total_cost_usd": 2.2759127500000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5732,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-774 descriptor-only Migration Platform permission-matrix-primary pack passes hardened read-only review: consistent binding/requirements/service/validator/test/contract chain, all required validations report exit 0, no-write/no-real-data and authority boundaries intact, review hardening posture sound. One cosmetic P3 in an auxiliary scope artifact; no P0/P1. Recommend closeout.",
+    "findings": [
+      {
+        "id": "CP774-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope lists this pack's own untracked artifact directories under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-774/changed-file-scope.json",
+        "line": 205,
+        "details": "The unrelated_dirty_files_preserved array (lines 205-222) includes docs/closeout-packs/cp00-774/ (line 211) and artifacts/closeout-pack-claude-review/cp00-774/ (line 207), which are this pack's own required evidence and review directories and are also correctly enumerated in active_pack_required_untracked_files (lines 19-36). The authoritative manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json:217-230) correctly excludes these and lists only genuinely unrelated dirty files (progress-control-room, workbook docs, new-session-handoff.md, c-ldip artifact, docx). Staging uses active_pack_required_untracked_files, so no incorrect files would be staged. This is a denormalized/loose categorization in an auxiliary review-hardening artifact, not a pack defect.",
+        "recommendation": "Optionally have the scope generator subtract active_pack_required_untracked_files (and the active review dir) from changed-file-scope.unrelated_dirty_files_preserved so the two lists are mutually exclusive and less confusing. No code or staging change required for closeout.",
+        "post_review_disposition": "Non-blocking, cosmetic. The authoritative manifest categorization is correct and staging is driven by active_pack_required_untracked_files, so closeout integrity is unaffected. Safe to close CP00-774."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

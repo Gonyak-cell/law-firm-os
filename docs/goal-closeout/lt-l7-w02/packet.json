@@ -1,0 +1,41 @@
+{
+  "work_package_id": "LT-L7-W02",
+  "title": "Pilot migration dry-run and rollback rehearsal",
+  "created_at": "2026-06-18T14:27:52Z",
+  "status": "blocked_pending_gl_mig_01_rp25_engine_staging_dryrun_verification_pilot_inspection_and_rollback",
+  "phase": "L7",
+  "gate_binding": [
+    "G8",
+    "L7-EXIT"
+  ],
+  "terminal_tuw": "LT-L7-W02-T06",
+  "artifacts": [
+    "docs/launch/l7/pilot-migration-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l7-w02/packet.json",
+    "docs/goal-closeout/lt-l7-w02/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w02/claude-review-result.json",
+    "docs/goal-closeout/lt-l7-w02/adjudication.md",
+    "docs/goal-closeout/lt-l7-w02/construction-inspection.json"
+  ],
+  "current_status": {
+    "engine_staging_setup_exists": false,
+    "dryrun_execution_summary_exists": false,
+    "dryrun_verification_report_exists": false,
+    "pilot_inspection_record_exists": false,
+    "rollback_rehearsal_report_exists": false,
+    "gl_mig_02_package_exists": false,
+    "rp25_engine_smoke_passed": false,
+    "dryrun_executed": false,
+    "rollback_rehearsed": false,
+    "real_data_accessed": false,
+    "g8_satisfied": false,
+    "l7_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

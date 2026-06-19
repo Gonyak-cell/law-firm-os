@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-732",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T08:13:03.154Z",
+  "finished_at": "2026-06-15T08:17:40.982Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":276982,\"duration_api_ms\":278112,\"ttft_ms\":3665,\"num_turns\":38,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-732's descriptor-verified `production_ready` claim is fully supported by the implementation, tests, contract projection, no-write/no-real-data boundaries, and read-only/non-final authority boundary, with the validation ladder reported green in command-evidence. Nothing blocks pack or goal closeout (no P0/P1/P2); I logged a single P3 informational note about a benign dual-listing in the harness-generated `changed-file-scope.json` that has no bearing on the pack deliverables.\",\"stop_reason\":\"end_turn\",\"session_id\":\"4964bf68-49a4-4da3-95ee-48c5e10777a4\",\"total_cost_usd\":1.9697759999999997,\"usage\":{\"input_tokens\":884,\"cache_creation_input_tokens\":122956,\"cache_read_input_tokens\":1328854,\"output_tokens\":21246,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":122956,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":226,\"cache_read_input_tokens\":119586,\"cache_creation_input_tokens\":3653,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3653},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1199,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001304,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":884,\"outputTokens\":21246,\"cacheReadInputTokens\":1328854,\"cacheCreationInputTokens\":122956,\"webSearchRequests\":0,\"costUSD\":1.9684719999999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-732 is a descriptor-only, runtime-closed Korean Legal Depth bridge pack (RP24.P03.M06.S13-RP24.P04.M03.S20, 150 units, risk C). Directly inspected via Read/Grep: registry.js (CP732 binding at L179 + requirements at L1682), service.js (descriptor/case-set/Hermes/Claude/handoff factories), validators.js (coverage + descriptor validators), index.js (re-exports all three), model.test.js (CP00-732 binding/coverage, runtime-closed, and contract-projection tests), contracts/korean-legal-depth-contract.json (current/latest_pack = CP00-732, latest_projection = KoreanLegalCp732P03P04ReviewUiBridgeDescriptor, validation.valid = true, CP722-731 preserved historical), manifest.json (production_ready=false, runtime_ready=false, status in_progress), and README CP00-732 entry. Deliverable distribution {test:13,hermes_evidence:7,claude_review:11,implementation:53,contract:17,security_audit:16,ui:30,fixture:3} and all 9 micro-title/micro-phase/phase counts match the prompt baseline and sum to 150; first/last unit IDs match the binding. No-write/no-real-data boundaries are enforced by KOREAN_LEGAL_NO_WRITE_ATTESTATION + ROW_EXTRAS + createCaseSet (descriptor_only true, runtime_execution false, no raw/legal/credential/client payloads) and actively asserted by validateDescriptor. Authority boundary holds: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, local_validation_claims_enterprise_trust=false, runtime_opening_pack_id=CP00-733; Hermes packets emit_runtime_receipt=false (deterministic control-plane review/receipt only, not product runtime). Review hardening satisfied: auth preflight passed (exit 0, valid JSON, 1432-byte stdout, not 0-byte), forbidden_review_evidence list present (not_logged_in, malformed_json, usage_limit, tool_call_shaped_output, zero_byte_stdout, fenced_json_with_prose), tools restricted to Read/Grep/Glob. Provenance: I relied on command-evidence.json for the full validation ladder + npm test + build + git diff --check (all exit_code 0) but did not re-execute them under this read-only review. The PENDING claude-review-result/construction-inspection/adjudication placeholders and absence of review-receipt.json/raw-output.json are the expected pre-review state this run finalizes; the manifest correctly does not yet assert production_ready or runtime_ready and makes no enterprise-trust claim. The descriptor-verified production_ready claim (flag korean_legal_p03_p04_review_ui_bridge_descriptor_verified) is fully supported. One P3 informational note about a benign dual-listing in the harness-generated changed-file-scope.json; no P0/P1/P2. Verdict PASS_WITH_FINDINGS; does not block pack or goal closeout.\",\"findings\":[{\"id\":\"CP732-P3-01\",\"severity\":\"P3\",\"title\":\"Pack evidence dir and handoff doc listed in both implementation and unrelated-preserved scope sets\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-732/changed-file-scope.json\",\"line\":184,\"details\":\"docs/closeout-packs/cp00-732/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (lines 175-176) and unrelated_dirty_files_preserved (lines 182, 184) of the harness-generated changed-file-scope.json. This is a benign labeling overlap: the pack's own evidence directory is simultaneously an implementation artifact and a preserved dirty-worktree path. active_untracked_implementation_files_omitted is empty, so no required file was dropped, and the overlap has no effect on the descriptor-only deliverables, validators, contract projection, or the production_ready claim. It is a scope-manifest tooling artifact, not a CP00-732 deliverable defect.\",\"recommendation\":\"Optional/non-blocking: have the changed-file-scope generator de-duplicate so a path classified as an untracked implementation file is not also emitted under unrelated_dirty_files_preserved, to avoid reader confusion.\",\"post_review_disposition\":\"Informational only; does not block CP00-732 pack or goal closeout. No action required for this pack.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"50b8e634-b048-434b-9c62-0481e02567e6\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6246,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "4964bf68-49a4-4da3-95ee-48c5e10777a4",
+    "uuid": "50b8e634-b048-434b-9c62-0481e02567e6",
+    "total_cost_usd": 1.9697759999999997,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

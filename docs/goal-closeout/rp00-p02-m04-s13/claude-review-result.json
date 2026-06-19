@@ -1,0 +1,136 @@
+{
+  "subphase_id": "RP00.P02.M04.S13",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Validation error mapping",
+  "created_at": "2026-06-05T22:43:53Z",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "read_only": true,
+  "exactly_one_valid_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-rp00-p02-m04-s13-claude-review.json",
+  "review_packet_file": "/tmp/lfos-rp00-p02-m04-s13-review-packet.diff",
+  "session_id": "0633a782-9191-4e29-a29b-db9c7b852d00",
+  "uuid": "8bc98679-f5e2-4b9a-b617-0a39c230272c",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 5.9096985,
+  "duration_ms": 911632,
+  "usage": {
+    "input_tokens": 86,
+    "cache_creation_input_tokens": 261339,
+    "cache_read_input_tokens": 4357388,
+    "output_tokens": 49710,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 261339,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 3094,
+        "cache_read_input_tokens": 43206,
+        "cache_creation_input_tokens": 16091,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 16091
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "implementation_verdict": "PASS",
+  "production_ready_verdict": "GO",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [
+    {
+      "id": "P2-1",
+      "title": "Human approval gate stale leading descriptor",
+      "status": "fixed",
+      "file": "contracts/control-plane-contract.json",
+      "line": "human_approval gate `evidence` (review-packet diff line 71)",
+      "issue": "The human_approval gate's `evidence` string still leads with stale prose from the prior subphase: \"This subphase evaluates deterministic synthetic Claude review persistence-boundary metadata only...\". S13 is the Validation error mapping subphase, not the S12 persistence-boundary subphase. The substantive boundary clause appended to the same string (\"...does not map runtime errors, translate runtime exceptions, write error records...\") was correctly updated, and every other gate evidence string in this block was correctly migrated to S13 language — this is the single remaining off-by-one stale lead descriptor (the same recurring pattern where S12 read \"lock acquisition rule\"). Because it sits inside the closeout contract's human_approval gate, a reader auditing the S13 closeout could be misled about what this subphase actually evaluates.",
+      "recommendation": "Change the lead clause to \"This subphase evaluates deterministic synthetic Claude review validation error mapping metadata only...\" so the human_approval gate evidence matches the S13 subphase identity. No code/behavior change required.",
+      "resolution": "Updated contracts/control-plane-contract.json human_approval completion gate evidence from persistence-boundary metadata to validation error mapping metadata."
+    }
+  ],
+  "p3_observations": [
+    {
+      "id": "P3-1",
+      "title": "Fixture future_subphases casing divergence",
+      "status": "deferred_non_blocking",
+      "file": "packages/control-plane/fixtures/synthetic-control-plane.json",
+      "line": "future_subphases.reviewRequiredRouting (review-packet diff line ~855)",
+      "issue": "The fixture uses camelCase `future_subphases.reviewRequiredRouting` while the contract definition (control-plane-contract.json, diff line 471) uses snake_case `future_subphases.review_required_routing`. Both carry the identical value \"RP00.P02.M04.S14\". The fixture casing intentionally mirrors the policy object key `futureSubphases.reviewRequiredRouting` in policies.js (which validators.js reads via `policy.futureSubphases?.reviewRequiredRouting`), so it is internally consistent and passes every gate. Purely a cosmetic contract-JSON-vs-policy/fixture casing divergence.",
+      "recommendation": "Optionally align the fixture key to snake_case to match the contract JSON convention, or add a short note documenting that the fixture deliberately mirrors the camelCase policy object. Non-blocking; safe to defer.",
+      "defer_reason": "The fixture intentionally mirrors the camelCase policy object key futureSubphases.reviewRequiredRouting, while the contract definition uses snake_case. The value and validator behavior are aligned; no production boundary or evidence risk."
+    }
+  ],
+  "review_text": "S13 (Validation error mapping) correctly consumes and fully revalidates the RP00.P02.M04.S12 Claude review persistence-boundary result before emitting its own receipt: precheckControlPlaneClaudeReviewErrorMapping requires a non-array object input carrying persistence_receipt + nonblank audit_event_ref, asserts entrypoint_id === \"claude_review\", persistence_boundary_subphase_id === \"RP00.P02.M04.S12\", model claude-opus-4-8, effort max, read_only_review_required true, and calls assertControlPlaneClaudeReviewPersistenceBoundaryResult for full upstream revalidation, then requires persistence_decision === \"allow_metadata_only\" and persistence_boundary_applied === true. It emits a frozen (Object.freeze) synthetic metadata-only validation-error-mapping receipt (action_id \"claude_review.validation_error_mapping\", decision_reason \"s12_persistence_boundary_receipt_verified\", effect \"allow_metadata_only\", next_subphase \"RP00.P02.M04.S14\") and fails closed on every forbidden claim (map_runtime_error, register_error_mapper, translate_runtime_exception, persist_error_record, write_error_store, create_error_ui, etc.) and on any unknown truthy claim, including the value 0 (rejected as not strictly false). Policy/prechecker/validator/fixture parity is enforced, requiredInputFields is length-bound to the S12 RESULT_FIELDS to prevent input-shape drift, and the result validator forces all 23 permitted/created/called flags — including runtime_error_mapping_permitted, exception_translation_permitted, error_record_write_permitted, and writes_product_state — to false, with no_real_data true and completesSourceMicroPhase false. RP00.P02.M04 stays open (source_micro_phase_completed false, terminal false, next/nextSubphaseId \"RP00.P02.M04.S14\"); RP00.P02.M04, RP00.P02, and RP00 are not closed. The subphase maps no runtime errors, translates no exceptions, writes no error/database/storage/persistence/product-state records, invokes no runtime Claude review, writes no review queue/assignment/notification, appends/writes no audit, evaluates no runtime permission, calls no AuthZ, executes no service logic, creates no runtime routes or UI, uses no real data, and does not bypass human approval. All imports in service.test.js resolve directly from the three modified source modules and the export names match. Only two issues found: one P2 documentation-only stale lead descriptor in the human_approval gate evidence (does not block GO but should be fixed before closeout), and one P3 cosmetic casing divergence in the fixture (deferred). No P0 or P1 findings — production-ready GO.",
+  "required_fixes": [
+    "Fix the P2 stale lead descriptor in contracts/control-plane-contract.json: update the human_approval gate `evidence` string from \"...Claude review persistence-boundary metadata only...\" to \"...Claude review validation error mapping metadata only...\". This is documentation-only and does not block the GO verdict (no runtime/gate impact), but it should be corrected before S13 closeout so the closeout contract is not misleading."
+  ],
+  "deferred_or_informational": [
+    "P3 casing divergence (fixture camelCase `reviewRequiredRouting` vs contract snake_case `review_required_routing`) is deferred as cosmetic — it is internally consistent with the policy object key the validator asserts and passes all gates.",
+    "Absence of docs/goal-closeout/rp00-p02-m04-s13/ evidence files (command-evidence.json, claude-review-result.json, adjudication.md, construction-inspection.json) is expected at this stage: this C00 read-only review precedes evidence creation, and the RP00 validator's construction-inspection check (control_plane_claude_review_error_mapping_verified === true) runs as the final post-evidence gate.",
+    "Test helper createClaudeReviewPersistenceBoundaryResult composes the real S12 prechecker output over the real S11 lock-acquisition result, so the S13 happy-path tests exercise a genuine upstream chain rather than a hand-built stub — strengthens the revalidation coverage."
+  ],
+  "qualifies_as_required_review": true,
+  "production_ready_after_adjudication": true,
+  "status": "review_completed",
+  "review_type": "claude_cli_read_only_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "0633a782-9191-4e29-a29b-db9c7b852d00",
+    "uuid": "8bc98679-f5e2-4b9a-b617-0a39c230272c",
+    "total_cost_usd": 5.9096985,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-rp00-p02-m04-s13-claude-review.json",
+    "review_packet_path": "/tmp/lfos-rp00-p02-m04-s13-review-packet.diff"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "production_ready_verdict": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 1
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-05T22:43:53Z",
+  "production_ready": true
+}

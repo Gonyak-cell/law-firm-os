@@ -1,0 +1,19 @@
+{
+  "work_package_id": "LT-L9-W02",
+  "inspected_at": "2026-06-18T12:21:08Z",
+  "verdict": "BLOCKED_TEMPLATES_ACCEPTED",
+  "production_ready": false,
+  "quality_gates": {
+    "baseline_data_json_parses": true,
+    "metric_count": 7,
+    "week_count": 4,
+    "baseline_report_exists": true,
+    "post_launch_data_collected": false,
+    "report_approval_present": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "production_kpi_read_executed": false
+  }
+}

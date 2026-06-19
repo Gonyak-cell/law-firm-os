@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.construction-inspection.v0.1",
+  "subphase_id": "RP00.P01.M07.S08",
+  "source_micro_phase_id": "RP00.P01.M07",
+  "title": "Required field registry",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-04T07:10:03.000Z",
+  "control_plane_state_enum_registry_required_field_registry_verified": true,
+  "required_fields_verified": true,
+  "required_record_validator_verified": true,
+  "registry_exposure_verified": true,
+  "synthetic_fixture_required_field_registry_verified": true,
+  "enum_value_definition_mutation_forbidden": true,
+  "optional_field_registry_deferred_to": "RP00.P01.M07.S09",
+  "state_transition_map_deferred_to": "RP00.P01.M07.S10",
+  "validation_helper_deferred_to": "RP00.P01.M07.S11",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "human_acceptance_or_explicit_next_goal_boundary": "Explicit next boundary is RP00.P01.M07.S09 Optional field registry; no sensitive human approval action is performed by this synthetic registry slice.",
+  "claude_findings": {
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "fixed_or_adjudicated"
+  },
+  "next_subphase": "RP00.P01.M07.S09"
+}

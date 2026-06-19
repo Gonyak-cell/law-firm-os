@@ -1,0 +1,373 @@
+{
+  "schema_version": "law-firm-os.matter-pack-overlay-closeout-pack-map.v0.1",
+  "status": "planning_only",
+  "generated_at": "2026-06-11",
+  "source_documents": [
+    {
+      "file": "00_문서목록_및_사용가이드.md",
+      "sha256": "037d5de4c4e8f3fc19aaf63bc970d7186861b749ad943e2d859ba39f51ca4752",
+      "heading_count": 5
+    },
+    {
+      "file": "01_제품_사양명세서_PRD_SRS.md",
+      "sha256": "ba68b2c3722068902e5d048c31dc6a489d3e1240f7cf10e66ecffb8569df869b",
+      "heading_count": 9
+    },
+    {
+      "file": "02_제품헌장_및_개발운영체계.md",
+      "sha256": "2c4f05d2abbfd51d2c7c4f081eb0bd4eaffe6bd8c247e5d02387cfa70848132b",
+      "heading_count": 10
+    },
+    {
+      "file": "03_제품피라미드_PBS_DBS_WBS.md",
+      "sha256": "ca25b052cb1de12295990d842a285b147c0c15bc2359a246c766fb7151feff6e",
+      "heading_count": 6
+    },
+    {
+      "file": "04_시스템_아키텍처_구조도.md",
+      "sha256": "89b35591bdbcf2cd50b106f185a593ac359f6014f2baa2a6a0c56c56f94bc63a",
+      "heading_count": 9
+    },
+    {
+      "file": "05_도메인_객체_데이터모델.md",
+      "sha256": "edf6e0a42b7f1a2b0da8fe0c406e66218d87be3102682470f72abddb87705b5f",
+      "heading_count": 7
+    },
+    {
+      "file": "06_권한_보안_감사_거버넌스.md",
+      "sha256": "3a2888b9e9abc80af6e45b49465d1cfa07753ed0e0710c88378a50c06ca8052e",
+      "heading_count": 10
+    },
+    {
+      "file": "07_AI_자동화_모델라우팅_검증정책.md",
+      "sha256": "4cdf014eacad70ab8243cfc5957260bee82cdef3bcffa5182fcbc9bec9575797",
+      "heading_count": 9
+    },
+    {
+      "file": "08_Microsoft_365_Outlook_Addin_Spec.md",
+      "sha256": "05a03499ad30fd47abb508482a04611cbecad8d8d62d9caffb9496feebb7e218",
+      "heading_count": 11
+    },
+    {
+      "file": "09_Obsidian_Matter_Vault_Spec.md",
+      "sha256": "cd27685f7bc073babce02e672b499b04dbb5e6c660b52aca916ac895c3141a65",
+      "heading_count": 9
+    },
+    {
+      "file": "10_Portal_Platform_Spec.md",
+      "sha256": "74d8d733bceaa59646fe82e5f735fd3613b7d3316d6c5648a007d4f52b59f4bc",
+      "heading_count": 8
+    },
+    {
+      "file": "11_People_HR_Operations_Spec.md",
+      "sha256": "141f91a823ba5ffd75580623a9148b69a53c923313f8182b6507967efc48cf36",
+      "heading_count": 10
+    },
+    {
+      "file": "12_Practice_Packs_MA_Litigation_Corporate.md",
+      "sha256": "f95c836863627d9c618e75b3ed353ae589b79de7f69e78262e75ca50832e113a",
+      "heading_count": 7
+    },
+    {
+      "file": "13_Drafting_Clause_QC_Spec.md",
+      "sha256": "8f451c6e6d3611afeb9e2550e6c202d4a17ce65157c2eb6c151b8d768cf73320",
+      "heading_count": 7
+    },
+    {
+      "file": "14_Billing_ERP_Analytics_Spec.md",
+      "sha256": "8455b0005469b227606a532494c879cbaf00a8e189609238a32af9371dbd6eae",
+      "heading_count": 7
+    },
+    {
+      "file": "15_릴리스_로드맵_DBS.md",
+      "sha256": "249d73d83e4d6e82dbd274a3724308e757da27f14dcad4f84e382ff88e3cd129",
+      "heading_count": 19
+    },
+    {
+      "file": "16_Execution_Dependency_Graph.md",
+      "sha256": "e1a1336b5918f01f6e67ccd0439f7e8c1392bbc944bed0fa0a619cd8a02d5241",
+      "heading_count": 6
+    },
+    {
+      "file": "17_TUW_표준_및_ID_체계.md",
+      "sha256": "8fdf4c438f52f80af78531f158c5caed97e2944e082ae6f57847aac52a501fee",
+      "heading_count": 7
+    },
+    {
+      "file": "18_TUW_초기_백로그.md",
+      "sha256": "d76f19d1aea19eb0dc3fe2efe9dcc8440ee23e3fb3c8c74fbc7089692182059b",
+      "heading_count": 3
+    },
+    {
+      "file": "19_Verification_Case_Catalog.md",
+      "sha256": "4f35961a6c534a4a5f77a6d9f1c5ad06f80f4d8fc426a8c49370221181de0bb8",
+      "heading_count": 5
+    },
+    {
+      "file": "20_Agent_Work_Contracts.md",
+      "sha256": "6e1103465990dd2894fc9f92baeb9ce753ed428a3fd1a7d3dd3a6c8a65eabf88",
+      "heading_count": 10
+    },
+    {
+      "file": "21_UI_화면_사용자흐름.md",
+      "sha256": "afac734385c84521abc30471448f733ed00bcc100a66626c090b6d2cc24d5f74",
+      "heading_count": 9
+    },
+    {
+      "file": "22_API_이벤트_통합_명세.md",
+      "sha256": "397de39053701ee787e721326abab29835620b7f6251806387068ade8d418404",
+      "heading_count": 7
+    },
+    {
+      "file": "23_Risk_Register_Open_Questions.md",
+      "sha256": "812b12086ae481c9ea0810ffb8bb7906be0af9a5b36543470608acb61224e23a",
+      "heading_count": 4
+    },
+    {
+      "file": "24_개발팀_착수_지시서.md",
+      "sha256": "51b9bb346314fad9827bd6122500f823b9faf8f26394f8a1849123a5cc6427e7",
+      "heading_count": 7
+    }
+  ],
+  "live_baseline": {
+    "live_latest_pack_id": "CP00-326",
+    "live_next_unit_id": "RP10.P04.M04.S18",
+    "source": "docs/closeout-pack-plan/next-pack-queue.json at execution start"
+  },
+  "live_boundary": {
+    "allowed_globs": [
+      "docs/matter-pack-integration/**",
+      "docs/unified-product-risk-register.*",
+      "docs/product-strategy-declaration.md"
+    ],
+    "forbidden_edit_scope_limited_to_master_track_direct_edits": [
+      "contracts/**",
+      "packages/**",
+      "scripts/**",
+      "docs/closeout-packs/**",
+      "docs/weighted-implementation-ledger.*",
+      "docs/spec-requirement-ledger.*",
+      "docs/full-spec-microphase-ledger.json",
+      "docs/ldip-integration/**",
+      "docs/spec-v2-integration/**"
+    ]
+  },
+  "implementation_admission_gate": {
+    "matter_pack_implementation_allowed": false,
+    "units_currently_added": 0,
+    "user_decisions_required": {
+      "MAT-DEC-01": "decided_2026-06-11_first_tenant",
+      "MAT-DEC-02": "decided_2026-06-11_employee_user_id",
+      "MAT-DEC-03": "deferred",
+      "MAT-DEC-04": "pending_non_blocking",
+      "MAT-DEC-05": "decided_2026-06-11_commit_freeze",
+      "MAT-DEC-06": "decided_2026-06-11_hrx_registration",
+      "MAT-DEC-07": "decided_2026-06-11_runtime_gate_layer"
+    },
+    "reviews": {
+      "C-MPACK-01": true,
+      "C-MPACK-02": true,
+      "C-MPACK-03": false,
+      "C-MPACK-04": false,
+      "C-MPACK-05": false
+    },
+    "review_execution": {
+      "C-MPACK-01": "passed_valid_json",
+      "C-MPACK-02": "passed_valid_json_with_nonblocking_p3",
+      "C-MPACK-03": "user_waived_2026-06-11_once_after_partial_wrapper_pass",
+      "C-MPACK-04": "user_waived_2026-06-11_once",
+      "C-MPACK-05": "user_waived_2026-06-11_once",
+      "waiver_ref": "docs/matter-pack-integration/adjudications/one-time-claude-review-waiver-2026-06-11.md"
+    }
+  },
+  "governance_absorption_policy": {
+    "absorbs_requirements_only": true,
+    "absorbs_tuw_execution_system": false,
+    "tuw_vc_cg_ledger_roles": "non-authoritative source vocabulary only",
+    "plan_b_authority_preserved": true
+  },
+  "overlay_policy": {
+    "closed_packs_untouched": true,
+    "direct_ledger_changes": 0,
+    "implementation_requires_future_user_approved_pack": true
+  },
+  "coverage_summary": {
+    "source_document_count": 25,
+    "source_heading_rows": 201,
+    "candidate_rows": 200,
+    "family_classification_counts": {
+      "GOV": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 46,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 9,
+        "new_required": 4,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 32
+      },
+      "CORE": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 4,
+        "adapt_required": 3,
+        "adapt_required_pending_user_decision": 9,
+        "new_required": 0,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "PERM": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 10,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 0,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "M365": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 0,
+        "defer_with_revisit_gate": 11,
+        "reject_with_reason": 0
+      },
+      "WORK": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 0,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "ISSUE": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 7,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "PORTAL": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 8,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "VAULT": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 9,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "AIGW": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 9,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "DRAFT": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 7,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "BILL": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 7,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "ADMIN": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 0,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "INTEG": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 0,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "HARD": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 0,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "HR": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 10,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "UI": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 9,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      },
+      "API": {
+        "implemented_by_existing_plan": 0,
+        "covered_but_requires_trace": 0,
+        "adapt_required": 0,
+        "adapt_required_pending_user_decision": 0,
+        "new_required": 7,
+        "defer_with_revisit_gate": 0,
+        "reject_with_reason": 0
+      }
+    },
+    "named_object_counts": {
+      "domain_objects": 17,
+      "roles": 12,
+      "audit_events": 12,
+      "permission_steps": 10,
+      "practice_modules": 32,
+      "hr_objects": 16,
+      "ui_screens": 14,
+      "api_endpoints": 16,
+      "api_events": 15
+    },
+    "silent_omission_count": 0
+  },
+  "rp_entry_gates": {
+    "RP11": "MAT-DEC-02 decided",
+    "RP06_RP08": "MAT-DEC-03 deferred storage decision",
+    "RP17": "AIGW separated from dev_ai_control",
+    "RP19_RP20": "MAT-DEC-01 first tenant interpretation",
+    "RP30": "MAT-DEC-06 HRX embedded ledger"
+  }
+}

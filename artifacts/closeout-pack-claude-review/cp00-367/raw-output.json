@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-367",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T19:45:13.503Z",
+  "finished_at": "2026-06-11T19:49:08.532Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":233362,\"duration_api_ms\":232513,\"ttft_ms\":3001,\"num_turns\":29,\"result\":\"Review complete. **Verdict: PASS** (no findings, no blockers).\\n\\nCP00-367 is a clean descriptor-only RP12 billing pack. Key points:\\n- `production_ready:false` is correctly maintained — the pack claims only implementation/plan gate passage pending final closeout, so the gate is not weakened.\\n- No-write/no-real-data boundaries verified by source grep (no runtime, fs, network, or db patterns in `packages/billing/src`) plus frozen attestations in registry/service/contract/manifest.\\n- Claude stays read-only and non-final-approver; Hermes appears only as deterministic descriptor packet/receipt strings.\\n- Review-hardening intact: readiness auth preflight returned valid non-empty JSON, no malformed/fenced/tool-call-shaped evidence, empty invalid-attempts list.\\n- Coverage counts sum to 150 and match registry/baseline; `node --test` and `rp12:billing-core:validate` reported exit 0.\\n\\nAs the independent read-only reviewer, this PASS clears my gate but is not the final enterprise-trust approval, which remains with the human approver.\",\"stop_reason\":\"end_turn\",\"session_id\":\"5b6e1e23-702c-4353-a518-7aa5fc4e307e\",\"total_cost_usd\":1.8955617500000004,\"usage\":{\"input_tokens\":28,\"cache_creation_input_tokens\":145167,\"cache_read_input_tokens\":1073346,\"output_tokens\":18008,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":145167,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":423,\"cache_read_input_tokens\":134887,\"cache_creation_input_tokens\":4542,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4542},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1150,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001255,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":28,\"outputTokens\":18008,\"cacheReadInputTokens\":1073346,\"cacheCreationInputTokens\":145167,\"webSearchRequests\":0,\"costUSD\":1.8943067500000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-367 is a descriptor-only RP12 (Billing And Invoicing) closeout pack covering 150 planned units (RP12.P01.M06.S05-RP12.P02.M02.S22): it closes the P01 model-foundation phase (M06 tail, M07-M10) and opens the P02 foundation (M00 Scope Inventory, M01 Contract Draft, M02 Type And Shape Definition) as eight descriptor-only sections. Read/Grep/Glob inspection confirms the pack-level posture is correct and not over-claimed: command-evidence.json and manifest.json both set production_ready:false with status implemented_pending_review, and all 24 recorded evidence commands (node --check/--test, rp05-rp12 core validators, closeout/plan/spec/weighted/fullplan/goal/control-plane validation, npm test/validate/build, git diff --check) report exit_code 0. No-write/no-real-data boundaries hold: a grep of packages/billing/src found no fetch, child_process, fs writes, process.env, or db/http client usage, and every result is frozen with writes_product_state:false, no_real_data:true, and all dispatch/persist/execute/leak flags false, mirrored in the contract and manifest. Claude remains a read-only reviewer (tools limited to Read/Grep/Glob, read_only:true, forbidden_tools_present:false) and is not promoted to final approver (claude_is_final_approval:false, promotes_claude_to_final_approval:false, human_final_approval_required_for_runtime_opening:true). Hermes patterns appear only as deterministic descriptor packet/receipt strings (emits_hermes_runtime_receipt:false, hermes_runtime_embedded_in_product:false). Review-hardening is satisfied: readiness auth preflight passed with valid non-empty JSON (1444 bytes, exit 0, no stderr), no malformed/fenced/tool-call-shaped output, and invalid_attempts_preserved is empty. Coverage/distribution counts (deliverable, micro-title, phase) all sum to 150 and match the registry requirements and baseline, validated by node --test and rp12:billing-core:validate; index.js re-exports all CP367 public functions via export *, and README documents the CP00-367 section consistently. Unrelated dirty files are correctly classified as preserved and not treated as pack scope. No P0/P1/P2/P3 findings; the production_ready gate is not weakened. As an independent read-only reviewer I do not provide final enterprise-trust approval, which remains a human responsibility.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ae85e43e-8351-48a9-b666-ab277bdd9ca4\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5056,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "5b6e1e23-702c-4353-a518-7aa5fc4e307e",
+    "uuid": "ae85e43e-8351-48a9-b666-ab277bdd9ca4",
+    "total_cost_usd": 1.8955617500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

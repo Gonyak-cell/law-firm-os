@@ -1,0 +1,308 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-001",
+  "title": "Control-plane Claude review and permission audit transition pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-06T01:55:00.000Z",
+  "completed_at": "2026-06-06T02:18:00.000Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "A",
+  "risk_reason": "Control-plane permission, audit, Claude-review, and metadata-only AI governance boundaries require small pack size.",
+  "unit_count": 10,
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "live_closeout_snapshot": {
+    "snapshot_at": "2026-06-06T01:55:00.000Z",
+    "goal_closeout_dirs": 123,
+    "goal_closeout_dirs_with_required_artifacts": 123,
+    "required_artifacts_per_legacy_closeout": [
+      "packet.json",
+      "command-evidence.json",
+      "claude-review-result.json",
+      "adjudication.md",
+      "construction-inspection.json"
+    ],
+    "remaining_by_closeout_dir_proxy": 55133,
+    "validation_policy": "monotonic_after_snapshot_not_exact_equality",
+    "proxy_note": "This is a live docs/goal-closeout evidence-directory proxy, not a claim that every weighted Law Firm OS plus HRX unit has a one-to-one directory."
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10,
+        "examples": [
+          "permission",
+          "audit",
+          "payments",
+          "settlement",
+          "DLP",
+          "AI",
+          "external_sharing"
+        ]
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40,
+        "examples": [
+          "core_workflows",
+          "APIs",
+          "state_transitions",
+          "failure_recovery"
+        ]
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150,
+        "examples": [
+          "fixtures",
+          "exports",
+          "README",
+          "repeated_validators",
+          "UI_planning"
+        ]
+      }
+    }
+  },
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-001/manifest.json",
+    "docs/closeout-packs/cp00-001/command-evidence.json",
+    "docs/closeout-packs/cp00-001/claude-review-result.json",
+    "docs/closeout-packs/cp00-001/adjudication.md",
+    "docs/closeout-packs/cp00-001/construction-inspection.json"
+  ],
+  "gate_policy": {
+    "implementation": "required",
+    "tests": "required",
+    "hermes_evidence": "required",
+    "claude_review": "exactly_one_pack_level_claude_opus_4_8_max_read_only_review_required",
+    "finding_adjudication": "required",
+    "construction_inspection": "required",
+    "included_units_production_ready": "required",
+    "commit": "required"
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "ignored_untracked_items": [
+      ".DS_Store",
+      "Law Firm OS UI/"
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP00.P02.M04.S06",
+      "title": "Audit hint precheck",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s06/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s06/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s06/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s06/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s06/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S07",
+      "title": "Primary happy path",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s07/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s07/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s07/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s07/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s07/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S08",
+      "title": "Secondary workflow path",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s08/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s08/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s08/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s08/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s08/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S09",
+      "title": "State transition enforcement",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s09/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s09/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s09/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s09/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s09/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S10",
+      "title": "Idempotency key handling",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s10/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s10/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s10/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s10/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s10/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S11",
+      "title": "Lock acquisition rule",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s11/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s11/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s11/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s11/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s11/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S12",
+      "title": "Persistence boundary",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s12/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s12/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s12/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s12/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s12/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S13",
+      "title": "Validation error mapping",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s13/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s13/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s13/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s13/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s13/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M04.S14",
+      "title": "Review-required routing",
+      "source_micro_phase_id": "RP00.P02.M04",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "existing_individual_closeout",
+      "evidence_refs": [
+        "docs/goal-closeout/rp00-p02-m04-s14/packet.json",
+        "docs/goal-closeout/rp00-p02-m04-s14/command-evidence.json",
+        "docs/goal-closeout/rp00-p02-m04-s14/claude-review-result.json",
+        "docs/goal-closeout/rp00-p02-m04-s14/adjudication.md",
+        "docs/goal-closeout/rp00-p02-m04-s14/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP00.P02.M05.S05",
+      "title": "Permission precheck",
+      "source_micro_phase_id": "RP00.P02.M05",
+      "risk_class": "A",
+      "status": "production_ready",
+      "source": "current_pack_transition_change",
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-001/manifest.json",
+        "docs/closeout-packs/cp00-001/command-evidence.json",
+        "docs/closeout-packs/cp00-001/claude-review-result.json",
+        "docs/closeout-packs/cp00-001/adjudication.md",
+        "docs/closeout-packs/cp00-001/construction-inspection.json"
+      ]
+    }
+  ],
+  "prerequisite_evidence_refs": [
+    "docs/goal-closeout/rp00-p02-m05-s01",
+    "docs/goal-closeout/rp00-p02-m05-s02",
+    "docs/goal-closeout/rp00-p02-m05-s03",
+    "docs/goal-closeout/rp00-p02-m05-s04"
+  ],
+  "transition_review_refs": [
+    {
+      "scope": "legacy_atomic_s05_review_before_pack_pivot",
+      "status": "completed_not_counted_as_pack_level_review",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "session_id": "41a7c9c6-bfe7-4165-b2cf-599fda5a3a21",
+      "uuid": "26282f1c-4a21-4d35-b6be-78e3aac603b8",
+      "raw_review_file": "/tmp/lfos-rp00-p02-m05-s05-claude-review.stream.jsonl",
+      "review_packet_file": "/tmp/lfos-rp00-p02-m05-s05-review-packet.diff"
+    }
+  ],
+  "pack_level_claude_review": {
+    "status": "review_completed",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "session_id": "f8040653-4950-42a6-af7a-f6d6a5de58ec",
+    "uuid": "f4596e00-f5f6-414c-abf8-fe63840c31ef",
+    "raw_review_file": "/tmp/lfos-cp00-001-claude-review.stream.jsonl",
+    "review_packet_file": "/tmp/lfos-cp00-001-review-packet.diff",
+    "reviewed_findings": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "advisory": 4,
+      "p1_status": "fixed_by_pack_evidence_finalization",
+      "p2_status": "fixed_by_monotonic_snapshot_validation"
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "preferred_message": "Close CP00-001 control-plane transition pack"
+  }
+}

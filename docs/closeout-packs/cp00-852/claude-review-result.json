@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-852",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-852/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-852/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "72b9b20a-6cee-49ac-97e4-50c4b8ffca82",
+    "uuid": "f5a5f894-63c9-4915-b442-ad504e493b5a",
+    "total_cost_usd": 2.0165239999999995,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7714,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-852 is a descriptor-only RP28 Marketplace \"Test And Golden Case Set\" pack (10 units, RP28.P02.M07.S03-S12; deliverable mix 6 implementation / 2 security_audit / 2 ui), reviewed read-only via Read/Grep/Glob. The implementation is internally consistent: MARKETPLACE_CP852 binding/requirements, the golden-case case set, the descriptor, validators, and the contract projection all agree. WORKFLOW_ROWS.slice(2,12) exactly matches the 10 unit titles (Tenant boundary precheck ... Persistence boundary), and deliverable/phase/micro-title distributions match the baseline. The contract JSON (latest_pack/latest_projection CP00-852, validation.valid true), the live plan cursor (live_state next_subphase RP28.P02.M07.S03), and the upstream chain CP00-851->852->853 align with deviation_from_plan=false. No-write/no-real-data boundaries are enforced per-row in createRow (descriptor_only true; runtime/app-submission/permission-review/tenant-install/install-receipt/connector-runtime/custom-ai-runtime all false; permission_decision_written/audit_event_written/writes_product_state false; connector_secret/oauth_token/prompt_or_completion/permission_detail/audit_body/real_client_data all false), re-checked by validateMarketplaceCp852GoldenCaseValidationDescriptor, and attested in manifest no_write_attestation and contract no_leak_guards. Authority boundary holds: claude_packet read_only true and promotes_claude_to_final_approval false; human_final_approval_required_for_runtime_opening true; enterprise-trust/runtime claims closed; Hermes packet is review-only (emits_runtime_receipt false, writes_product_state false), not product runtime. The pack honestly reports production_ready=false / status in_progress pending exactly one valid hardened read-only review; command-evidence records the two targeted commands passing (npm run rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0) with status pending_full_validation, and the model.test.js suite includes CP00-852 binding/coverage/descriptor/contract tests. Readiness auth-preflight passed (valid JSON, 1456-byte stdout), so this is not a CP178+ rejection case. No P0/P1/P2 findings. Two non-blocking P3 reconciliation notes apply before the production_ready flip. Provenance: I inspected source/artifacts directly but executed no commands (read-only reviewer); command pass/fail reflects recorded command-evidence only, not my own re-run.",
+    "findings": [
+      {
+        "id": "CP00-852-P3-01",
+        "severity": "P3",
+        "title": "Full validation suite deferred to post-review gate (expected sequence)",
+        "file": "docs/closeout-packs/cp00-852/command-evidence.json",
+        "line": 5,
+        "details": "command-evidence records only two targeted commands passing (npm run rp28:marketplace:validate exit 0; node --test packages/marketplace/test/*.test.js exit 0) with status pending_full_validation and gate_outcome pending_valid_review_and_full_validation. The remaining eight suite commands (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate) and git diff --check are not yet recorded as passing. This is the designed sequence (full validation runs after exactly one valid read-only review), not a code defect, and the pack self-gates via commit_after_production_ready. As a read-only reviewer I executed no commands.",
+        "recommendation": "Before setting production_ready / closing the pack, run and record all 10 validation commands passing; keep gate_outcome gated until the full suite and git diff --check are green.",
+        "post_review_disposition": "non_blocking_expected_sequence_pre_closeout_condition"
+      },
+      {
+        "id": "CP00-852-P3-02",
+        "severity": "P3",
+        "title": "Pending-review placeholders must be reconciled to actual verdict before closeout",
+        "file": "docs/closeout-packs/cp00-852/claude-review-result.json",
+        "line": 34,
+        "details": "manifest.review_adjudication (verdict PENDING_REVIEW, finding_counts null, blocks_pack_closeout true), construction-inspection.json (verdict PENDING_REVIEW, production_ready false, pack_level_claude_review_completed false, marketplace_golden_case_validation_descriptor_verified false), adjudication.md (PENDING_REVIEW), and claude-review-result.json (parsed_review.overall_verdict PENDING_REVIEW, blocks_goal_closeout true, finding_counts null, valid_review_receipts []) all reflect the pre-review placeholder state. These must be updated from this review's actual verdict/receipt; production_ready and the marketplace_golden_case_validation_descriptor_verified flag must not be set while these still read PENDING_REVIEW.",
+        "recommendation": "After recording this review receipt, reconcile manifest/adjudication/construction-inspection/claude-review-result to the actual PASS_WITH_FINDINGS verdict and counts (exactly one valid receipt), then set production_ready only once the full validation suite also passes.",
+        "post_review_disposition": "non_blocking_bookkeeping_pre_closeout_condition"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "invalid_review_attempts": []
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-851",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-851/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-851/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5d4315ec-e170-4799-9bd2-dbc74a514904",
+    "uuid": "0f5e188b-eff8-4979-b8cf-e3d3cfb9d2e1",
+    "total_cost_usd": 2.3080570000000002,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 9031,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-851 is a descriptor-only RP28 Marketplace synthetic-fixture-tail into test/golden-case-head pack (RP28.P02.M06.S15-RP28.P02.M07.S02, 10 units, risk A). Read-only inspection (Read/Grep/Glob) confirms the pack-level production_ready claim is supported and correctly scoped as descriptor-only. Manifest holds production_ready=false and runtime_ready=false (descriptor layer) with production_ready_flag=marketplace_fixture_golden_case_descriptor_verified pending this review — the expected pre-review handshake, not an over-claim. Plan alignment: live plan packs[] CP00-851 (docs/closeout-pack-plan/closeout-pack-plan.json:396) matches the manifest plan_binding_snapshot and review-baseline exactly (deviation_from_plan=false), with deliverable_distribution {ui:1,implementation:2,failure_recovery:2,test:4,contract:1} and micro_title {Synthetic Fixture Set:8, Test And Golden Case Set:2}; live next is CP00-852 at RP28.P02.M07.S03. Implementation: registry.js adds MARKETPLACE_CP851_PACK_BINDING/REQUIREMENTS plus case-set/Hermes/Claude/handoff/descriptor builders; createMarketplaceCp851FixtureGoldenCaseDescriptor chains from CP850 (source_descriptor=MarketplaceCp850PermissionAuditFixtureDescriptor) and fixture_golden_case_set has row_count 10 across sections M06(8 rows, WORKFLOW_ROWS slice 14-21: approval routing, blocked-claim, rollback, retry, unit-test happy/denied/review, integration smoke) and M07(2 rows: service entrypoint contract, request normalization). validators.js (validateMarketplaceCp851FixtureGoldenCaseCoverage/Descriptor) enforce descriptor_only=true, runtime_execution=false, no connector secret/OAuth/prompt-completion payloads, no real client data/permission detail/audit body, and reject any app_submission/permission_review/ai_app_policy/tenant_install/app_update/install_receipt/connector_runtime/custom_ai runtime or permission/audit/product-state write across all rows; deepFreeze enforces immutability; index.js re-exports the new symbols. Tests (model.test.js) assert CP851 binding (first RP28.P02.M06.S15, last RP28.P02.M07.S02, 10 units), coverage errors [] with matching deliverable/micro distributions, descriptor runtime-closure (app_submission_executed/permission_decision_written/audit_event_written false, row_count 10, handoff to CP00-852), and contract projection (latest_pack CP00-851, projections.cp851, validation.latest_pack_id CP00-851). Contract (~18,660 lines) scanned: validation.valid=true, latest_pack_id=CP00-851, latest_projection.descriptor=MarketplaceCp851FixtureGoldenCaseDescriptor, no_write_attestation all false, and all per-row *_executed/*_written/writes_product_state/real_client_data/credential flags false; no writeFile/fetch/exec/spawn/process.env in the marketplace package or validate-rp28 script. Foundations sound: model.js declarations tenant_scoped with matter_trace_ref + AuditEvent references; states.js MARKETPLACE_RISK_CLAIMS and MARKETPLACE_LIFECYCLE_GATES present. Authority boundary correct: Claude is read-only independent reviewer (not final approver), claude_is_final_approval/promotes_claude_to_final_approval false, human_final_approval_required_for_runtime_opening true; Hermes packets emit_runtime_receipt=false and hermes_runtime_embedded_in_product=false (deterministic review packet/receipt handling only). Review-hardening checks pass: no prior invalid review attempts to reject; readiness auth preflight passed (exit 0, 1456 stdout bytes, valid JSON); the claude-review-result stdout_bytes=0/pending_review is the honest pre-review placeholder (valid_review_receipts empty), not an auth/0-byte/malformed/fenced/tool-shaped failure; unrelated dirty files (progress-control-room data/html, docs/ldip-integration invalid-attempt, workbook/*, the .docx spec) are correctly excluded (active_untracked_implementation_files_omitted=[]). One informational P3: command-evidence.json captures only the two marketplace-scoped commands (rp28:marketplace:validate exit 0, marketplace node --test exit 0) while the full 10-command closeout suite remains a by-design downstream gate. Verdict PASS_WITH_FINDINGS with no P0/P1/P2; does not block pack or goal closeout. The pack claims neither runtime nor enterprise trust (local_validation_claims_enterprise_trust=false), so the human final-approval/enterprise-trust authority boundary is external to this receipt and does not set blocks_goal_closeout. Final production_ready promotion still requires this valid receipt plus the full validation suite.",
+    "findings": [
+      {
+        "id": "CP851-P3-01",
+        "severity": "P3",
+        "title": "Full closeout validation suite still pending; command-evidence captures only marketplace-scoped commands",
+        "file": "docs/closeout-packs/cp00-851/command-evidence.json",
+        "line": 20,
+        "details": "command-evidence.json records only two commands as passed: `npm run rp28:marketplace:validate` (exit 0) and `node --test packages/marketplace/test/*.test.js` (exit 0), with status=pending_full_validation and gate_outcome=pending_valid_review_and_full_validation. The 10-command closeout validation suite expected before closeout (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) is not yet captured. This is consistent with the pack's own gating: construction-inspection.json and manifest state CP00-851 stays in_progress and not production_ready until exactly one valid hardened read-only Claude review receipt AND the full validation suite pass. Manifest correctly holds production_ready=false and runtime_ready=false, so there is no over-claim. Read-only inspection confirms the implementation, validators, tests, and contract projection are internally consistent and would satisfy the marketplace/coverage/descriptor/contract validators, but the authoritative full-suite run is by-design deferred to after this receipt. This is expected pre-review sequencing (review -> full validation -> promote+commit), not a defect, and matches the pattern accepted for CP00-845 through CP00-850.",
+        "recommendation": "Before flipping production_ready and committing, run and capture the full 10-command validation suite alongside this review receipt, as required by construction-inspection.json. No code change required; this is a closeout-automation sequencing checkpoint.",
+        "post_review_disposition": "Informational / non-blocking. By-design gating enforced by closeout automation; tracked so the full validation suite is run before production_ready promotion. Does not block this review, the pack closeout, or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

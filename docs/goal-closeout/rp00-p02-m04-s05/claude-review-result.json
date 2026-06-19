@@ -1,0 +1,216 @@
+{
+  "subphase_id": "RP00.P02.M04.S05",
+  "source_micro_phase_id": "RP00.P02.M04",
+  "title": "Permission precheck",
+  "created_at": "2026-06-05T18:23:28Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit",
+    "Grep",
+    "Glob"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m04-s05-claude-review.json",
+  "stderr_path": "/tmp/lfos-rp00-p02-m04-s05-claude-review.stderr",
+  "review_packet_path": "/tmp/lfos-rp00-p02-m04-s05-review-packet.diff",
+  "review_packet_bytes": 128282,
+  "stderr_bytes": 0,
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 335735,
+  "duration_api_ms": 336998,
+  "session_id": "3a73f7be-2f66-4fb7-8875-b559cb6e1bad",
+  "uuid": "9a0e6e92-223a-42eb-8c11-0a45eb4b637c",
+  "total_cost_usd": 2.876293000000001,
+  "permission_denials": [
+    {
+      "tool_name": "mcp__claude_ai_Google_Drive__search_files",
+      "tool_use_id": "toolu_01QSJUVJCLV5yJ5B4un3j8QM",
+      "classification": "denied_read_only_connector_attempt",
+      "writes_product_state": false
+    }
+  ],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 26,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_adjudication": "GO",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude rated the S05 engineering deliverable GO with no P0/P1/P2 findings. Three P3 notes were optional informational observations and explicitly deferred because the substantive S05 guarantees are preserved by the inherited S04 input gate, the S05 strict fail-closed truthy-claim loop, result validator false-flag checks, and no-write/no-runtime/no-AuthZ boundaries.",
+  "findings": [
+    {
+      "id": "CLAUDE-S05-P3-001",
+      "severity": "P3",
+      "title": "Permission decision ref and wrong marker negative paths are transitive",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that missing permission_decision_ref and wrong upstream marker failures are caught by the inherited S04 input validator before S05-specific logic runs.",
+      "resolution": "Deferred as intentional defense-in-depth. S05 formally consumes a validated S04 Matter trace result and still records requiresPermissionDecisionRef, fail_closed_on missing_permission_decision_ref, and result-validator nonblank ref checks."
+    },
+    {
+      "id": "CLAUDE-S05-P3-002",
+      "severity": "P3",
+      "title": "Entrypoint model effort read-only checks are transitive",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that S05 reasserts entrypoint, model, effort, and read-only fields already guaranteed by the S04 result validator.",
+      "resolution": "Deferred as harmless defense-in-depth on a security boundary. S05 carries already-validated review metadata and does not add runtime authority."
+    },
+    {
+      "id": "CLAUDE-S05-P3-003",
+      "severity": "P3",
+      "title": "S05 models denials as throw-only rather than soft deny result states",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that S05 decision_values contains allow_metadata_only and blocked_claim_refs is always empty, unlike S04 soft denial result states.",
+      "resolution": "Deferred as intentional for this permission precheck slice. Unsafe or denied states fail closed by throwing before a production_ready result is emitted; deny-path observability can be reconsidered in a later routing or blocked-claim output subphase."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T18:23:28Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [
+    {
+      "classification": "auth_preflight_or_environment_failure_not_a_valid_review",
+      "reason": "Earlier attempts before the unrestricted environment change could not authenticate or could not start the OAuth callback server; they produced no valid review verdict and are not counted as Claude review runs."
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read"
+    ],
+    "write_tools_granted": false,
+    "session_id": "3a73f7be-2f66-4fb7-8875-b559cb6e1bad",
+    "uuid": "9a0e6e92-223a-42eb-8c11-0a45eb4b637c",
+    "duration_ms": 335735,
+    "duration_api_ms": 336998,
+    "total_cost_usd": 2.876293000000001,
+    "permission_denials": [
+      {
+        "tool_name": "mcp__claude_ai_Google_Drive__search_files",
+        "tool_use_id": "toolu_01QSJUVJCLV5yJ5B4un3j8QM",
+        "classification": "denied_read_only_connector_attempt",
+        "writes_product_state": false
+      }
+    ],
+    "permission_denials_adjudicated": true,
+    "permission_denials_denied_only": true,
+    "no_tool_output_used_for_review": true,
+    "no_repo_or_product_state_write_from_denied_tool": true,
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m04-s05-claude-review.json",
+    "review_packet_file": "/tmp/lfos-rp00-p02-m04-s05-review-packet.diff"
+  },
+  "claude_cli": {
+    "command": "claude -p --add-dir /tmp --model claude-opus-4-8 --effort max --permission-mode dontAsk --no-session-persistence --tools Read --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit,Grep,Glob --output-format json",
+    "prompt_source": "review packet diff",
+    "output_file": "/tmp/lfos-rp00-p02-m04-s05-claude-review.json",
+    "stderr_file": "/tmp/lfos-rp00-p02-m04-s05-claude-review.stderr",
+    "stderr_bytes": 0,
+    "duration_ms": 335735,
+    "duration_api_ms": 336998,
+    "terminal_reason": "completed",
+    "permission_denials": [
+      "mcp__claude_ai_Google_Drive__search_files"
+    ],
+    "uuid": "9a0e6e92-223a-42eb-8c11-0a45eb4b637c",
+    "session_id": "3a73f7be-2f66-4fb7-8875-b559cb6e1bad"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS",
+    "overall_verdict": "PASS",
+    "reported_verdict": "GO",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P3",
+        "title": "Transitive permission decision ref guard observability",
+        "location": "packages/control-plane/src/validators.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Missing permission_decision_ref and wrong upstream marker paths are caught by inherited S04 validation before S05-specific logic."
+      },
+      {
+        "severity": "P3",
+        "title": "Transitive entrypoint model effort read-only checks",
+        "location": "packages/control-plane/src/service.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "S05 repeats review metadata checks already guaranteed by S04; this remains defense-in-depth."
+      },
+      {
+        "severity": "P3",
+        "title": "Throw-only denial semantics",
+        "location": "packages/control-plane/src/service.js",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "S05 emits allow_metadata_only or throws rather than representing soft deny result states."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M04.S06 Audit hint precheck as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed S05 consumes a validated S04 Matter trace result and preserves S01, S02, S03, S04, S20, and permission/audit baseline dependencies.",
+      "Claude confirmed denied S04 Matter trace results fail closed before S05 emits a permission result.",
+      "Claude confirmed missing permission_decision_ref fails closed through inherited validation and S05 result validation.",
+      "Claude confirmed runtime permission engine, AuthZ evaluator, runtime Claude review, audit write, review queue write, service execution, runtime route, and product-state write claims are rejected.",
+      "Claude confirmed RP00.P02.M04 stays open and hands off to RP00.P02.M04.S06."
+    ],
+    "summary": "Claude reported GO and no P0/P1/P2 issues. P3 notes are optional hardening or inherited-gate observations."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 3
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m04-s05-claude-review.json",
+    "summary": "Claude returned GO with no P0/P1/P2 findings and three P3 optional informational notes."
+  },
+  "overall_verdict": "PASS"
+}

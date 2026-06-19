@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-471",
+  "normalized_at": "2026-06-12T08:50:19.820Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-471/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-471/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-471/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-471/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d42abd2b-dfa7-443d-9d2e-e613b3dd0c40",
+    "uuid": "5d0d655a-1266-47c4-b551-7a4e5798ecfe",
+    "total_cost_usd": 2.0292732499999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5532,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-471 is a descriptor-only closeout pack (19th in the RP15 \"Firm Analytics\" series) covering the RP15.P07 workflow permission slice: M03 tail (2 rows) + M04 full cycle (22 rows) + M05 head (16 rows) = 40 units, range RP15.P07.M03.S21-RP15.P07.M05.S16, risk class B. Independent read-only inspection (Read/Grep/Glob) confirms the pack-level claim set is supported and honestly scoped, with no P0/P1/P2/P3 findings.\n\nIdentity and distribution are consistent across pack binding (registry.js:307-322), contract current_pack (contracts/analytics-core-contract.json:16-31), live plan (docs/closeout-pack-plan/closeout-pack-plan.json:409-428), manifest (docs/closeout-packs/cp00-471/manifest.json), and review baseline: pack_id CP00-471, unit_count 40, deliverable_counts {claude_review:2, implementation:4, failure_recovery:24, security_audit:3, hermes_evidence:3, fixture:2, test:2} (sum 40, matches included-units deliverable_type tally), micro_title_row_counts {Primary Implementation Slice:2, Secondary Workflow Slice:22, Permission And Audit Binding:16}.\n\nImplementation (service.js:2294-2413) mirrors the established CP470 pattern exactly with frozen descriptor objects, descriptor_only:true, runtime_execution:false, and a full no-write/no-runtime guard set. Validators (validators.js:3273-3440) provide thorough coverage, descriptor, authority-boundary, and handoff checks. Tests (model.test.js:1247-1297) include three meaningful CP471 blocks plus deepEqual contract-to-registry projection assertions. No writeFile/network/exec calls exist in any changed source file or the validation script (read-only readFile + assert only). Cross-pack acceptance is maintained: CP471 was added to every prior pack validator's current_pack acceptance list (CP453-CP470), so advancing the contract to CP00-471 does not regress earlier validators.\n\nBoundaries hold: production_ready:false with status implemented_pending_review/implementation_and_plan_gates_passed_pending_final_closeout (no over-claim), no_real_data:true, writes_product_state:false. Claude remains a read-only reviewer (claude_is_final_approval:false, allowed_tools Read/Grep/Glob, read_only:true) and not final approver. Hermes control-plane patterns are used only for deterministic descriptor review-packet/receipt handling (emits_hermes_runtime_receipt:false; receipt_shape descriptor_only..._no_write), not product runtime. Enterprise trust is not claimed from local validation.\n\nCP178+ review hardening verified: auth preflight passed (exit 0, stdout 1432 bytes, valid JSON), invalid_review_blockers list is complete (failed_authentication_run, zero_byte_output, malformed_json_output, fenced_json_output, tool_call_shaped_output, disabled_tools_run, missing_raw_output_reference, missing_source_inspection_basis, claude_final_approval_claim, source_mutation_claim, production_enterprise_trust_claim), no invalid attempts recorded for this pack, prompt is 2276 bytes (<25600) with no embedded full diff/source and no forbidden tools. Changed-file scope correctly identifies the 7 modified files plus the new cp00-471/ manifest dir as pack-related and excludes unrelated dirty files (workbook docs, the LDIP invalid-attempt JSON) with nothing required omitted.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

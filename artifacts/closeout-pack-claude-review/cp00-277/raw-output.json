@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-277",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T20:54:12.489Z",
+  "finished_at": "2026-06-10T21:00:22.791Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":369697,\"duration_api_ms\":369728,\"ttft_ms\":3053,\"num_turns\":37,\"result\":\"Verdict emitted: **PASS** for CP00-277.\\n\\n- `blocks_pack_closeout: false`, `blocks_goal_closeout: false`, `no_unresolved_p0: true`, `no_unresolved_p1: true`, zero findings across P0–P3.\\n- The pack is a clean descriptor-only RP08 service-binding slice (40 units, Risk B): all runtime/no-write/no-real-data flags false, authority boundaries intact (Claude read-only non-final-approver, Hermes not in product runtime), `production_ready` correctly still false pending post-review closeout, and CP178+ review-hardening preconditions satisfied (valid auth preflight, read-only tools, no forbidden tools).\\n\\nOut-of-scope flag for your separate attention: `docs/closeout-pack-plan/new-session-handoff.md` was reported by the `c-ldip-01` artifact to contain an embedded `<system-reminder>` injection block. It is not part of CP00-277 and did not affect this verdict.\",\"stop_reason\":\"end_turn\",\"session_id\":\"f7cd103c-6397-407e-9db9-5411b192ee83\",\"total_cost_usd\":2.7851462500000004,\"usage\":{\"input_tokens\":112,\"cache_creation_input_tokens\":152829,\"cache_read_input_tokens\":1975191,\"output_tokens\":19712,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":152829,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":367,\"cache_read_input_tokens\":68815,\"cache_creation_input_tokens\":3383,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3383},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1102,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001202,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":2044,\"outputTokens\":29639,\"cacheReadInputTokens\":2142086,\"cacheCreationInputTokens\":153873,\"webSearchRequests\":0,\"costUSD\":2.7839442500000002,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-277 is a verified descriptor-only RP08 Email-And-Office-Native-DMS service-binding-slice pack (40 units, Risk B, range RP08.P02.M04.S19–RP08.P02.M06.S14, building on CP00-276 and handing off to CP00-278/RP08.P02.M06.S15). Reviewed read-only via Read/Grep/Glob; no Bash, edits, writes, or connector calls used.\\n\\nImplementation integrity: registry.js, service.js, and validators.js define the CP277 binding, requirements, no-write attestation, case set, descriptor, Hermes evidence packet, and Claude review packet. freezeCp277Result and per-row guards keep every runtime-behavior flag false (descriptor_only true; runtime_execution/customer_safe-runtime/raw_payload all false). validateEmailDmsCoreCp277Coverage and validateEmailDmsCoreCp277ServiceBindingSliceDescriptor enforce unit count (40), RP08-only IDs, no duplicate IDs, deliverable counts (claude_review 2 + contract 2 + failure_recovery 2 + implementation 17 + security_audit 4 + test 8 + ui 5 = 40), micro distributions (M04=4, M05=22, M06=14), cross-tenant/deny-over-allow/audit/state/idempotency/lock/persistence/validation/blocked-claim/rollback/retry guards, and authority boundaries. Tests in model.test.js assert coverage validity, 40 units, M05=22, descriptor-only rows, deny_over_allow_enforced true, cross_tenant_access_allowed false, claude.read_only true, and the CP00-278 handoff. The contract (current_pack_id CP00-277, current_pack block, top-level no_write_attestation with validates_service_binding_slice_descriptor_only true, historical_pack_bindings ending at CP00-277) is well-formed and matches the binding; validate-rp08-email-dms-core-contract.mjs is read-only and deep-equality-asserts the binding/attestation/descriptor and false authority booleans.\\n\\nProduction-readiness gate: production_ready is correctly false (status implementation_and_plan_gates_passed_pending_final_closeout; gate_outcome implementation_gates_passed_post_review_closeout_pending) — not a premature enterprise-trust claim. no_real_data true, writes_product_state false; all 20 node --check/--test, rp05–rp08, plan/weighted/spec/rp00/goal/fullplan validates, npm test/validate/build, and git diff --check commands exit 0; Hermes gate H08 passed.\\n\\nReview-hardening (CP178+): auth_preflight passed (exit 0, valid non-empty JSON result, 1224-byte stdout — not 0-byte/malformed/fenced/tool-call-shaped); forbidden_tools_present false; source_inspection_mode read_tools_used (allowed); summary_only_review_allowed false honored; review-schema present; review_hardening.invalid_attempts_preserved [].\\n\\nBoundaries: Claude remains a read-only independent reviewer and NOT final approver (promotes_claude_to_final_approval false, claims_enterprise_trust_from_local_validation false consistently across the contract; human_final_approval_required_for_runtime_opening true). Hermes patterns are used only for deterministic review packet/receipt handling, not product runtime (hermes_runtime_embedded_in_product false). Unrelated dirty files (Enterprise SaaS .docx, docs/closeout-pack-plan/new-session-handoff.md, docs/closeout-packs/cp00-277/, docs/ldip-integration/.../c-ldip-01-invalid-attempt-01.json) are correctly preserved as out-of-scope with active_untracked_implementation_files_omitted []. Note (non-finding, out of scope): the c-ldip-01 artifact reports an embedded system-reminder injection block in the out-of-scope new-session-handoff.md; it does not affect CP00-277.\\n\\nNo P0/P1/P2/P3 defects identified. Pack is consistent, bounded, and ready for post-review closeout under the existing non-final-approval, human-gated trust model.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"81fca97c-9a97-4638-b5b5-a557ecb38b6d\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6175,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "f7cd103c-6397-407e-9db9-5411b192ee83",
+    "uuid": "81fca97c-9a97-4638-b5b5-a557ecb38b6d",
+    "total_cost_usd": 2.7851462500000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

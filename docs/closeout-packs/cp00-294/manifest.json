@@ -1,0 +1,1788 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-294",
+  "planned_pack_id": "CP00-294",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "email_dms_core_hermes_slice_descriptor_verified",
+  "program_id": "RP08",
+  "planned_risk_class": "B",
+  "risk_class": "B",
+  "planned_unit_count": 40,
+  "unit_count": 40,
+  "primary_subphase_id": "RP08.P08.M04.S12",
+  "next_subphase": "RP08.P08.M04.S13",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-294",
+    "planned_pack_id": "CP00-294",
+    "title": "CP00-294 RP08.P08.M02.S15-RP08.P08.M04.S12 generated_from_weighted_implementation_ledger",
+    "risk_class": "B",
+    "planned_risk_class": "B",
+    "planned_unit_count": 40,
+    "unit_count": 40,
+    "range": {
+      "first_unit_id": "RP08.P08.M02.S15",
+      "last_unit_id": "RP08.P08.M04.S12",
+      "description": "RP08.P08.M02.S15-RP08.P08.M04.S12"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP08.P08.M02.S15",
+        "title": "Evidence template",
+        "source_micro_phase_id": "RP08.P08.M02",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M02.S16",
+        "title": "Validation command check",
+        "source_micro_phase_id": "RP08.P08.M02",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M02.S17",
+        "title": "Harness boundary note",
+        "source_micro_phase_id": "RP08.P08.M02",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M02.S18",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP08.P08.M02",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M02.S19",
+        "title": "Regression receipt",
+        "source_micro_phase_id": "RP08.P08.M02",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP08.P08.M02.S20",
+        "title": "Next gate readiness",
+        "source_micro_phase_id": "RP08.P08.M02",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M02",
+        "micro_title": "Type And Shape Definition",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S02",
+        "title": "Evidence field list",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S03",
+        "title": "Changed-file receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S04",
+        "title": "Command result receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S05",
+        "title": "Fixture summary receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S06",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S07",
+        "title": "Permission summary receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S08",
+        "title": "Audit summary receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S09",
+        "title": "No-real-data receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S10",
+        "title": "Claude dependency marker",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP08.P08.M03.S11",
+        "title": "Human approval marker",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S12",
+        "title": "PASS semantics",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S13",
+        "title": "PASS_WITH_FINDINGS semantics",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S14",
+        "title": "BLOCK semantics",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S15",
+        "title": "Evidence template",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M03.S16",
+        "title": "Validation command check",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S17",
+        "title": "Harness boundary note",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S18",
+        "title": "Closeout handoff",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S19",
+        "title": "Regression receipt",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "test"
+      },
+      {
+        "id": "RP08.P08.M03.S20",
+        "title": "Next gate readiness",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S21",
+        "title": "Documentation update",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M03.S22",
+        "title": "Operator summary",
+        "source_micro_phase_id": "RP08.P08.M03",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M04.S01",
+        "title": "Hermes command matrix",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S02",
+        "title": "Evidence field list",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S03",
+        "title": "Changed-file receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S04",
+        "title": "Command result receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S05",
+        "title": "Fixture summary receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S06",
+        "title": "Blocked-claim receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S07",
+        "title": "Permission summary receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S08",
+        "title": "Audit summary receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S09",
+        "title": "No-real-data receipt",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP08.P08.M04.S10",
+        "title": "Claude dependency marker",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP08.P08.M04.S11",
+        "title": "Human approval marker",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP08.P08.M04.S12",
+        "title": "PASS semantics",
+        "source_micro_phase_id": "RP08.P08.M04",
+        "program_id": "RP08",
+        "phase_id": "RP08.P08",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP08.P08.M02.S15",
+      "title": "Evidence template",
+      "source_micro_phase_id": "RP08.P08.M02",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M02.S16",
+      "title": "Validation command check",
+      "source_micro_phase_id": "RP08.P08.M02",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M02.S17",
+      "title": "Harness boundary note",
+      "source_micro_phase_id": "RP08.P08.M02",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M02.S18",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP08.P08.M02",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M02.S19",
+      "title": "Regression receipt",
+      "source_micro_phase_id": "RP08.P08.M02",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M02.S20",
+      "title": "Next gate readiness",
+      "source_micro_phase_id": "RP08.P08.M02",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M02",
+      "micro_title": "Type And Shape Definition",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S02",
+      "title": "Evidence field list",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S03",
+      "title": "Changed-file receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S04",
+      "title": "Command result receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S05",
+      "title": "Fixture summary receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S06",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S07",
+      "title": "Permission summary receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S08",
+      "title": "Audit summary receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S09",
+      "title": "No-real-data receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S10",
+      "title": "Claude dependency marker",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S11",
+      "title": "Human approval marker",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S12",
+      "title": "PASS semantics",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S13",
+      "title": "PASS_WITH_FINDINGS semantics",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S14",
+      "title": "BLOCK semantics",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S15",
+      "title": "Evidence template",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S16",
+      "title": "Validation command check",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S17",
+      "title": "Harness boundary note",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S18",
+      "title": "Closeout handoff",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S19",
+      "title": "Regression receipt",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "test",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S20",
+      "title": "Next gate readiness",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S21",
+      "title": "Documentation update",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M03.S22",
+      "title": "Operator summary",
+      "source_micro_phase_id": "RP08.P08.M03",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S01",
+      "title": "Hermes command matrix",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S02",
+      "title": "Evidence field list",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S03",
+      "title": "Changed-file receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S04",
+      "title": "Command result receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S05",
+      "title": "Fixture summary receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S06",
+      "title": "Blocked-claim receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S07",
+      "title": "Permission summary receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S08",
+      "title": "Audit summary receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S09",
+      "title": "No-real-data receipt",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S10",
+      "title": "Claude dependency marker",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S11",
+      "title": "Human approval marker",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP08.P08.M04.S12",
+      "title": "PASS semantics",
+      "source_micro_phase_id": "RP08.P08.M04",
+      "program_id": "RP08",
+      "phase_id": "RP08.P08",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "B",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/email-dms-core-contract.json",
+        "packages/email-dms/README.md",
+        "packages/email-dms/src/index.js",
+        "packages/email-dms/src/registry.js",
+        "packages/email-dms/src/service.js",
+        "packages/email-dms/src/validators.js",
+        "packages/email-dms/test/model.test.js",
+        "scripts/validate-rp08-email-dms-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-294/manifest.json",
+        "docs/closeout-packs/cp00-294/command-evidence.json",
+        "docs/closeout-packs/cp00-294/claude-review-result.json",
+        "docs/closeout-packs/cp00-294/adjudication.md",
+        "docs/closeout-packs/cp00-294/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-294 implements descriptor-only coverage of the RP08.P08.M02 type/shape tail (evidence template through next-gate readiness), the full M03 primary Hermes cycle (22 rows including documentation update and operator summary), and the M04 secondary workflow head (12 rows through PASS semantics) across three sections over 40 planned rows with a pack-local row-extras constant, Hermes evidence (H08), Claude review packet (C08), and CP00-295 handoff, without opening Hermes runtime receipts, command runtime execution, state writes, object storage, Citation Ledger, or Loop behavior.",
+    "source_refs": [
+      "contracts/email-dms-core-contract.json",
+      "packages/email-dms/README.md",
+      "packages/email-dms/src/index.js",
+      "packages/email-dms/src/registry.js",
+      "packages/email-dms/src/service.js",
+      "packages/email-dms/src/validators.js",
+      "packages/email-dms/test/model.test.js",
+      "scripts/validate-rp08-email-dms-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_email_runtime": true,
+    "no_office_native_runtime": true,
+    "no_sync_runtime": true,
+    "no_filing_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "deny_over_allow_enforced": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_fixture_payload_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-294/manifest.json",
+    "docs/closeout-packs/cp00-294/command-evidence.json",
+    "docs/closeout-packs/cp00-294/claude-review-result.json",
+    "docs/closeout-packs/cp00-294/adjudication.md",
+    "docs/closeout-packs/cp00-294/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-294/manifest.json",
+    "docs/closeout-packs/cp00-294/command-evidence.json",
+    "docs/closeout-packs/cp00-294/claude-review-result.json",
+    "docs/closeout-packs/cp00-294/adjudication.md",
+    "docs/closeout-packs/cp00-294/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-294/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-294/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "d5b8928e-6238-4be8-957b-2ab09ad581d1",
+      "uuid": "a14fde47-eb23-4f46-93a1-66bcd9fc68ae",
+      "total_cost_usd": 3.0091547500000004,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-294 (RP08 email-DMS-core Hermes slice descriptor pack, Risk B, 40 units, range RP08.P08.M02.S15-RP08.P08.M04.S12) was reviewed read-only via Read/Grep/Glob across the contract, registry/service/validators/index source, tests, the contract validator script, README, manifest, command-evidence, and all review-hardening artifacts. Coverage matches the baseline exactly: M02=6/M03=22/M04=12=40 units; deliverables hermes_evidence=20/implementation=16/test=2/claude_review=2=40; micro-titles 6/22/12; last unit RP08.P08.M04.S12. Continuity is correct (CP293 M02.S14 -> CP294 M02.S15; handoff to CP00-295/RP08.P08.M04.S13, no gap/overlap). Descriptor-only/no-write/no-real-data boundaries hold across service.js freezeCp294Result, both contract no-write attestations, and the manifest (all write/runtime/dispatch flags false; synthetic_only/no_real_data true; no Hermes runtime receipts, command runtime, state writes, or object storage). Claude remains a read-only reviewer and explicit non-approver (authority_boundary.claude_is_final_approval false; human_final_approval_required_for_runtime_opening true; manifest claude_not_final_approver true; enterprise_trust_not_claimed_from_local_validation true). Hermes control-plane patterns are used only for deterministic H08 evidence / C08 review-packet handling (receipt_shape descriptor_only...no_write), not product runtime. CP178+ hardening is fully encoded via 11 invalid_review_blockers (auth failure, zero-byte, malformed JSON, fenced JSON, tool-call-shaped output, missing fields, final-approval/source-mutation/enterprise-trust claims); readiness auth-preflight passed (exit 0, valid JSON, 1446 bytes); no pre-existing raw-output.json/review-receipt.json. The committed contract JSON is in sync with the source (validator deepEquals requirements and attestation; all 7 public exports imported and exercised; tests assert coverage/descriptor-only/authority boundaries). production_ready is correctly held at false (status implemented_pending_review) with empty review receipts, so there is no premature production-ready or enterprise-trust claim to refute. Unrelated dirty files (the .docx and the separate-track LDIP c-ldip-01-invalid-attempt-01.json) are correctly excluded; new-session-handoff.md has no system-reminder injection in its current state and is out of pack scope. One P3 informational note only: the harness-generated changed-file-scope.json double-classifies the pack's own artifact directory as 'unrelated', a cosmetic labeling overlap that does not affect the authoritative active implementation refs. No P0/P1/P2 issues found; pack and goal closeout are not blocked.",
+      "findings": [
+        {
+          "id": "P3-1",
+          "severity": "P3",
+          "title": "changed-file-scope.json double-classifies the pack's own artifact directory as 'unrelated'",
+          "file": "artifacts/closeout-pack-claude-review/cp00-294/changed-file-scope.json",
+          "line": 103,
+          "details": "The review-harness scope artifact lists docs/closeout-packs/cp00-294/ (the pack's own manifest/command-evidence directory) and docs/closeout-pack-plan/new-session-handoff.md under both untracked_implementation_files (lines 96-97) and unrelated_dirty_files_preserved (lines 102-103). The pack manifest's worktree_transition_policy.unrelated_dirty_files_preserved more accurately lists only the unrelated .docx and the LDIP file. The authoritative active_pack_implementation_refs correctly contains only the 8 tracked implementation files (contract, README, index/registry/service/validators, test, validator script), so review scope and the production_ready determination are unaffected. This is a cosmetic labeling overlap in a generated artifact, not a defect in the pack's committed deliverables or product code.",
+          "recommendation": "Optionally refine the scope generator so the pack's own untracked artifact directory is not also bucketed under 'unrelated_dirty_files_preserved', or rename that field to dirty_files_preserved to remove the semantic friction. No change is required for CP00-294 closeout.",
+          "post_review_disposition": "Informational only; does not block pack or goal closeout. Active implementation refs, coverage, boundary, authority, and review-hardening checks all pass."
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 1,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 1
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-294 email dms core hermes slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 110,
+    "goal_closeout_dirs_with_required_artifacts": 110,
+    "remaining_by_closeout_dir_proxy": 55146
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-294/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-294/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-294/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-294/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

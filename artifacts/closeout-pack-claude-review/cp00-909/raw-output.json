@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-909",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T16:48:08.775Z",
+  "finished_at": "2026-06-17T16:53:43.279Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":333969,\"duration_api_ms\":334591,\"ttft_ms\":4220,\"num_turns\":48,\"result\":\"Review complete. **Verdict: PASS** — CP00-909 is a clean descriptor-only HRX AttendanceWorkflow→RecruitmentWorkflow bridge pack with no findings (P0–P3 all 0); does not block pack or this-CP goal closeout.\\n\\nKey basis: implementation, validators, tests, the on-disk contract, plan/queue, and README are mutually consistent with every runtime/write/decision/offer/real-data boundary closed; Claude stays read-only and non-final-approver; Hermes is evidence-only (no runtime receipt). The pack correctly does not overclaim runtime or enterprise trust. One honest caveat surfaced in the summary: under the read-only constraint I could not re-run the full validation ladder, so I relied on static consistency plus the recorded initial command exit codes — the full ladder is flagged as a required re-run before commit.\",\"stop_reason\":\"end_turn\",\"session_id\":\"27976b44-31b1-43b5-ac63-e0c42565a391\",\"total_cost_usd\":2.08349525,\"usage\":{\"input_tokens\":60,\"cache_creation_input_tokens\":102259,\"cache_read_input_tokens\":1744753,\"output_tokens\":22819,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":102259,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":328,\"cache_read_input_tokens\":98028,\"cache_creation_input_tokens\":4760,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4760},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1120,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001225,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":60,\"outputTokens\":22819,\"cacheReadInputTokens\":1744753,\"cacheCreationInputTokens\":102259,\"webSearchRequests\":0,\"costUSD\":2.08227025,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-909 is a clean, internally consistent descriptor-only closeout pack bridging the final RP30 P02 AttendanceWorkflow tail row (RP30.P02.M02.S13) into 9 RecruitmentWorkflow HRX slice rows (RP30.P02.M03.S01-S09), risk class A, 10 units. Read-only verification confirms the pack-level claim (production_ready=false, runtime_ready=false, descriptor_only) is fully supported: (1) registry.js descriptor and createHrxDomainRows set every runtime/write/decision/offer/real-data flag false, with HRX_NO_WRITE_ATTESTATION and an authority boundary that keeps Claude non-final-approver and defers runtime opening + human approval to CP00-910; (2) validators.js rejects any attendance/recruitment runtime, decision/record writes, candidate payloads, offer creation, real HR data, credentials, or secrets, and enforces section/row/title counts; (3) model.test.js covers binding, coverage distribution (1 AttendanceWorkflow + 9 RecruitmentWorkflow), descriptor boundaries, and on-disk contract currency; (4) contracts/hrx-people-contract.json reflects CP00-909 as current/latest with the correct descriptor name, and a targeted grep found no boundary flag set to true; (5) plan, next-pack-queue (live_latest=CP00-908, next=CP00-909), manifest plan_binding_snapshot, validation script, and README all agree with no drift. No fs/child_process/network/process.env usage exists in packages/hrx/src, and the Hermes evidence packet is deterministic review/gate metadata only (emits_runtime_receipt=false), not embedded product runtime. Review hardening checks pass: auth preflight succeeded (valid JSON, 1446-byte stdout, exit 0), the review request/schema are well-formed, and no auth failure, empty stdout, malformed/fenced JSON, or tool-call-shaped evidence is present. The pack does not assert runtime or enterprise-trust readiness, so the expected human/enterprise-trust approval boundary lies outside this receipt and does not set blocks_goal_closeout. Constraint note (verification provenance): under the read-only mandate I did not re-execute the validation ladder; command-evidence records the initial syntax/test/rp30/hrx commands at exit 0 and flags a required full re-run (npm test, npm run validate, closeout-pack(-plan):validate, weighted/fullplan/spec/goal/rp00 validators, git diff --check) before commit. Pending PENDING placeholders in construction-inspection.json, adjudication.md, and claude-review-result.json are expected pre-closeout state to be finalized by this review and downstream adjudication, not defects. No P0/P1/P2/P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"c5f736ff-4ca3-412f-9079-b3d39f738e42\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5047,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "27976b44-31b1-43b5-ac63-e0c42565a391",
+    "uuid": "c5f736ff-4ca3-412f-9079-b3d39f738e42",
+    "total_cost_usd": 2.08349525,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

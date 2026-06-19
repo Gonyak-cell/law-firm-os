@@ -1,0 +1,28 @@
+{
+  "schema_version": "law-firm-os.launch-decision-register-import-candidates.v0.1",
+  "generated_at": "2026-06-18T23:59:27.997Z",
+  "source_refs": [
+    "docs/launch/launch-owner-approval-receipt-ledger.json",
+    "docs/launch/launch-owner-approval-receipt-ledger-validation.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "boundary": {
+    "import_candidate_preview_only": true,
+    "go_live_approved_by_this_file": false,
+    "owner_deferrals_approved_by_this_file": false,
+    "launch_decision_register_modified_by_this_file": false,
+    "pending_receipts_excluded_from_candidates": true,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "receipt_ledger_verdict": "PASS",
+    "receipt_slot_count": 4,
+    "pending_receipt_slot_count": 4,
+    "real_owner_receipt_count": 0,
+    "copy_allowed_count": 0,
+    "import_candidate_count": 0,
+    "covered_target_count_by_candidates": 0
+  },
+  "import_candidates": []
+}

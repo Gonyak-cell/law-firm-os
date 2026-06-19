@@ -1,0 +1,99 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-174",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "session_id": "1cf947e1-2448-43a9-bc6d-06044ce96f81",
+    "uuid": "3bdb1877-6994-47ca-94b6-18acde1d5133",
+    "duration_ms": 162534,
+    "duration_api_ms": 164907,
+    "total_cost_usd": 0.67566125,
+    "permission_denials": [],
+    "raw_output_ref": "/tmp/cp00-174-claude-review-output.json"
+  },
+  "invalid_review_attempts": [],
+  "review_packet": {
+    "review_id": "C04.CP00-174.master_data_permission_audit_sensitive_tail_boundary",
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "read_only": true,
+    "prompt_ref": "/tmp/cp00-174-claude-prompt.txt"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-174 binds the RP04 Master Data Risk A permission/audit sensitive tail boundary as descriptor-only evidence. It covers exactly the 10 planned units RP04.P08.M05.S14-RP04.P08.M06.S03 (7 in M05, 3 in M06; deliverable split 5 implementation / 4 hermes_evidence / 1 test) and preserves the CP00-173 -> CP00-174 -> CP00-175 chain (upstream CP00-173, next CP00-175 at RP04.P08.M06.S04). All ten required descriptors are present (BLOCK semantics, evidence template, validation command check, harness boundary note, closeout handoff, regression receipt, next gate readiness, Hermes command matrix, evidence field list, changed-file receipt). The implementation is pure frozen-object construction: no runtime permission evaluation, no audit append, no review/approval dispatch, no Hermes/Claude execution, no product-state writes, no network/UI/DOM effects, and no real client data. next_gate_readiness asserts widens_current_risk_a_boundary=false (next pack is Risk C expansion), so Risk A is not widened. Leak guards exclude permission refs, audit payloads, runtime permission results, Hermes command payloads, changed-file diffs, reviewer identity, secrets, and real data from the customer-facing summary, and changed_file_receipt records diff summary only with embeds_diff_content=false. Validators add coverage, boundary, contract-projection drift, and no-write attestation checks, and three new tests exercise binding, descriptor/catalog leak-safety, and the coverage/Hermes/Claude/handoff path; pre-review evidence (node --test 68 pass, npm test 1236 pass, rp04:master-data:validate reporting current_pack CP00-174 / covered_units 10 / next_pack CP00-175, full validate/build, git diff --check) confirms it integrates cleanly. Approving; only minor non-blocking defense-in-depth notes.",
+    "boundary_assessment": {
+      "descriptor_only_preserved": true,
+      "no_db_or_product_writes": true,
+      "no_real_data_loading": true,
+      "no_runtime_permission_eval": true,
+      "no_audit_append": true,
+      "no_api_handler_or_network": true,
+      "no_ui_render_or_dom_mutation": true,
+      "no_ai_retrieval_or_analytics_execution": true,
+      "no_hermes_or_claude_runtime_execution": true,
+      "no_review_or_approval_dispatch": true,
+      "no_retry_rollback_compensation_execution": true,
+      "no_runtime_lock_acquisition": true,
+      "no_case_note_write": true,
+      "customer_surface_internal_ref_separation": true,
+      "internal_refs_evidence_only": true,
+      "risk_a_scope_preserved": true,
+      "handoff_valid": true
+    },
+    "findings": [
+      {
+        "id": "CP00-174-C04-F001",
+        "severity": "P3",
+        "file": "packages/master-data/src/service.js",
+        "line": null,
+        "title": "Leak-guard assertions validate only the customer-facing summary, not the full descriptor result",
+        "description": "customer_surface_excludes_internal_refs and prohibited_output_absent serialize and check only customer_facing_boundary_summary (and the catalog checks only the mapped summary rows). The full descriptor result still carries boundary_section (including evidence_field_list.internal_only_fields and the leak_guard arrays) which contain field-name tokens such as audit_event_payload, hermes_command_payload, and changed_file_diff. These are descriptor vocabulary, not real payloads, and renderable_surface is explicitly scoped to the summary, so live exposure risk is low and this is not a leak in this pack. However, nothing structurally prevents a future renderer from serializing the entire result to a customer surface.",
+        "required_action": "Keep renderable_surface enforcement at the rendering layer, or add a defense-in-depth assertion that any externally serialized customer projection deep-equals customer_facing_boundary_summary.",
+        "post_review_disposition": "deferred_as_rendering_layer_boundary: CP00-174 exposes customer_facing_boundary_summary as the renderable surface, the full descriptor is internal evidence vocabulary, and no UI/API rendering path serializes the full descriptor in this pack."
+      },
+      {
+        "id": "CP00-174-C04-F002",
+        "severity": "P3",
+        "file": "packages/master-data/src/registry.js",
+        "line": null,
+        "title": "changed_file_receipt.changed_file_refs is a manually maintained static list",
+        "description": "changed_file_refs is hardcoded and currently matches the seven files in this diff exactly (contract, README, registry, service, validators, test, validate script). It correctly embeds no diff content (embeds_diff_content=false, embeds_secret_or_real_data=false), so it is safe for this pack, but the list can silently drift from the real changeset in future packs because nothing cross-checks it against the actual diff or closeout manifest.",
+        "required_action": "Acceptable for a descriptor-only pack; if inexpensive, derive or validate the list against the closeout manifest changed-file set to prevent future drift.",
+        "post_review_disposition": "deferred_as_closeout_manifest_crosscheck: CP00-174 changed_file_refs matches the seven edited implementation files for this pack and embeds no diff content, secret, or real data; future manifest-derived drift checking is tracked as non-blocking hardening."
+      },
+      {
+        "id": "CP00-174-C04-F003",
+        "severity": "P3",
+        "file": "packages/master-data/src/validators.js",
+        "line": null,
+        "title": "Boundary section unit_ids are not directly cross-checked against the plan pack unit list",
+        "description": "validateMasterDataCp174Coverage verifies first/last unit IDs plus phase, micro-phase, deliverable, micro-title, and title distributions, and validateMasterDataCp174PermissionAuditSensitiveTailBoundary verifies the ten section keys exist and the section count equals 10. No assertion confirms that each boundary_section.unit_id (S14-S20, M06.S01-S03) is actually a member of the plan pack's included_units. The sequential unit_ids are internally consistent and the distribution checks make a mismatch unlikely, so this is a completeness gap rather than a correctness defect.",
+        "required_action": "Optionally assert that the set of boundary_section.unit_id values equals the plan pack unit IDs to harden against future authoring drift.",
+        "post_review_disposition": "fixed: validateMasterDataCp174Coverage now asserts that boundary_sections unit_id values exactly match the plan pack included unit IDs; focused tests, RP04 master-data validation, and git diff --check passed afterward."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  }
+}

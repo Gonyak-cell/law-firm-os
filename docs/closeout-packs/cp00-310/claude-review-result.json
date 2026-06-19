@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-310",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-310/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-310/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "71428832-eff2-41d6-b6b7-42455a2c01c4",
+    "uuid": "bde7e19d-4c4d-4ddc-9d53-8072e04d44d0",
+    "total_cost_usd": 2.7247642499999998,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-310 is a descriptor-only RP09 CRM-core closeout pack (150 units, RP09.P05.M06.S08–RP09.P06.M04.S05, risk C) that closes the RP09.P05 descriptor scope and lays the RP09.P06 permission foundation. Read-only inspection of registry.js, service.js, validators.js, test/model.test.js, the crm-core contract, the validator script, manifest, and review artifacts confirms the pack-level claim is supported: production_ready is correctly NOT asserted (manifest/command-evidence record production_ready:false, status implemented_pending_review; the Hermes packet only marks production_ready_candidate). No-write/no-real-data boundaries are stamped and validated everywhere (no_real_data:true, writes_product_state:false, evaluates_runtime_permission:false, emits_hermes_runtime_receipt:false, plus deny-over-allow, cross-tenant denial, leak, and detail-exposure guards). The 'P06 permission foundation' is purely descriptor flags with no runtime permission logic. Claude is held as a read-only independent reviewer and explicitly not final approver (claude_is_final_approval:false, promotes_claude_to_final_approval:false, human_final_approval_required_for_runtime_opening:true, runtime_opening_pack_id CP00-311), enforced by validators and a strict contract deepEqual drift guard. Hermes patterns are confined to deterministic evidence-packet/receipt descriptors (receipt_shape ...no_write), not product runtime. CP178+ review hardening is present: forbidden_review_evidence rejects auth failures, zero-byte stdout, malformed JSON, fenced JSON, tool-call-shaped output, and missing required references; the readiness auth-preflight passed with valid non-empty JSON. Coverage reconciles to 150 across all distributions and matches the baseline. Changed-file scope matches git status with unrelated dirty files correctly excluded. One cosmetic P3 metadata-classification nit; no P0/P1/P2 issues.",
+    "findings": [
+      {
+        "id": "CP310-P3-01",
+        "severity": "P3",
+        "title": "new-session-handoff.md dual-classified in changed-file-scope metadata",
+        "file": "artifacts/closeout-pack-claude-review/cp00-310/changed-file-scope.json",
+        "line": 96,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md appears in both untracked_implementation_files (line 96) and unrelated_dirty_files_preserved (line 102) of the changed-file-scope manifest. The two lists are intended to be mutually exclusive (active pack scope vs. preserved unrelated dirty files), so the same path appearing in both is an internal classification ambiguity. This is review-tooling metadata only and does not affect the descriptor-only product boundary, the no-real-data attestations, or the production_ready determination; docs/closeout-packs/cp00-310/ (the actual pack manifest/command-evidence) is unambiguously the pack deliverable.",
+        "recommendation": "Classify the session-handoff doc in exactly one bucket (it is a generated handoff note, so unrelated_dirty_files_preserved is the natural home) so the active-vs-unrelated partition stays unambiguous in future review baselines. No code or product change required.",
+        "post_review_disposition": "open_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

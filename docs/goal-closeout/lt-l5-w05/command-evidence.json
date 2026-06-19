@@ -1,0 +1,136 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L5-W05",
+  "title": "Operational audit-chain WORM verification",
+  "phase": "L5",
+  "gate": "G4, L5-EXIT",
+  "created_at": "2026-06-18T14:21:50Z",
+  "status": "blocked_pending_worm_audit_chain_operational_store_and_mutation_tests",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-L2-W01": {
+      "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W04": {
+      "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+      "classification": "standard_five_blocked"
+    },
+    "LT-L3-W06": {
+      "status": "t01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L5-W01": {
+      "status": "blocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "audit_chain_test_directory_exists": false,
+    "audit_worm_mutation_test_directory_exists": false,
+    "audit_chain_report_exists": false,
+    "audit_worm_mutation_report_exists": false,
+    "chain_verify_output_exists": false,
+    "mutation_attempt_results_exists": false,
+    "g4_satisfied": false,
+    "l5_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L5-W05-T01",
+      "title": "Run full operational-store hash-chain verification",
+      "status": "blocked_waiting_on_l5_w01_harness_l2_w01_persistence_l3_w04_worm_store_and_l3_w06_monitoring_job",
+      "acceptance": {
+        "required_test_directory_exists": false,
+        "staging_worm_store_full_chain_verify_exit_zero": false,
+        "mismatch_count_zero": false,
+        "verified_record_count_equals_store_total": false,
+        "head_hash_and_record_count_recorded": false,
+        "daily_monitoring_job_cross_check_same_result": false
+      }
+    },
+    {
+      "tuw_id": "LT-L5-W05-T02",
+      "title": "Verify legal-hold purge block, in-place mutation detection, and assemble evidence",
+      "status": "blocked_waiting_on_t01_audit_worm_mutation_suite_test_records_and_attempt_audit_reconciliation",
+      "terminal_tuw": true,
+      "acceptance": {
+        "standard_five_evidence_files_present": true,
+        "both_tuw_ids_present_in_command_evidence": true,
+        "required_test_directory_exists": false,
+        "legal_hold_purge_attempts_blocked": false,
+        "correction_events_recorded": false,
+        "in_place_mutation_attempts_blocked_or_detected": false,
+        "detection_rate_100_percent": false,
+        "all_attempts_reconciled_to_audit_records": false,
+        "evidence_assembled": false,
+        "g4_satisfied": false,
+        "l5_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-L2-W01\" or .wp_id==\"LT-L3-W04\" or .wp_id==\"LT-L3-W06\" or .wp_id==\"LT-L5-W01\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-L2-W01\tblocked_pending_l1_w06_hosting_decision_and_persistence_implementation\tstandard_five_blocked",
+        "LT-L3-W04\tblocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement\tstandard_five_blocked",
+        "LT-L3-W06\tt01_t02_t03_drafts_blocked_pending_stack_staging_threshold_approval_and_alert_test\tcommand_evidence_only_blocked",
+        "LT-L5-W01\tblocked_pending_security_acceptance_harness_staging_runtime_vg_suites_run_all_and_human_signoff\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W05 predecessor state before claiming blocked evidence."
+    },
+    {
+      "id": "required_artifact_presence",
+      "command": "for p in tests/launch/security-acceptance/audit-chain tests/launch/security-acceptance/audit-worm-mutation docs/launch/security-acceptance/audit-chain-report.md docs/launch/security-acceptance/audit-worm-mutation-report.md docs/launch/worm/audit-chain-verify-output.json docs/launch/worm/mutation-attempt-results.json; do if test -e \"$p\"; then printf 'present %s\\n' \"$p\"; else printf 'absent %s\\n' \"$p\"; fi; done",
+      "exit_code": 0,
+      "output": [
+        "absent tests/launch/security-acceptance/audit-chain",
+        "absent tests/launch/security-acceptance/audit-worm-mutation",
+        "absent docs/launch/security-acceptance/audit-chain-report.md",
+        "absent docs/launch/security-acceptance/audit-worm-mutation-report.md",
+        "absent docs/launch/worm/audit-chain-verify-output.json",
+        "absent docs/launch/worm/mutation-attempt-results.json"
+      ],
+      "purpose": "Verify required W05 test suites and operational evidence artifacts are absent."
+    },
+    {
+      "id": "policy_source_scan",
+      "command": "rg -n \"WORM|hash-chain|legal hold|in-place mutation|tamper|audit\" docs/critical-rp-saas-hardening-plan.md workbook/matter-post-cp-launch-plan.md workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md -S",
+      "exit_code": 0,
+      "output_summary": [
+        "Launch plan requires operational WORM hash-chain verification, legal-hold purge block, and in-place mutation attempt blocking.",
+        "critical-rp-saas-hardening-plan.md lists RP03 gates: no in-place mutation, correction event, hash-chain verification, legal-hold purge block, and permission-trimmed audit query."
+      ],
+      "purpose": "Verify W05 blocker survey aligns with policy source requirements."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L5-W05.",
+    "This record does not access or verify a staging WORM operational store.",
+    "This record does not execute audit-chain verification.",
+    "This record does not execute legal-hold purge or in-place mutation attempts.",
+    "This record does not prove record counts, head hash, or mismatch count.",
+    "This record does not prove legal-hold purge block, correction events, or mutation detection.",
+    "This record does not access staging, production, real matters, or real HR-sensitive files.",
+    "This record does not satisfy G4 or L5-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

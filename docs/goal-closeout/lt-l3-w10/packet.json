@@ -1,0 +1,44 @@
+{
+  "work_package_id": "LT-L3-W10",
+  "title": "SSO/MFA and User-Employee mapping",
+  "created_at": "2026-06-18T13:29:40Z",
+  "status": "blocked_pending_conditional_access_sso_e2e_employee_mapping_and_r13_evidence",
+  "phase": "L3",
+  "gate_binding": [
+    "G5",
+    "L3-EXIT"
+  ],
+  "terminal_tuw": "LT-L3-W10-T04",
+  "artifacts": [
+    "docs/launch/l3/sso-mfa-employee-mapping-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l3-w10/packet.json",
+    "docs/goal-closeout/lt-l3-w10/command-evidence.json",
+    "docs/goal-closeout/lt-l3-w10/claude-review-result.json",
+    "docs/goal-closeout/lt-l3-w10/adjudication.md",
+    "docs/goal-closeout/lt-l3-w10/construction-inspection.json"
+  ],
+  "current_status": {
+    "conditional_access_policy_export_exists": false,
+    "mfa_login_attempt_record_exists": false,
+    "sso_e2e_report_exists": false,
+    "protected_api_200_verified": false,
+    "unauthenticated_401_403_verified": false,
+    "expired_token_401_verified": false,
+    "cross_tenant_rejection_verified": false,
+    "user_employee_mapping_report_exists": false,
+    "mapping_reconciliation_mismatch_zero_verified": false,
+    "mapping_load_audit_count_match_verified": false,
+    "sso_descriptor_only": true,
+    "dispatches_sso_runtime": false,
+    "consumes_sso_assertion": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

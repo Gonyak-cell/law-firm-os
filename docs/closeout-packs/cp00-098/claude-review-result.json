@@ -1,0 +1,65 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-098",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_attempt_count": 0,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json < staged diff prompt > /tmp/cp00-098-claude-review-output-valid.json",
+    "session_id": "0e26449c-0b7b-4f0a-abb9-b4a296c0f697",
+    "uuid": "7c16edf5-fff9-404a-8380-6ab3d93c9bd8",
+    "duration_ms": 137914,
+    "total_cost_usd": 0.4195295,
+    "permission_denials": [],
+    "output_format": "json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "P3-1",
+        "severity": "P3",
+        "title": "packages/domain/src/ui-surfaces.js (createCoreDomainUiState error_message_copy)",
+        "description": "\"error\" is declared in CORE_DOMAIN_UI_STATE_CONTRACT.states and the JSON contract.states, but is excluded from state_matrix_required_states and the matrix. For state==\"error\" (and \"loading\") the error_message_copy falls through to \"Synthetic UI state is ready.\", a semantic mismatch for a field named error_message_copy. Display-only; no boundary impact.",
+        "recommendation": "Either add an explicit error/loading copy branch or rename the field to status_copy; harmless as-is."
+      },
+      {
+        "id": "P3-2",
+        "severity": "P3",
+        "title": "packages/domain/src/ui-surfaces.js (createCoreDomainUiSurfaceStateMatrix, validateCoreDomainCp098Coverage)",
+        "description": "The required-state list [loading,empty,denied,review_required,ready] is duplicated as inline literals in two functions and is not sourced from a shared field. CORE_DOMAIN_UI_STATE_CONTRACT (JS) also omits the state_matrix_required_states key present in the JSON contract, so there are two notions of \"states\". Drift risk is mitigated by tests pinning matrix length=15.",
+        "recommendation": "Derive matrix/coverage from a single state_matrix_required_states constant mirrored from the JSON contract."
+      },
+      {
+        "id": "P3-3",
+        "severity": "P3",
+        "title": "scripts/validate-rp01-core-domain-contract.mjs (ui_state_contract assertions)",
+        "description": "Validator asserts writes_product_state, evaluates_runtime_permission, writes_audit_event, states, and responsive_modes on ui_state_contract, but does not assert accepts_real_client_data:false, permission_badge_policy:\"reference_only_never_evaluated\", audit_hint_policy:\"display_only_never_written\", fixture_policy:\"synthetic_only\", nor cross-check ui_state_contract.surfaces against CORE_DOMAIN_UI_SURFACES. The JSON values are correct and coverage checks fixture.uses_real_client_data, so the boundary holds; the script just under-asserts it.",
+        "recommendation": "Add assertions for the declared no-real-data / reference-only policy flags and surface set to harden the boundary the pack guarantees."
+      }
+    ],
+    "notes": [
+      "Boundaries hold across all four focus areas. Permission references are reference-only (createCoreDomainPermissionBadge sets evaluated:false; effect derived solely from the requested state string, never from a real permission check) and never imply approval (non-denied/review states show label \"Reference only\"). Audit hints are display-only (display_only:true, writes_audit_event:false, audit_event_id null). All UI state objects, fixtures, evidence, review, and handoff set writes_product_state:false, evaluates_runtime_permission:false, writes_audit_event:false, synthetic_only/uses_real_client_data:false; fixtures come from createCoreDomainSyntheticFixtureSet only. No DB/IO writes; all objects deep-frozen. Responsive modes desktop_dense/mobile_single_column produce distinct layout metadata (mobile min_touch_target_px 44, max_columns 1). LDIP untouched (ldip_implemented:false; hrx_boundary is a descriptive string only). Contract/JS/validator/tests are mutually consistent: 3 surfaces x 5 required states = 15 (matrix, fixture, evidence, coverage all 15); states and responsive_modes cross-validated; prior current_pack CP00-097 correctly demoted to api_pack and re-validated; schema bumped v0.4->v0.5; handoff points to CP00-099 / RP01.P04.M05.S05. Surfaces map to micro-phases M03/M04/M05; no surface maps to M02 even though range starts at RP01.P04.M02.S04 — consistent with M02.S04 being the contract/inventory subphase (CP00-097 handoff ended at RP01.P04.M02.S03), so treated as intentional, not a defect. No P0/P1/P2; remaining items are low-severity hardening/consistency nits. Approve."
+    ]
+  },
+  "post_review_changes": {
+    "p3_fixed_or_documented": [
+      "P3-1",
+      "P3-2",
+      "P3-3"
+    ],
+    "no_second_valid_review_run": true
+  }
+}

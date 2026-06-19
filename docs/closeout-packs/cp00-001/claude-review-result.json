@@ -1,0 +1,146 @@
+{
+  "pack_id": "CP00-001",
+  "status": "review_completed",
+  "production_ready": true,
+  "review_type": "claude_cli_read_only_pack_level_diff_packet",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "bypassPermissions",
+  "read_only": true,
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_partial_claude_attempts": 0,
+  "raw_review_file": "/tmp/lfos-cp00-001-claude-review.stream.jsonl",
+  "review_packet_file": "/tmp/lfos-cp00-001-review-packet.diff",
+  "session_id": "f8040653-4950-42a6-af7a-f6d6a5de58ec",
+  "uuid": "f4596e00-f5f6-414c-abf8-fe63840c31ef",
+  "subtype": "success",
+  "is_error": false,
+  "total_cost_usd": 1.9181305,
+  "duration_ms": 360685,
+  "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 107818,
+    "cache_read_input_tokens": 1056446,
+    "output_tokens": 28604,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard"
+  },
+  "implementation_verdict": "PASS_WITH_FINDINGS",
+  "production_ready_verdict_before_adjudication": "BLOCKED_BY_PENDING_PACK_EVIDENCE",
+  "production_ready_verdict_after_adjudication": "APPROVE",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "requested_effort": "max",
+    "permission_mode": "bypassPermissions",
+    "read_only": true,
+    "tools_allowed": [
+      "Read"
+    ],
+    "tools_disallowed": [
+      "Bash",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "f8040653-4950-42a6-af7a-f6d6a5de58ec",
+    "uuid": "f4596e00-f5f6-414c-abf8-fe63840c31ef",
+    "total_cost_usd": 1.9181305,
+    "permission_denials": [],
+    "no_repo_or_product_state_write": true,
+    "raw_result_path": "/tmp/lfos-cp00-001-claude-review.stream.jsonl",
+    "review_packet_path": "/tmp/lfos-cp00-001-review-packet.diff"
+  },
+  "scope_confirmations": {
+    "thousand_packs_is_risk_based_estimate_not_equal_distribution_not_1000_units_per_pack": "confirmed",
+    "preserves_existing_evidence": "confirmed",
+    "hrx_embedded_inside_law_firm_os": "confirmed",
+    "does_not_mark_pack_production_ready_without_gates": "confirmed",
+    "s05_safety_metadata_only_fail_closed_handoff": "confirmed"
+  },
+  "findings_reviewed": [
+    {
+      "id": "P1-1",
+      "severity": "P1",
+      "title": "Contract marks RP00.P02.M05.S05 production_ready against an in-progress pack",
+      "status": "fixed_by_closeout_evidence",
+      "adjudication": "Resolved by finalizing CP00-001 pack evidence, setting manifest and pack artifacts production_ready, and rerunning the final RP00 control-plane validator after evidence creation."
+    },
+    {
+      "id": "P2-1",
+      "severity": "P2",
+      "title": "live_closeout_snapshot exact matching can break future pack validation",
+      "status": "fixed",
+      "adjudication": "Resolved by changing validate-closeout-pack.mjs to enforce monotonic snapshot bounds instead of exact live count equality."
+    }
+  ],
+  "advisory_findings": [
+    {
+      "id": "ADV-1",
+      "severity": "INFO",
+      "status": "adjudicated_non_blocking",
+      "title": "Risk-class unit ranges overlap at the boundaries"
+    },
+    {
+      "id": "ADV-2",
+      "severity": "INFO",
+      "status": "adjudicated_non_blocking",
+      "title": "CP00-001 sits exactly at the Risk A ceiling"
+    },
+    {
+      "id": "ADV-3",
+      "severity": "INFO",
+      "status": "adjudicated_non_blocking",
+      "title": "S05 included unit lists the pack's own evidence files"
+    },
+    {
+      "id": "ADV-4",
+      "severity": "INFO",
+      "status": "positive_note",
+      "title": "Strong anti-double-counting and synthetic-data guardrails"
+    }
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "production_ready_verdict": "APPROVE",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "severity": "P1",
+        "title": "Contract marks RP00.P02.M05.S05 production_ready against an in-progress pack",
+        "status": "fixed_by_closeout_evidence"
+      },
+      {
+        "severity": "P2",
+        "title": "live_closeout_snapshot exact matching can break future pack validation",
+        "status": "fixed"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "advisory": 4
+    },
+    "reviewed_finding_counts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "advisory": 4
+    },
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "no_unresolved_p2": true
+  },
+  "completed_at": "2026-06-06T02:18:00.000Z"
+}

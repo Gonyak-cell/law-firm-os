@@ -1,0 +1,202 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-629",
+  "subphase_id": "RP20.P05.M06.S04",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-629/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-629/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-629/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-629/review-receipt.json",
+    "invalid_attempts_preserved": []
+  },
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "started_at": "2026-06-13T10:26:45.966Z",
+      "completed_at": "2026-06-13T10:26:45.993Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "command": "node --check scripts/validate-rp20-data-room-vdr-core-contract.mjs",
+      "started_at": "2026-06-13T10:26:45.994Z",
+      "completed_at": "2026-06-13T10:26:46.020Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "command": "node --check packages/data-room/src/registry.js",
+      "started_at": "2026-06-13T10:26:46.020Z",
+      "completed_at": "2026-06-13T10:26:46.050Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "command": "node --check packages/data-room/src/service.js",
+      "started_at": "2026-06-13T10:26:46.050Z",
+      "completed_at": "2026-06-13T10:26:46.079Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "command": "node --check packages/data-room/src/validators.js",
+      "started_at": "2026-06-13T10:26:46.079Z",
+      "completed_at": "2026-06-13T10:26:46.109Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "started_at": "2026-06-13T10:26:46.109Z",
+      "completed_at": "2026-06-13T10:26:47.233Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 closeout-pack-plan:validate\n> node scripts/validate-closeout-pack-plan.mjs\n\nCloseout pack plan validation passed: 358 packs, 19687 units, queue starts after CP00-629.\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run rp20:data-room-vdr-core:validate",
+      "started_at": "2026-06-13T10:26:47.233Z",
+      "completed_at": "2026-06-13T10:26:47.453Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 rp20:data-room-vdr-core:validate\n> node scripts/validate-rp20-data-room-vdr-core-contract.mjs\n\n{\n  \"validator\": \"rp20:data-room-vdr-core:validate\",\n  \"pack_id\": \"CP00-629\",\n  \"covered_units\": 10,\n  \"section_count\": 2,\n  \"next_pack_id\": \"CP00-630\",\n  \"historical_pack_ids_validated\": [\n    \"CP00-610\",\n    \"CP00-611\",\n    \"CP00-612\",\n    \"CP00-613\",\n    \"CP00-614\",\n    \"CP00-615\",\n    \"CP00-616\",\n    \"CP00-617\",\n    \"CP00-618\",\n    \"CP00-619\",\n    \"CP00-620\",\n    \"CP00-621\",\n    \"CP00-622\",\n    \"CP00-623\",\n    \"CP00-624\",\n    \"CP00-625\",\n    \"CP00-626\",\n    \"CP00-627\",\n    \"CP00-628\"\n  ],\n  \"production_ready_candidate\": true,\n  \"runtime_opened\": false\n}\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "node --test packages/data-room/test/model.test.js",
+      "started_at": "2026-06-13T10:26:47.453Z",
+      "completed_at": "2026-06-13T10:26:47.570Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "rojection matches package code\nok 42 - CP00-623 contract projection matches package code\n  ---\n  duration_ms: 0.213667\n  type: 'test'\n  ...\n# Subtest: CP00-624 descriptor covers the live RP20 P05 fixture type and shape head rows\nok 43 - CP00-624 descriptor covers the live RP20 P05 fixture type and shape head rows\n  ---\n  duration_ms: 0.422083\n  type: 'test'\n  ...\n# Subtest: CP00-624 keeps P05 fixture type and shape head rows descriptor-only\nok 44 - CP00-624 keeps P05 fixture type and shape head rows descriptor-only\n  ---\n  duration_ms: 0.35775\n  type: 'test'\n  ...\n# Subtest: CP00-624 contract projection matches package code\nok 45 - CP00-624 contract projection matches package code\n  ---\n  duration_ms: 0.193625\n  type: 'test'\n  ...\n# Subtest: CP00-625 descriptor covers the live RP20 P05 fixture type and shape tail rows\nok 46 - CP00-625 descriptor covers the live RP20 P05 fixture type and shape tail rows\n  ---\n  duration_ms: 0.423208\n  type: 'test'\n  ...\n# Subtest: CP00-625 keeps P05 fixture type and shape tail rows descriptor-only\nok 47 - CP00-625 keeps P05 fixture type and shape tail rows descriptor-only\n  ---\n  duration_ms: 0.32625\n  type: 'test'\n  ...\n# Subtest: CP00-625 contract projection matches package code\nok 48 - CP00-625 contract projection matches package code\n  ---\n  duration_ms: 0.194958\n  type: 'test'\n  ...\n# Subtest: CP00-626 descriptor covers the live RP20 P05 primary implementation head rows\nok 49 - CP00-626 descriptor covers the live RP20 P05 primary implementation head rows\n  ---\n  duration_ms: 0.863791\n  type: 'test'\n  ...\n# Subtest: CP00-626 keeps P05 primary implementation head rows descriptor-only\nok 50 - CP00-626 keeps P05 primary implementation head rows descriptor-only\n  ---\n  duration_ms: 0.370625\n  type: 'test'\n  ...\n# Subtest: CP00-626 contract projection matches package code\nok 51 - CP00-626 contract projection matches package code\n  ---\n  duration_ms: 0.221625\n  type: 'test'\n  ...\n# Subtest: CP00-627 descriptor covers the live RP20 P05 primary implementation tail rows\nok 52 - CP00-627 descriptor covers the live RP20 P05 primary implementation tail rows\n  ---\n  duration_ms: 0.407792\n  type: 'test'\n  ...\n# Subtest: CP00-627 keeps P05 primary implementation tail rows descriptor-only\nok 53 - CP00-627 keeps P05 primary implementation tail rows descriptor-only\n  ---\n  duration_ms: 0.296292\n  type: 'test'\n  ...\n# Subtest: CP00-627 contract projection matches package code\nok 54 - CP00-627 contract projection matches package code\n  ---\n  duration_ms: 0.185458\n  type: 'test'\n  ...\n# Subtest: CP00-628 descriptor covers the live RP20 P05 secondary workflow permission audit bridge rows\nok 55 - CP00-628 descriptor covers the live RP20 P05 secondary workflow permission audit bridge rows\n  ---\n  duration_ms: 0.496875\n  type: 'test'\n  ...\n# Subtest: CP00-628 keeps P05 secondary workflow permission audit bridge rows descriptor-only\nok 56 - CP00-628 keeps P05 secondary workflow permission audit bridge rows descriptor-only\n  ---\n  duration_ms: 0.370875\n  type: 'test'\n  ...\n# Subtest: CP00-628 contract projection matches package code\nok 57 - CP00-628 contract projection matches package code\n  ---\n  duration_ms: 0.200333\n  type: 'test'\n  ...\n# Subtest: CP00-629 descriptor covers the live RP20 P05 permission audit tail and synthetic fixture head rows\nok 58 - CP00-629 descriptor covers the live RP20 P05 permission audit tail and synthetic fixture head rows\n  ---\n  duration_ms: 0.422166\n  type: 'test'\n  ...\n# Subtest: CP00-629 keeps P05 permission audit tail and synthetic fixture head rows descriptor-only\nok 59 - CP00-629 keeps P05 permission audit tail and synthetic fixture head rows descriptor-only\n  ---\n  duration_ms: 0.330875\n  type: 'test'\n  ...\n# Subtest: CP00-629 contract projection matches package code\nok 60 - CP00-629 contract projection matches package code\n  ---\n  duration_ms: 0.181167\n  type: 'test'\n  ...\n1..60\n# tests 60\n# suites 0\n# pass 60\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 88.861584\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run weighted:validate",
+      "started_at": "2026-06-13T10:26:47.570Z",
+      "completed_at": "2026-06-13T10:26:48.391Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 weighted:validate\n> node scripts/validate-weighted-implementation-ledger.mjs\n\nWeighted implementation ledger validation passed.\nsource_micro_phase_count: 3300\nimplementation_subphase_count: 54355\nweight_counts: {\"L\":63,\"M\":284,\"H\":805,\"XH\":2148}\nestimated_hours_total: 66698.25\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "started_at": "2026-06-13T10:26:48.392Z",
+      "completed_at": "2026-06-13T10:26:49.201Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 spec:requirements:validate\n> node scripts/validate-spec-requirement-ledger.mjs\n\nSpec requirement ledger validation passed.\nrequirement_count: 227\nfeature_requirement_count: 209\nnarrative_requirement_count: 18\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "started_at": "2026-06-13T10:26:49.201Z",
+      "completed_at": "2026-06-13T10:26:49.398Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 fullplan:validate\n> node scripts/validate-full-microphase-plan.mjs\n\nFull microphase plan validation passed.\nmicro_phase_count: 3300\nrelease_program_count: 30\nstandard_phase_count: 10\nmicro_phase_per_standard_phase: 11\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run validate",
+      "started_at": "2026-06-13T10:26:49.398Z",
+      "completed_at": "2026-06-13T10:26:49.575Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 validate\n> node scripts/validate-product-contract.mjs\n\nLaw Firm OS product contract validation passed.\nmodules: 9/9\nprinciples: 9/9\ninvariants: 7/7\nhermes_project_type: product_codebase\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "started_at": "2026-06-13T10:26:49.575Z",
+      "completed_at": "2026-06-13T10:26:49.742Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 goal:closeout:validate\n> node scripts/validate-goal-closeout-protocol.mjs\n\nGoal closeout protocol validation passed.\napplies_to: all_goals\nclaude: claude-opus-4-8 effort=max read-only\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "started_at": "2026-06-13T10:26:49.742Z",
+      "completed_at": "2026-06-13T10:26:51.491Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 rp00:control-plane:validate\n> node scripts/validate-rp00-control-plane-contract.mjs\n\nRP00 control-plane contract validation passed.\nsubphase: RP00.P09.M10.S01\nstatus: production_ready\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run rp05:matter-core:validate",
+      "started_at": "2026-06-13T10:26:51.492Z",
+      "completed_at": "2026-06-13T10:26:51.730Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 rp05:matter-core:validate\n> node scripts/validate-rp05-matter-core-contract.mjs\n\n{\n  \"ok\": true,\n  \"validator\": \"rp05:matter-core:validate\",\n  \"pack_id\": \"CP00-197\",\n  \"foundation_pack_id\": \"CP00-177\",\n  \"service_pack_id\": \"CP00-178\",\n  \"service_evidence_pack_id\": \"CP00-179\",\n  \"sensitive_boundary_pack_id\": \"CP00-180\",\n  \"api_interface_pack_id\": \"CP00-181\",\n  \"ui_workflow_pack_id\": \"CP00-182\",\n  \"ui_evidence_permission_fixture_pack_id\": \"CP00-183\",\n  \"fixture_evidence_terminal_entry_pack_id\": \"CP00-184\",\n  \"permission_audit_tail_fixture_pack_id\": \"CP00-185\",\n  \"synthetic_fixture_permission_substrate_pack_id\": \"CP00-186\",\n  \"permission_substrate_workflow_binding_pack_id\": \"CP00-187\",\n  \"permission_audit_security_fixture_boundary_pack_id\": \"CP00-188\",\n  \"synthetic_fixture_failure_evidence_continuation_pack_id\": \"CP00-189\",\n  \"failure_receipt_taxonomy_boundary_pack_id\": \"CP00-190\",\n  \"generated_failure_recovery_binding_pack_id\": \"CP00-191\",\n  \"failure_fixture_entry_boundary_pack_id\": \"CP00-192\",\n  \"failure_fixture_evidence_review_bridge_pack_id\": \"CP00-193\",\n  \"permission_audit_evidence_terminal_bridge_pack_id\": \"CP00-194\",\n  \"evidence_review_handoff_terminal_bridge_pack_id\": \"CP00-195\",\n  \"review_question_security_gate_pack_id\": \"CP00-196\",\n  \"terminal_review_closeout_handoff_pack_id\": \"CP00-197\",\n  \"covered_units\": 28,\n  \"model_count\": 11,\n  \"hermes_gate\": \"H05\",\n  \"claude_gate\": \"C05\",\n  \"next_pack_id\": \"CP00-198\",\n  \"production_ready_candidate\": true\n}\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm test",
+      "started_at": "2026-06-13T10:26:51.730Z",
+      "completed_at": "2026-06-13T10:26:57.401Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": " 0.559834\n  type: 'test'\n  ...\n# Subtest: CP00-360 failure hermes slice rows stay descriptor-only\nok 2623 - CP00-360 failure hermes slice rows stay descriptor-only\n  ---\n  duration_ms: 9.851875\n  type: 'test'\n  ...\n# Subtest: CP00-360 evidence packets and handoff preserve failure hermes slice authority boundaries\nok 2624 - CP00-360 evidence packets and handoff preserve failure hermes slice authority boundaries\n  ---\n  duration_ms: 21.068959\n  type: 'test'\n  ...\n# Subtest: CP00-361 plan binding covers the planned 150 RP11 P07 closeout and P08 hermes foundation units\nok 2625 - CP00-361 plan binding covers the planned 150 RP11 P07 closeout and P08 hermes foundation units\n  ---\n  duration_ms: 0.619209\n  type: 'test'\n  ...\n# Subtest: CP00-361 P07 closeout and P08 hermes foundation rows stay descriptor-only\nok 2626 - CP00-361 P07 closeout and P08 hermes foundation rows stay descriptor-only\n  ---\n  duration_ms: 11.545208\n  type: 'test'\n  ...\n# Subtest: CP00-361 evidence packets and handoff route the P07 closeout to the P08 hermes phase\nok 2627 - CP00-361 evidence packets and handoff route the P07 closeout to the P08 hermes phase\n  ---\n  duration_ms: 19.59725\n  type: 'test'\n  ...\n# Subtest: CP00-362 plan binding covers the planned 150 RP11 P08 closeout and P09 review foundation units\nok 2628 - CP00-362 plan binding covers the planned 150 RP11 P08 closeout and P09 review foundation units\n  ---\n  duration_ms: 0.596083\n  type: 'test'\n  ...\n# Subtest: CP00-362 P08 closeout and P09 review foundation rows stay descriptor-only\nok 2629 - CP00-362 P08 closeout and P09 review foundation rows stay descriptor-only\n  ---\n  duration_ms: 13.472584\n  type: 'test'\n  ...\n# Subtest: CP00-362 evidence packets and handoff route the P08 closeout to the P09 review phase\nok 2630 - CP00-362 evidence packets and handoff route the P08 closeout to the P09 review phase\n  ---\n  duration_ms: 21.433291\n  type: 'test'\n  ...\n# Subtest: CP00-363 plan binding covers the planned 12 RP11 review closeout units\nok 2631 - CP00-363 plan binding covers the planned 12 RP11 review closeout units\n  ---\n  duration_ms: 0.353334\n  type: 'test'\n  ...\n# Subtest: CP00-363 review closeout slice rows stay descriptor-only\nok 2632 - CP00-363 review closeout slice rows stay descriptor-only\n  ---\n  duration_ms: 13.64675\n  type: 'test'\n  ...\n# Subtest: CP00-363 evidence packets and handoff close RP11 and route to RP12\nok 2633 - CP00-363 evidence packets and handoff close RP11 and route to RP12\n  ---\n  duration_ms: 25.006041\n  type: 'test'\n  ...\n# Subtest: normalizer promotes structured Claude output to a valid receipt\nok 2634 - normalizer promotes structured Claude output to a valid receipt\n  ---\n  duration_ms: 3.702917\n  type: 'test'\n  ...\n# Subtest: normalizer rejects zero-byte stdout as invalid evidence\nok 2635 - normalizer rejects zero-byte stdout as invalid evidence\n  ---\n  duration_ms: 0.85925\n  type: 'test'\n  ...\n# Subtest: normalizer rejects fenced JSON plus prose and tool-call-shaped output\nok 2636 - normalizer rejects fenced JSON plus prose and tool-call-shaped output\n  ---\n  duration_ms: 0.801583\n  type: 'test'\n  ...\n# Subtest: HRX weighted ledger calibrates to exactly 901 unique RP30 subphases\nok 2637 - HRX weighted ledger calibrates to exactly 901 unique RP30 subphases\n  ---\n  duration_ms: 11.17525\n  type: 'test'\n  ...\n# Subtest: ui tooling scripts parse (node --check)\nok 2638 - ui tooling scripts parse (node --check)\n  ---\n  duration_ms: 324.757875\n  type: 'test'\n  ...\n# Subtest: amplitude screenshot inventory has full 318-screenshot coverage\nok 2639 - amplitude screenshot inventory has full 318-screenshot coverage\n  ---\n  duration_ms: 1.997875\n  type: 'test'\n  ...\n# Subtest: screenshot state registry binds every screenshot to a matter route\nok 2640 - screenshot state registry binds every screenshot to a matter route\n  ---\n  duration_ms: 0.926042\n  type: 'test'\n  ...\n1..2640\n# tests 2640\n# suites 0\n# pass 2640\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 5478.05075\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run build",
+      "started_at": "2026-06-13T10:26:57.401Z",
+      "completed_at": "2026-06-13T10:26:58.541Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 build\n> npm --workspace apps/web run build\n\n\n> @law-firm-os/web@0.1.0 build\n> vite build\n\nvite v6.4.3 building for production...\ntransforming...\n✓ 1645 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.65 kB │ gzip:  0.36 kB\ndist/assets/index-Uqp-S-nG.css   76.75 kB │ gzip: 14.87 kB\ndist/assets/index-DTnDiZGh.js   323.23 kB │ gzip: 93.08 kB\n✓ built in 684ms\n",
+      "stderr_tail": ""
+    },
+    {
+      "command": "git diff --check",
+      "started_at": "2026-06-13T10:26:58.541Z",
+      "completed_at": "2026-06-13T10:26:58.611Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "invoked_command": "npm run closeout-pack:validate -- CP00-629",
+      "started_at": "2026-06-13T10:27:20.815Z",
+      "completed_at": "2026-06-13T10:27:21.014Z",
+      "exit_code": 0,
+      "signal": null,
+      "stdout_tail": "\n> law-firm-os@0.1.0 closeout-pack:validate\n> node scripts/validate-closeout-pack.mjs CP00-629\n\nCloseout Pack validation passed.\npacks: CP00-629\n",
+      "stderr_tail": ""
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data is used by this descriptor-only closeout pack.",
+    "CP00-629 final command matrix records descriptor, plan, product, goal, RP00/RP05, full test, build, diff, and closeout validation before commit."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-322",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T06:01:02.582Z",
+  "finished_at": "2026-06-11T06:06:41.503Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":336199,\"duration_api_ms\":337980,\"ttft_ms\":4067,\"num_turns\":32,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** (non-blocking).\\n\\nCP00-322 is a clean descriptor-only foundation pack. The pack-level `production_ready` claim is honestly **false** (pending review/human approval), with `production_ready_candidate` correctly separated as a local-validation signal. Plan binding, deliverable/micro-title distributions, descriptor-only boundaries, no-real-data/no-write attestations, the read-only Claude authority boundary, Hermes-as-descriptor-metadata-only, and CP178+ review-hardening readiness all hold under independent inspection.\\n\\n- **P0/P1/P2:** none\\n- **P3:** 1 (unused `documentation_entry` key at `packages/intake/src/service.js:239` — dead descriptor metadata, zero functional/boundary/claim impact)\\n- **Does not block** pack closeout or goal closeout. Final enterprise-trust closure correctly remains a human decision outside this read-only receipt.\",\"stop_reason\":\"end_turn\",\"session_id\":\"8f787ac7-698e-4f47-9472-f0a47de4a4f9\",\"total_cost_usd\":2.01320125,\"usage\":{\"input_tokens\":9470,\"cache_creation_input_tokens\":114019,\"cache_read_input_tokens\":1243839,\"output_tokens\":25202,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":114019,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":370,\"cache_read_input_tokens\":138606,\"cache_creation_input_tokens\":5678,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5678},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1163,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001263,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":9470,\"outputTokens\":25202,\"cacheReadInputTokens\":1243839,\"cacheCreationInputTokens\":114019,\"webSearchRequests\":0,\"costUSD\":2.01193825,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-322 is a descriptor-only intake-core foundation pack (RP10, 150 units, range RP10.P01.M08.S06-RP10.P02.M07.S06) that closes the RP10.P01 model phase (M08 Hermes tail, M09 Claude review packet, M10 closeout head) and opens the RP10.P02 service foundation (M00-M07 heads). Independent read-only inspection (Read/Grep/Glob) confirms the pack-level production_ready claim is honestly FALSE (manifest and command-evidence both status=implemented_pending_review, production_ready=false); the design correctly separates production_ready_candidate (local validation passed: coverage.valid && foundation.valid) from the false pack-level production_ready, so there is no overclaim. Plan binding is consistent and self-checked: closeout-pack-plan.json CP00-322 (unit_count 150, risk C, deviation_from_plan=false, source_ledger_sha 13c7ed65...) matches the registry constants and the prompt's deliverable_distribution (impl 70 / ui 23 / contract 8 / security_audit 16 / claude_review 5 / failure_recovery 10 / test 18 = 150) and micro_title_distribution; all 11 required section-row sets and per-micro/per-phase counts (P01=14, P02=136) reconcile. Descriptor-only boundaries are enforced by validators.js (every row descriptor_only=true / runtime_execution=false / customer_safe_errors_only=true / raw_payload_included=false; no-leak guards for permission-decision, audit-hint, validation-error, blocked-claim, and lock-token; cross_tenant_access_allowed=false; matter_trace_required=true; no state writes, idempotency persistence, runtime locks, db writes, rollback/retry, test runtime, or integration-smoke runtime). No real data and no product-state writes: descriptor source (registry/service/validators) performs no fs/network/process/child_process calls, the test and validator script only READ files, outputs are Object.freeze'd, and all no_write_attestation flags are false. Authority boundary preserved: Claude is read-only and not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false, human_final_approval_required_for_runtime_opening=true), and Hermes patterns appear only as deterministic descriptor evidence-packet/receipt metadata (emits_hermes_runtime_receipt=false), not embedded product runtime. CP178+ review hardening is satisfied: readiness auth-preflight exit 0 with 1437-byte valid JSON stdout (no auth failure, no 0-byte, no malformed/fenced/tool-call-shaped output), tools restricted to Read/Grep/Glob, forbidden_tools_present=false, prompt within size limit, summary_only correctly disallowed (Risk C + security/review deliverables), and the post-review gated commands (closeout-pack:validate, receipt normalize/validate, plan:generate, git diff --check --cached) are correctly deferred until the accepted review result exists. Recorded validation commands (npm test, validate, weighted/spec/fullplan/goal/rp00/rp05-rp10 validates, git diff --check) are all exit 0. One trivial P3 nit found (an unused documentation_entry key in CP322 row extras); no P0/P1/P2 issues. Pack may close at the implementation/plan gate; final enterprise-trust closure remains a human decision outside this read-only receipt.\",\"findings\":[{\"id\":\"CP322-P3-01\",\"severity\":\"P3\",\"title\":\"Unused documentation_entry key in INTAKE_CORE_CP322_ROW_EXTRAS\",\"file\":\"packages/intake/src/service.js\",\"line\":239,\"details\":\"INTAKE_CORE_CP322_ROW_EXTRAS defines a documentation_entry entry, but no CP00-322 section row title maps to the key documentation_entry (intakeCoreRowKey('Documentation entry')). Section rows are merged via INTAKE_CORE_CP322_ROW_EXTRAS[key] keyed by row-title; since no row title 'Documentation entry' exists in required_section_rows, this entry is never consumed. It is dead descriptor metadata with no functional impact: it does not affect any row, coverage/foundation validation, the no-write/no-real-data boundary, the authority boundary, or the (false) production_ready claim. The descriptor's separate top-level documentation_entry string field (service.js:306, 'packages/intake/README.md#cp00-322') is unrelated and is correct.\",\"recommendation\":\"Optional cleanup: remove the unused documentation_entry key from INTAKE_CORE_CP322_ROW_EXTRAS to reduce descriptor noise. Not required for closeout.\",\"post_review_disposition\":\"Non-blocking informational. Pack may close without addressing; suggest folding into a future RP10 descriptor cleanup.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"bf58958b-13dd-4463-9c41-4d803e7cfcea\"}\n",
+  "stderr": "",
+  "stdout_bytes": 7031,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "8f787ac7-698e-4f47-9472-f0a47de4a4f9",
+    "uuid": "bf58958b-13dd-4463-9c41-4d803e7cfcea",
+    "total_cost_usd": 2.01320125,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

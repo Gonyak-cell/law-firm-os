@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-771",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T15:56:24.277Z",
+  "finished_at": "2026-06-15T16:02:34.071Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":368968,\"duration_api_ms\":369231,\"ttft_ms\":4379,\"num_turns\":49,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** (no blocking findings).\\n\\n**What I verified (read-only via Read/Grep/Glob):**\\n- **Scope/distribution** match the baseline exactly — deliverables `{impl:14, fixture:14, test:6, hermes:2, claude:2, sec_audit:2}` and micro-titles `{10/22/8}`, cross-checked against registry requirements, contract coverage summary, and a manual unit count.\\n- **Descriptor-only implementation** — CP771 binding/case-set/descriptor/packets/handoff follow the established no-write pattern; no network/db/fs/runtime calls in `packages/migration/src`; no-write attestation on every descriptor; permission/audit rows enforce no cross-tenant access, no decision/audit-body leakage.\\n- **Tests + validation all green** — `node --test` 49/49, `npm test` 2997/2997, all ten required commands exit 0 with real PASS output, `git diff --check` clean; coverage/descriptor validators `valid:true` with empty errors.\\n- **Authority boundary holds** — Claude read-only/non-final (tools Read,Grep,Glob; auth preflight passed), human approval required for runtime, no enterprise-trust claim, Hermes packets are receipt-shaped descriptors (`emits_runtime_receipt:false`), not product runtime.\\n\\n**Findings:** 0 P0 / 0 P1 / 0 P2; 2 P3 informational notes (contract regeneration is control-plane-only; `production_ready:false`/PENDING_REVIEW is the expected pre-adjudication state). `blocks_pack_closeout=false`, `blocks_goal_closeout=false`. This receipt is an independent read-only review, not final approval.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ef840c07-43a1-439b-9195-05dfa60fbdea\",\"total_cost_usd\":2.93676525,\"usage\":{\"input_tokens\":80,\"cache_creation_input_tokens\":125563,\"cache_read_input_tokens\":3081099,\"output_tokens\":24392,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":125563,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":626,\"cache_read_input_tokens\":116495,\"cache_creation_input_tokens\":9505,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":9505},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1147,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001247,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":80,\"outputTokens\":24392,\"cacheReadInputTokens\":3081099,\"cacheCreationInputTokens\":125563,\"webSearchRequests\":0,\"costUSD\":2.93551825,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-771 read-only review complete: PASS_WITH_FINDINGS, no blocking findings.\",\"findings\":[{\"id\":\"CP00-771-N1\",\"severity\":\"P3\",\"title\":\"RP25 contract artifact is regenerated (written) during validation — confirmed control-plane-only, not product runtime\",\"file\":\"scripts/validate-rp25-migration-platform-contract.mjs\",\"line\":217,\"details\":\"The validator deterministically rewrites contracts/migration-platform-contract.json from the in-code descriptors on every run (writeFile at line 217). This is a deterministic control-plane/contract artifact regeneration, not a product-state write: grep across packages/migration/src found no fetch/db/fs/network/runtime calls, every descriptor carries MIGRATION_PLATFORM_NO_WRITE_ATTESTATION (writes_product_state:false, *_runtime_opened:false), and the committed contract's validation.valid:true / latest_pack:CP00-771 plus a clean `git diff --check` confirm the committed file already matches regenerated output. Consistent with imported_pattern=deterministic_control_plane_review_packet_and_receipt and hermes_runtime_embedded_in_product=false.\",\"recommendation\":\"No action required. Continue treating the contract JSON as a generated control-plane artifact and keep it out of product runtime; the regeneration-on-validate behavior is the intended deterministic pattern.\",\"post_review_disposition\":\"informational_no_block\"},{\"id\":\"CP00-771-N2\",\"severity\":\"P3\",\"title\":\"Pack production_ready is descriptor-scoped and correctly gated pending this review\",\"file\":\"docs/closeout-packs/cp00-771/manifest.json\",\"line\":6,\"details\":\"manifest.production_ready=false, runtime_ready=false, status=in_progress, and construction-inspection.verdict=PENDING_REVIEW / pack_level_claude_review_completed=false reflect the expected pre-adjudication state, not a defect. The pack's production_ready_flag 'migration_platform_fixture_permission_audit_descriptor_verified' is a descriptor-verification claim only; it does not assert runtime_ready or enterprise trust (descriptor.authority_boundary.local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-772). Coverage/descriptor validations are valid:true with empty errors, distributions match the baseline exactly, node --test (49/49) and npm test (2997/2997) pass, and all ten required validation commands exit 0 — evidence supports promoting the descriptor-verified claim at adjudication.\",\"recommendation\":\"Proceed to adjudication and record this read-only review receipt. Do not interpret production_ready=false as a blocker; final human approval remains required before any runtime/enterprise-trust opening in CP00-772+.\",\"post_review_disposition\":\"informational_no_block\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":2,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":2}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e56c9054-35fb-4c11-84f0-06599daceadb\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5944,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ef840c07-43a1-439b-9195-05dfa60fbdea",
+    "uuid": "e56c9054-35fb-4c11-84f0-06599daceadb",
+    "total_cost_usd": 2.93676525,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

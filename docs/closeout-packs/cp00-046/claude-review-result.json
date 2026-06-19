@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-046",
+  "subphase_id": "RP00.P02.M07.S18",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "session_id": "71de687b-d763-444a-ac8b-37d647d4983a",
+    "uuid": "e97ffca5-ed4d-43da-93ad-99ddd2732bb8",
+    "duration_ms": 234235,
+    "duration_api_ms": 236520,
+    "total_cost_usd": 1.27092975,
+    "permission_denials": [],
+    "output_ref": "/tmp/cp00-046-claude-review-output.json"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "raw_review_verdict": "not_returned_non_adjudicative_payload",
+    "raw_review_result_form": "json_result_with_bash_tool_call_payload",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1
+    },
+    "findings": {
+      "p0": [],
+      "p1": [],
+      "p2": [],
+      "p3": [
+        {
+          "id": "P3-1",
+          "area": "claude-review-output-format",
+          "note": "The single Claude Opus 4.8 max read-only run completed successfully with no permission denials but returned a Bash tool-call payload instead of a findings body. No P0/P1/P2 blockers were stated. The run was not repeated to preserve the one-review constraint.",
+          "disposition": "recorded_non_blocking_one_review_constraint_preserved"
+        }
+      ]
+    },
+    "boundary_checks": {
+      "consumes_only_s17_rollback_behavior_metadata": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "emits_metadata_only_retry_behavior_receipt": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "emits_retry_attempt_schedule_dedupe_backoff_window_metadata": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "rejects_retry_enqueue_execution_queue_attempt_schedule_timer_worker_backoff_dedupe_claims": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "rejects_rollback_compensation_operator_customer_incident_observability_claims": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "rejects_blocked_output_review_approval_test_golden_product_state_audit_permission_authz_security_error_ui_real_data_claims": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "keeps_source_micro_phase_open": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES",
+      "hands_off_to_s19": "PASS_BY_TEST_VALIDATOR_AND_LOCAL_GATES"
+    }
+  },
+  "raw_cli_result_excerpt": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":234235,\"duration_api_ms\":236520,\"ttft_ms\":229841,\"num_turns\":1,\"result\":\"I'll review CP00-046 against the stated scope. Let me first verify the surrounding code the diff depends on, then check for the closeout-pack evidence the validator requires.\\n\\nLet me investigate the key dependencies and evidence hooks in parallel.\\n\\n@[T1: Bash] {\\\"command\\\":\\\"ls -la \\\\\\\"/Users/jws/Documents/Codex/Law Firm OS/docs/closeout-packs/\\\\\\\" | tail -20\\\",\\\"description\\\":\\\"List closeout packs to check for cp00-046\\\"}\\n@[T2: Bash] {\\\"command\\\":\\\"cd \\\\\\\"/Users/jws/Documents/Codex/Law Firm OS\\\\\\\" && grep -n \\\\\\\"expectedTestAndGoldenRollbackBehaviorResultFields\\\\\\\\|fixtureTestAndGoldenRollbackBehavior\\\\\\\\|testAndGoldenRollbackBehaviorPolicyModule\\\\\\\" scripts/validate-rp00-control-plane-contract.mjs | head -40\\\",\\\"description\\\":\\\"Check referenced S17 validator variables exist\\\"}\\n@[T3: Bash] {\\\"command\\\":\\\"cd \\\\\\\"/Users/jws/Documents/Codex/Law Firm OS\\\\\\\" && grep -n \\\\\\\"retryStrategyRef\\\\\\\\|forbiddenRollbackBehaviorClaims\\\\\\\" packages/control-plane/src/policies.js | head\\\",\\\"description\\\":\\\"Check rollback policy fields referenced by retry precheck\\\"}\",\"stop_reason\":\"end_turn\",\"session_id\":\"71de687b-d763-444a-ac8b-37d647d4983a\",\"total_cost_usd\":1.27092975,\"usage\":{\"input_tokens\":1,\"cache_creation_input_tokens\":95003,\"cache_read_input_tokens\":3058,\"output_tokens\":24422,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":95003,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":1,\"output_tokens\":24422,\"cache_read_input_tokens\":3058,\"cache_creation_input_tokens\":95003,\"cache_creation\":{\"ephemer"
+}

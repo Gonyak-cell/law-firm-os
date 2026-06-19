@@ -1,0 +1,271 @@
+{
+  "schema_version": "law-firm-os.ldip-overlay-closeout-pack-map.v1",
+  "created_at": "2026-06-07T00:00:00+09:00",
+  "status": "planning_only",
+  "source_documents": {
+    "ldip_source_path": "/Users/jws/.codex/attachments/a9f85364-9785-449b-b925-df1d2c93eee1/pasted-text.txt",
+    "ldip_source_sha256": "82b396474b43afd278042e8eb1b8a18a2b0fd2c2ee640e23022622ef2d70be9c",
+    "source_index": "docs/ldip-integration/ldip-source-index.md",
+    "requirement_candidates": "docs/ldip-integration/ldip-requirement-candidates.md",
+    "rp_anchor_map": "docs/ldip-integration/ldip-rp-anchor-map.md",
+    "gap_adjudication": "docs/ldip-integration/ldip-gap-adjudication.md",
+    "execution_plan": "docs/closeout-pack-plan/latest-total-closeout-execution-plan.md",
+    "closeout_pack_plan": "docs/closeout-pack-plan/closeout-pack-plan.json"
+  },
+  "live_baseline": {
+    "latest_completed_pack_id": "CP00-066",
+    "next_planned_pack_id": "CP00-067",
+    "next_planned_unit_id": "RP00.P05.M06.S01",
+    "final_planned_pack_id": "CP00-1253",
+    "current_weighted_law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "ldip_is_planning_overlay_only": true
+  },
+  "implementation_admission_gate": {
+    "ldip_source_coverage_100_percent_classified": true,
+    "requirement_candidates_created": true,
+    "rp_anchor_map_created": true,
+    "gap_adjudication_created": true,
+    "c_ldip_01_complete": true,
+    "c_ldip_01_adjudicated": true,
+    "c_ldip_02_complete": true,
+    "c_ldip_02_adjudicated": true,
+    "c_ldip_03_complete": true,
+    "c_ldip_03_adjudicated": true,
+    "c_ldip_04_complete": true,
+    "c_ldip_04_adjudicated": true,
+    "adjudications_complete": true,
+    "ldip_planning_gate_complete": true,
+    "ldip_implementation_allowed": false,
+    "implementation_allowed_scope": "per affected Closeout Pack only after LDIP refs, unit-impact decision, risk class, acceptance evidence, and required user-approved ledger or pack-plan extension are recorded"
+  },
+  "overlay_policy": {
+    "closed_packs_are_historical_only": "CP00-001-CP00-066",
+    "do_not_renumber_closed_packs": true,
+    "do_not_create_ldip_separate_product": true,
+    "do_not_mark_ldip_production_ready_from_planning_artifacts": true,
+    "attach_ldip_refs_to_existing_affected_packs_when_existing_scope_covers_behavior": true,
+    "new_units_require_user_approved_ledger_extension": true
+  },
+  "boundary_sensitive_risk_policy": {
+    "default_risk_class": "A",
+    "applies_to_families": ["LDIP-SRC", "LDIP-CAT", "LDIP-ING", "LDIP-SEC", "LDIP-SRCH", "LDIP-AGT", "LDIP-TOOL", "LDIP-CLEAN", "LDIP-COMP", "LDIP-API", "LDIP-OUT"],
+    "applies_to_rps": ["RP01", "RP02", "RP07", "RP16", "RP17", "RP18", "RP20", "RP22", "RP23", "RP25", "RP26"],
+    "applies_when": ["permission", "unauthorized data", "cross-tenant access", "Ethical Wall", "AI access", "tool execution", "approval workflow", "DLP", "masking", "attorney-secret material", "personal information", "external sharing", "clean-room query/share", "idempotent boundary mutation", "evidence-bound output approval"],
+    "oversized_boundary_policy": "split into Risk A packs unless planning-only or evidence-only with no runtime/data boundary and an explicit override_reason"
+  },
+  "ldip_unit_impact_policy": {
+    "ldip_units_currently_added_to_expanded_total": 0,
+    "expanded_total_units_still_excludes_ldip_delta": true,
+    "new_required_family_rollups": 15,
+    "adapt_required_family_rollups": 4,
+    "affected_pack_required_decision": ["absorbed_by_existing_units", "user_approved_ledger_or_pack_plan_extension", "defer_with_revisit_gate", "reject_with_reason"],
+    "no_silent_absorption": true,
+    "pack_closeout_requirement": "Every affected pack must record LDIP candidate IDs, unit-impact decision, risk class, acceptance evidence, and any ledger/pack-plan extension before production_ready."
+  },
+  "family_overlays": [
+    {
+      "family": "LDIP-GOAL",
+      "candidate_ids": ["LDIP-GOAL-001", "LDIP-GOAL-002", "LDIP-GOAL-003", "LDIP-GOAL-004"],
+      "primary_rp": "RP00",
+      "primary_cp_range": "CP00-067-CP00-094",
+      "secondary_rps": ["RP26", "RP29"],
+      "decision": "weakly_covered",
+      "required_evidence": ["RP00 terminal handoff", "LDIP not-separate-product invariant", "anti-pattern blocked claims"]
+    },
+    {
+      "family": "LDIP-ARCH",
+      "candidate_ids": ["LDIP-ARCH-001", "LDIP-ARCH-002", "LDIP-ARCH-003", "LDIP-ARCH-004", "LDIP-ARCH-005"],
+      "primary_rp": "RP26",
+      "primary_cp_range": "CP00-1087-CP00-1132",
+      "secondary_rps": ["RP00", "RP01", "RP17", "RP20", "RP22", "RP23", "RP27"],
+      "decision": "adapt_required",
+      "required_evidence": ["early RP00 vendor-neutral architecture contract", "RP01/RP17/RP20/RP22/RP23 conformance evidence", "optional Databricks/Snowflake mapping", "RP26 no vendor lock-in proof"]
+    },
+    {
+      "family": "LDIP-SRC",
+      "candidate_ids": ["LDIP-SRC-001", "LDIP-SRC-101-111"],
+      "primary_rp": "RP01",
+      "primary_cp_range": "CP00-095-CP00-119",
+      "secondary_rps": ["RP04", "RP05", "RP08", "RP22", "RP23", "RP25"],
+      "decision": "new_required",
+      "required_evidence": ["source connector requirements", "owner scope", "matter mapping", "permission boundary", "audit event", "ingestion path", "failure handling"]
+    },
+    {
+      "family": "LDIP-CAT",
+      "candidate_ids": ["LDIP-CAT-001", "LDIP-CAT-002", "LDIP-CAT-101-128", "LDIP-CAT-201-203"],
+      "primary_rp": "RP01",
+      "primary_cp_range": "CP00-095-CP00-119",
+      "secondary_rps": ["RP04", "RP05", "RP06", "RP16"],
+      "decision": "new_required",
+      "required_evidence": ["legal catalog owner model", "entity requirements", "field-family trace"]
+    },
+    {
+      "family": "LDIP-DOC",
+      "candidate_ids": ["LDIP-DOC-001", "LDIP-DOC-002", "LDIP-DOC-101-114", "LDIP-DOC-201-203", "LDIP-DOC-301-309"],
+      "primary_rp": "RP06",
+      "primary_cp_range": "CP00-258-CP00-300",
+      "secondary_rps": ["RP07", "RP08"],
+      "decision": "new_required",
+      "required_evidence": ["document version contract", "chunk/clause/term/reference model", "version precedence tests"]
+    },
+    {
+      "family": "LDIP-ING",
+      "candidate_ids": ["LDIP-ING-001", "LDIP-ING-002", "LDIP-ING-101-112", "LDIP-ING-201-207"],
+      "primary_rp": "RP06",
+      "primary_cp_range": "CP00-258-CP00-300",
+      "secondary_rps": ["RP07", "RP25"],
+      "decision": "new_required",
+      "required_evidence": ["12-step pipeline", "failure default tests", "manual review routing"]
+    },
+    {
+      "family": "LDIP-SEC",
+      "candidate_ids": ["LDIP-SEC-001", "LDIP-SEC-002", "LDIP-SEC-003", "LDIP-SEC-101-111", "LDIP-SEC-201-212"],
+      "primary_rp": "RP02",
+      "primary_cp_range": "CP00-120-CP00-158",
+      "secondary_rps": ["RP03", "RP16", "RP17", "RP20"],
+      "decision": "adapt_required",
+      "required_evidence": ["permission intersection evaluator", "Ethical Wall tests", "cross-tenant denial", "external-share approval-required path"]
+    },
+    {
+      "family": "LDIP-SRCH",
+      "candidate_ids": ["LDIP-SRCH-001", "LDIP-SRCH-002", "LDIP-SRCH-003", "LDIP-SRCH-101-307"],
+      "primary_rp": "RP07",
+      "primary_cp_range": "CP00-301-CP00-343",
+      "secondary_rps": ["RP15", "RP17"],
+      "decision": "new_required",
+      "required_evidence": ["permission-trimmed search", "negative search", "Legal Analyst structured query cases"]
+    },
+    {
+      "family": "LDIP-AGT",
+      "candidate_ids": ["LDIP-AGT-001", "LDIP-AGT-002", "LDIP-AGT-101-112", "LDIP-AGT-201"],
+      "primary_rp": "RP18",
+      "primary_cp_range": "CP00-740-CP00-785",
+      "secondary_rps": ["RP17", "RP28"],
+      "decision": "new_required",
+      "required_evidence": ["12 named agents", "bounded runtime", "human review paths", "evidence-first outputs"]
+    },
+    {
+      "family": "LDIP-TOOL",
+      "candidate_ids": ["LDIP-TOOL-001", "LDIP-TOOL-002", "LDIP-TOOL-003", "LDIP-TOOL-101-307"],
+      "primary_rp": "RP17",
+      "primary_cp_range": "CP00-697-CP00-739",
+      "secondary_rps": ["RP02", "RP03", "RP18", "RP27"],
+      "decision": "new_required",
+      "required_evidence": ["RP02 permission/approval gate evaluation", "T0-T7 registry", "tool_call log schema", "RP17 approval-workflow mechanism"]
+    },
+    {
+      "family": "LDIP-CLEAN",
+      "candidate_ids": ["LDIP-CLEAN-001", "LDIP-CLEAN-002", "LDIP-CLEAN-003", "LDIP-CLEAN-004", "LDIP-CLEAN-101-406"],
+      "primary_rp": "RP20",
+      "primary_cp_range": "CP00-825-CP00-869",
+      "secondary_rps": ["RP16", "RP26"],
+      "decision": "new_required",
+      "required_evidence": ["room types", "shared objects", "policies", "approved query templates", "post-access audit"]
+    },
+    {
+      "family": "LDIP-UI",
+      "candidate_ids": ["LDIP-UI-001", "LDIP-UI-002", "LDIP-UI-003", "LDIP-UI-004", "LDIP-UI-005", "LDIP-UI-101-105"],
+      "primary_rp": "RP21",
+      "primary_cp_range": "CP00-870-CP00-904",
+      "secondary_rps": ["RP05", "RP06", "RP17", "RP18", "RP20"],
+      "decision": "new_required",
+      "required_evidence": ["operational UI workflows", "agent control center", "governance center", "quality dashboards"]
+    },
+    {
+      "family": "LDIP-NFR",
+      "candidate_ids": ["LDIP-NFR-001", "LDIP-NFR-002", "LDIP-NFR-003", "LDIP-NFR-101-306"],
+      "primary_rp": "RP26",
+      "primary_cp_range": "CP00-1087-CP00-1132",
+      "secondary_rps": ["RP02", "RP16", "RP29"],
+      "decision": "new_required",
+      "required_evidence": ["SEC/PERF/AVAIL acceptance rows", "benchmarks", "recovery proof"]
+    },
+    {
+      "family": "LDIP-DQ",
+      "candidate_ids": ["LDIP-DQ-001", "LDIP-DQ-002", "LDIP-DQ-003", "LDIP-DQ-101-208", "LDIP-DQ-301-311", "LDIP-DQ-401-410"],
+      "primary_rp": "RP15",
+      "primary_cp_range": "CP00-612-CP00-650",
+      "secondary_rps": ["RP17", "RP26"],
+      "decision": "new_required",
+      "required_evidence": ["DQ metrics", "AIQ metrics", "cost and latency metrics", "leakage zero-tolerance checks"]
+    },
+    {
+      "family": "LDIP-COMP",
+      "candidate_ids": ["LDIP-COMP-001", "LDIP-COMP-002", "LDIP-COMP-003", "LDIP-COMP-004", "LDIP-COMP-101-114"],
+      "primary_rp": "RP16",
+      "primary_cp_range": "CP00-651-CP00-696",
+      "secondary_rps": ["RP24", "RP26"],
+      "embedded_module_anchors": ["HRX / People / HR Evidence"],
+      "decision": "new_required",
+      "required_evidence": ["attorney-secret labels", "personal data controls", "e-document preservation", "retention"]
+    },
+    {
+      "family": "LDIP-API",
+      "candidate_ids": ["LDIP-API-001", "LDIP-API-002", "LDIP-API-101-117", "LDIP-API-201-224"],
+      "primary_rp": "RP22",
+      "primary_cp_range": "CP00-905-CP00-949",
+      "secondary_rps": ["RP23", "RP27"],
+      "decision": "new_required",
+      "required_evidence": ["API contract", "event contract", "idempotency", "auditability"]
+    },
+    {
+      "family": "LDIP-OUT",
+      "candidate_ids": ["LDIP-OUT-001", "LDIP-OUT-101-112"],
+      "primary_rp": "RP18",
+      "primary_cp_range": "CP00-740-CP00-785",
+      "secondary_rps": ["RP06", "RP20"],
+      "decision": "new_required",
+      "required_evidence": ["source scope", "excluded scope", "evidence table", "uncertainty", "review and approval state"]
+    },
+    {
+      "family": "LDIP-TEST",
+      "candidate_ids": ["LDIP-TEST-001", "LDIP-TEST-101-126"],
+      "primary_rp": "RP00",
+      "primary_cp_range": "CP00-067-CP00-094",
+      "secondary_rps": ["RP02", "RP06", "RP07", "RP17", "RP18", "RP20"],
+      "decision": "new_required",
+      "required_evidence": ["T-SEC tests", "T-DOC tests", "T-CON tests", "T-DD tests", "T-AI tests"]
+    },
+    {
+      "family": "LDIP-RISK",
+      "candidate_ids": ["LDIP-RISK-001", "LDIP-RISK-002", "LDIP-RISK-101-110", "LDIP-RISK-901-905"],
+      "primary_rp": "RP26",
+      "primary_cp_range": "CP00-1087-CP00-1132",
+      "secondary_rps": ["RP00", "RP16", "RP17", "RP20", "RP29"],
+      "decision": "adapt_required",
+      "required_evidence": ["risk register", "mitigations", "explicit rejects", "explicit defers"]
+    },
+    {
+      "family": "LDIP-PRIO",
+      "candidate_ids": ["LDIP-PRIO-001", "LDIP-PRIO-002", "LDIP-PRIO-003", "LDIP-PRIO-004", "LDIP-PRIO-101-310"],
+      "primary_rp": "RP00",
+      "primary_cp_range": "CP00-067-CP00-094",
+      "secondary_rps": ["RP01", "RP02", "RP06", "RP07", "RP17", "RP18", "RP20", "RP26"],
+      "decision": "adapt_required",
+      "required_evidence": ["build-order guard", "MVP mapping", "second-wave mapping", "third-wave defers"]
+    }
+  ],
+  "rp_entry_gates": {
+    "CP00-095": {
+      "description": "RP01 may start because LDIP planning gate is complete; LDIP implementation still requires pack-specific refs and unit-impact decisions.",
+      "status": "planning_gate_complete",
+      "required_artifacts": [
+        "docs/ldip-integration/ldip-requirement-candidates.md",
+        "docs/ldip-integration/ldip-rp-anchor-map.md",
+        "docs/ldip-integration/ldip-gap-adjudication.md",
+        "docs/ldip-integration/ldip-overlay-closeout-pack-map.json"
+      ],
+      "required_reviews": ["C-LDIP-01", "C-LDIP-02", "C-LDIP-03", "C-LDIP-04"],
+      "required_adjudications": ["C-LDIP-01", "C-LDIP-02", "C-LDIP-03", "C-LDIP-04"]
+    }
+  },
+  "next_actions": [
+    "Continue CP00-067 from the live closeout-pack plan.",
+    "For every affected pack, attach LDIP candidate IDs only when the pack scope actually touches them.",
+    "Record LDIP unit-impact decision before any LDIP implementation closeout.",
+    "Keep LDIP implementation pack-specific; do not claim global LDIP production_ready from planning artifacts.",
+    "If LDIP requires new units, create a user-approved ledger or pack-plan extension before production_ready."
+  ]
+}

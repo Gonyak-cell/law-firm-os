@@ -1,0 +1,30 @@
+{
+  "work_package_id": "LT-L8-W02",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "review_waived_by_user",
+  "review_type": "full_claude_review",
+  "model": null,
+  "effort": null,
+  "exactly_one_valid_claude_review_run": false,
+  "valid_review_evidence": false,
+  "qualifies_as_required_review": false,
+  "model_not_run": true,
+  "waiver": {
+    "waived_by": "user",
+    "instruction": "From now on, skip full Claude reviews.",
+    "recorded_effect": "The waiver is recorded for traceability but does not count as independent review evidence."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "advisory": 0
+  },
+  "satisfies_governance_review_gate": false,
+  "requires_later_owner_policy_disposition": true,
+  "notes": [
+    "No Claude review was executed for LT-L8-W02.",
+    "This file is not a review receipt and cannot satisfy valid-review evidence.",
+    "W02 is blocked on real G1-G10 evidence and G10 human signoff."
+  ]
+}

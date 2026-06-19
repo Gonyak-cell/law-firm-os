@@ -1,0 +1,3997 @@
+{
+  "schema_version": "law-firm-os.rp-detailed-microphase-plan.v1",
+  "generated_from": "scripts/generate-rp-detailed-plan.mjs",
+  "program_id": "RP20",
+  "program_title": "Data Room And VDR",
+  "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+  "ai_owner": "Codex/Cursor",
+  "hermes_gate": "H20",
+  "claude_gate": "C20",
+  "standard_phase_count": 10,
+  "micro_phase_per_standard_phase": 11,
+  "micro_phase_count": 110,
+  "entries": [
+    {
+      "id": "RP20.P00.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M00",
+      "micro_title": "Inventory spec and acceptance source",
+      "objective": "Extract M&A room, RFI, CP, closing binder, access analytics requirements and identify buyer sees wrong folder, RFI leak, and CP status drift as explicit acceptance risks.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M01",
+      "micro_title": "Draft contract shell",
+      "objective": "Create the future Data Room And VDR contract shape for DataRoom, RoomFolder, RFI, ConditionPrecedent, ClosingBinder, AccessAnalytics.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M02",
+      "micro_title": "Define ownership boundary",
+      "objective": "Record which module owns DataRoom, RoomFolder, and RFI, and which modules may only reference them.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M03",
+      "micro_title": "Define lifecycle gates",
+      "objective": "Lock entry, review, approval, blocked, and closeout states for room setup, buyer access, and RFI workflow.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M04",
+      "micro_title": "Define Matter-first trace rules",
+      "objective": "State how Data Room And VDR records remain tenant-scoped and Matter-traceable when the workflow touches client or document data.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M05",
+      "micro_title": "Define permission and audit baseline",
+      "objective": "Record the minimum permission decision and audit evidence required before Data Room And VDR behavior can run.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M06",
+      "micro_title": "Define synthetic-only fixture policy",
+      "objective": "State that Data Room And VDR examples use fake tenants, users, matters, documents, and financial values only.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M07",
+      "micro_title": "Define validation command matrix",
+      "objective": "List the product commands required to verify Data Room And VDR planning and later implementation.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M08",
+      "micro_title": "Prepare H20 preflight",
+      "objective": "Define the fields Hermes records before Data Room And VDR implementation starts.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M09",
+      "micro_title": "Prepare C20 design brief",
+      "objective": "Prepare Claude Code questions around buyer sees wrong folder, RFI leak, CP status drift, and missing tests.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P00.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P00",
+      "phase_title": "Contract And Acceptance Baseline",
+      "phase_theme": "implementation scope, acceptance gates, and non-goals are fixed before code starts",
+      "micro_id": "M10",
+      "micro_title": "Close RP20.P00 handoff",
+      "objective": "Hand off a contract-first Data Room And VDR implementation scope to AI.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "contracts/vdr-contract.json",
+        "packages/vdr/README.md",
+        "contracts/data-room-vdr-contract.json"
+      ],
+      "target_tests": [
+        "scripts/validate-product-contract.mjs"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M00",
+      "micro_title": "Create package structure",
+      "objective": "Create src, test, fixture, and README layout for packages/vdr.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M01",
+      "micro_title": "Implement DataRoom model",
+      "objective": "Define identifiers, tenant scope, Matter references, status fields, and audit metadata for DataRoom.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M02",
+      "micro_title": "Implement RoomFolder model",
+      "objective": "Define required fields, references, ownership metadata, and state constraints for RoomFolder.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M03",
+      "micro_title": "Implement RFI model",
+      "objective": "Define required fields, relationship references, allowed states, and security attributes for RFI.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M04",
+      "micro_title": "Implement ConditionPrecedent model",
+      "objective": "Define required fields, lifecycle states, ownership boundaries, and audit references for ConditionPrecedent.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M05",
+      "micro_title": "Implement ClosingBinder model",
+      "objective": "Define required fields, state transitions, permission attributes, and reporting references for ClosingBinder.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M06",
+      "micro_title": "Implement relationship map",
+      "objective": "Map relationships among DataRoom, RoomFolder, RFI, ConditionPrecedent, ClosingBinder, AccessAnalytics and their Core/Matter/DMS dependencies.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M07",
+      "micro_title": "Implement state enum registry",
+      "objective": "Create stable status, type, effect, and outcome enums for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M08",
+      "micro_title": "Implement validation registry",
+      "objective": "Expose required fields, references, ownership, and lifecycle invariants for Hermes evidence.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M09",
+      "micro_title": "Export model registry",
+      "objective": "Export Data Room And VDR model definitions through a stable package interface.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P01.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P01",
+      "phase_title": "Domain Model",
+      "phase_theme": "entities, identifiers, states, references, and ownership are declared",
+      "micro_id": "M10",
+      "micro_title": "Close domain model phase",
+      "objective": "Confirm the Data Room And VDR model surface is implementation-ready and does not require new scope decisions.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/model.js",
+        "packages/vdr/src/states.js",
+        "packages/vdr/src/registry.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/model.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M00",
+      "micro_title": "Define service entrypoints",
+      "objective": "Create deterministic service entrypoints for room setup, buyer access, and RFI workflow.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M01",
+      "micro_title": "Implement room setup",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for room setup.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M02",
+      "micro_title": "Implement buyer access",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for buyer access.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M03",
+      "micro_title": "Implement RFI workflow",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for RFI workflow.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M04",
+      "micro_title": "Implement CP tracking",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for CP tracking.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M05",
+      "micro_title": "Implement closing binder generation",
+      "objective": "Implement validation, permission precheck, audit hint, and state transition logic for closing binder generation.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M06",
+      "micro_title": "Implement blocked-claim handling",
+      "objective": "Return explicit blocked claims for buyer sees wrong folder, RFI leak, and CP status drift.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M07",
+      "micro_title": "Implement idempotency and locking",
+      "objective": "Define idempotency, duplicate handling, and lock behavior for risky Data Room And VDR operations.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M08",
+      "micro_title": "Implement validation summary",
+      "objective": "Return pass/fail, checked rules, warning count, and blocked claims for Hermes H20.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M09",
+      "micro_title": "Implement review-required routing",
+      "objective": "Route high-risk or ambiguous Data Room And VDR outcomes to attorney or admin review instead of direct mutation.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P02.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P02",
+      "phase_title": "Service Logic",
+      "phase_theme": "deterministic services, policy rules, workflows, and validations are implemented",
+      "micro_id": "M10",
+      "micro_title": "Close service logic phase",
+      "objective": "Confirm Data Room And VDR services are deterministic, auditable, and fail closed where required.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/service.js",
+        "packages/vdr/src/policies.js",
+        "packages/vdr/src/validators.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/service.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M00",
+      "micro_title": "Define public exports",
+      "objective": "Expose Data Room And VDR models, services, fixtures, validators, and error codes from package index.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M01",
+      "micro_title": "Define room setup API",
+      "objective": "Lock request, response, permission, audit, and error shape for room setup.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M02",
+      "micro_title": "Define buyer access API",
+      "objective": "Lock request, response, permission, audit, and error shape for buyer access.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M03",
+      "micro_title": "Define RFI workflow API",
+      "objective": "Lock request, response, permission, audit, and error shape for RFI workflow.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M04",
+      "micro_title": "Define CP tracking API",
+      "objective": "Lock request, response, permission, audit, and error shape for CP tracking.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M05",
+      "micro_title": "Define closing binder generation API",
+      "objective": "Lock request, response, permission, audit, and error shape for closing binder generation.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M06",
+      "micro_title": "Define serialization contract",
+      "objective": "Ensure Data Room And VDR API responses serialize without leaking hidden policy internals or unauthorized data.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M07",
+      "micro_title": "Define stable error codes",
+      "objective": "Add error codes for buyer sees wrong folder, RFI leak, CP status drift, access analytics untrimmed, and review_required.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M08",
+      "micro_title": "Define Hermes consumption shape",
+      "objective": "Expose enough result metadata for H20 evidence without making Hermes product authority.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M09",
+      "micro_title": "Define Claude review summary",
+      "objective": "Expose enough interface summary for C20 cross-validation.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P03.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P03",
+      "phase_title": "API And Interface",
+      "phase_theme": "public package APIs, request/response contracts, and error semantics are fixed",
+      "micro_id": "M10",
+      "micro_title": "Close API interface phase",
+      "objective": "Freeze Data Room And VDR public interface until a later RP explicitly extends it.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/index.js",
+        "packages/vdr/src/api-contract.js",
+        "packages/vdr/src/errors.js"
+      ],
+      "target_tests": [
+        "packages/vdr/test/interface.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M00",
+      "micro_title": "Inventory UI surfaces",
+      "objective": "Identify VDR room, RFI board, CP checklist, and access analytics in the Jira-like Law Firm OS UI.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M01",
+      "micro_title": "Plan VDR room",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for VDR room.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M02",
+      "micro_title": "Plan RFI board",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for RFI board.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M03",
+      "micro_title": "Plan CP checklist",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for CP checklist.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M04",
+      "micro_title": "Plan access analytics",
+      "objective": "Map data, loading state, empty state, denied state, and audit hints for access analytics.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M05",
+      "micro_title": "Plan review-required UI",
+      "objective": "Show high-risk Data Room And VDR outcomes as review queue items, not silent successes.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M06",
+      "micro_title": "Plan permission-trimmed UI",
+      "objective": "Ensure unauthorized Data Room And VDR rows, counts, snippets, and citations are hidden before display.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M07",
+      "micro_title": "Plan responsive density",
+      "objective": "Keep Data Room And VDR context readable on desktop and mobile without marketing-page layout.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M08",
+      "micro_title": "Prepare Hermes UI evidence",
+      "objective": "Record that UI is presentation-only and cannot override Data Room And VDR service decisions.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude UI review",
+      "objective": "Ask Claude to find UI leaks, unsafe affordances, and misleading authority claims for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P04.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P04",
+      "phase_title": "UI And Operator Surface",
+      "phase_theme": "Jira-like screens, queues, panels, states, and operator actions are mapped",
+      "micro_id": "M10",
+      "micro_title": "Close UI operator phase",
+      "objective": "Confirm UI scope is ready for implementation without inventing extra product behavior.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "apps/web/src/main.jsx",
+        "apps/web/src/styles.css",
+        "docs/rp20-ui-surface.md"
+      ],
+      "target_tests": [
+        "npm run build"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M00",
+      "micro_title": "Define base tenant fixture",
+      "objective": "Create a fake tenant, users, roles, matters, and documents for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M01",
+      "micro_title": "Define room permission trimmed golden case",
+      "objective": "Create a synthetic golden case proving room permission trimmed.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M02",
+      "micro_title": "Define RFI answered golden case",
+      "objective": "Create a synthetic golden case proving RFI answered.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M03",
+      "micro_title": "Define CP completed golden case",
+      "objective": "Create a synthetic golden case proving CP completed.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M04",
+      "micro_title": "Define binder generated golden case",
+      "objective": "Create a synthetic golden case proving binder generated.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M05",
+      "micro_title": "Define buyer sees wrong folder failure fixture",
+      "objective": "Create a synthetic failing case that proves buyer sees wrong folder is blocked or reviewed.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M06",
+      "micro_title": "Define RFI leak failure fixture",
+      "objective": "Create a synthetic failing case that proves RFI leak is blocked or reviewed.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M07",
+      "micro_title": "Define CP status drift failure fixture",
+      "objective": "Create a synthetic failing case that proves CP status drift is blocked or reviewed.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M08",
+      "micro_title": "Define replayable fixture manifest",
+      "objective": "Serialize Data Room And VDR fixtures with expected decisions, audit hints, and Hermes evidence labels.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M09",
+      "micro_title": "Define AI retrieval/report fixture",
+      "objective": "If Data Room And VDR appears in search, analytics, or AI retrieval, prove unauthorized rows are trimmed.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P05.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P05",
+      "phase_title": "Fixtures And Golden Cases",
+      "phase_theme": "synthetic fixtures, golden paths, and replayable examples prove expected behavior",
+      "micro_id": "M10",
+      "micro_title": "Close fixtures phase",
+      "objective": "Confirm Data Room And VDR fixtures are synthetic, deterministic, and reusable by tests and Hermes.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/fixtures.js",
+        "packages/vdr/fixtures/golden-cases.json"
+      ],
+      "target_tests": [
+        "packages/vdr/test/golden-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M00",
+      "micro_title": "Define permission contract",
+      "objective": "Specify required permission checks for room setup, buyer access, RFI workflow, and CP tracking.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M01",
+      "micro_title": "Bind view/search permission",
+      "objective": "Return permission decisions and trimming metadata for Data Room And VDR view and search surfaces.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M02",
+      "micro_title": "Bind mutation permission",
+      "objective": "Return permission decisions, approval requirements, and blocked claims for Data Room And VDR mutations.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M03",
+      "micro_title": "Bind export/download permission",
+      "objective": "Return stronger audit hints for Data Room And VDR export, download, or external-share actions.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M04",
+      "micro_title": "Bind audit event hints",
+      "objective": "Return actor, action, object, decision, reason, and matched-rule hints for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M05",
+      "micro_title": "Bind retention/governance hints",
+      "objective": "Record legal hold, retention, DLP, or governance implications for Data Room And VDR where applicable.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M06",
+      "micro_title": "Bind analytics and AI trimming",
+      "objective": "Ensure analytics rows and AI retrieval scopes for Data Room And VDR obey security trimming.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M07",
+      "micro_title": "Test permission-audit matrix",
+      "objective": "Cover allowed, denied, review_required, approval_required, and blocked outcomes for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M08",
+      "micro_title": "Prepare H20 audit evidence",
+      "objective": "Record which Data Room And VDR decisions require downstream audit event persistence.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude audit review",
+      "objective": "Ask Claude to find missing audit hints or permission bypasses for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P06.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P06",
+      "phase_title": "Permission Audit Integration",
+      "phase_theme": "permissions, security trimming, audit hints, and evidence rules are attached",
+      "micro_id": "M10",
+      "micro_title": "Close permission audit integration",
+      "objective": "Confirm Data Room And VDR cannot ship without permission and audit evidence coverage.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/src/security-contract.js",
+        "packages/vdr/src/audit-hints.js",
+        "packages/audit/README.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/security-audit.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M00",
+      "micro_title": "Define buyer sees wrong folder failure",
+      "objective": "Fail closed or require review when buyer sees wrong folder appears in Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M01",
+      "micro_title": "Define RFI leak failure",
+      "objective": "Fail closed or require review when RFI leak appears in Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M02",
+      "micro_title": "Define CP status drift failure",
+      "objective": "Fail closed or require review when CP status drift appears in Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M03",
+      "micro_title": "Define access analytics untrimmed failure",
+      "objective": "Fail closed or require review when access analytics untrimmed appears in Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M04",
+      "micro_title": "Define binder missing version failure",
+      "objective": "Fail closed or require review when binder missing version appears in Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M05",
+      "micro_title": "Define missing context failure",
+      "objective": "Fail closed when tenant, Matter, actor, resource, or action context is missing for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M06",
+      "micro_title": "Define cross-tenant failure",
+      "objective": "Deny or block any Data Room And VDR operation where actor and resource tenant IDs differ.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M07",
+      "micro_title": "Define retry and rollback behavior",
+      "objective": "Define retry, idempotency, rollback, and compensation behavior for failed Data Room And VDR operations.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M08",
+      "micro_title": "Define recovery handoff",
+      "objective": "Document how a failed Data Room And VDR micro phase is corrected before advancing.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M09",
+      "micro_title": "Prepare Claude edge review",
+      "objective": "Ask Claude to find missing failure cases, bypasses, and brittle assumptions for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P07.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P07",
+      "phase_title": "Failure Edge And Recovery",
+      "phase_theme": "edge cases, blocked actions, retries, recovery, and fail-closed behavior are covered",
+      "micro_id": "M10",
+      "micro_title": "Close failure phase",
+      "objective": "Confirm dangerous Data Room And VDR ambiguity fails closed or requires review.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "packages/vdr/test/failure-cases.test.js",
+        "docs/rp20-recovery-notes.md"
+      ],
+      "target_tests": [
+        "packages/vdr/test/failure-cases.test.js"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M00",
+      "micro_title": "Define H20 command matrix",
+      "objective": "Record exact product commands Hermes should run for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M01",
+      "micro_title": "Define H20 evidence fields",
+      "objective": "Define phase_id, command_result, changed_files, fixture_summary, blocked_claims, and next_gate fields.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M02",
+      "micro_title": "Define H20 domain evidence",
+      "objective": "Record entity count, workflow count, fixture count, failure count, and permission-audit coverage for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M03",
+      "micro_title": "Define H20 no-real-data evidence",
+      "objective": "Record that Data Room And VDR fixtures and examples contain only synthetic data.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M04",
+      "micro_title": "Define H20 blocked-claim evidence",
+      "objective": "Record unsafe Data Room And VDR claims rejected by validators or tests.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M05",
+      "micro_title": "Define H20 Claude dependency",
+      "objective": "Mark C20 review mandatory before Data Room And VDR closeout.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M06",
+      "micro_title": "Define H20 human approval note",
+      "objective": "Record what the human must approve for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M07",
+      "micro_title": "Test H20 command availability",
+      "objective": "Ensure npm scripts required by H20 exist before handoff.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M08",
+      "micro_title": "Prepare H20 evidence packet template",
+      "objective": "Create the evidence template Hermes will fill during Data Room And VDR implementation closeout.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M09",
+      "micro_title": "Prepare H20 closeout criteria",
+      "objective": "Define PASS, PASS_WITH_FINDINGS, and BLOCK semantics for H20.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P08.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P08",
+      "phase_title": "Hermes Validation Binding",
+      "phase_theme": "Hermes evidence, command matrix, gate verdict, and blocked claims are prepared",
+      "micro_id": "M10",
+      "micro_title": "Close Hermes binding phase",
+      "objective": "Confirm Hermes validates Data Room And VDR behavior without owning product code.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "hermes/project.json",
+        "docs/hermes-connection.md",
+        "docs/rp20-hermes-evidence-template.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M00",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M00",
+      "micro_title": "Prepare RP20 architecture review questions",
+      "objective": "Ask whether Data Room And VDR module boundaries, model shapes, and workflows match the specification.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M01",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M01",
+      "micro_title": "Prepare RP20 security review questions",
+      "objective": "Ask whether permissions, audit, tenant isolation, and Matter-first rules are sufficient for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M02",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M02",
+      "micro_title": "Prepare RP20 bypass review questions",
+      "objective": "Ask Claude to find buyer sees wrong folder, RFI leak, CP status drift, access analytics untrimmed, and binder missing version bypasses.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M03",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M03",
+      "micro_title": "Prepare RP20 missing test questions",
+      "objective": "Ask what golden cases, failure cases, UI states, and contract tests are missing for Data Room And VDR.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M04",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M04",
+      "micro_title": "Prepare RP20 downstream readiness questions",
+      "objective": "Ask whether Data Room And VDR is ready for dependent modules and later enterprise hardening.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M05",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M05",
+      "micro_title": "Prepare RP20 risk register",
+      "objective": "List unresolved Data Room And VDR risks and route them to future RP corrections.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M06",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M06",
+      "micro_title": "Define Claude finding severity",
+      "objective": "Use P0/P1/P2/P3 severity for Data Room And VDR findings.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M07",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M07",
+      "micro_title": "Define go/no-go verdict format",
+      "objective": "Require PASS, PASS_WITH_FINDINGS, or BLOCK for Data Room And VDR closeout.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M08",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M08",
+      "micro_title": "Define finding-to-microphase routing",
+      "objective": "Route each Claude finding to a concrete RP20.Pxx.Mxx correction or later RP dependency.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M09",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M09",
+      "micro_title": "Prepare human approval summary",
+      "objective": "Summarize what the user must approve before Data Room And VDR can be considered ready.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "RP20.P09.M10",
+      "program_id": "RP20",
+      "program_title": "Data Room And VDR",
+      "program_scope": "M&A room, RFI, CP, closing binder, access analytics",
+      "phase_id": "RP20.P09",
+      "phase_title": "Claude Cross Validation Closeout",
+      "phase_theme": "Claude Code independently reviews architecture, security, tests, and go/no-go status",
+      "micro_id": "M10",
+      "micro_title": "Close RP20 detailed plan",
+      "objective": "Confirm Data Room And VDR is detailed enough for AI implementation without more planning decisions.",
+      "ai_owner": "Codex/Cursor",
+      "hermes_gate": "H20",
+      "claude_gate": "C20",
+      "target_files": [
+        "docs/rp20-claude-cross-validation-brief.md",
+        "docs/rp20-human-approval-summary.md"
+      ],
+      "target_tests": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test"
+      ],
+      "commands": [
+        "npm run validate",
+        "npm run fullplan:validate",
+        "npm test",
+        "npm run build"
+      ],
+      "acceptance": [
+        "Deliverable is specific enough for AI implementation without choosing scope.",
+        "No real client, matter, document, billing, settlement, credential, or secret data is used.",
+        "Matter-first, DMS ownership, permission, audit, and tenant isolation invariants are preserved where applicable.",
+        "Hermes H20 evidence or blocked reason can be recorded.",
+        "Claude C20 can independently review architecture, security, missing tests, and go/no-go status."
+      ],
+      "status": "planned"
+    }
+  ]
+}

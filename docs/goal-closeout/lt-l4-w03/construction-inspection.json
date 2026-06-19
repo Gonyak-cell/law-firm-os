@@ -1,0 +1,26 @@
+{
+  "work_package_id": "LT-L4-W03",
+  "inspected_at": "2026-06-18T14:09:10Z",
+  "verdict": "BLOCKED_OWNER_PARITY_RELEASE_DECISION_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "launch_decision_register_exists": true,
+    "decision_register_has_decision_rows": false,
+    "owner_real_role_recorded": false,
+    "owner_approval_signature_recorded": false,
+    "parity_release_record_exists": false,
+    "release_scope_verified": false,
+    "preservation_scope_verified": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "owner_decision_synthesized": false,
+    "parity_constraint_released_by_agent": false,
+    "visual_parity_artifacts_modified": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

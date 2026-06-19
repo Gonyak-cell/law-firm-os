@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-768",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-15T15:20:33.727Z",
+  "finished_at": "2026-06-15T15:26:01.186Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":326874,\"duration_api_ms\":327827,\"ttft_ms\":3812,\"num_turns\":49,\"result\":\"Review complete. **Verdict: PASS** — CP00-768 (descriptor-only RP25 Migration Platform \\\"UI permission fixture\\\" pack, 10 units, risk A) with no P0–P3 findings.\\n\\nKey evidence:\\n- Coverage exact and re-derived from source; coverage/descriptor validators and `node --test` (40/40) assert `errors=[]`.\\n- No-write/no-real-data boundaries enforced by validators (validators.js:1139-1149) and the no-write attestation.\\n- Authority boundary correct: Claude read-only & non-final, runtime opening deferred to CP00-769, human approval required.\\n- Hermes is deterministic control-plane only, not embedded in product runtime.\\n- All 24 validation commands exit 0; `npm test` 2988/0; `git diff --check` clean; contract `validation.valid=true`.\\n- CP178+ hardening enforced; the current 0-byte placeholder result is correctly not counted as valid evidence.\\n\\n`blocks_pack_closeout=false` and `blocks_goal_closeout=false` — this receipt enables CP00-768 closeout rather than blocking it.\",\"stop_reason\":\"end_turn\",\"session_id\":\"a818a703-8d9b-46cd-a64a-06a59134c656\",\"total_cost_usd\":2.38099875,\"usage\":{\"input_tokens\":3118,\"cache_creation_input_tokens\":107283,\"cache_read_input_tokens\":2220946,\"output_tokens\":23327,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":107283,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":380,\"cache_read_input_tokens\":103366,\"cache_creation_input_tokens\":4366,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4366},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1137,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001242,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":3118,\"outputTokens\":23327,\"cacheReadInputTokens\":2220946,\"cacheCreationInputTokens\":107283,\"webSearchRequests\":0,\"costUSD\":2.37975675,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-768 is a descriptor-only RP25 Migration Platform \\\"UI permission fixture\\\" closeout pack (10 units, RP25.P04.M05.S15-RP25.P04.M06.S02, risk A) reviewed read-only via Read/Grep/Glob with full source inspection (no summary-only shortcut). Coverage is exact: deliverable distribution {implementation:4, fixture:1, test:1, hermes_evidence:1, claude_review:1, ui:2}=10 and micro-title {Permission And Audit Binding:8, Synthetic Fixture Set:2} match MIGRATION_PLATFORM_CP768_REQUIREMENTS (registry.js:1074, with M05=UI_SURFACE_ROWS.slice(14,22)=8 rows and M06=slice(0,2)=2 rows), manifest, baseline, prompt, and the regenerated contract. validateMigrationPlatformCp768UiPermissionFixtureCoverage (validators.js:1085) and validateMigrationPlatformCp768UiPermissionFixtureDescriptor (validators.js:1113), plus node --test cases (model.test.js:473-521), assert errors=[] and distribution equality. No-write/no-real-data boundaries are intact and enforced: MIGRATION_PLATFORM_NO_WRITE_ATTESTATION (registry.js:244) and the per-row base guards (service.js:151-173) are spread into every row, and the descriptor validator (validators.js:1139-1149) rejects non-descriptor-only rows, runtime execution, raw/source/credential/real-client payloads, file-server/SharePoint/Drive/iManage/import runtime opening, permission-decision/cross-tenant exposure, audit-event-body exposure, runtime-render claims, and unauthorized count leak. Authority boundary is correct: createDescriptor (service.js:201-206) sets claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true, runtime_opening_pack_id=CP00-769; the Claude packet is read_only=true with promotes_claude_to_final_approval=false (service.js:941-951), enforced by validators.js:1121-1123 and asserted by model.test.js:482-501. Hermes packets are deterministic control-plane review/receipt only (emits_runtime_receipt=false, writes_product_state=false, receipt_shape=descriptor_only_migration_no_write; service.js:930-938) and are not embedded in product runtime. Command evidence shows all 24 commands at exit_code 0, including npm run closeout-pack-plan:validate, closeout-pack:validate, npm test (2988 pass / 0 fail), npm run validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check, build, and node --test packages/migration/test/model.test.js (40 pass / 0 fail). The contract is regenerated from source by scripts/validate-rp25-migration-platform-contract.mjs (re-derives each descriptor/coverage and asserts errors=[], emits_runtime_receipt=false, read_only=true, handoff routing), promoting latest_pack/latest_projection to MigrationPlatformCp768UiPermissionFixtureDescriptor (contract:40, :19354) while retaining CP00-756..767 as historical, with validation.valid=true (contract:21506) and cp768 coverage+descriptor valid:true/errors:[] (contract:41525, :41586). Manifest production_ready=false and runtime_ready=false (manifest.json:6-7), and the construction-inspection/adjudication/claude-review-result artifacts are pending_review; these are the expected pre-closeout placeholders to be resolved by acceptance of exactly this one valid hardened read-only receipt, not defects, and the pack makes no runtime or enterprise-trust overclaim. CP178+ hardening is enforced: forbidden_review_evidence covers not_logged_in/malformed_json/usage_limit/tool_call_shaped_output/zero_byte_stdout/fenced_json_with_prose (registry.js:496), the current placeholder result's 0-byte stdout is correctly NOT counted (exactly_one_valid_pack_level_claude_review_run=false, valid_review_receipts=[]), and the readiness auth-preflight passed (exit 0, 1434-byte valid JSON). Changed-file-scope matches the manifest implementation refs; unrelated dirty/untracked files (closeout-pack-plan, next-pack-queue, progress-control-room, workbook docs) are preserved and not inferred into pack scope. Claude remains a read-only, non-final reviewer; this receipt enables, and does not block, CP00-768 closeout. No P0-P3 defects identified.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"6cfeb84a-14f5-408a-98d9-39241e4349f7\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6791,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "a818a703-8d9b-46cd-a64a-06a59134c656",
+    "uuid": "6cfeb84a-14f5-408a-98d9-39241e4349f7",
+    "total_cost_usd": 2.38099875,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "schema_version": "law-firm-os.email-dms-m365-runtime-contract.v0.1",
+  "status": "decision_record_only",
+  "decision_scope": "Microsoft 365 Outlook Add-in runtime decisions for RP08 historical descriptor lineage",
+  "relationship_to_existing_contracts": {
+    "email_dms_core_contract_ref": "contracts/email-dms-core-contract.json",
+    "email_dms_core_contract_modified": false,
+    "no_write_attestation_preserved": true,
+    "closed_pack_evidence_immutable": true
+  },
+  "runtime_layer_ref": "contracts/runtime-readiness-contract.json",
+  "runtime_layer_policy": "Future M365 runtime packs must satisfy this contract admission gate and RTG-001 through RTG-005 from the runtime readiness contract.",
+  "runtime_admission_gate": {
+    "planning_gate_complete": true,
+    "storage_decision_resolved": false,
+    "internal_vs_saas_decision_resolved": true,
+    "privilege_classification_decision_resolved": false,
+    "implementation_allowed": false
+  },
+  "no_runtime_attestation": {
+    "dispatches_filing_runtime": false,
+    "calls_graph_api": false,
+    "acquires_entra_tokens": false,
+    "registers_addin_manifest": false,
+    "executes_smart_alert_handler": false,
+    "writes_sharepoint_onedrive": false,
+    "writes_product_state": false,
+    "creates_database_rows": false,
+    "updates_database_rows": false,
+    "reads_object_storage": false,
+    "writes_object_storage": false,
+    "loads_real_fixture_data": false,
+    "uses_production_credentials": false,
+    "sends_email": false,
+    "modifies_calendar": false,
+    "promotes_claude_to_final_approval": false,
+    "claims_runtime_ready": false,
+    "claims_enterprise_trust_from_local_validation": false
+  },
+  "technical_decisions": {
+    "addin_platform": {
+      "selected": "office_js_outlook_web_addin",
+      "excluded": [
+        "com",
+        "vsto"
+      ]
+    },
+    "authentication": {
+      "identity_provider": "microsoft_entra_id",
+      "client_library": "msal",
+      "nested_app_authentication_preferred": true,
+      "legacy_exchange_user_identity_tokens": "prohibited"
+    },
+    "email_identity": {
+      "id_triple": [
+        "graph_message_id",
+        "internet_message_id",
+        "conversation_id"
+      ],
+      "dedup_key": "internet_message_id",
+      "thread_key": "conversation_id"
+    },
+    "graph_surfaces": {
+      "mail": "fixed",
+      "calendar": "fixed",
+      "files": "blocked_until_storage_decision"
+    },
+    "smart_alerts": {
+      "event": "on_message_send",
+      "send_modes": [
+        "prompt_user",
+        "soft_block",
+        "block"
+      ],
+      "policy_rows": 6,
+      "permission_bridge": {
+        "prompt_user": "review_required",
+        "soft_block": "approval_required",
+        "block": "deny"
+      }
+    },
+    "deployment": {
+      "primary": "m365_admin_center_org_deployment",
+      "multi_tenant_branch": "MAT-DEC-01 first tenant alignment"
+    }
+  },
+  "filing_flow": [
+    "F01_read_outlook_item",
+    "F02_read_metadata",
+    "F03_request_suggested_matter",
+    "F04_user_confirms_matter",
+    "F05_backend_reads_graph_message",
+    "F06_create_email_object",
+    "F07_store_selected_attachments",
+    "F08_create_document_attachment_mapping",
+    "F09_link_email_document_matter_thread",
+    "F10_write_audit_event",
+    "F11_create_optional_ai_candidates"
+  ],
+  "attachment_flow": [
+    "A01_display_attachments",
+    "A02_user_selects_attachments",
+    "A03_upload_to_storage_target",
+    "A04_create_document_object",
+    "A05_store_source_email_link",
+    "A06_duplicate_hash_version_check",
+    "A07_write_audit_log",
+    "A08_create_optional_ai_classification_candidate"
+  ],
+  "email_object_fields": [
+    "email_id",
+    "graph_message_id",
+    "internet_message_id",
+    "conversation_id",
+    "matter_id",
+    "from_to_cc_bcc",
+    "subject",
+    "sent_at_received_at",
+    "body_ref",
+    "attachments",
+    "filing_user",
+    "filing_time",
+    "filing_mode",
+    "confidentiality_privilege",
+    "ai_processed",
+    "storage_pointer_ref"
+  ],
+  "storage_dependency_partition": {
+    "storage_decision_ref": null,
+    "storage_dependent": [
+      {
+        "id": "M365-STOR-001",
+        "item": "SharePoint/OneDrive matter folder upload",
+        "blocked_until_storage_decision": true
+      },
+      {
+        "id": "M365-STOR-002",
+        "item": "email body original storage target",
+        "blocked_until_storage_decision": true
+      },
+      {
+        "id": "M365-STOR-003",
+        "item": "attachment binary storage target",
+        "blocked_until_storage_decision": true
+      },
+      {
+        "id": "M365-STOR-004",
+        "item": "Graph files write surface",
+        "blocked_until_storage_decision": true
+      },
+      {
+        "id": "M365-STOR-005",
+        "item": "Vault export/import storage bridge",
+        "blocked_until_storage_decision": true
+      }
+    ]
+  },
+  "runtime_acceptance_criteria": [
+    "runtime_ready terminology follows MAT-DEC-07",
+    "RTG-001 exported add-in service path executed",
+    "RTG-002 unauthorized filing blocked by authz",
+    "RTG-003 filing audit event appended",
+    "RTG-004 synthetic sandbox attested",
+    "RTG-005 closeout-pack sweep remains green"
+  ],
+  "anchors": {
+    "primary_rp": "RP08",
+    "primary_rp_status": "closed_historical",
+    "consuming_rps": [
+      "RP22",
+      "RP23"
+    ]
+  }
+}

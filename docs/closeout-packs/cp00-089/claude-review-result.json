@@ -1,0 +1,77 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-089",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "",
+    "output_format": "json",
+    "json_schema_enforced": false,
+    "session_id": "015a0e24-3478-49c5-ae1c-ae4638247440",
+    "uuid": "015a0e24-3478-49c5-ae1c-ae4638247440",
+    "total_cost_usd": 0.6523025,
+    "permission_denials": [],
+    "duration_ms": 147238,
+    "invalid_attempt_counted_as_valid": false
+  },
+  "invalid_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --output-format json --json-schema /tmp/cp00-089-claude-review-schema.json < /tmp/cp00-089-claude-review-prompt.md > /tmp/cp00-089-claude-review-output.json",
+      "outcome": "terminated_after_hung_zero_byte_output",
+      "exit_code": 143,
+      "counted_as_valid_review": false,
+      "output_bytes": 0
+    }
+  ],
+  "parsed_review": {
+    "review_id": "C-CP00-089",
+    "pack_id": "CP00-089",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P3",
+        "title": "Contract and fixture additions not present in supplied focused diff",
+        "evidence": "Diff stat shows +1536 (contract) and +1018 (fixture) lines but the focused unified diff omits both files. Their correctness is asserted indirectly by the new mirror tests (deepEqual of included_subphase_ids/result_fields/required_evidence_refs/acceptance_gate_ids/forbidden_boundary_suite_claims/fail_closed_on/permission_audit_receipt_contracts/matrix against policy, assertControlPlaneHermesValidationPermissionAuditBindingResult over definition.result and fixture.result, and definition.result===fixture.result), which pre-validation reports as passing.",
+        "recommended_action": "Treat contract/fixture content as test-attested rather than directly inspected; if a deeper audit is needed, review the raw JSON additions for the 98-field result block and the two 10-entry receipt arrays.",
+        "blocks_closeout": false,
+        "adjudication": "accepted_non_blocking_process_caveat"
+      },
+      {
+        "id": "F2",
+        "severity": "P3",
+        "title": "rp00 validator intentionally red until CP00-089 evidence pack is created",
+        "evidence": "New gate requires inspection.control_plane_hermes_validation_permission_audit_binding_verified===true for each S01-S10 construction-inspection.json, and current cursor now points at RP00.P08.M05.S10. Pre-validation confirms rp00 validator fails solely because docs/closeout-packs/cp00-089 evidence files are not yet created.",
+        "recommended_action": "Create the cp00-089 evidence pack (manifest.json, command-evidence.json, claude-review-result.json, adjudication.md, and S01-S10 construction-inspection.json each setting control_plane_hermes_validation_permission_audit_binding_verified=true) and confirm the rp00 validator passes before final closeout.",
+        "blocks_closeout": false,
+        "adjudication": "accepted_non_blocking_process_caveat"
+      }
+    ],
+    "required_followups": [
+      "Create docs/closeout-packs/cp00-089 evidence files (manifest, command-evidence, claude-review-result, adjudication, S01-S10 construction-inspection with control_plane_hermes_validation_permission_audit_binding_verified=true) and confirm `npm run validate:rp00` passes.",
+      "Confirm CP00-090 owns RP00.P08.M05.S11 (human-approval marker); CP00-089 correctly leaves source_micro_phase_completed=false, phase_completed=false, next_subphase=RP00.P08.M05.S11 and defers the marker."
+    ],
+    "summary": "CP00-089 binds the 10 Hermes Validation Permission/Audit evidence receipts (RP00.P08.M05.S01-S10) metadata-only. The policy, assembler, result/policy validators, module, and tests are internally consistent and enforce the required boundary: source_micro_phase_completed=false, phase_completed=false, next_subphase=RP00.P08.M05.S11, and all runtime permission/AuthZ/permission-engine/security-trimming/audit-ledger/audit-event/Hermes-packet/command-evidence/product-persistence/runtime-Claude/LDIP-implementation flags=false. The human-approval marker is deferred to CP00-090. Assembler fails closed on upstream pack/next_subphase drift, unsafe boundary claims, and unknown claims; result validator enforces exact 98-field shape, frozen output, and 10/10 receipt contracts+matrix. Findings are review-scope/process caveats only, no functional defects."
+  }
+}

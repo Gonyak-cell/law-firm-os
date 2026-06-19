@@ -1,0 +1,38 @@
+{
+  "work_package_id": "LT-L2-W06",
+  "title": "enum and naming alignment",
+  "created_at": "2026-06-18T14:49:34Z",
+  "status": "t01_draft_blocked_t05_passed_wp_open",
+  "phase": "L2",
+  "gate_binding": [
+    "L2-EXIT"
+  ],
+  "terminal_tuw": "LT-L2-W06-T06",
+  "artifacts": [
+    "workbook/launch-runtime/matter-status-canonical-map.md",
+    "workbook/launch-runtime/terminology-glossary.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l2-w06/packet.json",
+    "docs/goal-closeout/lt-l2-w06/command-evidence.json",
+    "docs/goal-closeout/lt-l2-w06/claude-review-result.json",
+    "docs/goal-closeout/lt-l2-w06/adjudication.md",
+    "docs/goal-closeout/lt-l2-w06/construction-inspection.json"
+  ],
+  "current_status": {
+    "canonical_status_map_draft_exists": true,
+    "canonical_proposal_rows": 7,
+    "terminology_glossary_exists": true,
+    "homonym_resolution_rows": 5,
+    "product_naming_rules_registered": true,
+    "matter_status_decision_resolved": false,
+    "display_id_decision_resolved": false,
+    "confidentiality_enum_decision_resolved": false,
+    "l2_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

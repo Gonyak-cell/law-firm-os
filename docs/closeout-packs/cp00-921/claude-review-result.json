@@ -1,0 +1,74 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-921",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-921/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-921/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "f103211c-89e5-4374-b24b-42029cb31a15",
+    "uuid": "a9b9391f-1dcb-4af7-a33f-8df6baacc9cf",
+    "total_cost_usd": 2.0338295000000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 10409,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-921 is a descriptor-only RP30 People-HR embedded-HRX bridge pack over RP30.P03.M04.S02-RP30.P03.M05.S06 (10 units: 4 EvidenceApi tail rows in M04.S02-S05 [implementation], 6 ErrorModel security-audit rows in M05.S01-S06). Read-only inspection (Read/Grep/Glob) confirms the descriptor-only production_ready boundary is supported and no blocking defect exists. registry.js HRX_CP921_PACK_BINDING and HRX_CP921_REQUIREMENTS match the baseline exactly (risk A, unit_count 10, first=RP30.P03.M04.S02, last=RP30.P03.M05.S06, upstream CP00-920, next CP00-922, next_subphase RP30.P03.M05.S07, deliverable {implementation:4, security_audit:6}, micro_title {EvidenceApi:4, ErrorModel:6}); createHrxDomainRows builds every row with descriptor_only:true and all runtime/payload/record-write/policy-execution/real-data/secret/separate-product/runtime-receipt fields hardcoded false (a targeted grep for those fields set to true in registry.js and contracts/hrx-people-contract.json returned no matches); createHrxCp921EvidenceErrorModelBridgeDescriptor sets source_descriptor=CP920, authority_boundary (claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true, runtime_opening_pack_id=CP00-922), domain_entities EvidenceApi+ErrorModel all-false, baseline deferrals true, hr_ai_final_judgment_allowed:false, real-data allowed:false, hermes_packet.emits_runtime_receipt:false, claude_packet.read_only:true/promotes_claude_to_final_approval:false, handoff to CP00-922/RP30.P03.M05.S07. validators.js (coverage + descriptor + contract) enforce all those boundaries plus capability/safety-gate/no-leak-guard coverage and reject Claude-as-final-approver and Hermes runtime-receipt emission; model.test.js asserts the CP00-921 distribution and closed boundaries with validation.errors deep-equal []. The generated contracts/hrx-people-contract.json carries current_pack/latest_pack/projection=CP00-921 (HrxCp921EvidenceErrorModelBridgeDescriptor), a 2-section/10-row case set (4 EvidenceApi entity rows + 6 ErrorModel entity rows), and validation.valid:true with no drift versus the registry. scripts/validate-rp30-hrx-people-contract.mjs chains the full CP897->CP921 binding chain + coverage + descriptor + contract + capability/gate checks; all referenced npm scripts exist in package.json; index.js wildcard-re-exports the CP921 symbols; closeout-pack-plan.json live_state=CP00-920 with CP00-921 as the queue head; changed-file-scope correctly isolates unrelated dirty files (progress-control-room, workbook/*, LDIP review attempt) as preserved and not part of this pack, with no active untracked implementation files omitted. Authority boundary is correct: Claude is a read-only independent reviewer (not final approver), the Hermes packet is deterministic review-packet/evidence metadata only (emits_runtime_receipt:false), not embedded in product runtime, and the readiness auth preflight passed (1439-byte valid JSON, is_error:false) with no prior invalid review attempts recorded for this pack -- no auth failure, 0-byte stdout, malformed/fenced/tool-shaped evidence, or missing fields. The pack makes no runtime or enterprise-trust claim (runtime_ready:false; manifest/construction-inspection production_ready:false; claude-review-result production_ready:null), so final human approval for enterprise trust correctly remains outside this receipt and does not block this CP closeout goal. No P0/P1/P2 issues. Two non-blocking P3s, identical in nature to the prior pack CP00-920: (1) pack-level review artifacts are in the sanctioned pre-promotion state and must be normalized from this single review before production_ready flips; (2) command-evidence.json exit codes are agent-reported and were verified here by structural inspection but not re-executed under the read-only constraint. Provenance: implementation and structure were verified directly by source inspection; command pass/fail and the full closeout validation ladder were not re-run in this read-only session. Verdict PASS_WITH_FINDINGS; does not block pack closeout or this CP closeout goal.",
+    "findings": [
+      {
+        "id": "CP921-P3-01",
+        "severity": "P3",
+        "title": "Post-review adjudication, construction inspection, and review receipt normalization still pending",
+        "file": "docs/closeout-packs/cp00-921/adjudication.md",
+        "line": 6,
+        "details": "At review time the pack-level review artifacts are in their expected pre-promotion state, not a final state: adjudication.md reads 'Overall verdict: PENDING' / 'Production ready after adjudication: no'; construction-inspection.json has production_ready:false with runtime_ready/status/boundary all null; claude-review-result.json status is 'pending_review' with null production_ready/review/findings/dispositions; and manifest.json pack_level_claude_review.status is 'pending_review' with overall_verdict 'PENDING', empty valid_review_receipts, empty invalid_review_attempts, and null blocks_pack_closeout/blocks_goal_closeout. No review-receipt.json or raw-output.json exists under artifacts/closeout-pack-claude-review/cp00-921/ yet. This is the sanctioned pre-review state (mirrors CP00-920 finding CP920-P3-01) and not a code or boundary defect, but the pack cannot be promoted to descriptor-only production_ready until closeout automation records exactly one valid hardened read-only review receipt from this review and normalizes the adjudication, construction-inspection, claude-review-result, and manifest review block accordingly.",
+        "recommendation": "Have closeout automation consume this review receipt, then normalize adjudication.md, construction-inspection.json, claude-review-result.json, and manifest.pack_level_claude_review from this single review (exactly one valid receipt, no blocking P0/P1/P2 findings) and re-run the full deterministic validation ladder before flipping production_ready to true.",
+        "post_review_disposition": "accepted_expected_pre_promotion_state_non_blocking"
+      },
+      {
+        "id": "CP921-P3-02",
+        "severity": "P3",
+        "title": "Closeout command exit codes are agent-reported, not re-executed under read-only review",
+        "file": "docs/closeout-packs/cp00-921/command-evidence.json",
+        "line": 5,
+        "details": "command-evidence.json records six commands (node --check on registry/validators/validate script; node --test packages/hrx/test/*.test.js; npm run rp30:hrx:validate, rp30:validate, hrx:requirements:validate, hrx:weighted:validate) all at exit_code 0. Under the read-only review constraint (Read/Grep/Glob only, no Bash) these exit codes were not independently re-executed. Provenance distinction: the implementation and structure were verified directly -- the referenced npm scripts exist in package.json, scripts/validate-rp30-hrx-people-contract.mjs soundly chains the CP897->CP921 binding/coverage/descriptor/contract ladder, index.js wildcard-re-exports the CP921 symbols the script imports, and packages/hrx/test/model.test.js asserts the CP00-921 boundaries with validation.errors deep-equal [] -- but the command pass/fail itself is reported, not re-run in this session. The prompt's full closeout ladder (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) likewise cannot be executed here.",
+        "recommendation": "Closeout automation with execution rights must run the full validation ladder and capture exit codes before promotion; treat the recorded exit codes as evidence to be re-confirmed by the deterministic harness rather than as reviewer-verified results.",
+        "post_review_disposition": "accepted_non_blocking_inherent_to_read_only_review"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 2,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 2
+    }
+  },
+  "invalid_review_attempts": []
+}

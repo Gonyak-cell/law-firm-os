@@ -1,0 +1,179 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-434",
+  "subphase_id": "RP14.P04.M02.S11",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/settlement/src/registry.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/settlement/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/settlement/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/settlement/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp14-settlement-core-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/settlement/test/model.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp05:matter-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp06:dms-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp07:search-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp08:email-dms-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp09:crm-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp10:intake-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp11:time-expense-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp12:billing-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp13:payments-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp14:settlement-core:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:baseline -- CP00-434",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:ready -- CP00-434",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:run -- CP00-434 --timeout_ms 1200000",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:normalize -- CP00-434",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:review:receipt:validate -- CP00-434",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check --cached",
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "No real client, matter, document, payments, settlement, credential, or secret data is used by CP00-434 evidence.",
+    "CP00-434 remains descriptor-only and does not open settlement, origination, allocation, or working credit runtime or any other closed runtime surface.",
+    "All implementation, test, contract, plan, and repo-wide validation commands above were executed and passed before the pack-level Claude review run.",
+    "All pre-closeout validation commands were executed and recorded as passing before the pack-level Claude review; the hardened review passed receipt validation and post-review closeout validators were executed and recorded before commit."
+  ],
+  "hermes_gate": {
+    "gate": "H14",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "evidence_refs": [
+      "npm run rp00:control-plane:validate",
+      "npm run spec:requirements:validate",
+      "npm run rp13:payments-core:validate",
+      "npm run rp14:settlement-core:validate"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-434/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-434/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-434/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-434/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

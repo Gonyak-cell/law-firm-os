@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-729",
+  "normalized_at": "2026-06-15T07:45:13.543Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-729/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-729/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-729/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-729/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4a663fd6-94d1-4f72-bd53-abdfe1df64a3",
+    "uuid": "97c0baa7-634f-4229-8fd3-d1433741fe49",
+    "total_cost_usd": 2.4580835,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6311,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Independent read-only review of CP00-729 (RP24 Korean Legal Depth P02 Test And Golden Case Set, RP24.P02.M07.S03-S12, risk A, 10 units) performed via Read/Grep/Glob source inspection (not summary-only; security_audit deliverables present). The descriptor KoreanLegalCp729P02TestGoldenCaseSetDescriptor covers exactly the 10 planned units with deliverable distribution implementation:6/security_audit:2/ui:2 and micro-title 'Test And Golden Case Set' x10, matching registry requirements, the manifest plan_binding_snapshot, the live closeout-pack-plan/next-pack-queue (latest=CP00-729, next=CP00-730/RP24.P02.M07.S13), and the contract latest_projection while preserving CP00-722..CP00-728 as historical. validators.js enforces, and a full-contract scan confirms zero occurrences of, every prohibited boundary flag set true: no HWPX/court-filing/litigation/corporate/Korean-clause runtime opening, no product-state write, no DB row create/update, no object-storage write, no external runtime, no cross-tenant access, no permission-decision detail, no audit-event body, no Hermes runtime receipt, no Claude-final-approval, no enterprise-trust claim, runtime_execution false on all rows. Claude packet is read_only with tools Read/Grep/Glob and claude_is_final_approval:false with human_final_approval_required_for_runtime_opening:true; Hermes pattern is descriptor/evidence-packet+receipt shaping only (emits_runtime_receipt:false), not embedded product runtime. node --test model.test.js asserts cp729 coverage, descriptor validation errors empty, runtime-closed flags, runtime_opening_pack_id CP00-730, and contract projection latest/historical integrity. command-evidence records all gates exit 0 (node --check, rp24 validators, npm test, validate ladder, git diff --check); readiness auth-preflight passed with valid JSON and no forbidden review-evidence conditions; no raw-output/receipt was pre-fabricated. manifest/adjudication/construction-inspection/claude-review-result honestly report production_ready:false, runtime_ready:false, pending_review - no premature claim. The korean_legal_p02_test_golden_case_set_descriptor_verified production_ready flag is supported by implementation, tests, local validation, and boundary evidence; the pack correctly withholds the flag pending exactly one valid hardened receipt (this review). One P3 clarity nit only: runtime_opening_pack_id is a rolling next_pack_id placeholder. No P0/P1/P2. Claude remains read-only and is not the final approval authority; human/enterprise-trust approval is outside this receipt and the pack makes no runtime or enterprise-trust claim, so closeout is not blocked.",
+    "findings": [
+      {
+        "id": "CP00-729-P3-01",
+        "severity": "P3",
+        "title": "runtime_opening_pack_id is a rolling next-pack placeholder, not a committed runtime-opening pack",
+        "file": "packages/korean-legal/src/service.js",
+        "line": 52,
+        "details": "createDescriptor sets authority_boundary.runtime_opening_pack_id = binding.next_pack_id for every pack, so each descriptor nominally points to the following pack as the runtime-opening pack (CP00-728 -> CP00-729, CP00-729 -> CP00-730), yet every pack including CP00-729 remains descriptor_only and runtime-closed and defers again. Reading the historical CP00-728 projection in isolation (runtime_opening_pack_id=CP00-729) could be misread as 'CP00-729 opens runtime', whereas CP00-729 is itself descriptor-only with all runtime/write/real-data flags false. No boundary is weakened: human_final_approval_required_for_runtime_opening is true, claude_is_final_approval is false, and local_validation_claims_enterprise_trust is false; the behavior is consistent across all 8 packs and covered by model.test.js assertions.",
+        "recommendation": "Optional clarity only: rename to next_candidate_runtime_pack_id or document that the field is a rolling placeholder denoting the next pack at which runtime opening could be reconsidered under human approval, to avoid misreading historical projections. Non-blocking for CP00-729 closeout.",
+        "post_review_disposition": "Acknowledged as by-design rolling pointer; consistent across packs and test-covered; non-blocking for CP00-729 closeout and recorded for clarity only."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

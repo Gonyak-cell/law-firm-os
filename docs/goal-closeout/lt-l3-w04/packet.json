@@ -1,0 +1,39 @@
+{
+  "work_package_id": "LT-L3-W04",
+  "title": "WORM audit store and persistent store family",
+  "created_at": "2026-06-18T13:19:50Z",
+  "status": "blocked_pending_worm_store_persistent_stores_and_rp03_runtime_measurement",
+  "phase": "L3",
+  "gate_binding": [
+    "G4",
+    "L3-EXIT"
+  ],
+  "terminal_tuw": "LT-L3-W04-T04",
+  "artifacts": [
+    "docs/launch/l3/worm-store-persistence-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l3-w04/packet.json",
+    "docs/goal-closeout/lt-l3-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l3-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l3-w04/adjudication.md",
+    "docs/goal-closeout/lt-l3-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "store_worm_infra_file_count": 0,
+    "worm_config_exists": false,
+    "worm_rp03_precheck_exists": false,
+    "data_layer_responsibility_map_exists": false,
+    "store_smoke_script_count": 0,
+    "audit_ledger_storage": "in_memory",
+    "operational_worm_store_provisioned": false,
+    "persistent_store_family_provisioned": false,
+    "g4_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

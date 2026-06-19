@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-574",
+  "normalized_at": "2026-06-12T22:11:40.947Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-574/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-574/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-574/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-574/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "aa368f93-d2ba-4d2c-b734-96d5ae533178",
+    "uuid": "02a15e72-3746-445f-b7af-4914b2d54e97",
+    "total_cost_usd": 2.1182632500000005,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7002,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-574 is a descriptor-only RP18.P07 contract-implementation-slice pack (40 units, RP18.P07.M02.S03-RP18.P07.M03.S20, risk B). Independent read-only inspection (Read/Grep/Glob) confirms the pack-level claim is honest and fully supported: production_ready and runtime_ready are explicitly false (manifest.json:6,9; command-evidence.json), implementation_layer is \"descriptor\", and the only positive claim is the \"..._descriptor_verified\" flag. The implementation is pure frozen-data construction: freezeCp574Result (service.js:2917) sets every dispatch/write/persist/storage/audit/lock flag to false with no_real_data:true and synthetic_only:true, and validateAiLegalWorkflowsCoreCp574* (validators.js:4243,4278) independently enforce descriptor_only, runtime_execution:false, customer_safe_errors_only, raw_payload_included:false, no Claude promotion, and no enterprise-trust claim. Pack binding (registry.js:392-407), deliverable distribution {failure_recovery:22,security_audit:4,implementation:3,hermes_evidence:4,fixture:2,test:4,claude_review:1}=40 (hand-verified against baseline units), micro-title split 20/20, all seven required exports, the contract projection (deepEqual at validate-rp18...mjs:1289-1295), README (#cp00-574), manifest, plan, and next-pack-queue are mutually consistent. Source files contain no fs/network/db/runtime operations and import only internal descriptors. Claude is correctly scoped as a read-only, non-final-approver reviewer; human final approval is required and enterprise trust is not claimed from local validation. Hermes patterns appear only as deterministic evidence-packet/receipt descriptor strings (emits_hermes_runtime_receipt:false; manifest no_hermes_runtime_receipt:true). Review-hardening forbidden_review_evidence (registry.js:705) covers failed auth, zero-byte, malformed/fenced JSON, tool-call-shaped output, disabled tools, and missing references; the readiness auth-preflight returned valid JSON (1444B stdout, exit 0). Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json, review-receipt.json) are correctly absent pending this review step, consistent with the documented hardening sequence. Unrelated dirty files are correctly excluded from active_pack_implementation_refs. One non-blocking P3 nit on the \"production_ready_candidate\" field name; no P0/P1/P2 issues. The pack may proceed to post-review closeout, with enterprise trust remaining gated on human final approval.",
+    "findings": [
+      {
+        "id": "C-574-01",
+        "severity": "P3",
+        "title": "Hermes packet field 'production_ready_candidate' name could be misread as a runtime-readiness claim",
+        "file": "packages/ai-legal-workflows/src/validators.js",
+        "line": 4351,
+        "details": "createAiLegalWorkflowsCoreCp574HermesEvidencePacket sets production_ready_candidate = coverage.valid && slice.valid (validators.js:4351) and the validator script asserts it is true (validate-rp18-ai-legal-workflows-core-contract.mjs:1297). The value reflects only descriptor coverage + descriptor-slice validation, not runtime/production readiness. Read in isolation (e.g. by a downstream automated gate or human scanning the Hermes packet), the name could be mistaken for an assertion that the pack is production/runtime ready. In context it is NOT misleading: manifest.json sets production_ready:false and runtime_ready:false (lines 6,9), command-evidence.json sets production_ready:false, the pack binding's production_ready_flag is explicitly the descriptor-verification flag 'ai_legal_workflows_core_p07_contract_implementation_slice_descriptor_verified', and the no-write attestation sets claims_enterprise_trust_from_local_validation:false. No overclaiming occurs and the standing 'never weaken production_ready gates' directive is honored.",
+        "recommendation": "Optional, non-blocking: consider renaming the field to something like descriptor_validation_passed to remove any ambiguity for readers consuming the Hermes evidence packet in isolation. This is a program-wide pattern inherited from CP551+, so any rename should be applied consistently rather than only for CP00-574.",
+        "post_review_disposition": "Accepted as-is; non-blocking nit. The authoritative production_ready and runtime_ready flags are explicitly false and consistent across manifest, command-evidence, and contract, so the descriptor-scoped candidate flag does not constitute a production or enterprise-trust claim. Does not block pack or goal closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-866",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-866/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-866/review-receipt.json"
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "dc2ff852-66c8-49ab-811c-ada6ebaf49d4",
+    "uuid": "319aa085-0fbc-4578-9ea8-c91f7c9547ab",
+    "total_cost_usd": 1.95109525,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6310,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-866 (RP28 Marketplace failure-recovery evidence-review bridge pack, risk C, 150 units, RP28.P07.M06.S03-RP28.P08.M02.S14) is internally consistent and its descriptor-only/no-runtime/no-real-data/no-write boundaries are enforced in code and tests. Pack binding (registry.js:411), deliverable counts (registry.js:1675) and micro-title counts (registry.js:1698) match the baseline/prompt distributions exactly and both sum to 150; the coverage validator (validators.js:2626) checks these against the live plan and the upstream chain CP00-845..CP00-866 is intact with CP866 binding upstream to CP00-865. createRow (registry.js:1909) hard-codes descriptor_only:true and every runtime/install/write/leak flag to false, and the descriptor validator (validators.js:2662) fails closed on any runtime execution, marketplace opening, permission/audit/product-state write, or real-data/secret/token/prompt inclusion. Authority boundary is correct: descriptor (registry.js:3537) and Claude packet (registry.js:2711) keep Claude read-only and non-final-approver, require human approval for runtime opening, and disclaim enterprise trust for local validation; Hermes packet (registry.js:2446) is control-plane only (emits_runtime_receipt:false, writes_product_state:false, no_real_data:true), consistent with hermes_runtime_embedded_in_product:false. Tests (model.test.js:830-866) assert empty coverage/descriptor errors, runtime-closed rows, and a current CP00-866 contract projection; index.js wildcard re-exports all symbols the validation script imports. Review-hardening checks pass: auth preflight succeeded (exit 0, 1436-byte stdout, not 0-byte/malformed), and the pending-state evidence (command-evidence.json, construction-inspection.json, adjudication.md) is mutually consistent and does not over-claim production_ready or runtime/enterprise trust. Provenance: recorded validation exit codes (rp28:marketplace:validate=0, marketplace node:test=0) are taken from command-evidence.json and were not re-executed during this read-only review; the full pre-closeout validation suite (closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) remains the deterministic closeout gate for the implementer to run. No P0/P1/P2 defects found; one P3 advisory on changed-file-scope bookkeeping. Verdict PASS_WITH_FINDINGS; does not block pack or this CP's closeout goal.",
+    "findings": [
+      {
+        "id": "CP00-866-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-lists two untracked paths as both pack-implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-866/changed-file-scope.json",
+        "line": 152,
+        "details": "docs/closeout-pack-plan/new-session-handoff.md and docs/closeout-packs/cp00-866/ appear in both untracked_implementation_files (lines 152-155) and unrelated_dirty_files_preserved (lines 157-171). These two categories are semantically exclusive, so the overlap is a contradictory categorization. Impact is cosmetic only: active_pack_implementation_refs (lines 5-15) is the authoritative in-pack list and is clean (marketplace src/contract/test files plus the validation script), and no unrelated dirty file (progress-control-room, workbook, docx, ldip invalid-attempt) is pulled into pack scope. The production_ready/closeout decision is unaffected.",
+        "recommendation": "Adjust the changed-file-scope generator so a path is emitted into exactly one of untracked_implementation_files or unrelated_dirty_files_preserved (the pack's own evidence dir docs/closeout-packs/cp00-866/ should be implementation-scoped, not unrelated). No pack content change required.",
+        "post_review_disposition": "advisory_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "invalid_review_attempts": []
+}

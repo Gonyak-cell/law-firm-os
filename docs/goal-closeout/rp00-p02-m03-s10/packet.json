@@ -1,0 +1,57 @@
+{
+  "subphase_id": "RP00.P02.M03.S10",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Idempotency key handling",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T09:25:50Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S10 Hermes Validation Idempotency key handling surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S09 allow_metadata_only State transition enforcement results, requires the hermes_validation entrypoint, the S09 subphase marker, a carried state_transition_receipt, audit_event_ref, and state_transition_enforcement_applied marker, emits a frozen metadata-only idempotency receipt for safe lowercase idem.synthetic.* keys, records duplicate replay and TTL policy without persisting idempotency records or acquiring locks, carries S02, S03, S04, S05, S06, S07, S08, S09, M00 refs, TEN-001 through TEN-008 trace refs, validation context IDs, and acceptance gate IDs, rejects unsafe idempotency, runtime, AuthZ, Hermes execution/evidence, audit write, idempotency store write, lock acquisition, tenant lifecycle mutation, requirement trace bypass, real-data, product-write, state transition bypass, and review-bypass claims fail-closed, and hands off to RP00.P02.M03.S11 without appending audit ledgers, writing audit events, creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, evaluating runtime permissions, calling AuthZ, running a permission engine, replacing human approval, using real data, writing idempotency records, acquiring locks, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_valid_review_run": true,
+    "invalid_partial_attempts": 0,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "ab859ed3-0244-4404-b735-0dd44ae0227b",
+    "uuid": "818232a5-4a95-4c7c-85d7-e15d7dad3e8f",
+    "verdict": "PASS",
+    "go_no_go": "GO",
+    "p0_p1_count": 0,
+    "p2_count_initial": 0,
+    "p3_count_initial": 2,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {
+    "P3_unused_forward_looking_test_helper": {
+      "status": "informational_no_action_required",
+      "reason": "Claude confirmed createHermesValidationIdempotencyKeyHandlingResult is forward scaffolding for S11 and does not block S10."
+    },
+    "P3_redundant_idempotency_length_cap": {
+      "status": "informational_no_action_required",
+      "reason": "Claude confirmed the explicit length check is redundant with the regex cap but harmless defense-in-depth."
+    }
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M03.S11"
+}

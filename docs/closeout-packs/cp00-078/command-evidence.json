@@ -1,0 +1,132 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-078",
+  "subphase_id": "RP00.P06.M08.S08",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "hermes_gate": {
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test --test-name-pattern \"Permission Audit Hermes Evidence Packet Decision Binding\" packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack-plan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "preliminary_expected_failure": {
+    "command": "npm run rp00:control-plane:validate",
+    "failure_reason": "CP00-078 evidence files were not created yet; contract and closeout rows already pointed at docs/closeout-packs/cp00-078.",
+    "resolved_by": [
+      "docs/closeout-packs/cp00-078/manifest.json",
+      "docs/closeout-packs/cp00-078/command-evidence.json",
+      "docs/closeout-packs/cp00-078/claude-review-result.json",
+      "docs/closeout-packs/cp00-078/adjudication.md",
+      "docs/closeout-packs/cp00-078/construction-inspection.json"
+    ]
+  },
+  "claude_review_command": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"read-only code reviewer\" --output-format json \"$(cat /tmp/cp00-078-review-prompt.txt)\"",
+    "exit_code": 0,
+    "exactly_one_valid_pack_level_review": true
+  },
+  "invalid_claude_attempts": [
+    {
+      "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools \"\" --system-prompt \"read-only code reviewer\" --output-format json \"$(cat /tmp/cp00-078-review-prompt.txt)\"",
+      "exit_code": 1,
+      "reason": "Sandboxed CLI could not access Claude authentication/keychain and returned Not logged in with zero input tokens; not counted as a valid pack-level review.",
+      "session_id": "c9da6e3c-1ad4-4242-8c35-50085b6de976",
+      "uuid": "a1b7b19a-4a8a-404b-9778-8d47b1963932"
+    }
+  ],
+  "evidence_summary": {
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review required before production_ready",
+    "human_approval_boundary": "Human approval remains metadata-bound; this pack creates no review queue, approval record, assignment, notification, Hermes evidence packet write, command evidence write, or product-state write.",
+    "ledger_boundary_confirmation": "docs/weighted-implementation-ledger.json confirms RP00.P06.M07 has 20 subphases and terminates at RP00.P06.M07.S20."
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-078 is metadata-only and does not execute runtime permission, AuthZ, security trimming, audit, Hermes evidence packet writes, command evidence writes, fixture, test, golden, database, storage, idempotency, lock, product-state, approval, review-queue, or LDIP implementation logic."
+  ],
+  "plan_generation_receipt": {
+    "command": "npm run closeout-pack-plan:generate",
+    "exit_code": 0,
+    "purpose": "Regenerated closeout pack plan and next-pack queue after CP00-078 evidence assembly.",
+    "not_a_final_validation_command": true,
+    "result_summary": "Plan generated with 1175 packs and 53829 units; next queue starts after CP00-078."
+  }
+}

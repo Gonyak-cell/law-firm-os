@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-295",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T00:24:18.830Z",
+  "finished_at": "2026-06-11T00:29:08.618Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":289255,\"duration_api_ms\":289891,\"ttft_ms\":2768,\"num_turns\":45,\"result\":\"Review complete. **Verdict: PASS** — no blocking findings (0 P0–P3).\\n\\nCP00-295 is a descriptor-only RP08 email/DMS Hermes binding slice pack. I verified the full chain end-to-end through read-only inspection:\\n\\n- **Identity/coverage** match the baseline exactly (risk B, 40 units, range, upstream/next), and deliverable + micro-title distributions reconcile across registry, contract, tests, validator script, and manifest.\\n- **Boundaries are enforced in code**, not just declared — `freezeCp295Result` forces all runtime/write/leak flags false, and the CP295 validator uses strict `!== false` guards that would fail on any missing boundary field.\\n- **Authority boundary holds**: `claude_is_final_approval=false`, human final approval required, enterprise trust not claimed from local validation; pack-level `production_ready=false` with review status pending — no overclaim.\\n- **Hermes stays in the control-plane** (descriptor/evidence-packet/receipt only; no product runtime).\\n- **CP178+ hardening** is supported (forbidden-evidence list covers auth-fail, zero-byte, malformed/fenced JSON, tool-call-shaped, missing fields; readiness preflight returned valid JSON).\\n- Unrelated dirty/untracked files (incl. the `c-ldip-01-invalid-attempt-01.json`) are correctly scoped out and not used as this pack's evidence.\\n\\nClaude remained a read-only independent reviewer; final approval rests with the human gate.\",\"stop_reason\":\"end_turn\",\"session_id\":\"5145ec19-280b-4e72-931e-d0d3014e0d8e\",\"total_cost_usd\":2.3249,\"usage\":{\"input_tokens\":54,\"cache_creation_input_tokens\":90084,\"cache_read_input_tokens\":2414422,\"output_tokens\":22128,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":90084,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":563,\"cache_read_input_tokens\":124977,\"cache_creation_input_tokens\":4688,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4688},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1089,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001194,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":54,\"outputTokens\":22128,\"cacheReadInputTokens\":2414422,\"cacheCreationInputTokens\":90084,\"webSearchRequests\":0,\"costUSD\":2.323706,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-295 is a descriptor-only RP08 email/DMS Hermes binding slice pack (risk B, 40 units, RP08.P08.M04.S13-RP08.P08.M06.S08) and passes read-only review with no blocking findings. The CP295 pack binding (registry.js:415), requirements (registry.js:2192), no-write attestation (registry.js:2186), contract projection, validator script (scripts/validate-rp08-email-dms-core-contract.mjs:1148-1175), tests (packages/email-dms/test/model.test.js:1506-1553), README, and manifest are mutually consistent. Deliverable distribution {implementation:18, hermes_evidence:19, test:2, claude_review:1} and micro-title distribution {Secondary Workflow Slice:10, Permission And Audit Binding:22, Synthetic Fixture Set:8} reconcile with the baseline included_units and prompt. All 7 required public exports exist and are re-exported via index.js. Descriptor-only/no-runtime/no-real-data/no-leak boundaries are enforced in code (freezeCp295Result at service.js:3250 plus strict !== false guards in validateEmailDmsCoreCp295HermesBindingSliceDescriptor at validators.js:5353), not merely declared. Authority boundary is preserved: claude_is_final_approval=false, human final approval required, enterprise trust not claimed from local validation; pack-level production_ready=false with claude review status pending. Hermes patterns are confined to deterministic descriptor/evidence-packet/receipt handling (emits_hermes_runtime_receipt=false, executes_command_runtime=false), not product runtime. CP178+ review hardening is supported: forbidden_review_evidence (registry.js:598) rejects auth-failure, zero-byte, malformed-JSON, fenced-JSON, tool-call-shaped, and missing-field evidence, and the readiness auth-preflight passed with valid JSON. Unrelated dirty/untracked files (including docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json) are correctly scoped out and not treated as this pack's review evidence. Post-review gated commands (closeout-pack:validate, closeout-pack:generate) are appropriately deferred per the hardened review sequence.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"573bd280-bb81-41f1-bb16-8bc0af797052\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5152,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "5145ec19-280b-4e72-931e-d0d3014e0d8e",
+    "uuid": "573bd280-bb81-41f1-bb16-8bc0af797052",
+    "total_cost_usd": 2.3249,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "work_package_id": "LT-L5-W02",
+  "inspected_at": "2026-06-18T14:15:15Z",
+  "verdict": "BLOCKED_ETHICAL_WALL_ACCEPTANCE_EVIDENCE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "ethical_wall_test_directory_exists": false,
+    "ethical_wall_override_test_directory_exists": false,
+    "ethical_wall_matrix_exists": false,
+    "emergency_override_rehearsal_exists": false,
+    "break_glass_runbook_exists": true,
+    "permission_request_procedure_exists": true,
+    "five_path_matrix_passed": false,
+    "override_rehearsal_passed": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "staging_accessed": false,
+    "production_accessed": false,
+    "emergency_override_activated": false,
+    "real_matter_or_hr_sensitive_data_accessed": false,
+    "owner_approval_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

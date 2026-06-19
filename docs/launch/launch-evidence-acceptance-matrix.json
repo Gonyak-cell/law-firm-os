@@ -1,0 +1,1692 @@
+{
+  "schema_version": "law-firm-os.launch-evidence-acceptance-matrix.v0.1",
+  "generated_at": "2026-06-18T15:48:40.447Z",
+  "source_refs": [
+    "contracts/go-live-gate-contract.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-manual-evidence-intake-register.json",
+    "docs/launch/stabilization-closure.md",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "boundary": {
+    "defines_future_acceptance_only": true,
+    "go_live_approved_by_this_matrix": false,
+    "owner_deferrals_approved_by_this_matrix": false,
+    "intake_rows_satisfied_by_this_matrix": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "partial_pass_carryover_allowed": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "no_go_policy": {
+    "partial_pass_carryover": "forbidden",
+    "missing_or_failed_dimension_result": "no_go",
+    "p0_p1_adjudication_required_before_rejudgment": true,
+    "full_gate_rejudgment_required_after_fix": true,
+    "local_waiver_without_owner_approval": "forbidden",
+    "review_waiver_counts_as_valid_review_evidence": false
+  },
+  "summary": {
+    "failed_gate_count": 10,
+    "gate_acceptance_row_count": 31,
+    "l9_acceptance_row_count": 5,
+    "total_acceptance_row_count": 36,
+    "pending_acceptance_row_count": 36,
+    "evidence_satisfied_acceptance_row_count": 0,
+    "owner_deferred_acceptance_row_count": 0,
+    "missing_intake_acceptance_row_count": 0,
+    "gate_pending_acceptance_row_count": 31,
+    "gate_evidence_satisfied_acceptance_row_count": 0,
+    "gate_owner_deferred_acceptance_row_count": 0,
+    "l9_pending_acceptance_row_count": 5,
+    "l9_evidence_satisfied_acceptance_row_count": 0,
+    "l9_owner_deferred_acceptance_row_count": 0,
+    "owner_approved_deferrals_present": false,
+    "coverage_eligible_valid_deferred_rows": 0,
+    "non_coverage_valid_deferred_rows": 0,
+    "go_live_all_pass": false
+  },
+  "gate_acceptance_rows": [
+    {
+      "acceptance_id": "ACC-GL-G1-G1-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G1-G1-E02",
+      "gate_id": "G1",
+      "dimension": "completion",
+      "evidence_id": "G1-E02",
+      "slot": "deferred_item_rejudgment_register",
+      "required_state": "blocking_remaining_count_zero",
+      "gate_criteria": [
+        "Final Product Completion Gate is green.",
+        "Every deferred item has a fresh blocking, non-blocking, or wave-2-plus disposition.",
+        "No blocking deferred item remains open.",
+        "Hardening coverage is either complete or every missing cell has adjudication."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G1-G1-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G1-G1-E03",
+      "gate_id": "G1",
+      "dimension": "completion",
+      "evidence_id": "G1-E03",
+      "slot": "hardening_coverage_matrix",
+      "required_state": "all_missing_cells_adjudicated_or_zero",
+      "gate_criteria": [
+        "Final Product Completion Gate is green.",
+        "Every deferred item has a fresh blocking, non-blocking, or wave-2-plus disposition.",
+        "No blocking deferred item remains open.",
+        "Hardening coverage is either complete or every missing cell has adjudication."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W05",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G2-G2-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G2-G2-E01",
+      "gate_id": "G2",
+      "dimension": "runtime",
+      "evidence_id": "G2-E01",
+      "slot": "wave1_runtime_ready_matrix",
+      "required_state": "approved_wave1_runtime_ready_completeness_rule_satisfied",
+      "gate_criteria": [
+        "Wave 1 candidate functions are runtime_ready.",
+        "Runtime integration tests are green.",
+        "RTG-001 through RTG-005 attestations are linked for Wave 1 runtime functions."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W02",
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G2-G2-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G2-G2-E02",
+      "gate_id": "G2",
+      "dimension": "runtime",
+      "evidence_id": "G2-E02",
+      "slot": "runtime_integration_test_output",
+      "required_state": "all_tests_pass_with_timestamp",
+      "gate_criteria": [
+        "Wave 1 candidate functions are runtime_ready.",
+        "Runtime integration tests are green.",
+        "RTG-001 through RTG-005 attestations are linked for Wave 1 runtime functions."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W02",
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G2-G2-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G2-G2-E03",
+      "gate_id": "G2",
+      "dimension": "runtime",
+      "evidence_id": "G2-E03",
+      "slot": "rtg_001_005_attestation_links",
+      "required_state": "all_links_resolve",
+      "gate_criteria": [
+        "Wave 1 candidate functions are runtime_ready.",
+        "Runtime integration tests are green.",
+        "RTG-001 through RTG-005 attestations are linked for Wave 1 runtime functions."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W02",
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G3-G3-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G3-G3-E01",
+      "gate_id": "G3",
+      "dimension": "security",
+      "evidence_id": "G3-E01",
+      "slot": "verification_gate_production_rerun",
+      "required_state": "seven_of_seven_pass",
+      "gate_criteria": [
+        "Verification Gate seven-item production rerun is green.",
+        "Ethical Wall five-path blocking is green.",
+        "Open P0/P1 penetration-test findings are zero.",
+        "Prohibited and non-goal bypass mapping is green."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W04",
+        "LT-L2-W05",
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G3-G3-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G3-G3-E02",
+      "gate_id": "G3",
+      "dimension": "security",
+      "evidence_id": "G3-E02",
+      "slot": "ethical_wall_blocking_results",
+      "required_state": "five_of_five_pass_with_audit",
+      "gate_criteria": [
+        "Verification Gate seven-item production rerun is green.",
+        "Ethical Wall five-path blocking is green.",
+        "Open P0/P1 penetration-test findings are zero.",
+        "Prohibited and non-goal bypass mapping is green."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W04",
+        "LT-L2-W05",
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G3-G3-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G3-G3-E03",
+      "gate_id": "G3",
+      "dimension": "security",
+      "evidence_id": "G3-E03",
+      "slot": "penetration_test_adjudication",
+      "required_state": "open_p0_p1_zero",
+      "gate_criteria": [
+        "Verification Gate seven-item production rerun is green.",
+        "Ethical Wall five-path blocking is green.",
+        "Open P0/P1 penetration-test findings are zero.",
+        "Prohibited and non-goal bypass mapping is green."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W04",
+        "LT-L2-W05",
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G3-G3-E04",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G3-G3-E04",
+      "gate_id": "G3",
+      "dimension": "security",
+      "evidence_id": "G3-E04",
+      "slot": "bypass_mapping_results",
+      "required_state": "all_rows_green",
+      "gate_criteria": [
+        "Verification Gate seven-item production rerun is green.",
+        "Ethical Wall five-path blocking is green.",
+        "Open P0/P1 penetration-test findings are zero.",
+        "Prohibited and non-goal bypass mapping is green."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L0-W04",
+        "LT-L2-W05",
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G4-G4-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G4-G4-E01",
+      "gate_id": "G4",
+      "dimension": "infrastructure_dr",
+      "evidence_id": "G4-E01",
+      "slot": "backup_restore_rehearsal",
+      "required_state": "meets_approved_rpo_rto",
+      "gate_criteria": [
+        "Backup restore rehearsal meets approved RPO/RTO.",
+        "WORM chain operation is verified.",
+        "Deployment rollback round trip is demonstrated.",
+        "Performance acceptance criteria are met."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G4-G4-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G4-G4-E02",
+      "gate_id": "G4",
+      "dimension": "infrastructure_dr",
+      "evidence_id": "G4-E02",
+      "slot": "worm_chain_operation",
+      "required_state": "hash_verify_mutation_block_and_hold_purge_block",
+      "gate_criteria": [
+        "Backup restore rehearsal meets approved RPO/RTO.",
+        "WORM chain operation is verified.",
+        "Deployment rollback round trip is demonstrated.",
+        "Performance acceptance criteria are met."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G4-G4-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G4-G4-E03",
+      "gate_id": "G4",
+      "dimension": "infrastructure_dr",
+      "evidence_id": "G4-E03",
+      "slot": "deployment_rollback_roundtrip",
+      "required_state": "start_end_timestamp_pairs_present",
+      "gate_criteria": [
+        "Backup restore rehearsal meets approved RPO/RTO.",
+        "WORM chain operation is verified.",
+        "Deployment rollback round trip is demonstrated.",
+        "Performance acceptance criteria are met."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G4-G4-E04",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G4-G4-E04",
+      "gate_id": "G4",
+      "dimension": "infrastructure_dr",
+      "evidence_id": "G4-E04",
+      "slot": "performance_acceptance_report",
+      "required_state": "all_metrics_within_approved_thresholds",
+      "gate_criteria": [
+        "Backup restore rehearsal meets approved RPO/RTO.",
+        "WORM chain operation is verified.",
+        "Deployment rollback round trip is demonstrated.",
+        "Performance acceptance criteria are met."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G5-G5-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G5-G5-E01",
+      "gate_id": "G5",
+      "dimension": "m365",
+      "evidence_id": "G5-E01",
+      "slot": "admin_consent_scope_reconciliation",
+      "required_state": "mismatch_count_zero",
+      "gate_criteria": [
+        "Admin consent evidence matches approved Graph scope list.",
+        "Outlook Add-in Release Gate six items pass in production.",
+        "Permission sync checker runs and detects an injected mismatch."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G5-G5-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G5-G5-E02",
+      "gate_id": "G5",
+      "dimension": "m365",
+      "evidence_id": "G5-E02",
+      "slot": "addin_release_gate_production_results",
+      "required_state": "six_of_six_pass",
+      "gate_criteria": [
+        "Admin consent evidence matches approved Graph scope list.",
+        "Outlook Add-in Release Gate six items pass in production.",
+        "Permission sync checker runs and detects an injected mismatch."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G5-G5-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G5-G5-E03",
+      "gate_id": "G5",
+      "dimension": "m365",
+      "evidence_id": "G5-E03",
+      "slot": "permission_sync_checker_log",
+      "required_state": "injected_mismatch_detected",
+      "gate_criteria": [
+        "Admin consent evidence matches approved Graph scope list.",
+        "Outlook Add-in Release Gate six items pass in production.",
+        "Permission sync checker runs and detects an injected mismatch."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G6-G6-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G6-G6-E01",
+      "gate_id": "G6",
+      "dimension": "operations",
+      "evidence_id": "G6-E01",
+      "slot": "slo_dashboard_and_alert_fire",
+      "required_state": "dashboard_capture_and_alert_timestamp_pair",
+      "gate_criteria": [
+        "SLO dashboard and alert fire test are proven.",
+        "Incident, break-glass, and rollback runbooks have tabletop records.",
+        "Break-glass procedure is effective with approved approver and time limit.",
+        "Support channel receives and resolves a test request."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W06",
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W05",
+        "LT-L6-W06",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G6-G6-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G6-G6-E02",
+      "gate_id": "G6",
+      "dimension": "operations",
+      "evidence_id": "G6-E02",
+      "slot": "runbook_tabletop_records",
+      "required_state": "incident_breakglass_rollback_each_at_least_once",
+      "gate_criteria": [
+        "SLO dashboard and alert fire test are proven.",
+        "Incident, break-glass, and rollback runbooks have tabletop records.",
+        "Break-glass procedure is effective with approved approver and time limit.",
+        "Support channel receives and resolves a test request."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W06",
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W05",
+        "LT-L6-W06",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G6-G6-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G6-G6-E03",
+      "gate_id": "G6",
+      "dimension": "operations",
+      "evidence_id": "G6-E03",
+      "slot": "break_glass_effective_record",
+      "required_state": "approved_approver_and_time_limit_present",
+      "gate_criteria": [
+        "SLO dashboard and alert fire test are proven.",
+        "Incident, break-glass, and rollback runbooks have tabletop records.",
+        "Break-glass procedure is effective with approved approver and time limit.",
+        "Support channel receives and resolves a test request."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W06",
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W05",
+        "LT-L6-W06",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G6-G6-E04",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G6-G6-E04",
+      "gate_id": "G6",
+      "dimension": "operations",
+      "evidence_id": "G6-E04",
+      "slot": "support_channel_roundtrip",
+      "required_state": "test_request_received_and_resolved",
+      "gate_criteria": [
+        "SLO dashboard and alert fire test are proven.",
+        "Incident, break-glass, and rollback runbooks have tabletop records.",
+        "Break-glass procedure is effective with approved approver and time limit.",
+        "Support channel receives and resolves a test request."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L3-W06",
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W05",
+        "LT-L6-W06",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G7-G7-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G7-G7-E01",
+      "gate_id": "G7",
+      "dimension": "compliance",
+      "evidence_id": "G7-E01",
+      "slot": "pipa_retention_policy_setting_reconciliation",
+      "required_state": "mismatch_count_zero",
+      "gate_criteria": [
+        "Ratified PIPA retention policy matches system settings.",
+        "Wave 1 AI is off or later Wave 2 AI gate is satisfied.",
+        "HR sensitive store has zero real-data records before HR gate."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L5-W04",
+        "LT-L6-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G7-G7-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G7-G7-E02",
+      "gate_id": "G7",
+      "dimension": "compliance",
+      "evidence_id": "G7-E02",
+      "slot": "ai_disabled_state_or_wave2_gate",
+      "required_state": "all_wave1_ai_off_or_wave2_gate_pass",
+      "gate_criteria": [
+        "Ratified PIPA retention policy matches system settings.",
+        "Wave 1 AI is off or later Wave 2 AI gate is satisfied.",
+        "HR sensitive store has zero real-data records before HR gate."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L5-W04",
+        "LT-L6-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G7-G7-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G7-G7-E03",
+      "gate_id": "G7",
+      "dimension": "compliance",
+      "evidence_id": "G7-E03",
+      "slot": "hr_sensitive_store_count",
+      "required_state": "real_record_count_zero",
+      "gate_criteria": [
+        "Ratified PIPA retention policy matches system settings.",
+        "Wave 1 AI is off or later Wave 2 AI gate is satisfied.",
+        "HR sensitive store has zero real-data records before HR gate."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L5-W04",
+        "LT-L6-W04",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G8-G8-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G8-G8-E01",
+      "gate_id": "G8",
+      "dimension": "data",
+      "evidence_id": "G8-E01",
+      "slot": "backfill_reconciliation_report",
+      "required_state": "approved_reconciliation_completeness_rule_satisfied_and_unexplained_diff_zero",
+      "gate_criteria": [
+        "Backfill reconciliation satisfies the approved completeness rule with all differences explained.",
+        "Delta synchronization procedure is running.",
+        "Rollback-ready state is current."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G8-G8-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G8-G8-E02",
+      "gate_id": "G8",
+      "dimension": "data",
+      "evidence_id": "G8-E02",
+      "slot": "delta_sync_latest_log",
+      "required_state": "latest_run_timestamp_and_count_present",
+      "gate_criteria": [
+        "Backfill reconciliation satisfies the approved completeness rule with all differences explained.",
+        "Delta synchronization procedure is running.",
+        "Rollback-ready state is current."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G8-G8-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G8-G8-E03",
+      "gate_id": "G8",
+      "dimension": "data",
+      "evidence_id": "G8-E03",
+      "slot": "rollback_ready_attestation",
+      "required_state": "current_owner_and_date_present",
+      "gate_criteria": [
+        "Backfill reconciliation satisfies the approved completeness rule with all differences explained.",
+        "Delta synchronization procedure is running.",
+        "Rollback-ready state is current."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L8-W02"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G9-G9-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G9-G9-E01",
+      "gate_id": "G9",
+      "dimension": "governance",
+      "evidence_id": "G9-E01",
+      "slot": "goal_closeout_chain_links",
+      "required_state": "all_links_resolve",
+      "gate_criteria": [
+        "The go-live gate goal has its goal-closeout evidence chain assembled.",
+        "All required closeout links resolve.",
+        "G1 through G8 are pass before G9 is used as a go-live governance claim."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G9-G9-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G9-G9-E03",
+      "gate_id": "G9",
+      "dimension": "governance",
+      "evidence_id": "G9-E03",
+      "slot": "g1_through_g8_readiness_report",
+      "required_state": "g1_to_g8_all_pass",
+      "gate_criteria": [
+        "The go-live gate goal has its goal-closeout evidence chain assembled.",
+        "All required closeout links resolve.",
+        "G1 through G8 are pass before G9 is used as a go-live governance claim."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G10-G10-E01",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G10-G10-E01",
+      "gate_id": "G10",
+      "dimension": "human_approval",
+      "evidence_id": "G10-E01",
+      "slot": "joint_signoff_artifact",
+      "required_state": "two_required_signatures_present",
+      "gate_criteria": [
+        "Managing Partner and System Admin sign off in the approved L1-W05 format.",
+        "The signoff artifact records G1 through G9 results and decision date.",
+        "The go-live decision record is linked and resolvable."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L1-W05",
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G10-G10-E02",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G10-G10-E02",
+      "gate_id": "G10",
+      "dimension": "human_approval",
+      "evidence_id": "G10-E02",
+      "slot": "g1_through_g9_decision_table",
+      "required_state": "nine_rows_and_decision_date_present",
+      "gate_criteria": [
+        "Managing Partner and System Admin sign off in the approved L1-W05 format.",
+        "The signoff artifact records G1 through G9 results and decision date.",
+        "The go-live decision record is linked and resolvable."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L1-W05",
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-GL-G10-G10-E03",
+      "acceptance_type": "go_live_gate_evidence",
+      "intake_id": "GL-G10-G10-E03",
+      "gate_id": "G10",
+      "dimension": "human_approval",
+      "evidence_id": "G10-E03",
+      "slot": "launch_decision_register_entry",
+      "required_state": "linked_and_resolvable",
+      "gate_criteria": [
+        "Managing Partner and System Admin sign off in the approved L1-W05 format.",
+        "The signoff artifact records G1 through G9 results and decision date.",
+        "The go-live decision record is linked and resolvable."
+      ],
+      "current_gate_status": "fail",
+      "current_evidence_status": "failed",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "related_blocked_work_package_ids": [
+        "LT-L1-W05",
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    }
+  ],
+  "l9_acceptance_rows": [
+    {
+      "acceptance_id": "ACC-L9-C01",
+      "acceptance_type": "l9_stabilization_closure_evidence",
+      "intake_id": "L9-C01",
+      "closure_criterion": "Last 14 days P0/P1 count equals zero",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-L9-C02",
+      "acceptance_type": "l9_stabilization_closure_evidence",
+      "intake_id": "L9-C02",
+      "closure_criterion": "Four consecutive weeks SLO met",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-L9-C03",
+      "acceptance_type": "l9_stabilization_closure_evidence",
+      "intake_id": "L9-C03",
+      "closure_criterion": "Four weeks audit completeness green",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-L9-C04",
+      "acceptance_type": "l9_stabilization_closure_evidence",
+      "intake_id": "L9-C04",
+      "closure_criterion": "Every incident has post-analysis link",
+      "current_status": "blocked_not_measured",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    },
+    {
+      "acceptance_id": "ACC-L9-C05",
+      "acceptance_type": "l9_stabilization_closure_evidence",
+      "intake_id": "L9-C05",
+      "closure_criterion": "Owner signoff",
+      "current_status": "missing",
+      "current_intake_status": "pending_evidence_or_owner_deferral",
+      "acceptable_resolution": {
+        "evidence_satisfied_required_fields": [
+          "evidence_ref",
+          "evidence_recorded_at",
+          "verifier"
+        ],
+        "owner_deferred_required_fields": [
+          "decision_register_id",
+          "owner_role_name",
+          "deferral_basis",
+          "target_date_or_revisit_gate",
+          "approval_signature_ref"
+        ],
+        "decision_register_status_required": "deferred(시한 명기)",
+        "prohibited_resolution_claims": [
+          "local waiver without owner approval",
+          "full Claude review waiver as valid review evidence",
+          "partial pass carryover",
+          "synthetic or template evidence as production/runtime evidence",
+          "closed CP evidence rewrite"
+        ]
+      }
+    }
+  ]
+}

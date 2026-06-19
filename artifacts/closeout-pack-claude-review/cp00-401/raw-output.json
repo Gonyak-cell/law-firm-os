@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-401",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T23:59:48.959Z",
+  "finished_at": "2026-06-12T00:05:11.867Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":321738,\"duration_api_ms\":322501,\"ttft_ms\":3996,\"num_turns\":39,\"result\":\"Review complete. Verdict: **PASS_WITH_FINDINGS** (no P0/P1/P2; 2 non-blocking P3 notes).\\n\\nCP00-401 is a sound descriptor-only pack that honestly represents itself (`production_ready=false`, `runtime_ready=false`, descriptor-only). The binding, plan, contract, README, tests, and RP13 validation script are mutually consistent; generation is pure frozen-object construction with all write/runtime/leak flags false; Claude is kept read-only and non-approving; and Hermes is used only as an H13 evidence descriptor, not product runtime. The two P3s are (1) downstream review/adjudication/inspection artifacts not yet present — expected at this stage in the hardening sequence — and (2) a cosmetic double-listing of the pack's own evidence dir in `changed-file-scope.json`. Neither blocks pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"03530ba2-90dc-4520-b147-2d4b75889139\",\"total_cost_usd\":1.8588112500000002,\"usage\":{\"input_tokens\":36,\"cache_creation_input_tokens\":102769,\"cache_read_input_tokens\":1165462,\"output_tokens\":25296,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":102769,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":346,\"cache_read_input_tokens\":101199,\"cache_creation_input_tokens\":9965,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":9965},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1089,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001194,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":36,\"outputTokens\":25296,\"cacheReadInputTokens\":1165462,\"cacheCreationInputTokens\":102769,\"webSearchRequests\":0,\"costUSD\":1.85761725,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-401 is a clean descriptor-only closeout pack covering the RP13.P04.M05 Permission And Audit Binding tail (7 rows) and the RP13.P04.M06 Synthetic Fixture Set head (3 rows), 10 units total. The pack does not over-claim: manifest production_ready=false, runtime_ready=false, status=implemented_pending_review, and the Hermes evidence packet emits only production_ready_candidate. Registry binding, closeout-pack-plan.json (pack at line 411), contract descriptor (line 10905), historical binding (line 11382), current_pack, README, the node:test suite, and scripts/validate-rp13-payments-core-contract.mjs are mutually consistent (pack_id CP00-401, risk A, 10 units, RP13.P04.M05.S16-RP13.P04.M06.S03; distribution fixture1/test1/hermes_evidence1/claude_review1/implementation3/ui3; micro counts M05:7 / M06:3). Descriptor and case-set generation (service.js freezeCp401Result, line 1178) is pure frozen-object construction with every runtime/write/leak flag false (synthetic_only, no_real_data, no audit/state/idempotency/workflow writes, no runtime permission eval, no Hermes runtime receipt, no object storage). Claude is held strictly read-only and explicitly not final approver (claude_is_final_approval=false, promotes_claude_to_final_approval=false); human approval is gated for runtime opening; Hermes H13 is used only as a deterministic evidence-packet descriptor, not product runtime. Readiness auth-preflight returned valid non-empty JSON (exit 0), and all pre-review validation gates in command-evidence.json exit 0. Two non-blocking P3 notes only; no P0/P1/P2 issues. The pack may proceed through the remaining hardening steps (normalize, receipt-validate, adjudication, construction-inspection, final closeout validation, commit).\",\"findings\":[{\"id\":\"CP401-R01\",\"severity\":\"P3\",\"title\":\"Post-review evidence artifacts and post-review gated commands not yet present (expected at this stage)\",\"file\":\"docs/closeout-packs/cp00-401/manifest.json\",\"line\":508,\"details\":\"manifest required_pack_artifacts/evidence_refs list claude-review-result.json, adjudication.md, and construction-inspection.json, and the baseline validation_commands include closeout-pack:validate and git diff --check --cached, none of which exist/are recorded yet. This is expected and correct at the read_only_claude_run_raw_capture step (step 3 of the 9-step hardening_sequence): these artifacts are derived FROM this review and the post-review gated commands run before commit per command-evidence.json notes. Not a defect, but they MUST exist and pass before final closeout/commit.\",\"recommendation\":\"Generate claude-review-result.json from the accepted review, then run finding_adjudication (adjudication.md), construction_inspection (construction-inspection.json), and the post-review gated validation commands (closeout-pack:validate, closeout-pack-plan:generate, git diff --check --cached) before committing CP00-401.\",\"post_review_disposition\":\"Expected-by-design / non-blocking. Downstream hardening steps must produce these artifacts and command results prior to commit; closeout validation should reject if any are missing or invalid.\"},{\"id\":\"CP401-R02\",\"severity\":\"P3\",\"title\":\"changed-file-scope.json redundantly classifies the active pack's own evidence dir as an unrelated dirty file\",\"file\":\"artifacts/closeout-pack-claude-review/cp00-401/changed-file-scope.json\",\"line\":138,\"details\":\"docs/closeout-packs/cp00-401/ (and docs/closeout-pack-plan/new-session-handoff.md) appear in BOTH untracked_implementation_files (lines 130-133) and unrelated_dirty_files_preserved (lines 135-145). The cp00-401/ directory is this pack's own evidence directory (it holds the manifest.json and command-evidence.json this review depends on), so labeling it 'unrelated' is contradictory. The authoritative manifest worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json lines 548-556) correctly omits cp00-401/ and new-session-handoff.md, so pack integrity and scope are unaffected; this is cosmetic metadata redundancy in the helper scope file.\",\"recommendation\":\"Fix the scope-emitter so an active-pack untracked implementation path (the pack's own docs/closeout-packs/<pack>/ dir) is not also emitted under unrelated_dirty_files_preserved; keep the two lists mutually exclusive.\",\"post_review_disposition\":\"Non-blocking metadata cleanup for the closeout-pack scope tooling; does not affect CP00-401 boundaries, descriptor-only status, or production_ready accounting.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":2,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":2}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"93b1c8ef-9bd8-4a0f-a507-0915063439f2\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6974,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "03530ba2-90dc-4520-b147-2d4b75889139",
+    "uuid": "93b1c8ef-9bd8-4a0f-a507-0915063439f2",
+    "total_cost_usd": 1.8588112500000002,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

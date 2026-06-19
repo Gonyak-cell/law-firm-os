@@ -1,0 +1,36 @@
+{
+  "work_package_id": "LT-L1-W08",
+  "title": "staffing and role gap draft",
+  "created_at": "2026-06-18T14:47:32Z",
+  "status": "draft_completed_pending_l0_w02_approval",
+  "phase": "L1",
+  "gate_binding": [
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W08-T02",
+  "artifacts": [
+    "docs/launch/staffing-plan-draft.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w08/packet.json",
+    "docs/goal-closeout/lt-l1-w08/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w08/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w08/adjudication.md",
+    "docs/goal-closeout/lt-l1-w08/construction-inspection.json"
+  ],
+  "current_status": {
+    "staffing_draft_exists": true,
+    "required_role_labels_present": true,
+    "development_team_premise_present": true,
+    "runtime_gap_report_citation_present": true,
+    "real_person_names_synthesized": false,
+    "l0_w02_approval_pending": true,
+    "final_staffing_approval_present": false,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

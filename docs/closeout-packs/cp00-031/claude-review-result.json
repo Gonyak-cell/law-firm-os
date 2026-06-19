@@ -1,0 +1,127 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-031",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "no_tools_used": true,
+    "output_format": "text",
+    "session_id": "ad207e0e-1c18-4c1a-8030-29cbac16ad7c",
+    "uuid": "ad207e0e-1c18-4c1a-8030-29cbac16ad7c",
+    "uuid_source": "claude_project_session_id_fallback_because_text_output_did_not_expose_message_uuid",
+    "total_cost_usd": 0,
+    "cost_metadata_unavailable": true,
+    "cost_metadata_unavailable_reason": "Claude CLI text output did not expose cost metadata for this non-persistent review run; no second review was executed solely to fetch metadata.",
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max"
+  },
+  "raw_review": {
+    "overall_verdict": "APPROVE",
+    "claude_reported_verdict": "approve",
+    "blocks_pack_closeout_at_review_time": false,
+    "blocks_pack_closeout_after_adjudication": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked_at_review_time": false,
+    "production_ready_blocked_after_adjudication": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P3",
+        "area": "repo-hygiene/scope",
+        "finding": "Two untracked working-tree entries sit alongside the pack changes and are unrelated to the implementation scope.",
+        "evidence": "git_status_short shows '?? .DS_Store' and '?? \"Law Firm OS UI/\"'. The pack's staged changes are limited to the eight intended files in git_diff_stat; these untracked items are not part of the diff.",
+        "recommendation": "Add .DS_Store to .gitignore and confirm 'Law Firm OS UI/' is unrelated; ensure neither is included in the CP00-031 closeout commit. Non-blocking for this pack."
+      },
+      {
+        "id": "F2",
+        "severity": "P3",
+        "area": "maintainability",
+        "finding": "The policy validator pins the forbidden-claim count with a hardcoded literal (length !== 23) in addition to the subset check via requireArrayIncludesAll.",
+        "evidence": "packages/control-plane/src/validators.js: 'if (policy.forbiddenBoundaryClaims.length !== 23) throw ...'.",
+        "recommendation": "This is a deliberate drift guard consistent with the repo's existing precheck validators and is beneficial (catches silent additions/removals the subset check would miss). Optional: derive the expected count from the canonical list to avoid manual updates. Keep as-is for pattern consistency."
+      },
+      {
+        "id": "F3",
+        "severity": "P3",
+        "area": "metadata-carryforward",
+        "finding": "The precheck result/fixture surfaces command_evidence_ref pointing at an upstream pack's evidence rather than the current pack.",
+        "evidence": "fixtures/synthetic-control-plane.json tenant_boundary_result.command_evidence_ref = 'docs/closeout-packs/cp00-029/command-evidence.json'; the result validator only requires it to be a nonblank trimmed string (not pinned).",
+        "recommendation": "Confirm this carried-forward S01 service-entrypoint command-evidence ref is intentional (it flows S01->S02->S03 unchanged and is correct by design). No change needed if intended."
+      }
+    ],
+    "security_notes": [
+      "Claude found no P0, P1, or P2 issues.",
+      "Claude found the no-write, no-test-execution, no-golden-generation, actor-tenant fail-closed, and no-premature-rollup boundaries consistent in the supplied diff."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 493/493 before evidence generation.",
+      "CP00-031 records one valid pack-level Claude Opus 4.8 max read-only review."
+    ],
+    "summary": "CP00-031 implements the RP00.P02.M07.S03 'Test And Golden Case Set' tenant-boundary precheck as a no-write, metadata-only step that strictly mirrors the established synthetic-fixture-set precheck pattern. The new prechecker (precheckControlPlaneTestAndGoldenCaseSetTenantBoundary) accepts only S02-normalized test_and_golden_case_set requests (asserting entrypoint_id, normalization_subphase_id=RP00.P02.M07.S02, source_micro_phase_id=RP00.P02.M07), denies actor/tenant mismatch by emitting the actorTenantMismatch blocked-claim ref with decision 'deny_blocked_claim_required', and throws fail-closed on any truthy forbidden or unknown boundary claim. The result is frozen, carries S01/S02/S11 metadata, defers matter-trace/permission/audit-hint prechecks to S04/S05/S06, sets next_subphase=S04, and asserts via a dedicated result validator that cross-checks pass/decision/blocked-ref invariants and pins all safety/no-write flags. Policy, prechecker module, result-field list, contract definition, fixture, README, contract ledger (current_subphase, subphase_closeouts, production_ready_requires), and the RP00 validator are all updated consistently. node --check passes on every touched file and 493 service tests pass; the only validation failure is the expected pre-evidence absence of docs/closeout-packs/cp00-031 artifacts. No functional, security, or contract-drift defects were found; verdict is approve.",
+    "residual_risk": {
+      "level": "low",
+      "items": [
+        "Low. (1) The RP00 validator's weighted-ledger boundary check for RP00.P02.M07.S03 (terminal=false, nextSubphaseId=RP00.P02.M07.S04) is not visible as an added entry in the contract diff; it is assumed pre-seeded in the forward-looking weighted ledger, consistent with how S01/S02 passed the same check and with the reported validation failure being limited to missing evidence files. If the ledger were missing the S03 boundary, validate would emit an additional error not reflected in the provided summary. (2) Closeout artifacts under docs/closeout-packs/cp00-031 (manifest, command-evidence, claude-review, adjudication, construction-inspection with control_plane_test_and_golden_case_set_tenant_boundary_precheck_verified=true) are not yet created, so npm run rp00:control-plane:validate correctly fails pre-evidence; this is the expected next step, not a code defect. (3) Field-value pinning (refs, statuses, catalog/unit-test refs) in the result validator depends on the S02 normalizer continuing to emit canonical values; any upstream drift would fail closed at result assertion rather than silently pass, which is the desired behavior."
+      ]
+    }
+  },
+  "raw_review_text": "{\n  \"verdict\": \"approve\",\n  \"summary\": \"CP00-031 implements the RP00.P02.M07.S03 'Test And Golden Case Set' tenant-boundary precheck as a no-write, metadata-only step that strictly mirrors the established synthetic-fixture-set precheck pattern. The new prechecker (precheckControlPlaneTestAndGoldenCaseSetTenantBoundary) accepts only S02-normalized test_and_golden_case_set requests (asserting entrypoint_id, normalization_subphase_id=RP00.P02.M07.S02, source_micro_phase_id=RP00.P02.M07), denies actor/tenant mismatch by emitting the actorTenantMismatch blocked-claim ref with decision 'deny_blocked_claim_required', and throws fail-closed on any truthy forbidden or unknown boundary claim. The result is frozen, carries S01/S02/S11 metadata, defers matter-trace/permission/audit-hint prechecks to S04/S05/S06, sets next_subphase=S04, and asserts via a dedicated result validator that cross-checks pass/decision/blocked-ref invariants and pins all safety/no-write flags. Policy, prechecker module, result-field list, contract definition, fixture, README, contract ledger (current_subphase, subphase_closeouts, production_ready_requires), and the RP00 validator are all updated consistently. node --check passes on every touched file and 493 service tests pass; the only validation failure is the expected pre-evidence absence of docs/closeout-packs/cp00-031 artifacts. No functional, security, or contract-drift defects were found; verdict is approve.\",\n  \"findings\": [\n    {\n      \"id\": \"F1\",\n      \"severity\": \"P3\",\n      \"area\": \"repo-hygiene/scope\",\n      \"finding\": \"Two untracked working-tree entries sit alongside the pack changes and are unrelated to the implementation scope.\",\n      \"evidence\": \"git_status_short shows '?? .DS_Store' and '?? \\\"Law Firm OS UI/\\\"'. The pack's staged changes are limited to the eight intended files in git_diff_stat; these untracked items are not part of the diff.\",\n      \"recommendation\": \"Add .DS_Store to .gitignore and confirm 'Law Firm OS UI/' is unrelated; ensure neither is included in the CP00-031 closeout commit. Non-blocking for this pack.\"\n    },\n    {\n      \"id\": \"F2\",\n      \"severity\": \"P3\",\n      \"area\": \"maintainability\",\n      \"finding\": \"The policy validator pins the forbidden-claim count with a hardcoded literal (length !== 23) in addition to the subset check via requireArrayIncludesAll.\",\n      \"evidence\": \"packages/control-plane/src/validators.js: 'if (policy.forbiddenBoundaryClaims.length !== 23) throw ...'.\",\n      \"recommendation\": \"This is a deliberate drift guard consistent with the repo's existing precheck validators and is beneficial (catches silent additions/removals the subset check would miss). Optional: derive the expected count from the canonical list to avoid manual updates. Keep as-is for pattern consistency.\"\n    },\n    {\n      \"id\": \"F3\",\n      \"severity\": \"P3\",\n      \"area\": \"metadata-carryforward\",\n      \"finding\": \"The precheck result/fixture surfaces command_evidence_ref pointing at an upstream pack's evidence rather than the current pack.\",\n      \"evidence\": \"fixtures/synthetic-control-plane.json tenant_boundary_result.command_evidence_ref = 'docs/closeout-packs/cp00-029/command-evidence.json'; the result validator only requires it to be a nonblank trimmed string (not pinned).\",\n      \"recommendation\": \"Confirm this carried-forward S01 service-entrypoint command-evidence ref is intentional (it flows S01->S02->S03 unchanged and is correct by design). No change needed if intended.\"\n    }\n  ],\n  \"residual_risk\": \"Low. (1) The RP00 validator's weighted-ledger boundary check for RP00.P02.M07.S03 (terminal=false, nextSubphaseId=RP00.P02.M07.S04) is not visible as an added entry in the contract diff; it is assumed pre-seeded in the forward-looking weighted ledger, consistent with how S01/S02 passed the same check and with the reported validation failure being limited to missing evidence files. If the ledger were missing the S03 boundary, validate would emit an additional error not reflected in the provided summary. (2) Closeout artifacts under docs/closeout-packs/cp00-031 (manifest, command-evidence, claude-review, adjudication, construction-inspection with control_plane_test_and_golden_case_set_tenant_boundary_precheck_verified=true) are not yet created, so npm run rp00:control-plane:validate correctly fails pre-evidence; this is the expected next step, not a code defect. (3) Field-value pinning (refs, statuses, catalog/unit-test refs) in the result validator depends on the S02 normalizer continuing to emit canonical values; any upstream drift would fail closed at result assertion rather than silently pass, which is the desired behavior.\"\n}",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "raw_finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3
+    },
+    "blocks_pack_closeout": false,
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P3",
+        "title": ".DS_Store and Law Firm OS UI are unrelated untracked entries",
+        "status": "not_applicable_after_adjudication"
+      },
+      {
+        "id": "F2",
+        "severity": "P3",
+        "title": "Hardcoded forbidden-claim count is a drift guard",
+        "status": "not_applicable_after_adjudication"
+      },
+      {
+        "id": "F3",
+        "severity": "P3",
+        "title": "CP00-029 command evidence reference is carried forward from upstream S01/S02 metadata",
+        "status": "not_applicable_after_adjudication"
+      }
+    ]
+  },
+  "read_only_confirmation": {
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true,
+    "supplied_context_only": true
+  },
+  "adjudication_notes": "Claude approved CP00-031 with only P3 findings. F1 is non-blocking because .DS_Store and Law Firm OS UI/ remain untracked and are excluded from the CP00-031 commit. F2 is accepted because fixed literal length checks are an established validator drift-guard pattern in this repo. F3 is accepted because command_evidence_ref is upstream S01 metadata carried through S02 and S03; CP00-031 command-evidence.json is the current pack gate record."
+}

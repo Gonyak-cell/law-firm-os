@@ -1,0 +1,102 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-028",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "invalid_review_attempts_not_counted": [
+    {
+      "reason": "claude_cli_returned_planning_text_without_findings",
+      "session_id": "d486dcd6-3d44-4c2c-bad1-58c386dc024c",
+      "uuid": "9942b5e4-23ad-4ae9-84c1-973f51e1a41c",
+      "exit_code": 0,
+      "counted_as_valid_review": false
+    },
+    {
+      "reason": "bare_mode_not_logged_in_before_review_execution",
+      "session_id": "d55d79b5-42db-4c16-9884-34401aa78729",
+      "uuid": "983b1d70-f0f9-4de4-bf2d-c84806e549e0",
+      "exit_code": 1,
+      "counted_as_valid_review": false
+    }
+  ],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "bypassPermissions",
+    "tools": [],
+    "session_id": "3cbf4941-cabe-47bf-a1e9-7a3ecaed27a6",
+    "uuid": "253f2202-5277-4fcb-a9d3-6f9a3f0b0773",
+    "duration_ms": 184451,
+    "duration_api_ms": 187134,
+    "total_cost_usd": 0.92366375,
+    "permission_denials": [],
+    "structured_output_model_field": "claude-opus-4-8",
+    "structured_output_effort_field": "max",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 10075,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.01018,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-opus-4-8": {
+        "inputTokens": 3,
+        "outputTokens": 15794,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 82979,
+        "webSearchRequests": 0,
+        "costUSD": 0.9134837499999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    }
+  },
+  "raw_review": {
+    "overall_verdict": "PASS_AFTER_EVIDENCE_CREATION",
+    "claude_reported_verdict": "pass_after_evidence_creation",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "production_ready_blocked": false,
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "findings": [],
+    "security_notes": [
+      "Claude found the S11 correction preserves the metadata-only no-write guarantee.",
+      "Claude found no P0/P1/P2/P3 code findings and no production_ready blocker after evidence generation."
+    ],
+    "test_notes": [
+      "node --test packages/control-plane/test/service.test.js passed 479/479 before evidence generation.",
+      "CP00-028 records one valid pack-level Claude Opus 4.8 max read-only review."
+    ],
+    "summary": "Claude reported pass_after_evidence_creation with no code findings. The only outstanding item at review time was creating the CP00-028 evidence files, resolved by this pack generation and final validation."
+  },
+  "raw_review_text": "I have completed the review of Law Firm OS Closeout Pack CP00-028.\n\n**Verdict: `pass_after_evidence_creation`** — no code findings.\n\nThis is a precise, metadata-only corrective pack for `RP00.P02.M06.S11`. It correctly fixes the erroneous CP00-027 handoff to the non-existent `RP00.P02.M06.S12`, replacing it with the real successor `RP00.P02.M07.S01` and marking S11 as the terminal subphase that completes source microphase `RP00.P02.M06`.\n\nKey verification points:\n- **Consistent across all 8 files** — every `next_subphase`/`source_micro_phase_completed`/`futureSubphases`/pack-ref change lines up across contract, README, fixture, policies, service, validators, tests, and the validate script.\n- **Completion scope is correct** — `completes_RP00_P02_M06: true` while `does_not_complete_RP00_P02` and `does_not_close_RP00` are preserved as `true` (M07 still follows in P02).\n- **No-write invariant intact** — no runtime writes, routes, permission/AuthZ/audit execution, fixture generation/persistence, lock acquisition, or UI added; all `*_permitted` flags remain `false`.\n- **Drift test correctly inverted** (`source complete: true` → `source incomplete: false`) since `true` is now the valid state.\n- **Validation matches** — all `node --check` pass, 479 tests pass; the only outstanding item is creating the `docs/closeout-packs/cp00-028` evidence files (expected), with no residual M06.S12 ledger error.",
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    },
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": []
+  },
+  "read_only_confirmation": {
+    "tools_disabled": true,
+    "no_repo_mutation_by_claude": true,
+    "no_network_permission_prompt_to_user": true
+  },
+  "adjudication_notes": "No P0/P1/P2/P3 findings were reported in the valid CP00-028 review. Invalid earlier attempts are preserved as not counted and do not create additional valid reviews."
+}

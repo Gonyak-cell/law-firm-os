@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-313",
+  "normalized_at": "2026-06-11T03:59:57.095Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-313/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-313/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-313/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-313/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d56a7d28-609c-487f-a226-d0a2417d4e25",
+    "uuid": "e75fba36-0403-4e9e-932f-d2946f64ae40",
+    "total_cost_usd": 2.5797100000000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7436,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-313 is a descriptor-only CRM-core failure-slice pack (RP09.P07.M03.S19-RP09.P07.M04.S06, risk A, 10 units) closing the M03 primary failure tail and opening the M04 secondary workflow head. Reviewed via Read/Grep/Glob only. Identity, risk class, unit count, range, upstream/next and gates (H09/C09) are consistent across the registry binding (packages/crm/src/registry.js:253), manifest, review baseline, closeout-pack-plan.json:410, next-pack-queue, and the persisted contract (contracts/crm-core-contract.json:16). Coverage/distribution match the planned deliverable distribution {security_audit:1, hermes_evidence:1, claude_review:1, implementation:1, failure_recovery:6} and micro-title split {Primary:4, Secondary:6}; required section rows enumerate all 10 unit titles (registry.js:1496). The descriptor (service.js:2134) and case set are pure Object.freeze data with a complete no-write/no-real-data attestation (no DB writes, no object storage, no Hermes runtime receipt, no rollback/retry/command runtime). Failure-specific guards are enforced and tested: audit-failure-hint detail excluded, no Hermes runtime receipt, Claude final-approval not claimed, human escalation route required before runtime, and missing-context/unknown-action outcomes rejected_customer_safe (validators.js:3176; model.test.js:951-998; validate-rp09-crm-core-contract.mjs:346-811). All 7 required public exports exist and are surfaced via index.js export *. Authority boundary holds: Claude is a read-only reviewer (allowed_tools Read/Grep/Glob), not final approver; enterprise trust is not claimed from local validation; human final approval gates runtime opening at CP00-314. CP178+ review-hardening blockers are encoded in forbidden_review_evidence (registry.js:457) and mirrored in the contract claude_packet; the readiness auth preflight passed with non-zero, well-formed JSON stdout. command-evidence.json records all implementation, contract, plan, and repo-wide validation commands plus git diff --check at exit 0, with Hermes gate H09 passed. Pack-level production_ready is correctly FALSE (implemented_pending_review); post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are pending by design per the hardening sequence and are not expected to exist at read-only review time. No P0/P1 issues. One P3 cosmetic note on the generated changed-file-scope helper. Recommend the pack proceed through adjudication/construction-inspection toward closeout; promotion of any enterprise-trust/production-ready claim remains a human decision.",
+    "findings": [
+      {
+        "id": "CP313-P3-001",
+        "severity": "P3",
+        "title": "changed-file-scope lists the active pack's own doc dir under unrelated_dirty_files_preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-313/changed-file-scope.json",
+        "line": 103,
+        "details": "docs/closeout-packs/cp00-313/ and docs/closeout-pack-plan/new-session-handoff.md appear in BOTH untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). The cp00-313 evidence directory is the active pack's own output, so labeling it 'unrelated' is a misnomer. The pack manifest's own worktree_transition_policy.unrelated_dirty_files_preserved (docs/closeout-packs/cp00-313/manifest.json:528-531) is cleaner, listing only the unrelated docx and the c-ldip-01 invalid-attempt JSON. This is a redundancy/naming inconsistency in an auto-generated review-scope helper; the underlying field appears to enumerate all preserved (non-reverted) untracked paths rather than strictly unrelated ones.",
+        "recommendation": "Clarify the generator semantics (e.g., rename to preserved_untracked_files) or exclude active-pack paths from unrelated_dirty_files_preserved so the active pack's evidence directory is not classified as unrelated. No code or boundary change required.",
+        "post_review_disposition": "Non-blocking cosmetic bookkeeping in a generated review-scope artifact. Does not affect pack scope, implementation, tests, validation gates, no-write/no-real-data boundaries, or the production_ready posture. Safe to defer."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

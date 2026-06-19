@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.construction-inspection.v0.1",
+  "pack_id": "CP00-675",
+  "subphase_id": "RP22.P03.M06.S12",
+  "verdict": "PASS",
+  "production_ready": true,
+  "pack_production_ready": true,
+  "included_units_production_ready": true,
+  "pack_level_claude_review_completed": true,
+  "claude_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 2,
+    "p2_status": "fixed_or_deferred",
+    "p3_status": "informational_no_action_required"
+  },
+  "external_integrations_i_phase3_foundation_bridge_descriptor_verified": true,
+  "human_acceptance_or_explicit_next_goal_boundary": "CP00-675 is production_ready after hardened read-only Claude review; the next explicit CP boundary is CP00-676 / RP22.P03.M06.S13.",
+  "invalid_review_attempts_excluded": [
+    {
+      "attempt_id": "cp675-invalid-attempt-01",
+      "status": "invalid_not_accepted",
+      "invalid_reason": "stdout_0_bytes; required_field_error: parsed_review missing",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-675/invalid-attempt-01-raw-output.json",
+      "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-675/invalid-attempt-01-review-receipt.json"
+    }
+  ]
+}

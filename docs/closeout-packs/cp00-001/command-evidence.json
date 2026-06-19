@@ -1,0 +1,119 @@
+{
+  "pack_id": "CP00-001",
+  "subphase_id": "RP00.P02.M05.S05",
+  "source_micro_phase_id": "RP00.P02.M05",
+  "title": "Control-plane Claude review and permission audit transition pack",
+  "created_at": "2026-06-06T01:55:00.000Z",
+  "executed_at": "2026-06-06T02:18:00.000Z",
+  "status": "passed",
+  "production_ready": true,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run cp00:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "test_count": 423,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "requirement_count": 227,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "implementation_subphase_count": 54355,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "release_program_count": 30,
+      "micro_phase_count": 3300,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "claude --add-dir /tmp --model claude-opus-4-8 --effort max --permission-mode bypassPermissions --no-session-persistence --tools Read --allowedTools Read --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit,Grep,Glob --output-format stream-json --include-partial-messages --verbose -p <CP00-001 pack-level review prompt>",
+      "exit_code": 0,
+      "duration_ms": 360685,
+      "session_id": "f8040653-4950-42a6-af7a-f6d6a5de58ec",
+      "uuid": "f4596e00-f5f6-414c-abf8-fe63840c31ef",
+      "total_cost_usd": 1.9181305,
+      "summary": "Single valid CP00-001 pack-level read-only review completed against /tmp/lfos-cp00-001-review-packet.diff.",
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "This pack preserves existing individual closeout evidence and adds pack-level evidence as the primary completion unit.",
+    "The legacy S05 atomic Claude review completed successfully before the pack pivot and is recorded as transition evidence only, not as the required pack-level Claude review.",
+    "CP00-001 pack-level Claude review ran exactly once using claude-opus-4-8 effort=max read-only review. The P1 sequencing finding is fixed by finalizing the pack evidence before the final RP00 gate. The P2 live-count finding is fixed by monotonic snapshot validation rather than exact equality."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "status": "passed"
+  },
+  "pre_pack_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "CP00-001 command evidence pending",
+      "CP00-001 Claude review pending",
+      "CP00-001 construction inspection pending"
+    ]
+  },
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "evidence_summary": {
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only pack-level review completed before production_ready",
+    "human_approval_boundary": "Human approval is not replaced or synthesized by deterministic synthetic control-plane metadata prechecks because no sensitive production mutation, client-facing output, external sharing, finance action, real data operation, runtime execution, permission engine execution, AuthZ evaluation, security trimming execution, audit write, storage write, database write, or product-state write occurs.",
+    "pack_boundary": "CP00-001 groups existing RP00.P02.M04.S06-S14 closeout evidence and current RP00.P02.M05.S05 implementation under a Risk A pack without treating approximately 1,000 packs as equal-sized arithmetic buckets."
+  }
+}

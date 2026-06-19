@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-835",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-16T10:39:46.129Z",
+  "finished_at": "2026-06-16T10:46:02.077Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":375224,\"duration_api_ms\":377214,\"ttft_ms\":4825,\"num_turns\":57,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-835 closeout is not blocked.\\n\\nThe descriptor-only permission-matrix closeout/handoff bridge is internally consistent (contract ↔ registry ↔ validators ↔ tests ↔ validation script), ledger-sourced (S01–S10 of the 20-subphase RP27.P06.M10), and holds all no-write/no-real-data and authority boundaries. No premature `production_ready`/enterprise-trust claims; the pending-review placeholders (including the 0-byte `claude-review-result.json`) are honest, not fraudulent evidence. Claude stays read-only/non-final and Hermes is control-plane-only. The only finding is one non-blocking P3 (an unreachable `closeoutOverride` branch in the CP835 case-set builder, registry.js:1825 — correct routing is carried separately and validated). No unresolved P0/P1.\",\"stop_reason\":\"end_turn\",\"session_id\":\"8406d5b1-3eff-4ac7-a4b9-935a68a2d2cb\",\"total_cost_usd\":2.3831785,\"usage\":{\"input_tokens\":56,\"cache_creation_input_tokens\":115484,\"cache_read_input_tokens\":1958313,\"output_tokens\":27230,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115484,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":351,\"cache_read_input_tokens\":108139,\"cache_creation_input_tokens\":7878,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7878},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1112,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001217,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":56,\"outputTokens\":27230,\"cacheReadInputTokens\":1958313,\"cacheCreationInputTokens\":115484,\"webSearchRequests\":0,\"costUSD\":2.3819615,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-835 is a descriptor-only RP27 Platform Extensibility permission-matrix closeout/handoff bridge pack (risk A, 10 units RP27.P06.M10.S01-S10, distribution 2 security_audit + 8 implementation). Verified via Read/Grep/Glob only. Scope is legitimate and ledger-sourced: weighted-implementation-ledger SHA 13c7ed65... defines RP27.P06.M10 (\\\"Closeout And Next Handoff\\\") as a 20-subphase microphase; this pack covers S01-S10 and the binding/handoff route correctly to CP00-836 / RP27.P06.M10.S11. Implementation is mutually consistent across the contract cp835 projection, registry (PLATFORM_EXTENSIBILITY_CP835_PACK_BINDING, case-set, descriptor builder, Hermes/Claude packets, closeout handoff), validators (coverage + descriptor), the validation script, and model tests; the 10 rows equal PERMISSION_ROWS.slice(0,10) and match the manifest/plan units and deliverable counts exactly. No-write/no-real-data boundaries hold: every row is descriptor_only=true, runtime_execution=false, with api_key/webhook/workflow/credential payloads excluded, real_client_data_included=false, permission_decision_written/audit_event_written/writes_product_state=false, and deny-over-allow enforced; the descriptor validator hard-fails on any breach. Authority boundary is correct: claude_is_final_approval=false, promotes_claude_to_final_approval=false, read_only=true, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true (runtime opening deferred to CP00-836); Hermes packet emits_runtime_receipt=false, i.e. control-plane review-evidence handling only, not product runtime. No premature production_ready/enterprise-trust claim: manifest production_ready=false, runtime_ready=false, status=in_progress, and adjudication/inspection/command-evidence are honest pending-review placeholders. The claude-review-result.json 0-byte stdout is the expected pending placeholder (valid_review_receipts=[], exactly_one_valid_pack_level_claude_review_run=false), not fraudulent or auth-failed review evidence. Pack-specific command evidence (rp27:platform-extensibility:validate, platform node --test) claims exit 0 and is consistent with the well-formed source I inspected. One non-blocking P3 cosmetic dead-code note only. Verdict PASS_WITH_FINDINGS; does not block this pack's closeout nor this CP's goal closeout; no unresolved P0/P1. Final production_ready flip and human enterprise-trust approval remain outside this receipt by design.\",\"findings\":[{\"id\":\"CP835-P3-01\",\"severity\":\"P3\",\"title\":\"Unreachable closeout-handoff override branch in CP835 case-set builder\",\"file\":\"packages/platform/src/registry.js\",\"line\":1825,\"details\":\"createPlatformExtensibilityCp835PermissionMatrixCloseoutHandoffBridgeCaseSet() defines closeoutOverride (lines 1814-1817) and applies it only when title === \\\"Closeout handoff\\\" (line 1825). For CP835, required_section_rows[\\\"RP27.P06.M10\\\"] = PERMISSION_ROWS.slice(0,10), whose titles are 'Permission matrix row' ... 'Deny-over-allow check'; none equals 'Closeout handoff', so the conditional is never taken and closeoutOverride is effectively unused (carried over from M05-style closeout descriptors). No functional or security impact: the closeout routing is correctly carried by the separate closeout_handoff field via createPlatformExtensibilityCp835CloseoutHandoff() (to_pack_id CP00-836 / next_subphase RP27.P06.M10.S11) and is validated at packages/platform/src/validators.js:1726. The override values themselves are also correct, so even if the branch were reached it would be benign.\",\"recommendation\":\"Optional cleanup: remove the dead closeoutOverride variable and the title === \\\"Closeout handoff\\\" conditional from this builder to reduce confusion. No change is required for closeout.\",\"post_review_disposition\":\"Non-blocking cosmetic note. Does not affect the production_ready determination, descriptor correctness, or no-write/no-real-data boundaries. Acknowledged as optional future cleanup; CP00-835 closeout is unaffected.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"4bc41e85-7bea-489e-8059-055cf85faa3e\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6506,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "8406d5b1-3eff-4ac7-a4b9-935a68a2d2cb",
+    "uuid": "4bc41e85-7bea-489e-8059-055cf85faa3e",
+    "total_cost_usd": 2.3831785,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

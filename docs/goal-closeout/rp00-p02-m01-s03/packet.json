@@ -1,0 +1,52 @@
+{
+  "subphase_id": "RP00.P02.M01.S03",
+  "source_micro_phase_id": "RP00.P02.M01",
+  "title": "Tenant boundary precheck",
+  "micro_title": "Contract Draft",
+  "status": "production_ready",
+  "evidence_root": "docs/goal-closeout/rp00-p02-m01-s03",
+  "implemented_surface": "ControlPlanePlanAuthoringTenantBoundaryPrecheck",
+  "implemented_slice": "plan_authoring_tenant_boundary_precheck",
+  "summary": "RP00.P02.M01.S03 verifies frozen RP00.P02.M01.S02 plan_authoring Contract Draft metadata remains inside one tenant boundary for actor, resource, and Matter context. It emits blocked-claim refs for actor tenant mismatch, resource tenant mismatch, missing Matter tenant, and Matter tenant mismatch while carrying contract row IDs and acceptance gate IDs as metadata only.",
+  "target_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "required_exports": [
+    "CONTROL_PLANE_PLAN_AUTHORING_TENANT_BOUNDARY_PRECHECK_POLICY",
+    "CONTROL_PLANE_PLAN_AUTHORING_TENANT_BOUNDARY_PRECHECK_RESULT_FIELDS",
+    "CONTROL_PLANE_PLAN_AUTHORING_TENANT_BOUNDARY_PRECHECKER",
+    "getControlPlanePlanAuthoringTenantBoundaryPrecheckPolicy",
+    "precheckControlPlanePlanAuthoringTenantBoundary",
+    "assertControlPlanePlanAuthoringTenantBoundaryPrecheckPolicy",
+    "assertControlPlanePlanAuthoringTenantBoundaryPrecheckResult"
+  ],
+  "upstream_dependencies": [
+    "RP00.P02.M01.S01",
+    "RP00.P02.M01.S02",
+    "RP00.P02.M00.S03"
+  ],
+  "next_subphase": "RP00.P02.M02.S01",
+  "completes_source_micro_phase": true,
+  "boundary": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "service_logic_execution_permitted": false,
+    "runtime_route_created": false,
+    "contract_rows_drafted": false,
+    "human_approval_replaced": false
+  },
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m01-s03/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m01-s03/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m01-s03/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m01-s03/construction-inspection.json"
+  ],
+  "production_ready": true
+}

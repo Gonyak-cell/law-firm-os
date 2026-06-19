@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-404",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T00:20:36.842Z",
+  "finished_at": "2026-06-12T00:24:57.592Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":259841,\"duration_api_ms\":260533,\"ttft_ms\":5513,\"num_turns\":44,\"result\":\"Review complete. **Verdict: PASS** — no findings at any severity.\\n\\nCP00-404 is a clean descriptor-only closeout pack for the RP13 payments-core P06 contract implementation slice. All eight in-scope files are internally consistent, the pack baseline (risk B, 40 units, range RP13.P06.M01.S13–RP13.P06.M03.S12, deliverable/micro-title distributions) is matched exactly by the registry binding, requirements, validators, contract projection, tests, and validator script. The `production_ready` claim is correctly withheld (`false`, `implemented_pending_review`), no-write/no-runtime/no-real-data/no-leak boundaries hold uniformly, the Claude authority boundary stays read-only/non-final-approver, Hermes patterns are confined to deterministic descriptor evidence, CP178+ review-hardening blockers are encoded, and all 25 validation commands passed with `closeout-pack:validate` correctly gated post-review.\\n\\nDoes not block pack closeout or goal closeout. This is an independent read-only reviewer verdict — final enterprise-trust approval still requires human sign-off.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e5af09ee-d777-43c4-99ea-38cf47bcbea7\",\"total_cost_usd\":1.6380035,\"usage\":{\"input_tokens\":509,\"cache_creation_input_tokens\":88472,\"cache_read_input_tokens\":1120785,\"output_tokens\":20837,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":88472,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":383,\"cache_read_input_tokens\":91336,\"cache_creation_input_tokens\":5531,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5531},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1086,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001191,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":509,\"outputTokens\":20837,\"cacheReadInputTokens\":1120785,\"cacheCreationInputTokens\":88472,\"webSearchRequests\":0,\"costUSD\":1.6368125,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-404 is a clean, descriptor-only closeout pack for the RP13 payments-core P06 contract implementation slice (RP13.P06.M01.S13-RP13.P06.M03.S12, risk B, 40 units), following the established CP392-CP403 pattern. All eight in-scope files (contract JSON, README, index/registry/service/validators, test, validator script) are internally consistent. The CP404 pack binding, requirements, no-write attestation, descriptor/case-set builders, coverage/descriptor validators, and Hermes/Claude/handoff packet builders all align with the baseline: risk_class B, unit_count 40, range RP13.P06.M01.S13-RP13.P06.M03.S12, next_pack CP00-405, next_subphase RP13.P06.M03.S13. Deliverable distribution {ui:8, claude_review:2, security_audit:10, test:4, implementation:16} and micro-title distribution {Contract Draft:8, Type And Shape Definition:20, Primary Implementation Slice:12} match the baseline and sum to 40; required_section_rows enumerate exactly the 40 planned unit titles and validatePaymentsCoreCp404Coverage enforces every distribution/section check. The pack-level production_ready claim is correctly NOT asserted (production_ready:false, status implemented_pending_review); production_ready_flag is a stage label, not a trust assertion. No-write/no-runtime/no-real-data/no-leak guards are uniformly set across registry attestation, service freezeCp404Result, contract projection, and manifest boundary. Authority boundary is preserved: claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true; the Claude review packet is read_only with allowed tools Read/Grep/Glob. CP178+ review hardening is encoded via forbidden_review_evidence (auth-failure, zero-byte, malformed/fenced JSON, tool-call-shaped, missing fields, claude final-approval claim, enterprise-trust claim) and hardened_review_sequence; readiness auth-preflight passed with valid JSON; pack_level_claude_review status pending with empty valid_review_receipts and invalid_review_attempts; post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) correctly do not yet exist. Hermes patterns are used only for deterministic descriptor evidence packet/receipt handling (emits_hermes_runtime_receipt:false), not product runtime. command-evidence records all 25 validation commands at exit 0 (node --check/--test, rp05-rp13 validators, closeout-pack-plan/weighted/spec/rp00-control-plane/goal-closeout/fullplan validators, npm test, npm run validate, npm run build, git diff --check), with closeout-pack:validate correctly gated to post-review. No P0/P1/P2/P3 findings; the descriptor-only implementation is sound, bounded, and validated. This review is a read-only independent reviewer verdict and does not grant final approval or enterprise trust, which require human sign-off.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"ea8692b4-8ebe-47a9-82b2-01e1b52cd3a1\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5608,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e5af09ee-d777-43c4-99ea-38cf47bcbea7",
+    "uuid": "ea8692b4-8ebe-47a9-82b2-01e1b52cd3a1",
+    "total_cost_usd": 1.6380035,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

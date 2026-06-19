@@ -1,0 +1,122 @@
+{
+  "subphase_id": "RP00.P02.M03.S11",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Lock acquisition rule",
+  "micro_title": "Hermes Validation",
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "effort": "max",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T10:03:40Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "46bd9a77-c218-4de0-8191-c0286b08db7b",
+    "uuid": "f7ae61f9-23ad-4cac-a028-6115b46baf09",
+    "duration_ms": 534219,
+    "duration_api_ms": 534808,
+    "total_cost_usd": 3.362375,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s11-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline heredoc",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s11-claude-review.json",
+    "duration_ms": 534219,
+    "duration_api_ms": 534808,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "f7ae61f9-23ad-4cac-a028-6115b46baf09",
+    "session_id": "46bd9a77-c218-4de0-8191-c0286b08db7b"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "FAIL",
+  "overall_verdict_after_adjudication": "PASS_WITH_FINDINGS",
+  "go_no_go_reported_by_claude": "NO_GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "FAIL",
+    "go_no_go": "GO",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P0",
+        "title": "S11 incorrectly closes M03 and skips S12-S20",
+        "location": "packages/control-plane/src/policies.js, packages/control-plane/src/service.js, packages/control-plane/src/validators.js, packages/control-plane/test/service.test.js, contracts/control-plane-contract.json, packages/control-plane/fixtures/synthetic-control-plane.json, packages/control-plane/README.md, scripts/validate-rp00-control-plane-contract.mjs",
+        "status": "fixed",
+        "summary": "S11 no longer sets completesSourceMicroPhase/source_micro_phase_completed true and now hands off to RP00.P02.M03.S12 across code, contract, fixture, tests, README, and validator."
+      },
+      {
+        "severity": "P2",
+        "title": "Add ledger successor cross-check for terminal/non-terminal closeout state",
+        "location": "scripts/validate-rp00-control-plane-contract.mjs",
+        "status": "fixed",
+        "summary": "The RP00 contract validator now derives the S11 terminal flag and successor from docs/weighted-implementation-ledger.json and fails if S11 is treated as terminal."
+      },
+      {
+        "severity": "P3",
+        "title": "Tests locked in the bad S11 boundary",
+        "location": "packages/control-plane/test/service.test.js",
+        "status": "fixed",
+        "summary": "Tests now assert non-terminal S11 behavior and RP00.P02.M03.S12 handoff."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M03.S12 Persistence boundary as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed the metadata-only lock-rule logic, validators, fixture parity, and fail-closed claim handling were otherwise correctly implemented.",
+      "The blocking defect was a false source microphase closeout boundary, not runtime lock behavior.",
+      "Adjudication fixed the false boundary and added ledger-derived guard coverage so the same class of error fails validation."
+    ],
+    "summary": "Claude reported FAIL / NO_GO because S11 falsely closed RP00.P02.M03 and routed to RP00.P02.M04.S01. The P0 boundary defect, P2 ledger guard recommendation, and P3 test drift have been fixed; after adjudication S11 is PASS_WITH_FINDINGS / GO with no unresolved P0/P1/P2."
+  },
+  "finding_counts": {
+    "p0": 1,
+    "p1": 0,
+    "p2": 1,
+    "p3": 1
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s11-claude-review.json",
+    "summary": "Claude returned FAIL / NO_GO with one P0 false closeout boundary finding, one P2 ledger guard recommendation, and test drift noted as part of the P0 remediation."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

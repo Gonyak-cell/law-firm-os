@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P01.M00.S01",
+  "source_micro_phase_id": "RP00.P01.M00",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Create the packages/control-plane src, test, fixture, package manifest, and README layout for the RP00 Domain Model phase before individual entity models are implemented.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/package.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/states.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "docs/goal-closeout/rp00-p01-m00-s01/packet.json",
+    "package.json",
+    "hermes/project.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P01.M00.S01 in implemented state.",
+    "Creates packages/control-plane/package.json plus src, test, and fixture directories for the Domain Model phase.",
+    "Adds package layout constants, state constants, and a domain model registry that names the six control-plane entities without claiming full model completion.",
+    "Adds a synthetic-only control-plane fixture and includes packages/control-plane/test/model.test.js in the root npm test command.",
+    "Extends the RP00 validator and README with machine checks for the package layout, fixture, no-write boundary, and next subphase boundary.",
+    "Records an explicit P2 defer for weighted-ledger generator deliverable_type/UI gate mismatch without hand-editing generated ledger output."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not implement the full ProductContract, AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, or BlockedClaim models.",
+    "Does not replace H00, C00, or human approval.",
+    "Does not close RP00.P01, RP00, or RP00.P01.M01.S01."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M01.S01"
+  },
+  "claude_questions": [
+    "Does RP00.P01.M00.S01 create the package directory layout requested by the RP00 detailed Domain Model plan?",
+    "Do the target files, package manifest, test, fixture, README, and root npm test wiring match the package layout contract?",
+    "Is the synthetic fixture explicitly no-real-data and no-write?",
+    "Does the registry avoid claiming full entity model completion or P01/RP00 completion before later subphases?",
+    "Does the validator force Hermes/local evidence, actual Claude CLI metadata, construction inspection, and next boundary before production_ready?"
+  ],
+  "risk_focus": [
+    "Claiming full Domain Model implementation from a package-layout slice.",
+    "Forgetting to include the new control-plane test in npm test.",
+    "Using real client, matter, document, billing, settlement, credential, or secret data in the fixture.",
+    "Skipping actual Claude C00 review or construction inspection before production_ready."
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.subphase-command-evidence.v0.1",
+  "subphase_id": "RP00.P00.M06.S01",
+  "source_micro_phase_id": "RP00.P00.M06",
+  "status": "passed",
+  "executed_at": "2026-06-03T10:05:19Z",
+  "commands": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P00.M06.S01 in production_ready state after actual Claude C00 review, adjudication, and construction inspection."
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with 227 requirements."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "summary": "Law Firm OS product contract validation passed with 9 modules, 9 principles, and 7 invariants."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 3,300 source micro phases and 54,355 implementation subphases."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "summary": "Goal closeout protocol validation passed for all goals with claude-opus-4-8 effort=max read-only."
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Node test suite passed 23/23 tests."
+    }
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "notes": [
+    "No real client, matter, document, billing, settlement, bank, tax identifier, credential, secret, production export, or customer-support attachment data was used.",
+    "Synthetic-only fixture policy is metadata-only and does not import, anonymize, seed, mutate, or approve real data.",
+    "Final validation was rerun after Claude C00 review, adjudication, construction inspection, and production_ready promotion."
+  ]
+}

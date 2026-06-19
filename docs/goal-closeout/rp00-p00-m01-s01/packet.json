@@ -1,0 +1,91 @@
+{
+  "schema_version": "law-firm-os.subphase-closeout-packet.v0.1",
+  "subphase_id": "RP00.P00.M01.S01",
+  "source_micro_phase_id": "RP00.P00.M01",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "status": "packet_ready",
+  "scope": "Draft the Product Constitution And AI Control Plane contract shell for ProductContract, AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, and BlockedClaim, while preserving TEN-001 through TEN-008 and NARR-018 contract anchors.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "hermes/project.json",
+    "docs/goal-closeout/rp00-p00-m01-s01/packet.json"
+  ],
+  "contracts_reviewed": [
+    "contracts/control-plane-contract.json",
+    "contracts/law-firm-os.product-contract.json",
+    "contracts/goal-closeout-protocol-contract.json"
+  ],
+  "tests_reviewed": [
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "scripts/validate-spec-requirement-ledger.mjs",
+    "scripts/validate-product-contract.mjs",
+    "scripts/validate-weighted-implementation-ledger.mjs",
+    "scripts/validate-goal-closeout-protocol.mjs"
+  ],
+  "hermes_evidence_refs": [
+    "hermes/project.json validation_commands.rp00_control_plane_contract_validate",
+    "hermes/project.json validation_commands.spec_requirement_validate",
+    "hermes/project.json foundation_slice_gates.H00.validation_command_ids"
+  ],
+  "requirement_refs": [
+    "TEN-001:contract",
+    "TEN-002:contract",
+    "TEN-003:contract",
+    "TEN-004:contract",
+    "TEN-005:contract",
+    "TEN-006:contract",
+    "TEN-007:contract",
+    "TEN-008:contract",
+    "NARR-018:primary_implementation",
+    "NARR-018:contract"
+  ],
+  "risk_focus": [
+    "contract_shell_claimed_as_runtime_implementation",
+    "tenant_requirement_acceptance_drift",
+    "missing_NARR_018_decision_accounting",
+    "AI_or_Hermes_or_Claude_claiming_approval_authority",
+    "P0_tenant_requirement_without_future_test_Hermes_Claude_anchor",
+    "validation_theater_from_contract_mirroring_only"
+  ],
+  "claude_questions": [
+    "Does the contract shell define enough future shape for ProductContract, AIControlRule, HermesGate, ClaudeReviewGate, HumanApproval, and BlockedClaim without pretending runtime code exists?",
+    "Are TEN-001 through TEN-008 acceptance texts preserved exactly from the spec requirement ledger and routed to their primary implementation anchors?",
+    "Does NARR-018 account for every pre-start decision term and keep unresolved decisions from silently becoming implementation authority?",
+    "Does the validator cover the load-bearing cross-file checks for weighted subphase refs, requirement trace, H00 command wiring, and production_ready evidence?",
+    "Is anything missing before RP00.P00.M01.S01 can be promoted from implemented to production_ready?"
+  ],
+  "expected_verdict_format": {
+    "overall_verdict": "PASS | PASS_WITH_FINDINGS | BLOCK",
+    "blocks_subphase_closeout": true,
+    "blocks_goal_closeout": true,
+    "findings": [
+      {
+        "severity": "P0_BLOCKER | P1_MUST_FIX | P2_SHOULD_FIX | P3_NOTE",
+        "title": "...",
+        "file": "...",
+        "line": null,
+        "details": "...",
+        "recommendation": "..."
+      }
+    ]
+  },
+  "finding_routing": {
+    "P0_BLOCKER": "fix before production_ready and rerun C00 review",
+    "P1_MUST_FIX": "fix before production_ready and rerun C00 review",
+    "P2_SHOULD_FIX": "fix now or defer with owner, target RP/subphase, and rationale",
+    "P3_NOTE": "record or defer with owner and target phase"
+  },
+  "local_commands_passed_before_review": [
+    "npm run rp00:control-plane:validate",
+    "npm run spec:requirements:validate",
+    "npm run validate",
+    "npm run weighted:validate",
+    "npm run goal:closeout:validate",
+    "npm test"
+  ]
+}

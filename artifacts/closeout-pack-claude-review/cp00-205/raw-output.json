@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-205",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T01:55:19.568Z",
+  "finished_at": "2026-06-10T02:00:08.195Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":287889,\"duration_api_ms\":288448,\"ttft_ms\":3821,\"num_turns\":35,\"result\":\"Review complete — **PASS** with zero findings. CP00-205's descriptor-only implementation, tests, validators, contract projection, and no-write/no-real-data/no-leak boundaries are internally consistent and correct; Claude's read-only non-approver role and Hermes-as-control-plane-only constraints hold. My read-only verdict does not block pack or goal closeout, which still depend on the pipeline's final validation commands and human approval.\",\"stop_reason\":\"end_turn\",\"session_id\":\"eef9bde7-9ad0-4b8d-8e80-e18019f3d3c9\",\"total_cost_usd\":2.1592930000000004,\"usage\":{\"input_tokens\":826,\"cache_creation_input_tokens\":108736,\"cache_read_input_tokens\":1940314,\"output_tokens\":20169,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":108736,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":179,\"cache_read_input_tokens\":139455,\"cache_creation_input_tokens\":7835,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7835},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1076,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001181,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":826,\"outputTokens\":20169,\"cacheReadInputTokens\":1940314,\"cacheCreationInputTokens\":108736,\"webSearchRequests\":0,\"costUSD\":2.1581120000000005,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-205 is a descriptor-only DMS permission/audit tail pack (RP06.P02.M05.S11-S20, risk A, 10 units, micro 'Permission And Audit Binding'). Independent read-only inspection (Read/Grep/Glob) confirms registry pack binding, requirements, service descriptor + case set, validators, contract projection, closeout-plan entry, rp06:dms-core validate script, README, and unit tests are mutually consistent and enforce descriptor-only boundaries. Boundaries verified: no runtime lock acquisition, persistence, review/approval/blocked dispatch, rollback/retry, object storage, OCR, search, email, Citation Ledger, or Loop execution; synthetic-only with no real client/matter/document data; no leakage of validation-error detail, lock tokens, persistence payloads, permission decisions, or audit bodies (customer-safe error codes only). Authority boundary holds: Claude is a read-only independent reviewer and not final approver, and enterprise trust is not claimed from local validation (human final approval reserved). Hermes H06 patterns are confined to deterministic evidence-packet/receipt descriptors, not product runtime. The manifest, command-evidence, adjudication, and construction-inspection correctly remain pending and do not over-claim production_ready while this review runs; downstream adjudication, construction inspection, and final closeout validation (npm validation commands + commit) and human approval remain pipeline gates after this read-only verdict. No prior invalid review attempts to reject; readiness auth-preflight passed with well-formed JSON. No P0-P3 findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"55205f9b-774b-478c-9779-02ddf8d9c797\"}\n",
+  "stderr": "",
+  "stdout_bytes": 3729,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "eef9bde7-9ad0-4b8d-8e80-e18019f3d3c9",
+    "uuid": "55205f9b-774b-478c-9779-02ddf8d9c797",
+    "total_cost_usd": 2.1592930000000004,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

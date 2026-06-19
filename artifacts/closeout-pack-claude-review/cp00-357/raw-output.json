@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-357",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T17:58:21.588Z",
+  "finished_at": "2026-06-11T18:04:21.960Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":359306,\"duration_api_ms\":360404,\"ttft_ms\":4325,\"num_turns\":40,\"result\":\"CP00-357 review complete — verdict **PASS_WITH_FINDINGS** (non-blocking).\\n\\nThe descriptor-only failure binding slice is internally consistent across the live plan, manifest, contract projection, source, validator, and tests; descriptor-only/no-write/no-real-data boundaries and all required no-leak guards are enforced; `production_ready=false` with no enterprise-trust over-claim; Claude stays read-only/non-approving; and Hermes is confined to a deterministic evidence-packet descriptor. Review hardening preflight is clean. The only issue is one P3 cosmetic dead-key nit (`documentation_entry` in the CP357 row-extras map at service.js:2233). No P0/P1/P2 — safe for human-gated closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e2c6a351-d4d0-44c4-8678-bf4852104723\",\"total_cost_usd\":2.0069820000000003,\"usage\":{\"input_tokens\":48,\"cache_creation_input_tokens\":98118,\"cache_read_input_tokens\":1410253,\"output_tokens\":27488,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":98118,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":259,\"cache_read_input_tokens\":103661,\"cache_creation_input_tokens\":2852,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2852},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1078,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001178,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":27488,\"cacheReadInputTokens\":1410253,\"cacheCreationInputTokens\":98118,\"webSearchRequests\":0,\"costUSD\":2.0058040000000004,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-357 is a descriptor-only RP11 \\\"failure binding slice\\\" pack (RP11.P07.M04.S07-RP11.P07.M04.S16, 10 units, risk A). Read-only inspection confirms all baseline parameters match across the live closeout-pack-plan (closeout-pack-plan.json:413, non-circular), manifest, contract current_pack + cp357_requirements + embedded failure_binding_slice_descriptor projection, registry/service/validators source, validator script, and tests: range, unit_count=10, deliverable distribution (failure_recovery:6/security_audit:1/implementation:1/hermes_evidence:1/fixture:1), and micro_title (Secondary Workflow Slice:10) are all consistent. The descriptor is purely data construction (Object.freeze, no I/O/network/DB); freezeCp357Result and validateTimeExpenseCoreCp357FailureBindingSliceDescriptor enforce descriptor_only/runtime_execution=false/customer_safe/no-raw-payload on every row plus the required no-leak guards (cross-tenant access denied, permission-decision/blocked-claim/lock-token/fixture-payload/hermes-packet-body detail excluded, unauthorized-data omitted). Per-row guard fields are correctly inherited from the CP355 row-extras chain, and the contract deepEqual against the generated descriptor holds. production_ready=false and runtime_ready=false; the production_ready_flag is descriptor-verification-scoped only, so there is no enterprise-trust over-claim. Authority boundary holds (claude_is_final_approval=false, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false); Hermes is used only as a deterministic evidence-packet descriptor (emits_hermes_runtime_receipt=false), not product runtime. Review-hardening preflight is clean: auth passed with 1456-byte valid JSON (not 0-byte/malformed/fenced/tool-call-shaped), allowed tools Read/Grep/Glob only, schema present, no forbidden review evidence, and no invalid attempts attributed to this pack (the unrelated LDIP invalid-attempt file is correctly scoped out). Downstream artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are absent as expected pre-review. Only a single P3 cosmetic nit found (dead row-extras key). No P0/P1/P2 issues; safe to proceed to human-gated closeout.\",\"findings\":[{\"id\":\"CP357-P3-01\",\"severity\":\"P3\",\"title\":\"Dead `documentation_entry` key in CP357 row-extras map (no-op, propagates via spread)\",\"file\":\"packages/time-expense/src/service.js\",\"line\":2233,\"details\":\"TIME_EXPENSE_CORE_CP357_ROW_EXTRAS adds a top-level `documentation_entry: { documentation_entry: \\\"packages/time-expense/README.md#cp00-357\\\" }` key. Row extras are applied via `...(TIME_EXPENSE_CORE_CP357_ROW_EXTRAS[key] ?? {})` where key = timeExpenseCoreRowKey(title), and none of the 10 CP00-357 failure row titles (Cross-tenant failure ... Failure fixture) resolve to the key `documentation_entry`, so the entry is never applied to any row. The README anchor is already correctly set at the descriptor level (service.js:2278) and the README #cp00-357 section exists. The stray key is therefore a no-op that also propagates forward into future packs' row-extras via the spread chain. No functional, validation, or security impact: the slice validator passes, the contract failure_binding_slice_descriptor deepEqual matches, and tests assert valid=true.\",\"recommendation\":\"Remove the unused `documentation_entry` entry from TIME_EXPENSE_CORE_CP357_ROW_EXTRAS (descriptor-level documentation_entry already covers it), or, if forward-seeding for a future row is intended, add a brief comment noting that intent so it is not mistaken for a row-key extras entry.\",\"post_review_disposition\":\"Non-blocking cosmetic cleanup. Does not affect the descriptor-verified production_ready claim, no-leak/no-write boundaries, authority boundary, or any closeout gate. CP00-357 is safe to close; optionally address in a later pass.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"e80f4199-1dce-4e2a-870b-6fece66491b1\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6243,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e2c6a351-d4d0-44c4-8678-bf4852104723",
+    "uuid": "e80f4199-1dce-4e2a-870b-6fece66491b1",
+    "total_cost_usd": 2.0069820000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

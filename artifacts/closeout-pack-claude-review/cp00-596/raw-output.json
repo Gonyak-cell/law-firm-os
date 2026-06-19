@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-596",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-13T00:47:22.809Z",
+  "finished_at": "2026-06-13T00:51:49.179Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":265579,\"duration_api_ms\":265758,\"ttft_ms\":3721,\"num_turns\":40,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — CP00-596 passes; it is a sound descriptor-only RP19.P06 client-portal slice with `production_ready:false`/`runtime_ready:false` correctly claimed (gates not weakened), full baseline/plan/contract/test consistency, enforced no-write/no-real-data boundaries, and a preserved read-only non-final-approver authority boundary. No P0/P1/P2 issues; one non-blocking P3 noting that post-review evidence artifacts are produced downstream of this review step. The pack does not block pack or goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"ed25763f-9051-40bb-ac15-1d2be5cf93c4\",\"total_cost_usd\":1.72720975,\"usage\":{\"input_tokens\":48,\"cache_creation_input_tokens\":92175,\"cache_read_input_tokens\":1267000,\"output_tokens\":20648,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":92175,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":242,\"cache_read_input_tokens\":85463,\"cache_creation_input_tokens\":7566,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":7566},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1076,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001176,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":20648,\"cacheReadInputTokens\":1267000,\"cacheCreationInputTokens\":92175,\"webSearchRequests\":0,\"costUSD\":1.72603375,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-596 is a descriptor-only RP19.P06 client-portal implementation slice (M03 tail of 8 rows + M04 head of 2 rows). Read-only inspection via Read/Grep/Glob confirms the pack-level claim is supported. Baseline alignment is exact across closeout-pack-plan.json, docs/closeout-packs/cp00-596/manifest.json, contracts/client-portal-core-contract.json, registry pack binding, validators, and tests: pack_id CP00-596, risk_class A, unit_count 10, range RP19.P06.M03.S15-RP19.P06.M04.S02, deliverable distribution {ui:1,security_audit:4,test:4,implementation:1}, micro-title distribution {Primary Implementation Slice:8,Secondary Workflow Slice:2}, next pack CP00-597 / next subphase RP19.P06.M04.S03. All 7 required public exports exist (createClientPortalCoreCp596P06ImplementationSliceDescriptor/CaseSet in service.js; validateClientPortalCoreCp596Coverage, validateClientPortalCoreCp596P06ImplementationSliceDescriptor, createClientPortalCoreCp596HermesEvidencePacket/ClaudeReviewPacket/CloseoutHandoff in validators.js) and are surfaced through index.js. The contract-stored p06_implementation_slice_descriptor is held deep-equal to the freshly generated descriptor by scripts/validate-rp19-client-portal-core-contract.mjs, and every row carries descriptor_only:true, runtime_execution:false, customer_safe_errors_only:true, raw_payload_included:false. No-write/no-real-data boundaries are enforced by freezeCp596Result (all dispatch/write/audit/runtime/leak flags false; synthetic_only/no_real_data true) and the row titles are generic with no PII or real client data. The authority boundary holds: claude_is_final_approval:false, read_only:true, human_final_approval_required, enterprise trust not claimed from local validation; Hermes appears only as a deterministic evidence-packet descriptor with emits_hermes_runtime_receipt:false (no product runtime). The manifest correctly claims production_ready:false and runtime_ready:false (status implemented_pending_review) — production_ready gates are not weakened. Review-evidence hardening passes: readiness auth-preflight succeeded with non-zero stdout and valid JSON, validation-report is within the prompt-size limit with forbidden_tools_present:false and the required read-tools source-inspection mode (summary-only prohibited due to security/audit deliverables). No P0/P1/P2 issues. One P3 informational note: the post-review artifacts referenced by the manifest (claude-review-result.json, adjudication.md, construction-inspection.json) are not yet present, which is the expected ordering for this read-only review step.\",\"findings\":[{\"id\":\"CP00-596-P3-01\",\"severity\":\"P3\",\"title\":\"Post-review evidence artifacts not yet present (expected pipeline ordering, non-blocking)\",\"file\":\"docs/closeout-packs/cp00-596/manifest.json\",\"line\":506,\"details\":\"The manifest lists required_pack_artifacts and evidence_refs including docs/closeout-packs/cp00-596/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist in that directory. Per the manifest's hardening_sequence and command-evidence post-review notes, these artifacts (the normalized review receipt produced from THIS review, plus the finding-adjudication and construction-inspection outputs) are generated downstream of this read-only review step, so they cannot be verified now. All evidence upstream of the review step was verified and is internally consistent: implementation/registry/validators/service code, contract<->generated-descriptor deep equality, plan<->manifest unit alignment, the three CP00-596 test blocks (model.test.js:921-970), command-evidence exit_code:0 set, no-write/no-real-data flags, and the read-only non-final-approver authority boundary.\",\"recommendation\":\"Allow the downstream normalize/receipt-validate/finding-adjudication/construction-inspection steps to materialize claude-review-result.json, adjudication.md, and construction-inspection.json, and confirm their presence and validity in the final closeout validation (npm run closeout-pack:validate) before commit. No change required to the implementation under review.\",\"post_review_disposition\":\"expected_pipeline_ordering_acknowledged_non_blocking\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"0ba61da0-b346-49de-b47d-f4d78700558e\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6457,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "ed25763f-9051-40bb-ac15-1d2be5cf93c4",
+    "uuid": "0ba61da0-b346-49de-b47d-f4d78700558e",
+    "total_cost_usd": 1.72720975,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

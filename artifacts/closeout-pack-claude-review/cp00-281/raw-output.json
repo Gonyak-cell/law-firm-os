@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-281",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T21:40:02.063Z",
+  "finished_at": "2026-06-10T21:44:16.760Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":254107,\"duration_api_ms\":255597,\"ttft_ms\":3725,\"num_turns\":42,\"result\":\"Review complete. **Verdict: PASS** — no findings, nothing blocks pack or goal closeout, no unresolved P0/P1.\\n\\nCP00-281 is a well-constructed descriptor-only pack with comprehensive no-write/no-real-data boundaries, a correctly enforced authority boundary (Claude read-only, not final approver; human approval required for runtime opening), no `production_ready` overclaim, and valid review-hardening evidence. Final enterprise-trust closure correctly remains a human responsibility outside this read-only review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"c571a7cb-5a7e-48b3-a095-dde7c0b68962\",\"total_cost_usd\":2.3446017500000003,\"usage\":{\"input_tokens\":38,\"cache_creation_input_tokens\":122613,\"cache_read_input_tokens\":2180105,\"output_tokens\":19471,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":122613,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":222,\"cache_read_input_tokens\":157243,\"cache_creation_input_tokens\":4860,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4860},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1153,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001253,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":38,\"outputTokens\":19471,\"cacheReadInputTokens\":2180105,\"cacheCreationInputTokens\":122613,\"webSearchRequests\":0,\"costUSD\":2.34334875,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-281 is a clean descriptor-only closeout pack (Risk C, 150 units, RP08.P02.M09.S09-RP08.P03.M06.S12) closing the RP08.P02 service phase tail and opening the RP08.P03 interface foundation. Independent read-only inspection (Read/Grep/Glob) confirms full internal consistency across closeout-pack-plan.json, contracts/email-dms-core-contract.json, registry.js, service.js, validators.js, model.test.js, validate-rp08-email-dms-core-contract.mjs, and README.md. Pack identity, deliverable distribution (ui6/impl63/claude_review6/failure_recovery4/test20/contract31/security_audit16/hermes_evidence4=150), phase counts (P02:34, P03:116), micro-title counts, and per-section row titles match the baseline exactly and are enforced by validateEmailDmsCoreCp281Coverage. Descriptor-only and no-write/no-real-data boundaries are comprehensive: freezeCp281Result and EMAIL_DMS_CORE_CP281_NO_WRITE_ATTESTATION set every runtime/persistence/real-data flag false, the no-leak guards are enforced row-by-row, and the in-scope source modules are pure frozen-object construction with no fs/network/child_process; the validator script is read-only (node:fs/promises readFile + assert). Authority boundary is correct: claude_is_final_approval=false, human_final_approval_required_for_runtime_opening=true, promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false; the Claude packet is read_only with tools [Read,Grep,Glob] and carries the forbidden-review-evidence blockers. The pack does not overclaim production_ready: command-evidence.json records production_ready=false with gate_outcome implementation_gates_passed_post_review_closeout_pending, and production_ready_candidate=true is correctly scoped to passing coverage+foundation validation. The Hermes packet is a deterministic descriptor receipt (gate H08, emits_hermes_runtime_receipt=false), not embedded product runtime. Review-hardening inputs are valid: readiness auth-preflight passed (exit 0, 1434-byte valid-JSON stdout), and validation-report confirms allowed-tools-only with source_inspection_mode read_tools_used. Untracked dirty files (the .docx, new-session-handoff.md, cp00-281 docs dir, and the LDIP invalid-attempt JSON) are correctly classified as unrelated and not attributed to this pack. No P0/P1/P2/P3 findings. Final enterprise-trust closure remains a human responsibility outside this read-only review.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"32f85d6f-1d3c-4bb6-843b-0ab9fcf95d2e\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4610,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "c571a7cb-5a7e-48b3-a095-dde7c0b68962",
+    "uuid": "32f85d6f-1d3c-4bb6-843b-0ab9fcf95d2e",
+    "total_cost_usd": 2.3446017500000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-407",
+  "normalized_at": "2026-06-12T00:52:04.265Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-407/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-407/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-407/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-407/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5257eeb1-f8b2-4e8c-8bce-4a3351a32a79",
+    "uuid": "c2feebad-8dfa-41a3-b571-819a3372bd7b",
+    "total_cost_usd": 1.96459625,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6530,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-407 is a descriptor-only, risk-class-A payments-core pack covering 10 units (RP13.P06.M05.S19-RP13.P06.M06.S06): the M05 Permission And Audit Binding tail (4 test rows) and the M06 Synthetic Fixture Set head (6 fixture rows). The pack-level production_ready claim is correctly FALSE with flag payments_core_p06_permission_fixture_slice_descriptor_verified at the descriptor layer; that descriptor-verified claim is fully supported by source, contract, tests, and validator. Verified: (1) coverage/distribution (4 test / 1 security_audit / 5 implementation; M05:4 + M06:6) is consistent across baseline, manifest, contract cp407_requirements, registry binding, plan, and validator; (2) live-queue alignment - plan live_state is CP00-406 just-closed with next_subphase RP13.P06.M05.S19, and CP00-407 is the first pending queue pack starting exactly there (deviation_from_plan:false, matching ledger SHA), with contract historical_pack_bindings chaining CP00-406->CP00-407->CP00-408; (3) all 7 required public exports present and wired (index.js wildcard re-export explains its unmodified status); (4) descriptor-only/no-write boundaries - every case-set row is descriptor_only:true/runtime_execution:false/raw_payload_included:false and freezeCp407Result stamps 30+ no-write/no-runtime/no-leak flags, with no leaky row-extras; (5) authority boundary - claude_is_final_approval:false, read_only with only Read/Grep/Glob, promotes_claude_to_final_approval:false, claims_enterprise_trust_from_local_validation:false, enforced by tests and validator deepEqual; (6) Hermes used only as a deterministic evidence-packet descriptor, emits_hermes_runtime_receipt:false, not embedded in product runtime; (7) review-evidence validity - readiness auth-preflight passed (exit 0, 1436-byte valid JSON), prompt 2166<25600 bytes, read_tools_used, no forbidden tools, no auth-failure/0-byte/malformed/fenced/tool-shaped output. Downstream evidence files (claude-review-result.json, adjudication.md, construction-inspection.json) are absent as expected since they are produced after this read_only_claude_run step in the hardening sequence. One cosmetic, non-blocking P3: changed-file-scope.json double-lists the pack's own evidence dir as both active-untracked and unrelated-preserved. No P0/P1/P2 issues; nothing blocks pack or goal closeout.",
+    "findings": [
+      {
+        "id": "CP00-407-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-lists pack evidence dir as both active and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-407/changed-file-scope.json",
+        "line": 138,
+        "details": "The pack's own evidence directory docs/closeout-packs/cp00-407/ (and docs/closeout-pack-plan/new-session-handoff.md) appear simultaneously in untracked_implementation_files (lines 130-133, in-scope for this pack) and in unrelated_dirty_files_preserved (lines 135-145, labeled unrelated). The manifest's worktree_transition_policy.unrelated_dirty_files_preserved (manifest.json lines 545-553) correctly omits both and lists only the genuinely unrelated dirty files (the v2.0 docx, the ldip invalid-attempt json, and the workbook matter files). This is a metadata-labeling inconsistency between two review artifacts; the pack's active implementation refs (the 8 payments source files) and evidence set are otherwise correctly scoped, and both dispositions preserve the file (no revert), so there is no functional impact on scope handling.",
+        "recommendation": "Align changed-file-scope.json with the manifest by classifying docs/closeout-packs/cp00-407/ (and new-session-handoff.md) solely under untracked_implementation_files and removing them from unrelated_dirty_files_preserved, so the pack's own evidence dir is not also labeled unrelated.",
+        "post_review_disposition": "Non-blocking cosmetic metadata inconsistency. Does not affect the descriptor-level production_ready claim, the no-write/no-real-data boundaries, the read-only Claude authority boundary, or any validation gate. Safe to close CP00-407; optionally tidy the scope artifact in a later pack."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

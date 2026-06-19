@@ -1,0 +1,595 @@
+{
+  "schema": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package": "LT-L7-W05",
+  "title": "Pilot operation kickoff readiness",
+  "phase": "L7",
+  "gate": "L7-EXIT",
+  "status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+  "prepared_at": "2026-06-18",
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped and must not be counted as a valid review receipt."
+  },
+  "review_valid_evidence": false,
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "completion_claim": false,
+  "boundary": {
+    "addin_deployed": false,
+    "m365_admin_center_changed": false,
+    "pilot_roster_final": false,
+    "non_pilot_visibility_checked": false,
+    "ai_off_screen_confirmed": false,
+    "ai_off_config_dump_present": false,
+    "pilot_scope_owner_approved": false,
+    "kickoff_notice_sent": false,
+    "support_channel_roundtrip_done": false,
+    "kpi_baseline_definition_exists": true,
+    "metrics_collection_check_exists": true,
+    "one_day_pilot_metrics_collected": false,
+    "dashboard_or_report_route_present": false,
+    "approved_pilot_aggregate_input_present": false,
+    "numeric_kpi_targets_set": false,
+    "pilot_operations_log_exists": true,
+    "pilot_window_started": false,
+    "weekly_feedback_sessions_recorded": 0,
+    "p0_p1_findings_recorded": 0,
+    "s1_s2_zero_gate_claimed": false,
+    "weekly_metric_snapshots_recorded": 0,
+    "misfiling_records_processed": 0,
+    "pilot_report_template_exists": true,
+    "pilot_owner_acceptance_template_exists": true,
+    "pilot_report_values_present": false,
+    "owner_acceptance_signed": false,
+    "owner_acceptance_date_present": false,
+    "accepted_scope_present": false,
+    "l7_exit_index_registered": false,
+    "lt_l7_w05_t01_closed": false,
+    "lt_l7_w05_t02_closed": false,
+    "lt_l7_w05_t03_closed": false,
+    "lt_l7_w05_t04_closed": false,
+    "lt_l7_w05_closed": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw": "LT-L7-W05-T01",
+      "status": "kickoff_checklist_created_not_closed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/pilot-kickoff-checklist.md",
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "prerequisite_rows": 5,
+        "deployment_check_rows": 5,
+        "ai_off_check_rows": 4,
+        "scope_approval_rows": 4,
+        "communications_rows": 4,
+        "evidence_matrix_rows": 4,
+        "source_links_checked": 8,
+        "broken_links": 0,
+        "deployment_export_present": false,
+        "pilot_mailbox_visible_proof": false,
+        "non_pilot_mailbox_hidden_proof": false,
+        "ai_off_config_dump_present": false,
+        "owner_scope_approval_present": false,
+        "kickoff_notice_sent": false,
+        "support_channel_roundtrip_done": false
+      },
+      "required_future_evidence_before_close": [
+        "LT-L7-W03-T05 production migration or approved pilot data scope evidence",
+        "WP:LT-L7-W04 final training completion evidence",
+        "WP:LT-L3-W09 Add-in pilot deployment pipeline evidence",
+        "M365 admin center export limited to pilot group",
+        "Pilot and non-pilot mailbox visibility proof",
+        "AI-off screen and config dump",
+        "Pilot owner written approval with signer, date, and matter scope",
+        "Kickoff/support notice sent to every final pilot participant"
+      ],
+      "blocked_claims": [
+        "No Add-in deployment was performed.",
+        "No Microsoft 365 admin center setting was changed.",
+        "No AI-off runtime proof was captured.",
+        "No pilot scope was owner-approved.",
+        "No kickoff communication was sent."
+      ]
+    },
+    {
+      "tuw": "LT-L7-W05-T02",
+      "status": "kpi_baseline_definition_and_collection_check_created_not_closed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/kpi-baseline-definition.md",
+        "docs/goal-closeout/lt-l7-w05/metrics-collection-check.md",
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "operating_metric_rows": 4,
+        "kpi_baseline_rows": 7,
+        "l9_mapping_rows": 7,
+        "query_route_rows": 4,
+        "collection_check_rows": 4,
+        "query_slot_rows": 4,
+        "availability_rows": 7,
+        "synthetic_shape_rows": 5,
+        "closeout_requirement_rows": 4,
+        "baseline_source_links_checked": 6,
+        "collection_source_links_checked": 4,
+        "broken_links": 0,
+        "l9_mapping_complete": true,
+        "numeric_targets_set": false,
+        "pilot_baseline_values_present": false,
+        "one_day_metric_outputs_present": false,
+        "dashboard_or_report_route_present": false,
+        "approved_pilot_input_present": false,
+        "synthetic_collector_shape_passed": true,
+        "synthetic_collector_is_pilot_evidence": false
+      },
+      "required_future_evidence_before_close": [
+        "At least one day of pilot SLO compliance output",
+        "At least one daily audit-chain verification output",
+        "At least one day of Outlook filing success-rate output",
+        "At least one day of permission block event output",
+        "Reproducible dashboard/report/query route for pilot aggregate metrics",
+        "Owner-approved KPI targets or explicit approved deferrals",
+        "L9-2 measurement report input export using the defined mapping"
+      ],
+      "blocked_claims": [
+        "No pilot telemetry was queried.",
+        "No one-day operating metric output exists.",
+        "No dashboard or report route is proven.",
+        "No KPI targets are approved.",
+        "Synthetic collector output is shape evidence only, not a pilot baseline."
+      ]
+    },
+    {
+      "tuw": "LT-L7-W05-T03",
+      "status": "pilot_operations_log_template_created_not_closed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/pilot-operations-log.md",
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "pilot_window_fields": 5,
+        "weekly_session_slots": 4,
+        "p0_p1_fix_fields": 10,
+        "incident_ledger_fields": 12,
+        "weekly_metric_snapshot_slots": 4,
+        "misfiling_fields": 8,
+        "evidence_state_rows": 5,
+        "source_links_checked": 8,
+        "broken_links": 0,
+        "weekly_feedback_sessions_recorded": 0,
+        "p0_p1_findings_recorded": 0,
+        "s1_s2_zero_gate_claimed": false,
+        "weekly_metric_snapshots_recorded": 0,
+        "misfiling_records_processed": 0
+      },
+      "required_future_evidence_before_close": [
+        "Actual 2-4 week pilot window with start/end timestamps",
+        "At least two weekly feedback session records with attendance, discussion, and actions",
+        "P0/P1 issue track showing every discovered P0/P1 closed or resolved",
+        "S1/S2 incident ledger proving zero during the pilot window or all resolved and post-reviewed",
+        "Weekly metric snapshots for every pilot week",
+        "Misfiling processing records or a post-window zero-occurrence not-applicable disposition"
+      ],
+      "blocked_claims": [
+        "No pilot window has started.",
+        "No weekly feedback session was conducted.",
+        "No P0/P1 fix record exists.",
+        "No S1/S2 zero gate is claimed.",
+        "No weekly metric snapshot or misfiling disposition exists."
+      ]
+    },
+    {
+      "tuw": "LT-L7-W05-T04",
+      "status": "pilot_report_and_owner_acceptance_templates_created_not_closed",
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/pilot-report.md",
+        "docs/goal-closeout/lt-l7-w05/pilot-owner-acceptance.md",
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json"
+      ],
+      "acceptance_summary": {
+        "report_section_rows": 6,
+        "usage_field_rows": 5,
+        "trend_field_rows": 4,
+        "incident_summary_rows": 4,
+        "feedback_summary_rows": 4,
+        "current_value_rows": 6,
+        "acceptance_field_rows": 8,
+        "decision_option_rows": 3,
+        "index_status_rows": 3,
+        "report_source_links_checked": 10,
+        "acceptance_source_links_checked": 6,
+        "broken_links": 0,
+        "report_values_present": false,
+        "s1_s2_zero_gate_claimed": false,
+        "owner_acceptance_signed": false,
+        "owner_acceptance_date_present": false,
+        "accepted_scope_present": false,
+        "l7_exit_index_registered": false
+      },
+      "required_future_evidence_before_close": [
+        "Completed pilot report with period, usage, metric trends, incidents, and feedback disposition",
+        "S1/S2 zero or all-resolved/post-reviewed gate evidence from the actual pilot window",
+        "Pilot owner written acceptance with signer, date, and accepted scope",
+        "L7-EXIT evidence index entries for report, acceptance, and S1/S2 gate"
+      ],
+      "blocked_claims": [
+        "No pilot report values are present.",
+        "No S1/S2 gate satisfaction is claimed.",
+        "No owner acceptance is signed or dated.",
+        "No accepted scope exists.",
+        "No L7-EXIT evidence index entry is registered."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W05-T01",
+      "title": "파일럿 개시 준비(Add-in 파일럿 배포·AI off 확인·범위 확정)",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "objective": "Add-in이 파일럿 그룹 한정으로 배포되고 AI off 상태와 파일럿 대상 사건 범위가 확정되어 파일럿 팀이 production 실업무를 개시할 수 있다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w05/pilot-kickoff-checklist.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:238 (§5 L7-5)",
+        "workbook/matter-post-cp-launch-plan.md:229-232 (L7 목표·진입조건)",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+        "contracts/email-dms-m365-runtime-contract.json"
+      ],
+      "acceptance_criteria": [
+        "Add-in 배포 대상 목록이 파일럿 명단과 일치하고, 비대상 사용자 1명 기준으로 Add-in 미노출이 확인된다.",
+        "AI 기능 플래그 off 상태가 관리 콘솔 화면과 설정 덤프 양쪽으로 확인된다.",
+        "파일럿 대상 신건·진행 사건 목록이 파일럿 오너 승인(서명·일자)으로 확정된다.",
+        "개시 공지와 지원 채널 안내가 파일럿 전원에게 발송된 기록이 존재한다."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 배포 대상 목록 대 명단 대조 2) 비대상 계정에서 미노출 확인 3) AI off 설정 덤프 확보 4) 오너 승인·공지 발송 기록 확인",
+        "evidence": "docs/goal-closeout/lt-l7-w05/pilot-kickoff-checklist.md + 설정 덤프 + command-evidence.json(lt-l7-w05)",
+        "vc_bindings": [
+          "VC-OUT-001",
+          "VC-M365-001",
+          "VC-AUD-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:238 (§5 L7-5)",
+        "workbook/matter-post-cp-launch-plan.md:229-232 (L7 목표·진입조건)",
+        "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+        "contracts/email-dms-m365-runtime-contract.json"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W05-T02",
+      "title": "운영 지표 수집 가동·KPI 베이스라인 정의서 작성",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "objective": "파일럿 운영 지표 4종(SLO 준수율·감사 체인 일일 검증·filing 성공률·권한 차단 이벤트)의 수집이 가동되고 PRD §7 KPI 7종의 베이스라인 정의서가 작성되어 L9-2 실측의 기준이 된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w05/kpi-baseline-definition.md",
+        "docs/goal-closeout/lt-l7-w05/metrics-collection-check.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:238 (§5 L7-5 운영 지표)",
+        "workbook/matter-post-cp-launch-plan.md:241 (KPI 베이스라인 정의서)",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md:88-98 (성공 기준 7종)",
+        "workbook/matter-post-cp-launch-plan.md:274 (§5 L9-2)"
+      ],
+      "acceptance_criteria": [
+        "운영 지표 4종 각각에 대해 1일치 이상의 수집 데이터가 존재한다(지표별 조회 출력 첨부).",
+        "KPI 베이스라인 정의서가 PRD §7 7종 각각에 측정식·수집원·수집 주기를 정의한다(미정의 지표 0).",
+        "정의서의 지표 필드 명세가 L9-2 실측 리포트 입력 형식과 호환된다(필드 매핑표 포함).",
+        "지표 조회 경로(대시보드 또는 리포트)가 문서에 기재되고 조회가 재현 가능하다."
+      ],
+      "verification_contract": {
+        "method": "1) 지표 4종 조회 실행·출력 확보 2) 정의서 7종 완전성 검사 3) L9-2 입력 형식 매핑표 검토",
+        "evidence": "docs/goal-closeout/lt-l7-w05/metrics-collection-check.md + kpi-baseline-definition.md + command-evidence.json(lt-l7-w05)",
+        "vc_bindings": [
+          "VC-FUNC-001",
+          "VC-PERM-001",
+          "VC-REG-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:238 (§5 L7-5 운영 지표)",
+        "workbook/matter-post-cp-launch-plan.md:241 (KPI 베이스라인 정의서)",
+        "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md:88-98 (성공 기준 7종)",
+        "workbook/matter-post-cp-launch-plan.md:274 (§5 L9-2)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W05-T03",
+      "title": "파일럿 운영(주간 피드백·P0/P1 즉시 수정 트랙·인시던트 대장)",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": false,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "objective": "2~4주 파일럿 기간 동안 주간 피드백 세션·P0/P1 즉시 수정 트랙·인시던트 대장이 운영되어 L7 완료 게이트 'S1/S2 zero(발견분 전건 해소)'의 증거가 축적된다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w05/pilot-operations-log.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:238 (§5 L7-5)",
+        "workbook/matter-post-cp-launch-plan.md:240 (L7 완료 게이트)",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md:13 (RISK-004 오filing)"
+      ],
+      "acceptance_criteria": [
+        "주간 피드백 세션 기록이 2회 이상 존재하고 회별 참석·논의·조치 항목이 기재된다.",
+        "P0/P1 발견분 전건이 즉시 수정 트랙에 등재되고 해소 기록을 보유한다(미해소 P0/P1 0건).",
+        "파일럿 기간 S1/S2 인시던트가 0건이거나, 발생분 전건이 해소·사후 리뷰 완료 상태다.",
+        "운영 지표 주간 스냅샷이 파일럿 기간 매주 보존된다(누락 주 0).",
+        "오filing 발생 건이 정정 절차(교육 교재 수록 절차)로 처리된 기록이 존재한다(발생 0이면 해당 없음 표기)."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 주간 세션 기록 수 확인 2) P0/P1 트랙 전건 종결 상태 검사 3) 인시던트 대장 S1/S2 판정 4) 주간 스냅샷 연속성 확인",
+        "evidence": "docs/goal-closeout/lt-l7-w05/pilot-operations-log.md + command-evidence.json(lt-l7-w05)",
+        "vc_bindings": [
+          "VC-LNCH-OPS-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:238 (§5 L7-5)",
+        "workbook/matter-post-cp-launch-plan.md:240 (L7 완료 게이트)",
+        "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md:13 (RISK-004 오filing)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    },
+    {
+      "tuw_id": "LT-L7-W05-T04",
+      "title": "파일럿 보고서 작성·파일럿 오너 서면 수락",
+      "status": "coverage_recorded_blocked_pending_required_evidence",
+      "terminal_tuw": true,
+      "coverage_record_type": "ledger_bound_blocker_record",
+      "completion_claim": false,
+      "go_live_approved": false,
+      "owner_deferral_approved": false,
+      "no_real_data": true,
+      "writes_product_state": false,
+      "closed_cp_evidence_is_read_only": true,
+      "current_wp_status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+      "objective": "파일럿 결과가 보고서로 집계되고 파일럿 오너의 서면 수락이 확보되어 L7 완료 게이트 2항목(S1/S2 zero·오너 서면 수락)의 증거가 성립한다.",
+      "deliverables": [
+        "docs/goal-closeout/lt-l7-w05/pilot-report.md",
+        "docs/goal-closeout/lt-l7-w05/pilot-owner-acceptance.md"
+      ],
+      "source_refs": [
+        "workbook/matter-post-cp-launch-plan.md:240-241 (L7 완료 게이트·산출물)",
+        "docs/goal-closeout/lt-l7-w05/pilot-operations-log.md(본 WP 선행 산출물)"
+      ],
+      "acceptance_criteria": [
+        "보고서에 기간·사용량(활성 사용자·filing 건수)·지표 추이·인시던트·피드백 처리 현황이 집계된다.",
+        "파일럿 오너 서면 수락 아티팩트(서명·일자·수락 범위)가 존재한다.",
+        "L7-EXIT 증거 색인에 보고서·수락 아티팩트가 등재된다."
+      ],
+      "verification_contract": {
+        "method": "수동검증: 1) 보고서 집계 항목 완전성 검사 2) 서면 수락 아티팩트 확인 3) 색인 등재 확인",
+        "evidence": "docs/goal-closeout/lt-l7-w05/pilot-report.md + pilot-owner-acceptance.md + command-evidence.json(lt-l7-w05)",
+        "vc_bindings": [
+          "VC-LNCH-DOC-001",
+          "VC-LNCH-DEC-001"
+        ]
+      },
+      "artifacts": [
+        "docs/goal-closeout/lt-l7-w05/command-evidence.json",
+        "workbook/matter-post-cp-launch-plan.md:240-241 (L7 완료 게이트·산출물)",
+        "docs/goal-closeout/lt-l7-w05/pilot-operations-log.md(본 WP 선행 산출물)"
+      ],
+      "blocked_reason": "This TUW is represented for coverage only. Required deliverables and acceptance criteria remain blocked or pending until real evidence or owner-approved deferral coverage exists.",
+      "required_next_action": "Provide real completion evidence for this TUW, or record valid owner-approved deferral coverage in docs/launch/launch-decision-register.md.",
+      "notes": [
+        "No completion, production readiness, go-live approval, owner approval, or owner deferral is claimed by this coverage row.",
+        "Full Claude review remains waived by user instruction and is not valid review evidence.",
+        "Closed CP evidence remains read-only."
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "result": "PASS",
+      "output": "TUW total 344 | WP 72 | violations 0"
+    },
+    {
+      "command": "node inline validation script for LT-L7-W05 pilot-kickoff-checklist.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "prerequisite_rows": 5,
+        "deployment_check_rows": 5,
+        "ai_off_check_rows": 4,
+        "scope_approval_rows": 4,
+        "communications_rows": 4,
+        "evidence_matrix_rows": 4,
+        "source_links_checked": 8,
+        "broken_links": [],
+        "deployment_export_present": false,
+        "pilot_mailbox_visible_proof": false,
+        "non_pilot_mailbox_hidden_proof": false,
+        "ai_off_config_dump_present": false,
+        "owner_scope_approval_present": false,
+        "kickoff_notice_sent": false,
+        "support_channel_roundtrip_done": false
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W05 kpi-baseline-definition.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "operating_metric_rows": 4,
+        "kpi_baseline_rows": 7,
+        "l9_mapping_rows": 7,
+        "query_route_rows": 4,
+        "source_links_checked": 6,
+        "broken_links": [],
+        "numeric_targets_set": false,
+        "pilot_baseline_values_present": false,
+        "l9_mapping_complete": true
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W05 metrics-collection-check.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "collection_check_rows": 4,
+        "query_slot_rows": 4,
+        "availability_rows": 7,
+        "synthetic_shape_rows": 5,
+        "closeout_requirement_rows": 4,
+        "source_links_checked": 4,
+        "broken_links": [],
+        "one_day_metric_outputs_present": false,
+        "dashboard_or_report_route_present": false,
+        "approved_pilot_input_present": false
+      }
+    },
+    {
+      "command": "node apps/ops-kpi/collect.mjs --all",
+      "result": "PASS_SYNTHETIC_SHAPE_ONLY",
+      "output": {
+        "synthetic_only": true,
+        "no_real_data": true,
+        "aggregate_only": true,
+        "staging_source": false,
+        "raw_sensitive_fields_exposed": false,
+        "kpi_count": 7,
+        "null_value_count": 0,
+        "dashboard_published": false,
+        "auto_refresh_24h_verified": false
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W05 pilot-operations-log.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "pilot_window_fields": 5,
+        "weekly_session_slots": 4,
+        "p0_p1_fix_fields": 10,
+        "incident_ledger_fields": 12,
+        "weekly_metric_snapshot_slots": 4,
+        "misfiling_fields": 8,
+        "evidence_state_rows": 5,
+        "source_links_checked": 8,
+        "broken_links": [],
+        "weekly_feedback_sessions_recorded": 0,
+        "p0_p1_findings_recorded": 0,
+        "s1_s2_zero_gate_claimed": false,
+        "weekly_metric_snapshots_recorded": 0,
+        "misfiling_records_processed": 0
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W05 pilot-report.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "report_section_rows": 6,
+        "usage_field_rows": 5,
+        "trend_field_rows": 4,
+        "incident_summary_rows": 4,
+        "feedback_summary_rows": 4,
+        "current_value_rows": 6,
+        "source_links_checked": 10,
+        "broken_links": [],
+        "report_values_present": false,
+        "s1_s2_zero_gate_claimed": false,
+        "owner_acceptance_signed": false
+      }
+    },
+    {
+      "command": "node inline validation script for LT-L7-W05 pilot-owner-acceptance.md",
+      "result": "PASS",
+      "output": {
+        "pass": true,
+        "acceptance_field_rows": 8,
+        "decision_option_rows": 3,
+        "index_status_rows": 3,
+        "source_links_checked": 6,
+        "broken_links": [],
+        "owner_acceptance_signed": false,
+        "owner_acceptance_date_present": false,
+        "accepted_scope_present": false,
+        "l7_exit_index_registered": false
+      }
+    }
+  ],
+  "source_materials": [
+    "docs/launch/pilot-roster-draft.md",
+    "docs/goal-closeout/lt-l1-w10/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w04/command-evidence.json",
+    "docs/launch/support/faq-onboarding.md",
+    "contracts/email-dms-m365-runtime-contract.json",
+    "workbook/matter_dev_docs/08_Microsoft_365_Outlook_Addin_Spec.md",
+    "docs/launch/kpi/kpi-definitions.md",
+    "docs/launch/kpi/kpi-collection-commands.md",
+    "docs/goal-closeout/lt-l6-w06/command-evidence.json",
+    "docs/launch/runbooks/incident-response-runbook.md",
+    "docs/launch/runbooks/change-management.md",
+    "docs/goal-closeout/lt-l7-w04/training/session-records.md",
+    "docs/goal-closeout/lt-l7-w04/training/lawyer-guide.md",
+    "workbook/matter_dev_docs/01_제품_사양명세서_PRD_SRS.md",
+    "workbook/matter_dev_docs/23_Risk_Register_Open_Questions.md",
+    "workbook/launch-tuw/20_L9.md"
+  ],
+  "work_package_id": "LT-L7-W05",
+  "tuw_evidence_coverage": {
+    "ledger_tuw_count": 4,
+    "coverage_rows_added_by": "codex_launch_tuw_evidence_coverage_backfill",
+    "coverage_rows_are_completion_claims": false,
+    "go_live_approved_by_coverage_rows": false,
+    "owner_deferrals_approved_by_coverage_rows": false,
+    "closed_cp_evidence_is_read_only": true
+  }
+}

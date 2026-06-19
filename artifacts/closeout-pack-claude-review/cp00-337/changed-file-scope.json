@@ -1,0 +1,146 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-hardening.v0.1.changed-file-scope.v0.1",
+  "pack_id": "CP00-337",
+  "active_pack_scope_available": true,
+  "active_pack_implementation_refs": [
+    "contracts/intake-core-contract.json",
+    "packages/intake/README.md",
+    "packages/intake/src/index.js",
+    "packages/intake/src/registry.js",
+    "packages/intake/src/service.js",
+    "packages/intake/src/validators.js",
+    "packages/intake/test/model.test.js",
+    "scripts/validate-rp10-intake-core-contract.mjs"
+  ],
+  "active_pack_required_untracked_files": [],
+  "git_status_rows": [
+    {
+      "status": " M",
+      "file": "contracts/intake-core-contract.json",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/intake/README.md",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/intake/src/registry.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/intake/src/service.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/intake/src/validators.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "packages/intake/test/model.test.js",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": " M",
+      "file": "scripts/validate-rp10-intake-core-contract.mjs",
+      "untracked": false,
+      "modified": true,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-pack-plan/new-session-handoff.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/closeout-packs/cp00-337/",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_development_documentation_pack.zip",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_document_index.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/matter_master_specification_combined.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    },
+    {
+      "status": "??",
+      "file": "workbook/plan-vs-plan-verdict.md",
+      "untracked": true,
+      "modified": false,
+      "added": false
+    }
+  ],
+  "untracked_implementation_files": [
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-337/"
+  ],
+  "active_untracked_implementation_files_omitted": [],
+  "unrelated_dirty_files_preserved": [
+    "Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx",
+    "docs/closeout-pack-plan/new-session-handoff.md",
+    "docs/closeout-packs/cp00-337/",
+    "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json",
+    "workbook/matter_dev_docs/matter_\\352\\260\\234\\353\\260\\234\\353\\254\\270\\354\\204\\234_\\355\\206\\265\\355\\225\\251\\353\\263\\270.md",
+    "workbook/matter_development_documentation_pack.zip",
+    "workbook/matter_document_index.md",
+    "workbook/matter_master_specification_combined.md",
+    "workbook/plan-vs-plan-verdict.md"
+  ]
+}

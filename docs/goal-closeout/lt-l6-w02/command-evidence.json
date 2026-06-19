@@ -1,0 +1,122 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L6-W02",
+  "title": "Support and permission request operating model",
+  "phase": "L6",
+  "gate": "L6-EXIT",
+  "status": "t01_permission_procedure_t02_faq_onboarding_drafts_blocked_pending_runtime_support_channel_and_training_source",
+  "recorded_at": "2026-06-18T12:50:00Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "human_decision_synthesized": false,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L6-W02-T01",
+      "title": "Permission request and change procedure draft",
+      "status": "draft_blocked_pending_l2_w02_permission_runtime_and_l1_w05_approval_governance",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/runbooks/permission-request-procedure.md",
+        "docs/goal-closeout/lt-l6-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "procedure_steps": 4,
+        "admin_console_route_required": true,
+        "bypass_routes_allowed": 0,
+        "audit_fields": [
+          "actor",
+          "target",
+          "before",
+          "after",
+          "reason"
+        ],
+        "regression_map_rows": 7,
+        "live_permission_change_performed": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count PR-STEP rows, REG-PERM rows, audit fields, Admin Console route, and blocked live mutation markers ... NODE",
+          "exit_code": 0,
+          "output": "{\"procedure_steps\":4,\"regression_rows\":7,\"audit_actor\":true,\"audit_target\":true,\"audit_before_after\":true,\"audit_reason\":true,\"admin_console_route\":true,\"no_direct_db_edits\":true,\"live_permission_change_performed\":false}",
+          "purpose": "Verify permission request procedure defines four steps, Admin Console route, audit fields, and seven regression areas without performing live permission changes"
+        },
+        {
+          "command": "grep -c \"^| PR-STEP-\" docs/launch/runbooks/permission-request-procedure.md && grep -c \"^| REG-PERM-\" docs/launch/runbooks/permission-request-procedure.md",
+          "exit_code": 0,
+          "output": "4\n7",
+          "purpose": "Verify procedure and regression map row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is an operating procedure draft only; no Admin Console code, permission mutation, approval record, support channel, audit event, or product state was created.",
+        "LT-L6-W02 remains open because T02 support-channel opening and live permission request demonstration are not complete."
+      ]
+    },
+    {
+      "tuw_id": "LT-L6-W02-T02",
+      "title": "Support FAQ and onboarding draft",
+      "status": "draft_blocked_pending_support_channel_l4_w06_training_source_and_permission_demo",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/support/faq-onboarding.md",
+        "docs/launch/runbooks/permission-request-procedure.md",
+        "docs/goal-closeout/lt-l6-w02/command-evidence.json"
+      ],
+      "acceptance": {
+        "faq_rows": 12,
+        "onboarding_steps": 8,
+        "permission_demo_steps": 4,
+        "internal_links": 5,
+        "internal_link_targets_existing": true,
+        "support_channel_opened": false,
+        "permission_request_demo_performed": false,
+        "published_training": false
+      },
+      "commands": [
+        {
+          "command": "node - <<'NODE' ... count FAQ, ONBOARD, PERM-DEMO, LINK rows and verify linked files exist without support-channel claim ... NODE",
+          "exit_code": 0,
+          "output": "{\"faq_rows\":12,\"onboard_rows\":8,\"demo_rows\":4,\"link_rows\":5,\"missing_links\":[],\"support_channel_opened\":false,\"permission_demo_performed\":false}",
+          "purpose": "Verify FAQ/onboarding draft has support content and valid internal runbook links without claiming live channel or demo evidence"
+        },
+        {
+          "command": "grep -c \"^| FAQ-\" docs/launch/support/faq-onboarding.md && grep -c \"^| ONBOARD-\" docs/launch/support/faq-onboarding.md && grep -c \"^| PERM-DEMO-\" docs/launch/support/faq-onboarding.md",
+          "exit_code": 0,
+          "output": "12\n8\n4",
+          "purpose": "Verify FAQ, onboarding, and permission demo row counts"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW 총수: 344 | WP: 72 | phase별: {\"PRE\":14,\"L0\":18,\"L1\":32,\"L2\":87,\"L3\":44,\"L4\":37,\"L5\":30,\"L6\":14,\"L7\":35,\"L8\":20,\"L9\":13}; 위반 0건 — PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "This is a FAQ/onboarding draft only; no support channel was opened and no request round trip was performed.",
+        "The permission request demonstration remains pending because support channel, approval governance, permission runtime, and audit runtime are not ready.",
+        "Final publication depends on LT-L4-W06/L7 training artifacts and owner-approved support routing."
+      ]
+    }
+  ],
+  "blocked_claims": [
+    "This record does not claim LT-L6-W02, LT-L6-W02-T01, or LT-L6-W02-T02 is complete.",
+    "This record does not perform, approve, or audit a live permission change.",
+    "This record does not open a support channel or simulate a permission request.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ]
+}

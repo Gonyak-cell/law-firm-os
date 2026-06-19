@@ -1,0 +1,37 @@
+{
+  "work_package_id": "LT-L1-W10",
+  "title": "pilot roster candidate draft",
+  "created_at": "2026-06-18T14:47:32Z",
+  "status": "draft_completed_pending_l1_w01_scope_decision",
+  "phase": "L1",
+  "gate_binding": [
+    "L1-EXIT"
+  ],
+  "terminal_tuw": "LT-L1-W10-T02",
+  "artifacts": [
+    "docs/launch/pilot-roster-draft.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l1-w10/packet.json",
+    "docs/goal-closeout/lt-l1-w10/command-evidence.json",
+    "docs/goal-closeout/lt-l1-w10/claude-review-result.json",
+    "docs/goal-closeout/lt-l1-w10/adjudication.md",
+    "docs/goal-closeout/lt-l1-w10/construction-inspection.json"
+  ],
+  "current_status": {
+    "pilot_roster_draft_exists": true,
+    "size_check_lawyers": 4,
+    "size_check_staff": 2,
+    "size_check_admin": 1,
+    "owner_slot_present": true,
+    "oq_015_ma_first_rationale_present": true,
+    "real_people_nominated": false,
+    "l1_w01_scope_decision_pending": true,
+    "l1_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "subphase_id": "RP00.P02.M03.S20",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Unit test: denied path",
+  "created_at": "2026-06-05T15:11:57Z",
+  "review_type": "actual_claude_cli_read_only",
+  "model": "claude-opus-4-8",
+  "effort": "max",
+  "permission_mode": "dontAsk",
+  "allowed_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "disallowed_tools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "NotebookEdit"
+  ],
+  "raw_result_path": "/tmp/lfos-rp00-p02-m03-s20-claude-review.json",
+  "stderr_path": "/tmp/lfos-rp00-p02-m03-s20-claude-review.stderr",
+  "stderr_bytes": 0,
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 576035,
+  "duration_api_ms": 576765,
+  "session_id": "dca0cc51-f085-470d-a749-403765dd22c8",
+  "uuid": "48250961-d72a-4ce7-af37-042dd43703a6",
+  "total_cost_usd": 3.130931,
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "stop_reason": "end_turn",
+  "num_turns": 44,
+  "implementation_verdict": "PASS",
+  "production_ready_verdict_before_adjudication": "GO_WITH_NON_BLOCKING_FINDINGS",
+  "production_ready_verdict_after_adjudication": "GO",
+  "go_no_go_summary": "Claude rated the S20 engineering deliverable GO with no P0/P1 findings. One P2 hardening item was accepted and fixed by making the denied-path helper consume expectedFailClosedOn metadata and assert exact deterministic error messages. Two P3 notes are informational and explicitly deferred: non-closure is already structurally enforced and unrelated untracked files remain unstaged.",
+  "findings": [
+    {
+      "id": "CLAUDE-S20-P2-001",
+      "severity": "P2",
+      "title": "Denied-path test did not assert expectedFailClosedOn rejection reason",
+      "status": "fixed",
+      "summary": "Claude noted that each denied case defined expectedFailClosedOn, but the helper previously asserted only that an Error was thrown.",
+      "resolution": "Updated packages/control-plane/test/service.test.js so assertHermesValidationDeniedPathCaseThrows validates the expectedFailClosedOn reason catalog and exact Error.message for each denied case. node --check and node --test packages/control-plane/test/service.test.js pass after the fix."
+    },
+    {
+      "id": "CLAUDE-S20-P3-001",
+      "severity": "P3",
+      "title": "S20 contract non-closure flags are not individually asserted by the validator",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude noted that does_not_complete_RP00_P02 and does_not_close_RP00 are present but not directly asserted for the S20 definition.",
+      "resolution": "Deferred as informational because the weighted ledger terminal boundary, closeout handoff to RP00.P02.M04.S01, and source microphase completion state structurally prevent P02/RP00 closure in this subphase."
+    },
+    {
+      "id": "CLAUDE-S20-P3-002",
+      "severity": "P3",
+      "title": "Unrelated untracked local files appear in git status",
+      "status": "deferred_with_explicit_boundary",
+      "summary": "Claude observed untracked .DS_Store and Law Firm OS UI/ entries.",
+      "resolution": "Deferred as unrelated workspace state. The S20 commit stages only S20 deliverable and closeout evidence files."
+    }
+  ],
+  "unresolved_p0": 0,
+  "unresolved_p1": 0,
+  "unresolved_p2": 0,
+  "production_ready": true,
+  "review_gate": "C00",
+  "reviewer": "claude-opus-4-8",
+  "mode": "read-only",
+  "status": "review_completed",
+  "completed_at": "2026-06-05T15:11:57Z",
+  "exactly_one_valid_review_run": true,
+  "invalid_partial_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "tools_available": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "write_tools_granted": false,
+    "session_id": "dca0cc51-f085-470d-a749-403765dd22c8",
+    "uuid": "48250961-d72a-4ce7-af37-042dd43703a6",
+    "duration_ms": 576035,
+    "duration_api_ms": 576765,
+    "total_cost_usd": 3.130931,
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "stop_reason": "end_turn",
+    "raw_output_file": "/tmp/lfos-rp00-p02-m03-s20-claude-review.json"
+  },
+  "claude_cli": {
+    "command": "claude -p --model claude-opus-4-8 --effort max --permission-mode dontAsk --tools Read,Grep,Glob --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit --output-format json",
+    "prompt_source": "inline prompt",
+    "output_file": "/tmp/lfos-rp00-p02-m03-s20-claude-review.json",
+    "stderr_file": "/tmp/lfos-rp00-p02-m03-s20-claude-review.stderr",
+    "stderr_bytes": 0,
+    "duration_ms": 576035,
+    "duration_api_ms": 576765,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "uuid": "48250961-d72a-4ce7-af37-042dd43703a6",
+    "session_id": "dca0cc51-f085-470d-a749-403765dd22c8"
+  },
+  "scope_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "overall_verdict_reported_by_claude": "GO",
+  "overall_verdict_after_adjudication": "PASS",
+  "go_no_go_reported_by_claude": "GO",
+  "go_no_go_after_adjudication": "GO",
+  "go_no_go": "GO",
+  "blocks_subphase_closeout": false,
+  "blocks_goal_closeout": false,
+  "no_unresolved_p0": true,
+  "no_unresolved_p1": true,
+  "parsed_review": {
+    "verdict": "PASS_WITH_FINDINGS",
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "reported_verdict": "GO_WITH_NON_BLOCKING_FINDINGS",
+    "go_no_go": "GO_AFTER_ADJUDICATION",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "findings": [
+      {
+        "severity": "P2",
+        "title": "Denied-path reason assertions",
+        "location": "packages/control-plane/test/service.test.js",
+        "status": "fixed",
+        "summary": "The helper now consumes expectedFailClosedOn and validates exact deterministic Error.message for every denied case."
+      },
+      {
+        "severity": "P3",
+        "title": "Validator direct non-closure assertions",
+        "location": "scripts/validate-rp00-control-plane-contract.mjs",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "No semantic risk because non-closure is structurally enforced by terminal ledger and M04.S01 handoff."
+      },
+      {
+        "severity": "P3",
+        "title": "Untracked unrelated local files",
+        "location": "git status",
+        "status": "deferred_with_explicit_boundary",
+        "summary": "Unrelated .DS_Store and Law Firm OS UI/ are intentionally not staged."
+      }
+    ],
+    "required_followups": [
+      "Continue with RP00.P02.M04.S01 Service entrypoint contract as the next subphase."
+    ],
+    "review_notes": [
+      "Claude confirmed S20 is a test deliverable, not runtime behavior.",
+      "Claude confirmed the valid S18 baseline passes and all 36 denied cases fail closed.",
+      "Claude confirmed S20 completes RP00.P02.M03 and hands off to RP00.P02.M04.S01 without closing RP00.P02 or RP00."
+    ],
+    "summary": "Claude reported GO and no P0/P1 issues. The only P2 was fixed before final closeout."
+  },
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "p3": 2
+  },
+  "raw_claude_cli_result_summary": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "result_file": "/tmp/lfos-rp00-p02-m03-s20-claude-review.json",
+    "summary": "Claude returned GO with one P2 hardening item and two P3 informational notes."
+  },
+  "overall_verdict": "PASS_WITH_FINDINGS"
+}

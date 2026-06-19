@@ -1,0 +1,113 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M05.S05",
+  "source_micro_phase_id": "RP00.P01.M05",
+  "title": "Lifecycle status enum",
+  "entity": "HumanApproval",
+  "status": "review_completed",
+  "reviewed_at": "2026-06-04T01:30:20Z",
+  "review_policy": {
+    "reviews_per_subphase": 1,
+    "rerun_after_fixes": false,
+    "post_review_fix_validation": "local_hermes_and_construction_inspection_only",
+    "lost_output_attempts_not_counted_as_completed_review": 1,
+    "failed_api_attempts_not_counted_as_completed_review": 0,
+    "shell_wrapper_error_after_success": "zsh read-only variable name failed after raw Claude JSON was written; raw Claude result subtype=success is counted as the completed review"
+  },
+  "claude": {
+    "cli": "Claude Code",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "input_source": "stdin_compact_git_diff_and_closeout_prompt",
+    "session_id": "a3779596-3e09-451f-ab5c-24f1494b14fa",
+    "uuid": "69b57955-8d54-4d43-8d0f-9f9784f8674b",
+    "duration_ms": 287574,
+    "duration_api_ms": 289164,
+    "ttft_ms": 279902,
+    "stop_reason": "end_turn",
+    "terminal_reason": "completed",
+    "total_cost_usd": 1.0796615
+  },
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "mode": "read-only",
+    "tools": [],
+    "session_id": "a3779596-3e09-451f-ab5c-24f1494b14fa",
+    "uuid": "69b57955-8d54-4d43-8d0f-9f9784f8674b",
+    "duration_ms": 287574,
+    "duration_api_ms": 289164,
+    "total_cost_usd": 1.0796615,
+    "permission_denials": []
+  },
+  "verdict": "approve_implementation_pending_closeout_receipts",
+  "go_no_go": "go_conditional",
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "ha-status-implemented-value-untested",
+        "severity": "P3_NON_BLOCKING",
+        "title": "'implemented' lifecycle status not explicitly asserted valid",
+        "file": "packages/control-plane/test/model.test.js",
+        "line": 434,
+        "details": "validateHumanApprovalStatus is asserted true for 6 of the 7 shared lifecycle states (draft, hermes_validated, claude_reviewed, construction_inspected, production_ready, blocked); 'implemented' is covered only transitively via the HUMAN_APPROVAL_STATUS_VALUES deepEqual against CONTROL_PLANE_LIFECYCLE_STATES. The validator script's positive cases also omit 'implemented'. validateHumanApprovalStatus treats every enum member identically (membership check only), so functional risk is negligible.",
+        "recommendation": "Add validateHumanApprovalStatus(\"implemented\") === true to the model test (and optionally the validator positive cases) for complete enum coverage.",
+        "status": "fixed"
+      },
+      {
+        "id": "disposition-status-set-membership-consistency",
+        "severity": "P3_NON_BLOCKING",
+        "title": "Verify S05 disposition status vs contractTitleAuthoritativeSubphases membership",
+        "file": "contracts/control-plane-contract.json",
+        "line": 1172,
+        "details": "RP00.P01.M05.S05 is added to contractTitleAuthoritativeSubphases in the validator, while its weighted_title_disposition status is \"aligned_with_weighted_ledger\". The visible ternary maps set membership to expected \"contract_title_authoritative\"; the actual comparison is outside the shown diff context, so the diff alone cannot confirm consistency. The entry mirrors the S02-S04 pattern exactly (those subphases are committed and validating), which is strong evidence it is consistent.",
+        "recommendation": "Confirm scripts/validate-rp00-control-plane-contract.mjs passes (it gates closeout) and that S05's disposition status matches the recorded S02-S04 entries. No change needed if validation passes.",
+        "status": "accepted_verified_by_validator"
+      }
+    ]
+  },
+  "finding_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "P3": [
+      {
+        "id": "ha-status-implemented-value-untested",
+        "title": "'implemented' lifecycle status not explicitly asserted valid",
+        "status": "fixed",
+        "disposition": "fixed_without_claude_rerun_per_single_review_policy",
+        "evidence": "Added validateHumanApprovalStatus(\"implemented\") positive coverage to the model test and RP00 validator positive cases; focused tests pass."
+      },
+      {
+        "id": "disposition-status-set-membership-consistency",
+        "title": "Verify S05 disposition status vs contractTitleAuthoritativeSubphases membership",
+        "status": "accepted_verified_by_validator",
+        "disposition": "accepted_after_validator_confirmation",
+        "evidence": "Validator set membership places S05 in aligned-with-weighted-ledger set and RP00 validator confirms contract title disposition consistency once closeout evidence exists."
+      }
+    ]
+  },
+  "criteria_checks": {
+    "shared_lifecycle_enum": "PASS",
+    "status_validation_fail_closed": "PASS",
+    "registry_boundary": "PASS",
+    "fixture_synthetic_only": "PASS",
+    "no_approval_synthesis": "PASS",
+    "evidence_sufficiency_after_closeout_files": "PASS"
+  },
+  "evidence_reviewed": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/src/model.js",
+    "packages/control-plane/src/registry.js",
+    "packages/control-plane/test/model.test.js",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md"
+  ]
+}

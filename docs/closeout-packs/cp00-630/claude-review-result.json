@@ -1,0 +1,116 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review.v0.1",
+  "pack_id": "CP00-630",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "b0a91d0d-c05c-4a5a-a62f-e4c36a5b90dd",
+    "uuid": "e8ee5beb-985d-4d14-b709-68b819a57441",
+    "total_cost_usd": 3.6923259999999996,
+    "permission_denials": []
+  },
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-630/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-630/review-receipt.json"
+  ],
+  "invalid_review_attempts": [
+    {
+      "attempt_id": "CP630-attempt-01-closeout-ineligible-p2",
+      "status": "invalid_not_accepted",
+      "reason": "closeout_ineligible_p2_precondition_final_command_matrix_not_yet_recorded",
+      "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-630/invalid-attempts/raw-output-attempt-01-closeout-ineligible-p2.json",
+      "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-630/invalid-attempts/review-receipt-attempt-01-closeout-ineligible-p2.json",
+      "valid_review": true,
+      "closeout_eligible": false,
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 1,
+        "p3": 2,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 1,
+        "reported_p3": 2
+      },
+      "review_execution": {
+        "source": "claude_cli",
+        "runner": "scripts/run-closeout-pack-claude-review.mjs",
+        "model": "claude-opus-4-8",
+        "effort": "max",
+        "read_only": true,
+        "permission_mode": "dontAsk",
+        "tools": "Read,Grep,Glob",
+        "output_format": "json",
+        "json_schema": true,
+        "status": 0,
+        "signal": null,
+        "session_id": "5ccf1d83-2207-40b6-b0f1-50de8075bfd6",
+        "uuid": "b52d8ad2-8b83-4b5c-b640-a46dd1ee08ae",
+        "total_cost_usd": 3.1607617499999994,
+        "permission_denials": []
+      }
+    }
+  ],
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "Independent read-only review of CP00-630 (Risk C, 150 units, RP20.P05.M06.S05-RP20.P06.M02.S18 — the P05 synthetic-fixture closeout + P06 permission-matrix bridge descriptor pack). I traced the bindings rather than trusting evidence claims: the CP630 registry binding (pack_id CP00-630, upstream CP00-629, next CP00-631 / RP20.P06.M02.S19) matches the contract projection (cp630_pack_binding/requirements/no_write_attestation), the manifest plan_binding_snapshot, the review baseline, the live closeout-pack-plan pointer, and next-pack-queue.json. I recomputed coverage from the row arrays (P05_SYNTHETIC_FIXTURE_REMAINDER 18, P05_FIXTURE_EXTENDED 22+22, P05_FIXTURE_NO_STABLE 20, P05_FIXTURE_FOUNDATION 10, P06_PERMISSION_AUDIT 20+20, P06_PERMISSION_AUDIT_HEAD 18) = 150 across 8 sections, and independently re-derived the deliverable distribution via dataRoomVdrCoreDeliverableType (fixture 30, claude_review 8, implementation 57, security_audit 23, test 16, hermes_evidence 4, ui 12) — matching the manifest delivery_counts, registry DELIVERABLE_COUNTS, and the validator's enforced expected_deliverable_counts exactly. The freezeCp630->freezeCp629->...->freezeCp610 chain sets every dispatch/runtime/write/leak flag false and synthetic_only/no_real_data true; validateDataRoomVdrCoreCp630P05FixtureCloseoutP06PermissionMatrixBridgeDescriptor asserts the full no-write set plus the authority boundary (claude_is_final_approval false, local_validation_claims_enterprise_trust false, human_final_approval_required_for_runtime_opening true) and returns only production_ready_candidate:true — never an enterprise-trust claim. Hermes is used solely as a deterministic descriptor packet/receipt (emits_hermes_runtime_receipt false; program_contract runtime_opened false, descriptor_only true); Claude is encoded as a read-only, non-final-approval reviewer. Three dedicated CP630 tests plus the contract validation script deep-equal the contract projections to package code and assert the CP00-631 handoff; index.js re-exports the API via export *. No premature claim exists anywhere: manifest status in_progress / production_ready false / runtime_ready false, command-evidence production_ready false, construction-inspection PENDING, adjudication pending, claude-review-result review_pending. I also verified the CP178+ hardening library correctly rejects auth failures, 0-byte stdout, malformed JSON, fenced/prose JSON, tool-call-shaped output, permission denials, is_error, and missing required fields, and computes closeout_eligible only when there are zero P0/P1/P2 findings. The attempt-01 P2 (full validation command matrix deferred) is now resolved — command-evidence.json records the complete expected matrix (all 11 prompt/baseline commands plus extras) at exit_code 0. No P0/P1/P2 defects found in the current state. Findings are limited to P3 governance/traceability preconditions; production_ready must remain false until governance normalization and human final approval, and this verdict does not weaken that gate.",
+    "findings": [
+      {
+        "id": "CP630-P3-01",
+        "severity": "P3",
+        "title": "Closeout governance artifacts remain PENDING and must be normalized with this refreshed review receipt",
+        "file": "docs/closeout-packs/cp00-630/construction-inspection.json",
+        "line": 5,
+        "details": "construction-inspection.json (verdict PENDING, production_ready false), adjudication.md (P0-P3 all pending), and claude-review-result.json (status review_pending, exactly_one_valid_pack_level_claude_review_run false, valid_review_receipts empty) are all in the expected pre-refresh state. They must be updated to reflect this refreshed read-only review's normalized receipt, and production_ready must stay false until human final approval per the authority boundary (claude_is_final_approver false, human_final_approval_required_for_enterprise_trust_claim true).",
+        "recommendation": "Normalize this review's receipt into claude-review-result.json (rejecting any auth-failure/0-byte/malformed/fenced/tool-call-shaped/missing-field evidence), then complete adjudication and construction-inspection; keep production_ready gated on human approval and do not weaken the gate.",
+        "post_review_disposition": "Expected pipeline step after a passing refreshed review; no change required to the delivered descriptor code."
+      },
+      {
+        "id": "CP630-P3-02",
+        "severity": "P3",
+        "title": "Canonical review artifacts are byte-identical to the preserved closeout-ineligible attempt-01 (stale receipt at canonical path)",
+        "file": "artifacts/closeout-pack-claude-review/cp00-630/review-receipt.json",
+        "line": 7,
+        "details": "The canonical raw-output.json and review-receipt.json are identical to invalid-attempts/raw-output(+review-receipt)-attempt-01-closeout-ineligible-p2 (same session_id 5ccf1d83-..., uuid b52d8ad2-..., normalized_at 2026-06-13T10:46:27.945Z). That receipt is valid_review:true but closeout_eligible:false because its single P2 (CP630-P2-01, 'full validation command matrix deferred') trips the hardening rule that any P0/P1/P2 blocks eligibility. The underlying P2 is now resolved (command-evidence.json records the full matrix at exit_code 0). The stale receipt has NOT been normalized into claude-review-result.json, and validateReviewReceiptObject requires closeout_eligible:true with p0/p1/p2==0, so no false closeout is possible — but a closeout-ineligible receipt sitting at the canonical path is a traceability hazard.",
+        "recommendation": "Overwrite the canonical raw-output.json/review-receipt.json with this refreshed review's output so the canonical path reflects a closeout-eligible receipt; retain attempt-01 only under invalid-attempts/. Do not normalize the stale receipt.",
+        "post_review_disposition": "Resolved by the in-flight review refresh that supersedes the stale artifacts; gate provably intact in the meantime."
+      },
+      {
+        "id": "CP630-P3-03",
+        "severity": "P3",
+        "title": "Command-matrix outcomes are recorded evidence and cannot be re-executed under read-only review",
+        "file": "docs/closeout-packs/cp00-630/command-evidence.json",
+        "line": 14,
+        "details": "command-evidence.json now records the full expected validation matrix (closeout-pack-plan:validate, closeout-pack:validate, rp05:matter-core:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check, plus node --check x5, rp20:data-room-vdr-core:validate, model.test, build) all at exit_code 0, with status passed but production_ready false and gate_outcome passed_after_pack_evidence_creation_pending_review_refresh. This resolves the attempt-01 P2. As a read-only reviewer I confirm the matrix is present and consistent with the baseline's expected commands but cannot independently re-execute it.",
+        "recommendation": "Before the human-approved production_ready flip, confirm the recorded matrix was executed against the current tree (notably git diff --check clean) and remains green; keep production_ready false until then.",
+        "post_review_disposition": "Informational; consistent with the pack's stated gate_outcome and the read-only review model."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 3,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 3
+    }
+  },
+  "user_waiver": null
+}

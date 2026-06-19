@@ -1,0 +1,2491 @@
+{
+  "schema_version": "law-firm-os.launch-deferral-decision-id-contract-audit.v0.1",
+  "generated_at": "2026-06-18T16:44:30.569Z",
+  "source_refs": [
+    "docs/launch/launch-deferral-coverage-audit.json",
+    "docs/launch/owner-action-deferral-request.json",
+    "scripts/lib/launch-decision-register.mjs"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "validates_decision_id_classification_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "launch_decision_register_modified_by_this_audit": false,
+    "review_waiver_counts_as_valid_review_evidence": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "required_domain_count": 4,
+    "owner_action_domain_count": 4,
+    "coverage_row_count": 117,
+    "accepted_decision_id_mention_count": 346,
+    "unique_accepted_decision_id_count": 153,
+    "unclassified_decision_id_count": 0,
+    "domain_mismatch_count": 0,
+    "cross_domain_decision_id_count": 0,
+    "finding_count": 0,
+    "p0_count": 0,
+    "p1_count": 0
+  },
+  "domain_contracts": [
+    {
+      "domain": "go_live_gate_evidence",
+      "coverage_row_count": 31,
+      "accepted_decision_id_mention_count": 93,
+      "unique_accepted_decision_id_count": 42,
+      "unclassified_decision_id_count": 0,
+      "domain_mismatch_count": 0
+    },
+    {
+      "domain": "l9_stabilization_closure",
+      "coverage_row_count": 5,
+      "accepted_decision_id_mention_count": 10,
+      "unique_accepted_decision_id_count": 6,
+      "unclassified_decision_id_count": 0,
+      "domain_mismatch_count": 0
+    },
+    {
+      "domain": "blocked_work_package",
+      "coverage_row_count": 70,
+      "accepted_decision_id_mention_count": 210,
+      "unique_accepted_decision_id_count": 82,
+      "unclassified_decision_id_count": 0,
+      "domain_mismatch_count": 0
+    },
+    {
+      "domain": "phase_exit",
+      "coverage_row_count": 11,
+      "accepted_decision_id_mention_count": 33,
+      "unique_accepted_decision_id_count": 23,
+      "unclassified_decision_id_count": 0,
+      "domain_mismatch_count": 0
+    }
+  ],
+  "cross_domain_decision_ids": [],
+  "accepted_decision_rows": [
+    {
+      "coverage_id": "ACC-GL-G1-G1-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G1-G1-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G1",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G1-G1-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G1",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G1-G1-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G2-G2-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G2",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G2-G2-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G2",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G2-G2-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G2",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G2-G2-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G3-G3-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G3",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G3-G3-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G3",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G3-G3-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G3",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G3-G3-E04",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G3",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G3-G3-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G4-G4-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G4",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G4-G4-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G4",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G4-G4-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G4",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G4-G4-E04",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G4",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G4-G4-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G5-G5-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G5",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G5-G5-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G5",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G5-G5-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G5",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G5-G5-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G6-G6-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G6",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G6-G6-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G6",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G6-G6-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G6",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G6-G6-E04",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G6",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G6-G6-E04",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G7-G7-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G7",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G7-G7-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G7",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G7-G7-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G7",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G7-G7-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G8-G8-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G8",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G8-G8-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G8",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G8-G8-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G8",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G8-G8-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G9-G9-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G9-G9-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G9-G9-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G9",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G9-G9-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G9-G9-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G9-G9-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G9-G9-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G9",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G9-G9-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G10-G10-E01",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G10",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E01",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G10-G10-E02",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G10",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E02",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "ACC-GL-G10-G10-E03",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-GATE-G10",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-GL-G10-G10-E03",
+      "coverage_domain": "go_live_gate_evidence",
+      "accepted_decision_id": "COVERAGE-ALL-GO-LIVE",
+      "classified_domain": "go_live_gate_evidence",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C01",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "ACC-L9-C01",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C01",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "COVERAGE-L9-STABILIZATION",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C02",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "ACC-L9-C02",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C02",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "COVERAGE-L9-STABILIZATION",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C03",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "ACC-L9-C03",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C03",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "COVERAGE-L9-STABILIZATION",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C04",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "ACC-L9-C04",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C04",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "COVERAGE-L9-STABILIZATION",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C05",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "ACC-L9-C05",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "ACC-L9-C05",
+      "coverage_domain": "l9_stabilization_closure",
+      "accepted_decision_id": "COVERAGE-L9-STABILIZATION",
+      "classified_domain": "l9_stabilization_closure",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-PRE-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-PRE",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-PRE-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-PRE",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-PRE-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-PRE",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-PRE-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-PRE",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-PRE-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-PRE",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-PRE-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-PRE",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-PRE-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L0-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L0",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L0-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L0",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L0-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L0",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L0-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L0",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L0-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L0",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L0-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W07",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W08",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W08",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W08",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W08",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W09",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W09",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W09",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W09",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W10",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L1-W10",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W10",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L1",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L1-W10",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L2-W07",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L2",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L2-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W07",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W08",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W08",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W08",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W08",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W09",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W09",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W09",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W09",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W10",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L3-W10",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W10",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L3",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L3-W10",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L4-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L4",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L4-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L4",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L4-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L4",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L4-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L4",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L4-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L4",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L4-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L4",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L4-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L5-W07",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L5",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L5-W07",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L6-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L6",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L6-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L6",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L6-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L6",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L6-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L6",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L6-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L6",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L6-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L6",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L6-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L7-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L7",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L7-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L7",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L7-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L7",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L7-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L7",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L7-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L7",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L7-W06",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L7",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L7-W06",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L8-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L8-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L8-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L8",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L8-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L8-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L8-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L8-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L8",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L8-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L9-W01",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L9",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W01",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L9-W02",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L9",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W02",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L9-W03",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L9",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W03",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L9-W04",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L9",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W04",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "WP-LT-L9-W05",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-PHASE-L9",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "WP-LT-L9-W05",
+      "coverage_domain": "blocked_work_package",
+      "accepted_decision_id": "COVERAGE-ALL-BLOCKED-WP",
+      "classified_domain": "blocked_work_package",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-PRE",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-PRE",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-PRE",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-PRE-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-PRE",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L0",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L0",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L0",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L0-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L0",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L1",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L1",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L1",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L1-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L1",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L2",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L2",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L2",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L2-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L2",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L3",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L3",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L3",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L3-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L3",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L4",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L4",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L4",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L4-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L4",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L5",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L5",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L5",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L5-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L5",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L6",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L6",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L6",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L6-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L6",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L7",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L7",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L7",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L7-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L7",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L8",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L8",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L8",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L8-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L8",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L9",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L9",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L9",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "PHASE-L9-EXIT",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    },
+    {
+      "coverage_id": "PHASE-L9",
+      "coverage_domain": "phase_exit",
+      "accepted_decision_id": "COVERAGE-ALL-PHASE-EXITS",
+      "classified_domain": "phase_exit",
+      "contract_status": "match"
+    }
+  ],
+  "findings": []
+}

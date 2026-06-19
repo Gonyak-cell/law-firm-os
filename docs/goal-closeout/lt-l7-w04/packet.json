@@ -1,0 +1,44 @@
+{
+  "work_package_id": "LT-L7-W04",
+  "title": "Training materials and hands-on setup before pilot start",
+  "created_at": "2026-06-18T14:56:20Z",
+  "status": "t01_t02_t03_t04_training_package_templates_blocked_pending_l4_w01_l4_w06_staging_runtime_pilot_roster_sessions_and_100_percent_completion",
+  "phase": "L7",
+  "gate_binding": [
+    "L7-EXIT"
+  ],
+  "terminal_tuw": "LT-L7-W04-T04",
+  "artifacts": [
+    "docs/goal-closeout/lt-l7-w04/training/lawyer-guide.md",
+    "docs/goal-closeout/lt-l7-w04/training/staff-guide.md",
+    "docs/goal-closeout/lt-l7-w04/training/admin-guide.md",
+    "docs/goal-closeout/lt-l7-w04/training/handson-environment.md",
+    "docs/goal-closeout/lt-l7-w04/training/session-records.md",
+    "docs/goal-closeout/lt-l7-w04/training-completion-ledger.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l7-w04/packet.json",
+    "docs/goal-closeout/lt-l7-w04/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w04/claude-review-result.json",
+    "docs/goal-closeout/lt-l7-w04/adjudication.md",
+    "docs/goal-closeout/lt-l7-w04/construction-inspection.json"
+  ],
+  "current_status": {
+    "training_guides_created": 6,
+    "handson_environment_spec_created": true,
+    "session_record_template_created": true,
+    "completion_ledger_template_created": true,
+    "l4_w01_runtime_complete": false,
+    "l4_w06_training_source_complete": false,
+    "staging_runtime_available": false,
+    "pilot_roster_approved": false,
+    "sessions_conducted": false,
+    "completion_100_percent_verified": false,
+    "l7_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

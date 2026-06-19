@@ -1,0 +1,13 @@
+{
+  "work_package_id": "LT-L9-W05",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "review_waived_by_user",
+  "valid_review_evidence": false,
+  "model_not_run": true,
+  "finding_counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "advisory": 0
+  }
+}

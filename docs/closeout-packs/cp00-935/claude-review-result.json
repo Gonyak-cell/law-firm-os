@@ -1,0 +1,58 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-935",
+  "status": "review_completed",
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-935/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-935/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "session_id": "1b237880-258f-4c8e-bc7a-d8acf591a794",
+    "uuid": "22cb4b3e-c379-4961-93f2-ba3ede782557",
+    "total_cost_usd": 1.8328845,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-935 is a descriptor-only HRX bridge pack covering RP30.P05.M00.S07-RP30.P05.M01.S07 (3 SyntheticTenant tail rows + 7 EmployeeFixture foundation rows). Static read-only inspection (Read/Grep/Glob) confirms the pack-level descriptor-verified claim is fully supported and internally consistent across every layer: HRX_CP935_PACK_BINDING/REQUIREMENTS/REQUIRED_SECTION_ROWS and the case-set, Hermes packet, Claude packet, handoff, and descriptor generators (packages/hrx/src/registry.js); exhaustive coverage and boundary validators (packages/hrx/src/validators.js); CP00-935 unit tests asserting zero validation errors (packages/hrx/test/model.test.js); the committed contract projection with latest_pack=CP00-935 and latest_projection=HrxCp935SyntheticTenantEmployeeFixtureBridgeDescriptor (contracts/hrx-people-contract.json); the validate script (scripts/validate-rp30-hrx-people-contract.mjs); and the README. All agree on the same range, deliverable distribution {implementation:10}, and micro-title distribution {SyntheticTenant:3, EmployeeFixture:7}. Every generated descriptor row and the manifest hold descriptor_only=true with runtime_execution, synthetic-tenant/employee-fixture runtime, identity-link runtime, record/permission/audit writes, runtime receipts, real employee/candidate/payroll data, and credentials/secrets all false; grep confirmed only *_deferred:true safety attestations and *_included:false flags, with no *_opened/*_written/*_executed:true or real-data/secret leakage. The manifest reports production_ready=false and runtime_ready=false, so the pack makes no runtime or enterprise-trust overclaim. Claude remains a read-only, non-final reviewer (claude_packet.read_only=true, promotes_claude_to_final_approval=false; descriptor authority_boundary.claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, human_final_approval_required_for_runtime_opening=true), and Hermes is used only for deterministic review-packet/receipt handling (emits_runtime_receipt=false, deterministic_only=true), not product runtime. Review-evidence hardening checks pass: the readiness auth-preflight succeeded with well-formed JSON (exit 0, 1436-byte stdout) and no auth failure, 0-byte stdout, malformed/fenced JSON, tool-call-shaped output, or missing-field evidence was treated as valid. No P0/P1/P2 issues. One P3 transparency note: command-evidence (HRX validation exit 0) was corroborated by static inspection rather than reviewer re-execution since this review cannot run Bash; the full validation ladder is executed by the closeout harness at finalization. Verdict PASS; does not block pack closeout or this CP's goal closeout.",
+    "findings": [
+      {
+        "id": "CP935-P3-01",
+        "severity": "P3",
+        "title": "Validation evidence corroborated by static inspection, not reviewer re-execution",
+        "file": "docs/closeout-packs/cp00-935/command-evidence.json",
+        "line": 37,
+        "details": "The recorded command-evidence shows the HRX validation commands (node --check on registry.js/validators.js/validate script, node --test on model.test.js, and npm run rp30:hrx:validate) all at exit_code 0, and hermes_gate.status is 'pending' for rp00_control_plane_contract_validate and spec_requirement_validate. As a read-only reviewer with no Bash access, I verified the pack-level claim by static inspection of the implementation, validators, tests, and committed contract (which are internally consistent such that the validators and validate script would pass against the committed data) rather than by independently re-executing the commands. This is a provenance note on the review method, not a defect in the pack.",
+        "recommendation": "Have the closeout harness execute the full validation ladder (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) and confirm green before finalizing the manifest/adjudication, as already designed in the pending hermes_gate flow.",
+        "post_review_disposition": "Informational only; does not block pack closeout or goal closeout. Resolved by the closeout harness running the final validation ladder before flipping the pending artifacts."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

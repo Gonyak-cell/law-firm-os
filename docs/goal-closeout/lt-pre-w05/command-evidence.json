@@ -1,0 +1,113 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-PRE-W05",
+  "title": "privilege and HR-sensitive confidentiality enum decision",
+  "phase": "PRE",
+  "gate": "PRE-EXIT",
+  "status": "blocked_pending_mat_dec_08",
+  "recorded_at": "2026-06-18T10:11:17Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "waiver_recorded_at": "2026-06-18T10:11:17Z",
+    "waiver_applies_from": "2026-06-18",
+    "review_waiver_is_valid_review_evidence": false,
+    "status": "review_waived_by_user",
+    "note": "Per user instruction, full Claude review execution is skipped going forward and must not be counted as a valid review receipt."
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-PRE-W05-T01",
+      "title": "Decide confidentiality enum extension",
+      "status": "blocked_pending_mat_dec_08",
+      "terminal_tuw": false,
+      "artifacts": [
+        "docs/launch/confidentiality-enum-extension-decision-brief.md",
+        "packages/domain/src/entities.js",
+        "workbook/absorption-package/06_오픈_결정_레지스터.md",
+        "docs/goal-closeout/lt-pre-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "usage_file_count": 1,
+        "usage_file_list_matches_grep": true,
+        "current_values": [
+          "public",
+          "internal",
+          "confidential",
+          "restricted"
+        ],
+        "privilege_family_value_decided": false,
+        "closed_value_list_decided": false,
+        "application_boundary_decided": false,
+        "block_record_present": true,
+        "final_state": "blocked_pending_mat_dec_08"
+      },
+      "commands": [
+        {
+          "command": "grep -rln \"CONFIDENTIALITY_LEVELS\" packages/ apps/ | sort",
+          "exit_code": 0,
+          "output": "packages/domain/src/entities.js",
+          "purpose": "List all current CONFIDENTIALITY_LEVELS usage files"
+        },
+        {
+          "command": "grep -rln \"CONFIDENTIALITY_LEVELS\" packages/ apps/ | wc -l | tr -d ' '",
+          "exit_code": 0,
+          "output": "1",
+          "purpose": "Count current CONFIDENTIALITY_LEVELS usage files"
+        },
+        {
+          "command": "rg -n \"privilege_classification_decision_resolved|confidentiality/privilege/HR-sensitive|MAT-DEC-08\" contracts/email-dms-m365-runtime-contract.json workbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md workbook/absorption-package/06_오픈_결정_레지스터.md",
+          "exit_code": 0,
+          "output": "contracts/email-dms-m365-runtime-contract.json:17:    \"privilege_classification_decision_resolved\": false,\nworkbook/matter_dev_docs/06_권한_보안_감사_거버넌스.md:50:7. confidentiality/privilege/HR-sensitive classification 확인.\nworkbook/absorption-package/06_오픈_결정_레지스터.md:18:| MAT-DEC-08·09 | pending | 08 기밀분류 enum(미래 구현 팩 게이트) / 09 레지스터 owner(기본값 사용 시 승인 불요) |",
+          "purpose": "Record decision pressure and current MAT-DEC-08 pending state"
+        },
+        {
+          "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+          "exit_code": 0,
+          "output": "TUW total 344, WP 72, violations 0, PASS",
+          "purpose": "Launch TUW workbook ledger integrity check"
+        }
+      ],
+      "notes": [
+        "The decision brief lists current usage and candidate value schemes.",
+        "The final enum closed list is not synthesized because MAT-DEC-08 is an owner schema decision.",
+        "Existing four-value semantics remain unchanged."
+      ]
+    },
+    {
+      "tuw_id": "LT-PRE-W05-T02",
+      "title": "Write extension enum schema spec and Codex implementation referral",
+      "status": "blocked_pending_mat_dec_08",
+      "terminal_tuw": true,
+      "artifacts": [
+        "docs/launch/confidentiality-enum-extension-decision-brief.md",
+        "docs/goal-closeout/lt-pre-w05/command-evidence.json"
+      ],
+      "acceptance": {
+        "extension_spec_present": false,
+        "value_mapping_table_present": false,
+        "synthetic_data_impact_judgment_present": false,
+        "decision_dependency_satisfied": false,
+        "final_state": "blocked_pending_mat_dec_08"
+      },
+      "blocked_reason": "LT-PRE-W05-T02 depends on a decided enum value scheme. Codex cannot produce a final mapping/spec without MAT-DEC-08."
+    }
+  ],
+  "blocked_claims": [
+    "This record does not decide MAT-DEC-08.",
+    "This record does not change CONFIDENTIALITY_LEVELS.",
+    "This record does not create a synthetic final enum mapping.",
+    "This record does not count the user review waiver as a valid Claude review receipt."
+  ],
+  "next_required_action": {
+    "owner_role": "Launch owner / data classification approver",
+    "decision_needed": "Choose the closed confidentiality enum list and application boundary, including whether privilege and HR-sensitive values are added.",
+    "evidence_to_add_after_decision": [
+      "MAT-DEC-08 decision row update",
+      "docs/launch/confidentiality-enum-extension-spec.md",
+      "Updated LT-PRE-W05 command evidence with decided value list and implementation boundary"
+    ]
+  }
+}

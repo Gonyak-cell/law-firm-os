@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-285",
+  "normalized_at": "2026-06-10T22:27:46.428Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-285/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-285/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-285/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-285/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "5bec4423-db64-48ad-978e-c94280b4a62a",
+    "uuid": "04e6b350-f0bc-4002-b459-90951357f505",
+    "total_cost_usd": 2.6329485000000004,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 7093,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-285 is a descriptor-only RP08 email/DMS pack (risk C, 150 units, RP08.P04.M06.S05-RP08.P05.M03.S08) that closes the RP08.P04 UI phase (M06-M10) and opens the RP08.P05 fixture foundation (M00-M03). Pack identity, unit count, range, and the deliverable/phase/micro-phase/micro-title distributions reconcile exactly across the pack binding (registry.js), review baseline, manifest, and the live closeout-pack-plan.json, and sum to 150. All 7 required public exports exist (service.js, validators.js) and are surfaced via index.js export-*. The CP285 validators enforce coverage drift, descriptor-only/runtime_execution=false flags, the full no-leak guard set, authority boundary (claude_is_final_approval=false, local_validation_claims_enterprise_trust=false), contract-projection drift, and CP00-286/RP08.P05.M03.S09 handoff routing; the contract validation script deep-equals the contract JSON against freshly computed source constants (strong anti-drift), and model.test.js asserts coverage.valid, foundation.valid, descriptor-only rows, and the authority boundary. The production_ready claim is appropriately conservative: manifest/command-evidence declare production_ready=false with only production_ready_candidate=true derived from local validation, explicitly gated behind human final approval; no IO/runtime imports exist in the package (no fs/http/db/process.env/fetch), all result objects are frozen, no_real_data=true, and Hermes patterns are confined to deterministic evidence/receipt shapes (emits_hermes_runtime_receipt=false everywhere). Review-hardening is satisfied: forbidden_review_evidence covers every CP178+ rejection case (auth failure, zero-byte, malformed/fenced JSON, tool-call-shaped, disabled tools, missing references, final-approval/enterprise-trust claims), the readiness auth preflight passed, tools are restricted to Read/Grep/Glob, and post-review evidence files (claude-review-result, adjudication, construction-inspection) are correctly absent because this review gates them. Changed-file scope is contained to the email-dms package plus the contract and validate script with no scope creep, and unrelated dirty files (the .docx and the LDIP invalid-attempt JSON) are correctly excluded. One trivial non-blocking P3: changed-file-scope.json lists the pack's own artifact dir and handoff doc under both untracked_implementation_files and unrelated_dirty_files_preserved, but active_pack_implementation_refs correctly excludes docs so the implementation review scope is unaffected. No P0/P1/P2 issues. Claude remains a read-only independent reviewer and not the final approval authority.",
+    "findings": [
+      {
+        "id": "CP00-285-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json double-classifies pack artifact dir as both implementation and unrelated",
+        "file": "artifacts/closeout-pack-claude-review/cp00-285/changed-file-scope.json",
+        "line": 95,
+        "details": "The untracked entries 'docs/closeout-pack-plan/new-session-handoff.md' and 'docs/closeout-packs/cp00-285/' appear simultaneously in untracked_implementation_files (lines 95-98) and in unrelated_dirty_files_preserved (lines 100-105). These are contradictory buckets: the docs/closeout-packs/cp00-285/ directory holds this pack's own manifest.json and command-evidence.json, so it is pack-related, not unrelated. This is an evidence-hygiene inconsistency only; the authoritative active_pack_implementation_refs list (lines 5-14) correctly contains just the 8 source/contract/test/script files and excludes these doc paths, so the implementation review scope, the descriptor-only boundary, the production_ready gating, and the review-hardening determinations are all unaffected.",
+        "recommendation": "Align the scope classifier so a path is not emitted into both untracked_implementation_files and unrelated_dirty_files_preserved; the cp00-285 artifact directory and the new-session-handoff doc should be treated as pack-adjacent untracked artifacts rather than 'unrelated', or excluded from one bucket. No change to pack deliverables is required.",
+        "post_review_disposition": "non_blocking_evidence_hygiene; does not affect descriptor-only boundary, production_ready gating, no-real-data/no-write claims, or review hardening; safe to close pack and address in scope-generator cleanup."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

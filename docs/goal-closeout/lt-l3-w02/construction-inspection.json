@@ -1,0 +1,28 @@
+{
+  "work_package_id": "LT-L3-W02",
+  "inspected_at": "2026-06-18T13:15:44Z",
+  "verdict": "BLOCKED_CICD_DEPLOYMENT_PIPELINE_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "git_remote_count": 0,
+    "ci_workflow_file_count": 0,
+    "infra_file_count": 0,
+    "docker_or_compose_file_count": 0,
+    "deployment_topology_exists": false,
+    "deploy_rollback_runbook_required_path_exists": false,
+    "rollback_operating_draft_exists": true,
+    "staging_health_evidence_exists": false,
+    "production_deploy_rollback_roundtrip_exists": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "deploy_pipeline_opened": false,
+    "production_authority_synthesized": false,
+    "owner_decision_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

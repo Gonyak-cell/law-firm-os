@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-420",
+  "normalized_at": "2026-06-12T02:17:44.473Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-420/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-420/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-420/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-420/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "47d280d6-0c7b-41bc-b9bb-730c3397bd67",
+    "uuid": "8a3d74b0-829c-41d0-82b9-69e37da002de",
+    "total_cost_usd": 1.8363724999999997,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 5104,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-420 is a faithful descriptor-only continuation of the RP13.P09.M07 Test And Golden Case Set slice (10 units, S02-S11, risk A). The manifest plan_binding_snapshot matches the live closeout-pack-plan.json entry exactly and next-pack-queue.json (live_latest_pack_id CP00-419) confirms CP00-420 is the correct next pack, so deviation_from_plan:false is accurate. The CP420 pack binding, no-write attestation, requirements, descriptor projection, case-set builder, validators, contract embedding, validate script, README entry, and tests are mutually consistent. The case-set rows hard-code descriptor_only:true / runtime_execution:false / customer_safe_errors_only:true / raw_payload_included:false with guard fields ordered after spreads (cannot be overridden), and validators re-check every guard plus the authority boundary and handoff target. command-evidence.json records all required validation commands (npm test, npm run validate, build, git diff --check, Hermes H13 control-plane validates) at exit_code 0. The authority boundary is preserved end-to-end: production_ready:false and runtime_ready:false, a descriptor-scoped production_ready_flag, Claude as read-only reviewer (not final approver), enterprise trust not claimed from local validation, and Hermes present only as deterministic review-packet/receipt metadata (no product runtime). forbidden_review_evidence covers all CP178+ hardening categories and the readiness auth-preflight passed with valid JSON. No P0/P1/P2 issues found; one non-blocking P3 bookkeeping observation in the changed-file-scope ledger. The pack supports its descriptor-verified claim and is safe to close.",
+    "findings": [
+      {
+        "id": "CP00-420-P3-01",
+        "severity": "P3",
+        "title": "changed-file-scope.json dual-lists the pack's own evidence dir as both implementation and unrelated-preserved",
+        "file": "artifacts/closeout-pack-claude-review/cp00-420/changed-file-scope.json",
+        "line": 130,
+        "details": "docs/closeout-packs/cp00-420/ and docs/closeout-pack-plan/new-session-handoff.md appear in both untracked_implementation_files (line 130) and unrelated_dirty_files_preserved (line 135). The cp00-420/ directory is the pack's own required-artifact directory (it holds manifest.json and command-evidence.json, both validated by the test suite via readFileSync), so labeling it 'unrelated' is internally inconsistent. Relatedly, manifest.worktree_transition_policy.active_pack_required_untracked_files is [] even though the pack's required artifacts are untracked. This is a categorization/labeling quirk in hardening bookkeeping artifacts only; it does not affect implementation correctness, the descriptor-only boundary, no-write/no-real-data claims, validation outcomes, or the authority boundary.",
+        "recommendation": "In a future generator pass, classify the pack's own evidence directory as pack-scoped evidence rather than 'unrelated_dirty_files_preserved', and make active_pack_required_untracked_files reflect the untracked required artifacts. No action required for this closeout.",
+        "post_review_disposition": "Non-blocking. Cosmetic scope-ledger inconsistency with no effect on the production_ready/descriptor claim or boundaries. Safe to proceed with CP00-420 closeout."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

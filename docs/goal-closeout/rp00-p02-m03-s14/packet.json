@@ -1,0 +1,66 @@
+{
+  "subphase_id": "RP00.P02.M03.S14",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Review-required routing",
+  "status": "production_ready",
+  "generated_at": "2026-06-05T11:18:25Z",
+  "implementation_summary": "Adds the RP00.P02.M03.S14 Hermes Validation Review-required routing surface as deterministic metadata-only control-plane policy, service prechecker, validator, fixture, README, contract definition, and contract validator wiring. The slice consumes S13 allow_metadata_only Validation error mapping results, requires the hermes_validation entrypoint, the S13 validation error mapping marker, a carried validation error mapping receipt, audit_event_ref, validation_error_mapping_ref, and validation_error_mapping_applied marker, emits a frozen metadata-only review-required routing receipt for the synthetic review-required scope, records no runtime Claude review invocation, review queue write, review assignment write, review notification, or human approval record write, carries S02 through S13, M00 refs, TEN-001 through TEN-008 trace refs, validation context IDs, and acceptance gate IDs, rejects unsafe review-required routing, runtime, AuthZ, Hermes execution/evidence, audit write, idempotency-store write, lock-store write, persistence-store write, error-store write, database, storage, UI, tenant lifecycle mutation, requirement trace bypass, real-data, product-write, validation-error-mapping bypass, and review-bypass claims fail-closed, and hands off to RP00.P02.M03.S15 without completing RP00.P02.M03, appending audit ledgers, writing audit events, creating runtime routes, executing service logic, mutating tenant lifecycle state, running Hermes validation, creating Hermes evidence, evaluating runtime permissions, calling AuthZ, running a permission engine, replacing human approval, using real data, persisting idempotency records, acquiring locks, persisting lock records, writing persistence records, mapping runtime errors, translating runtime exceptions, writing error records, invoking Claude review runtime, writing review queues, assigning reviewers, sending review notifications, writing human approval records, writing databases, writing storage, persisting product state, creating UI, or writing product state.",
+  "changed_files": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "requirement_refs": [
+    "TEN-001",
+    "TEN-002",
+    "TEN-003",
+    "TEN-004",
+    "TEN-005",
+    "TEN-006",
+    "TEN-007",
+    "TEN-008"
+  ],
+  "requirement_trace_required_by_weighted_ledger": false,
+  "weighted_ledger_boundary": {
+    "split_count": 20,
+    "order": 14,
+    "terminal": false,
+    "next_subphase": "RP00.P02.M03.S15"
+  },
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "claude_review": {
+    "exactly_one_valid_review_run": true,
+    "invalid_partial_attempts": 0,
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "session_id": "5a432298-3e5b-4a72-a973-44e94f6cd8fd",
+    "uuid": "8d8efbf4-9723-48b3-8c41-1eb558a92583",
+    "verdict_reported_by_claude": "PASS",
+    "go_no_go_reported_by_claude": "GO",
+    "verdict_after_adjudication": "PASS_WITH_FINDINGS",
+    "go_no_go_after_adjudication": "GO",
+    "p0_p1_count_initial": 0,
+    "p2_count_initial": 0,
+    "p3_count_initial": 2,
+    "unresolved_p0_p1_p2_after_adjudication": 0
+  },
+  "finding_disposition": {
+    "P3_explicit_validation_error_mapping_ref_guard": {
+      "status": "deferred_with_explicit_boundary",
+      "reason": "S14 validates the full S13 result shape before consuming values, and assertControlPlaneHermesValidationErrorMappingResult already enforces validation_error_mapping_ref. A bespoke early guard is optional symmetry work and is deferred."
+    },
+    "P3_declared_reason_to_unit_test_granularity": {
+      "status": "deferred_with_explicit_boundary",
+      "reason": "Negative loops cover wrong marker, denied S13 decision, missing receipt, unsafe claims, and unknown claims; the full result validator enforces audit_event_ref and validation_error_mapping_ref. Additional one-field negative tests are optional hardening and deferred."
+    }
+  },
+  "production_ready": true,
+  "source_micro_phase_completed": false,
+  "next_subphase": "RP00.P02.M03.S15"
+}

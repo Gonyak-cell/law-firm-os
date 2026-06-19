@@ -1,0 +1,45 @@
+{
+  "work_package_id": "LT-L7-W05",
+  "title": "Pilot operation kickoff readiness",
+  "created_at": "2026-06-18T14:56:20Z",
+  "status": "t01_t02_t03_t04_l7_w05_templates_blocked_pending_l7_w03_l7_w04_l3_w09_m365_admin_pilot_team_owner_approval_pilot_telemetry_actual_operation_and_written_acceptance",
+  "phase": "L7",
+  "gate_binding": [
+    "L7-EXIT"
+  ],
+  "terminal_tuw": "LT-L7-W05-T04",
+  "artifacts": [
+    "docs/goal-closeout/lt-l7-w05/pilot-kickoff-checklist.md",
+    "docs/goal-closeout/lt-l7-w05/kpi-baseline-definition.md",
+    "docs/goal-closeout/lt-l7-w05/metrics-collection-check.md",
+    "docs/goal-closeout/lt-l7-w05/pilot-operations-log.md",
+    "docs/goal-closeout/lt-l7-w05/pilot-report.md",
+    "docs/goal-closeout/lt-l7-w05/pilot-owner-acceptance.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l7-w05/packet.json",
+    "docs/goal-closeout/lt-l7-w05/command-evidence.json",
+    "docs/goal-closeout/lt-l7-w05/claude-review-result.json",
+    "docs/goal-closeout/lt-l7-w05/adjudication.md",
+    "docs/goal-closeout/lt-l7-w05/construction-inspection.json"
+  ],
+  "current_status": {
+    "kickoff_checklist_created": true,
+    "kpi_baseline_definition_created": true,
+    "metrics_collection_check_created": true,
+    "pilot_operations_log_template_created": true,
+    "pilot_report_template_created": true,
+    "owner_acceptance_template_created": true,
+    "m365_admin_ready": false,
+    "pilot_team_owner_approved": false,
+    "pilot_telemetry_available": false,
+    "actual_pilot_operation_started": false,
+    "written_acceptance_present": false,
+    "l7_exit_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

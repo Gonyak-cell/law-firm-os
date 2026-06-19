@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-525",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-12T16:17:30.847Z",
+  "finished_at": "2026-06-12T16:21:49.826Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":258227,\"duration_api_ms\":258992,\"ttft_ms\":5188,\"num_turns\":38,\"result\":\"Review complete. **Verdict: PASS** — no findings, does not block pack or goal closeout.\\n\\nCP00-525 is a descriptor-only RP17 AI-governance slice (40 units, RP17.P02.M07.S04–RP17.P02.M08.S18) that holds together across all eight in-scope files. Key confirmations:\\n\\n- **production_ready is honestly `false`** — correct for a descriptor-only pack; all validation commands recorded at exit 0.\\n- **No-write/no-runtime/no-leak boundaries enforced** in code, tests, and contract (every row `descriptor_only=true`, `runtime_execution=false`; `emits_hermes_runtime_receipt=false`).\\n- **Claude stays a read-only reviewer** — `claude_is_final_approval=false`, `promotes_claude_to_final_approval=false`, human approval required; tools limited to Read/Grep/Glob.\\n- **Hermes is descriptor-only** evidence packet, not embedded product runtime.\\n- **Validator deep-equals contract against code bindings**; deliverable distribution (16/4/6/3/4/4/1/1/1=40) and micro split (22/18) match baseline and manifest.\\n- **Review-hardening preconditions met** — auth preflight passed; no stale/invalid review evidence to reject.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2bd91dbe-e0c0-4f3e-911a-7a49574bbe44\",\"total_cost_usd\":2.0355252499999996,\"usage\":{\"input_tokens\":1076,\"cache_creation_input_tokens\":134981,\"cache_read_input_tokens\":1401618,\"output_tokens\":19380,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":134981,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":439,\"cache_read_input_tokens\":131064,\"cache_creation_input_tokens\":4779,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4779},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1105,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012050000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1076,\"outputTokens\":19380,\"cacheReadInputTokens\":1401618,\"cacheCreationInputTokens\":134981,\"webSearchRequests\":0,\"costUSD\":2.03432025,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-525 is a clean, descriptor-only AI governance (RP17) slice pack covering the planned 40 RP17 units RP17.P02.M07.S04-RP17.P02.M08.S18 (M07 Test And Golden Case Set tail: 22 rows; M08 Hermes Evidence Packet head: 18 rows). All eight in-scope implementation refs (contract JSON, README, registry.js, service.js, validators.js, model.test.js, index.js, validator script) are internally consistent. The pack-level production_ready claim is honestly false (status implementation_and_plan_gates_passed_pending_final_closeout); command-evidence shows all node --check/--test, rp17/rp05-rp15/rp00 validators, npm test/validate/build, and git diff --check at exit 0, with no_real_data=true and writes_product_state=false. Descriptor-only boundaries are enforced in code, tests, and contract: every row carries descriptor_only=true, runtime_execution=false, customer_safe_errors_only=true, raw_payload_included=false; the freezeCp525Result attestation sets all runtime-dispatch, state-write, audit-write, object-storage, Hermes-receipt, and leak flags false. Authority boundary holds: authority_boundary.claude_is_final_approval=false, NO_WRITE_ATTESTATION.promotes_claude_to_final_approval=false, claims_enterprise_trust_from_local_validation=false, human_final_approval_required_for_runtime_opening=true; allowed tools limited to Read/Grep/Glob and review-request is read_only. Hermes (H17) appears only as a deterministic descriptor evidence packet (receipt_shape descriptor_only_governance_p02_test_hermes_slice_no_write, emits_hermes_runtime_receipt=false) — not embedded product runtime. The validator deep-equals the contract against code bindings and asserts the historical ledger tail is CP00-525; deliverable distribution (impl 16, security_audit 4, ui 6, claude_review 3, failure_recovery 4, test 4, fixture 1, hermes_evidence 1, contract 1 = 40) and micro_title split (22/18) match the manifest and baseline. Review-hardening preconditions are satisfied: auth preflight passed (exit 0, 1448B stdout), no stale/invalid raw-output or receipt artifacts exist to reject, and forbidden_review_evidence is correctly encoded. No P0-P3 findings; pack is ready for the post-review closeout gates.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"1b7a980a-b1e8-424c-8f09-cb25816b3535\"}\n",
+  "stderr": "",
+  "stdout_bytes": 5019,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "2bd91dbe-e0c0-4f3e-911a-7a49574bbe44",
+    "uuid": "1b7a980a-b1e8-424c-8f09-cb25816b3535",
+    "total_cost_usd": 2.0355252499999996,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

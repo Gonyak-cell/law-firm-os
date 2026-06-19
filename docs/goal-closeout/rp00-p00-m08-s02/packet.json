@@ -1,0 +1,50 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P00.M08.S02",
+  "source_micro_phase_id": "RP00.P00.M08",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Define the acceptance gates that must pass before an H00 preflight evidence packet can close RP00 Product Constitution And AI Control Plane work as production_ready.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m08-s02/command-evidence.json",
+    "hermes/project.json",
+    "package.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P00.M08.S02 in implemented state.",
+    "Adds h00_preflight_acceptance_gate_definition with required acceptance gates for field inventory binding, command receipts, H00 command id execution, blocked claims, gate outcome, no-real-data/no-write evidence, Claude dependency, human approval boundary, construction inspection, and next boundary.",
+    "Extends the RP00 validator to enforce the new acceptance gate definition while preserving RP00.P00.M08.S01 as a completed scope inventory.",
+    "Updates the control-plane README with the H00 preflight acceptance gate scope."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not approve generated output, AI write behavior, C00 replacement, human-approval replacement, M08 completion, or RP00 completion.",
+    "Does not widen Hermes H00 or Claude C00 authority."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P00.M09.S01"
+  },
+  "claude_questions": [
+    "Does h00_preflight_acceptance_gate_definition bind to RP00.P00.M08.S02 and define H00 preflight acceptance gates only?",
+    "Are required acceptance gates sufficient for preflight field presence, command receipts, H00 command id registration and execution, blocked claims, gate outcome, no-real-data, writes_product_state=false, Claude dependency, human approval boundary, construction inspection, and next boundary?",
+    "Does the validator preserve RP00.P00.M08.S01 as a completed scope inventory while making RP00.P00.M08.S02 the current acceptance gate definition?",
+    "Does the implementation avoid claims of production mutation, real-data import, generation output approval, C00 or human replacement, M08 completion, or RP00 completion?"
+  ],
+  "risk_focus": [
+    "Scope drift from H00 preflight evidence into product runtime behavior.",
+    "Validation theater where acceptance gates are listed but not enforced.",
+    "Confusing RP00.P00.M08.S01 scope inventory with RP00.P00.M08.S02 acceptance gate definition.",
+    "Missing next boundary into RP00.P00.M09.S01."
+  ]
+}

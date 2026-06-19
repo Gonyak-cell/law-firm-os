@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-firm-os.subphase-review-packet.v0.1",
+  "subphase_id": "RP00.P00.M10.S01",
+  "source_micro_phase_id": "RP00.P00.M10",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "hermes_gate": "H00",
+  "claude_gate": "C00",
+  "review_model": "claude-opus-4-8",
+  "review_effort": "max",
+  "scope": "Inventory the RP00.P00 Contract And Acceptance Baseline handoff scope before Product Constitution And AI Control Plane work advances into the Domain Model phase.",
+  "files_for_review": [
+    "contracts/control-plane-contract.json",
+    "scripts/validate-rp00-control-plane-contract.mjs",
+    "packages/control-plane/README.md",
+    "docs/goal-closeout/rp00-p00-m10-s01/packet.json",
+    "docs/goal-closeout/rp00-p00-m10-s01/command-evidence.json",
+    "hermes/project.json",
+    "package.json"
+  ],
+  "implemented_changes": [
+    "Moves the current control-plane subphase to RP00.P00.M10.S01 in implemented state.",
+    "Adds p00_contract_baseline_handoff_scope_inventory with completed P00 subphase requirements, handoff inputs and outputs, generator-alignment closeout, metadata-only scope policy, and next Domain Model boundary.",
+    "Records weighted-title generator-alignment deferrals as resolved through contract-title override policy rather than generated ledger churn.",
+    "Extends the RP00 validator and README with the RP00.P00 handoff scope inventory."
+  ],
+  "non_goals": [
+    "Does not execute production mutation or runtime target writes.",
+    "Does not import or use real client, matter, document, billing, settlement, credential, or secret data.",
+    "Does not start P01, approve generated output, replace H00/C00 review, replace human approval, close RP00, or claim RP00.P01.M00.S01 completion.",
+    "Does not rewrite the weighted ledger generator in this handoff subphase."
+  ],
+  "expected_closeout": {
+    "minimum_status": "production_ready",
+    "requires_actual_claude_cli_review": true,
+    "requires_construction_inspection": true,
+    "next_subphase": "RP00.P01.M00.S01"
+  },
+  "claude_questions": [
+    "Does p00_contract_baseline_handoff_scope_inventory bind to RP00.P00.M10.S01 and define RP00.P00 handoff scope only?",
+    "Does it require the completed P00 subphase evidence from RP00.P00.M00.S01 through RP00.P00.M09.S02 and record the next boundary RP00.P01.M00.S01?",
+    "Does it close the weighted-title generator-alignment deferrals by preserving contract-title authority without rewriting generated weighted ledger output?",
+    "Does it preserve metadata-only, no-real-data, writes_product_state=false, no P01 start, no H00/C00/human replacement, and no RP00 completion claims?"
+  ],
+  "risk_focus": [
+    "Claiming RP00 completion before the rest of RP00 is implemented.",
+    "Starting P01 work inside the P00 handoff subphase.",
+    "Leaving prior generator-alignment deferrals unresolved at their target subphase.",
+    "Using handoff evidence as production runtime or real-data approval."
+  ]
+}

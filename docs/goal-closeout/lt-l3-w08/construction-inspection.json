@@ -1,0 +1,27 @@
+{
+  "work_package_id": "LT-L3-W08",
+  "inspected_at": "2026-06-18T13:24:29Z",
+  "verdict": "BLOCKED_SHAREPOINT_FILE_REF_PROVISIONING_ABSENT",
+  "production_ready": false,
+  "quality_gates": {
+    "blocker_survey_exists": true,
+    "file_ref_convention_exists": false,
+    "sharepoint_provisioning_record_exists": false,
+    "file_ref_roundtrip_report_exists": false,
+    "w08_evidence_file_count": 0,
+    "runtime_sharepoint_file_count": 0,
+    "mat_dec_03_storage_decided": false,
+    "m365_storage_dependency_resolved": false,
+    "sharepoint_site_provisioned": false,
+    "terminal_tuw_closed": false
+  },
+  "safety_gates": {
+    "no_real_data": true,
+    "writes_product_state": false,
+    "m365_admin_action_executed": false,
+    "storage_decision_synthesized": false,
+    "sharepoint_provisioning_synthesized": false,
+    "review_waiver_counted_as_valid_review": false,
+    "closed_cp_evidence_rewritten": false
+  }
+}

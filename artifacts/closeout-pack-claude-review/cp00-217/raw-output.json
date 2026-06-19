@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-217",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T07:59:05.100Z",
+  "finished_at": "2026-06-10T08:05:53.495Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":407861,\"duration_api_ms\":406719,\"ttft_ms\":3940,\"num_turns\":57,\"result\":\"Review complete. **Verdict: PASS** — no findings; CP00-217 does not block pack or goal closeout.\\n\\nThe pack is a well-formed descriptor-only fixture-binding slice. Every claim I could check is backed by independently-read evidence: the 40-unit coverage and deliverable distribution reconcile exactly across plan, binding, generators, validators, tests, contract projection, and README; the `production_ready: false` / `implemented_pending_review` state is honest (no enterprise-trust overclaim); no-write/no-real-data boundaries hold (read-only validate script, attestation flags, clean secret scan); Claude stays read-only and non-authoritative; and CP178+ hardening plus the Hermes deterministic-control-plane boundary are properly encoded.\",\"stop_reason\":\"end_turn\",\"session_id\":\"3bf52965-623f-4a11-8977-6b33eeb2f234\",\"total_cost_usd\":2.80159775,\"usage\":{\"input_tokens\":1850,\"cache_creation_input_tokens\":99691,\"cache_read_input_tokens\":3014800,\"output_tokens\":26427,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":99691,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":257,\"cache_read_input_tokens\":127898,\"cache_creation_input_tokens\":3641,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3641},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1099,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001204,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":1850,\"outputTokens\":26427,\"cacheReadInputTokens\":3014800,\"cacheCreationInputTokens\":99691,\"webSearchRequests\":0,\"costUSD\":2.80039375,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-217 is a clean descriptor-only fixture-binding-slice pack (risk B, 40 units, RP06.P05.M04.S13-RP06.P05.M06.S08) and the pack-level claim is fully supported. Coverage is internally consistent across review-baseline.json, the closeout plan (CP00-217 present), DMS_CORE_CP217_PACK_BINDING/REQUIREMENTS/NO_WRITE_ATTESTATION (registry.js), the code-generated case set and descriptor (service.js), the validators (validators.js), tests (test/model.test.js sourced from the real closeout plan), the read-only validate script, the contract projection (contracts/dms-core-contract.json: section row_counts 10/22/8), and the README CP00-217 section. Section counts (M04:10, M05:22, M06:8 = 40) and deliverable distribution (implementation 14, fixture 14, test 6, hermes_evidence 2, claude_review 2, security_audit 2 = 40) match the prompt baseline exactly. The production_ready claim is NOT overstated: manifest.json and command-evidence.json both record production_ready=false / status implemented_pending_review; the only positive signal is a local-validation production_ready_candidate, and enterprise trust is explicitly not claimed from local validation with human final approval required. No-write/no-real-data boundaries are enforced via freezeCp217Result attestation flags and validator assertions (descriptor_only=true, runtime_execution=false, cross-tenant access denied, unauthorized data omitted, no AI/replay/Hermes-receipt runtime); the validate script contains no write operations and a secret/real-data scan of registry/service/validators found nothing. Claude remains a read-only independent reviewer (claude_is_final_approval=false, read_only=true, tools restricted to Read/Grep/Glob) and is not final approval authority. CP178+ review hardening is encoded in forbidden_review_evidence (auth_failure, stdout_0_bytes, malformed_json, fenced_json_plus_prose, tool_call_shaped_output, plus final-approval/source-mutation/enterprise-trust claim blockers), with missing-required-field rejection enforced by review-schema.json. Hermes control-plane patterns are used only for deterministic review packet/receipt handling (emits_hermes_runtime_receipt=false), not product runtime. Post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are correctly absent at this pre-review stage per the hardening sequence. All 18 recorded validation/build commands report exit 0 and git diff --check passes. No P0/P1/P2/P3 issues identified; PASS with no findings.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"9b4b6cc3-c8c5-44a5-a862-8a3fcf9addee\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4926,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "3bf52965-623f-4a11-8977-6b33eeb2f234",
+    "uuid": "9b4b6cc3-c8c5-44a5-a862-8a3fcf9addee",
+    "total_cost_usd": 2.80159775,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

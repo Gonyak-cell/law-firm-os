@@ -1,0 +1,71 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.claude-review-result.v0.1",
+  "pack_id": "CP00-235",
+  "status": "review_completed",
+  "exactly_one_valid_pack_level_claude_review_run": true,
+  "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-235/review-receipt.json",
+  "valid_review_receipts": [
+    "artifacts/closeout-pack-claude-review/cp00-235/review-receipt.json"
+  ],
+  "invalid_review_attempts": [],
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "b49ea0f7-bb9b-4262-aaeb-520526f97914",
+    "uuid": "0509ed46-a06a-4e54-83dc-55369e565b7c",
+    "total_cost_usd": 1.833321,
+    "permission_denials": []
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-235 is a descriptor-only RP07 (Search OCR And Index) scope-and-contract foundation pack covering 150 planned units RP07.P00.M00.S01-RP07.P01.M02.S08. Independent read-only inspection supports the pack's claims and finds no blocking issues. Coverage was recomputed against the authoritative plan (docs/closeout-pack-plan/closeout-pack-plan.json:412, present with identical unit_count 150, range, and source_ledger_sha 13c7ed65), so validation is not circular; all six deliverable counts (implementation 108, contract 8, security_audit 16, hermes_evidence 7, claude_review 3, ui 8 = 150), all 11 micro-title counts, and all 14 micro-phase counts reconcile across registry.js, the contract JSON, the baseline, and the plan. No-write/no-real-data boundaries are verified at the code level: packages/search/src contains no writeFile/child_process/fetch/eval/process.env, only frozen object construction, and validators.js actively enforces descriptor_only, no search/OCR/index/embedding runtime dispatch, deny-over-allow, no cross-tenant access, no real-data loading, no audit-body/raw-payload leakage, human approval required before runtime opening, Claude-not-final-approver, and no enterprise-trust claim from local validation. The contract embeds the generated descriptor and historical binding (tail pack_id CP00-235) and is deepEqual-validated by the validator and test (command-evidence exit 0). Authority boundary is correctly maintained: pack-level production_ready is false (conservative; status implemented_pending_review), manifest sets claude_not_final_approver and enterprise_trust_not_claimed_from_local_validation true, Hermes patterns are descriptor-only with no runtime receipts emitted, and review-gated commands (closeout-pack:validate etc.) are correctly deferred to post-review. CP178+ readiness holds: the auth preflight produced valid JSON with non-zero stdout (1455 bytes); no auth-failure, 0-byte, malformed-JSON, fenced-JSON-with-prose, or tool-call-shaped evidence is relied upon. One non-blocking P3 observation about a currently-inert manifest-snapshot fallback in the validator/test. Claude is acting as read-only reviewer only; final human approval for any enterprise trust claim remains required and is out of scope of this receipt.",
+    "findings": [
+      {
+        "id": "CP235-P3-01",
+        "severity": "P3",
+        "title": "Coverage validator/test fall back to pack-authored manifest plan_binding_snapshot when plan entry is absent",
+        "file": "scripts/validate-rp07-search-core-contract.mjs",
+        "line": 35,
+        "details": "Both the validator (scripts/validate-rp07-search-core-contract.mjs:35) and the unit test (packages/search/test/model.test.js:28) select the coverage source as `closeoutPlan.packs.find((pack) => pack.pack_id === 'CP00-235') ?? cp235Manifest?.plan_binding_snapshot`. If the authoritative CP00-235 entry were ever removed or renamed in docs/closeout-pack-plan/closeout-pack-plan.json, coverage validation would silently fall back to the pack-authored snapshot embedded in docs/closeout-packs/cp00-235/manifest.json (line 17), which slightly reduces the independence of the coverage gate. This is currently inert: CP00-235 is present in the plan at closeout-pack-plan.json:412 with content identical to the manifest snapshot (same source_ledger_sha 13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32, unit_count 150, range RP07.P00.M00.S01-RP07.P01.M02.S08), so the primary plan path is used and the snapshot is only a faithful defensive copy. No coverage drift or self-satisfaction is occurring.",
+        "recommendation": "Optionally harden by asserting the plan contains the CP00-235 entry (fail hard) instead of falling back to the manifest snapshot, so coverage can never be satisfied solely from pack-authored data. Non-blocking; no action required for this closeout.",
+        "post_review_disposition": "Non-blocking informational note. Does not block pack closeout or goal closeout; the authoritative plan entry is present and identical, so the fallback path is not exercised."
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  },
+  "adjudication": {
+    "p0": "none",
+    "p1": "none",
+    "p2": "none",
+    "p3": "fixed_by_post_review_validation_evidence_or_documented",
+    "production_ready_after_adjudication": true
+  },
+  "authority_boundary": {
+    "claude_role": "read_only_independent_reviewer",
+    "claude_is_final_approver": false,
+    "human_final_approval_required_for_enterprise_trust_claim": true,
+    "enterprise_trust_claim_closed": false
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-359",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-11T18:16:37.165Z",
+  "finished_at": "2026-06-11T18:22:02.291Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":324047,\"duration_api_ms\":326231,\"ttft_ms\":3932,\"num_turns\":37,\"result\":\"Review complete. **Verdict: PASS** — CP00-359 is a clean, descriptor-only failure-fixture slice that faithfully follows the verified CP356–358 pattern, with all no-write/no-runtime/no-leak boundaries, authority limits (Claude not final approver), and Hermes-as-control-plane constraints intact; `production_ready` is correctly `false` so no gate is weakened. No P0/P1/P2 findings; one P3 informational note that the three forward-declared post-review artifacts (claude-review-result/adjudication/construction-inspection) are not yet on disk, which is the expected pre-review state. Final enterprise-trust approval remains a human decision.\",\"stop_reason\":\"end_turn\",\"session_id\":\"e95c7140-6169-4697-be68-1b0b60c3dda1\",\"total_cost_usd\":1.8517184999999996,\"usage\":{\"input_tokens\":48,\"cache_creation_input_tokens\":90806,\"cache_read_input_tokens\":1383750,\"output_tokens\":23635,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":90806,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":262,\"cache_read_input_tokens\":92802,\"cache_creation_input_tokens\":6399,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6399},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1086,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.001191,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":48,\"outputTokens\":23635,\"cacheReadInputTokens\":1383750,\"cacheCreationInputTokens\":90806,\"webSearchRequests\":0,\"costUSD\":1.8505274999999997,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-359 is a faithful descriptor-only slice covering exactly the 10 planned RP11 units (RP11.P07.M06.S15-RP11.P07.M07.S04): the M06 Synthetic Fixture Set failure tail (6 rows) and the M07 Test And Golden Case Set head (4 rows), mirroring the verified CP356-358 pattern. Verified via Read/Grep/Glob only. (1) Coverage: deliverable distribution {hermes_evidence:2,fixture:1,test:2,security_audit:1,failure_recovery:4} and micro-title split {Synthetic Fixture Set:6,Test And Golden Case Set:4} match the baseline, requirements constant, and validateTimeExpenseCoreCp359Coverage. (2) No-write/no-runtime/no-leak boundaries: freezeCp359Result sets all runtime/write flags false and leak guards safe; validateTimeExpenseCoreCp359FailureFixtureSliceDescriptor enforces per-row descriptor_only/runtime_execution:false/customer_safe_errors_only/raw_payload_included:false plus inherited guards (blocked_claim_detail_included:false, real_client_data_loaded:false, executes_unit_test_runtime_paths:false, dispatches_integration_smoke_runtime:false, audit_hint_detail_included:false, emits_hermes_runtime_receipt:false, expected_outcome rejected_customer_safe), all resolving through the row-extras chain. (3) Authority boundary preserved: claude_is_final_approval:false, local_validation_claims_enterprise_trust:false, human_final_approval_required_for_runtime_opening:true; no_write_attestation promotes_claude_to_final_approval:false and claims_enterprise_trust_from_local_validation:false. (4) Hermes is descriptor/evidence-only (H11 packet string + no_hermes_runtime_receipt), not product runtime. (5) Tests (model.test.js) assert coverage.valid, slice.valid, no-leak guards, and authority boundary; the self-validating contract script asserts contract current_pack/no_write_attestation/cp359_requirements/failure_fixture_slice_descriptor deepEqual and production_ready_candidate true; index.js wildcard-re-exports surface the 7 public exports; command-evidence records all implementation/plan/repo validations at exit 0. (6) production_ready is correctly false (runtime_ready false); the production_ready_flag is a descriptor-verification token, so no production_ready gate is weakened. (7) changed-file-scope correctly separates unrelated dirty files (LDIP invalid-attempt, workbook/matter docs) from the pack. Auth-preflight returned valid non-empty JSON; no malformed/auth-failed/tool-call-shaped review evidence is present or accepted. Claude remains a read-only independent reviewer, not final approver. No P0/P1/P2 issues found; one P3 informational note on expected post-review artifacts. Recommend PASS; final enterprise-trust approval remains a human decision outside this receipt.\",\"findings\":[{\"id\":\"CP00-359-P3-01\",\"severity\":\"P3\",\"title\":\"Three forward-declared pack evidence artifacts not yet present (expected pre-review state)\",\"file\":\"docs/closeout-packs/cp00-359/manifest.json\",\"line\":507,\"details\":\"manifest.json lists required_pack_artifacts/evidence_refs including docs/closeout-packs/cp00-359/claude-review-result.json, adjudication.md, and construction-inspection.json, but only manifest.json and command-evidence.json currently exist on disk. This matches the documented hardening_sequence (read_only_claude_run_raw_capture -> normalize -> receipt_validate -> finding_adjudication -> construction_inspection -> final_closeout_validation -> commit): the three artifacts are produced downstream of this read-only review run, so their absence now is expected and not a defect. pack_level_claude_review.status is correctly 'pending' with empty valid_review_receipts/invalid_review_attempts.\",\"recommendation\":\"Ensure the remaining hardening steps generate claude-review-result.json, adjudication.md, and construction-inspection.json (derived from this accepted review) before the gated closeout commit, and re-run npm run closeout-pack:validate so the required_pack_artifacts set is fully materialized prior to human final approval.\",\"post_review_disposition\":\"informational_expected_no_action_blocking; verify artifacts exist at final_closeout_validation step\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"4a9756e3-9288-4494-bef4-8644bcf45101\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6399,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "e95c7140-6169-4697-be68-1b0b60c3dda1",
+    "uuid": "4a9756e3-9288-4494-bef4-8644bcf45101",
+    "total_cost_usd": 1.8517184999999996,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "work_package_id": "LT-L2-W01",
+  "title": "Persistence layer and persistent audit hash-chain migration",
+  "created_at": "2026-06-18T13:00:55Z",
+  "status": "blocked_pending_l1_w06_hosting_decision_and_persistence_implementation",
+  "phase": "L2",
+  "gate_binding": [
+    "G2",
+    "L2-EXIT"
+  ],
+  "terminal_tuw": "LT-L2-W01-T11",
+  "artifacts": [
+    "docs/launch/l2/persistence-layer-blocker-survey.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l2-w01/packet.json",
+    "docs/goal-closeout/lt-l2-w01/command-evidence.json",
+    "docs/goal-closeout/lt-l2-w01/claude-review-result.json",
+    "docs/goal-closeout/lt-l2-w01/adjudication.md",
+    "docs/goal-closeout/lt-l2-w01/construction-inspection.json"
+  ],
+  "current_status": {
+    "packages_persistence_exists": false,
+    "persistence_test_script_exists": false,
+    "audit_ledger_storage": "in_memory",
+    "l1_w06_hosting_decision_complete": false,
+    "runtime_persistence_tests_green": false,
+    "g2_satisfied": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_governance_review": false
+  }
+}

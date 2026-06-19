@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-firm-os.claude-review-result.v0.1",
+  "subphase_id": "RP00.P01.M03.S04",
+  "source_micro_phase_id": "RP00.P01.M03",
+  "title": "Matter trace reference",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "permission_mode": "dontAsk",
+    "output_format": "json",
+    "session_id": "e846aa9c-7b53-44a3-b032-117d1fd6b2e1",
+    "uuid": "02f35539-56d0-42e6-8633-fb888723905b",
+    "duration_ms": 217951,
+    "duration_api_ms": 216927,
+    "num_turns": 24,
+    "total_cost_usd": 1.7700845000000003,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "findings": [
+      {
+        "id": "C00-RP00-P01-M03-S04-P3-001",
+        "severity": "P3_NOTE",
+        "title": "Promotion artifacts pending",
+        "summary": "Claude confirmed this is expected while S04 is implemented but not yet production_ready: claude-review-result.json, adjudication.md, and construction-inspection.json must be recorded before promotion.",
+        "disposition": "addressed_by_this_closeout_packet",
+        "blocks_closeout": false
+      },
+      {
+        "id": "C00-RP00-P01-M03-S04-P3-002",
+        "severity": "P3_NOTE",
+        "title": "Bare string Matter context skips tenant comparison",
+        "summary": "Claude confirmed this is acceptable because a string Matter context has no tenant to compare and S03 separately enforces HermesGate tenant scope.",
+        "disposition": "accepted_no_code_change",
+        "blocks_closeout": false
+      }
+    ],
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 0,
+    "p3_count": 2
+  },
+  "review_summary": [
+    "HERMES_GATE_MATTER_TRACE_POLICY exported and canonical.",
+    "normalizeHermesGateMatterId, validateHermesGateMatterId, and assertHermesGateMatterTrace passed review.",
+    "Nullable firm-level matter_id behavior passed review.",
+    "Canonical matter_ id behavior, Matter context mismatch rejection, and cross-tenant Matter rejection passed review.",
+    "Synthetic fixture, registry future-only HermesGate boundary, no-real-data/no-write boundaries, and next subphase RP00.P01.M03.S05 passed review."
+  ],
+  "raw_result_excerpt": "overall_verdict: PASS; nothing blocks subphase closeout; no P0/P1/P2 findings; promotion to production_ready remains gated on this Claude result, adjudication, construction-inspection PASS, and human acceptance."
+}

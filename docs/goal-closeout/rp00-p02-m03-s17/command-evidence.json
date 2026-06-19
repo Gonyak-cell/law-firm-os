@@ -1,0 +1,140 @@
+{
+  "subphase_id": "RP00.P02.M03.S17",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Rollback behavior",
+  "created_at": "2026-06-05T12:49:45Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "jq empty contracts/control-plane-contract.json packages/control-plane/fixtures/synthetic-control-plane.json",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "test_count": 211,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "test_count": 295,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "requirement_count": 227,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "implementation_subphase_count": 54355,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "release_program_count": 30,
+      "micro_phase_count": 3300,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "writes_product_state": false
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "Final S17 closeout gate rerun after evidence creation"
+    }
+  ],
+  "production_ready": true,
+  "status": "passed",
+  "recorded_at": "2026-06-05T12:49:45Z",
+  "executed_at": "2026-06-05T12:49:45Z",
+  "micro_title": "Hermes Validation",
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "All commands are local validation, parser, test, Claude read-only review, or git whitespace checks; none execute rollback behavior, create runtime routes, run retry behavior, run compensation behavior, write operator escalation, notify customers, write incident traces, append observability events, run Hermes validation as product runtime behavior, create Hermes evidence as product runtime behavior, mutate tenant lifecycle state, append audit ledgers, write audit events, persist idempotency records, acquire locks, write databases, write storage, persist product state, invoke Claude runtime review, write review queues, write human approval records, create UI, replace human approval, or mutate product state.",
+    "Pre-closeout npm run rp00:control-plane:validate failed only because S17 evidence files were intentionally not created yet; this command is rerun after evidence creation as the final gate.",
+    "Claude C00 valid review completed with GO and no P0/P1 findings. P2 closeout evidence and executable-gate items are resolved by this evidence packet and the recorded validation runs. P3 notes are informational and require no code change."
+  ],
+  "hermes_gate": {
+    "id": "H00",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ],
+    "status": "passed"
+  },
+  "pre_closeout_rp00_gate": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "expected_failure_only": [
+      "docs/goal-closeout/rp00-p02-m03-s17/packet.json",
+      "docs/goal-closeout/rp00-p02-m03-s17/command-evidence.json",
+      "docs/goal-closeout/rp00-p02-m03-s17/claude-review-result.json",
+      "docs/goal-closeout/rp00-p02-m03-s17/adjudication.md",
+      "docs/goal-closeout/rp00-p02-m03-s17/construction-inspection.json"
+    ]
+  },
+  "post_evidence_gate_adjustment": {
+    "command": "npm run rp00:control-plane:validate",
+    "exit_code": 1,
+    "reason": "Construction inspection initially recorded P2 resolution with a more specific status string; the RP00 gate requires the canonical fixed_or_deferred value.",
+    "resolution": "Updated construction-inspection.json claude_findings.p2_status to fixed_or_deferred and reran the final RP00 gate."
+  },
+  "evidence_summary": {
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review completed once before production_ready",
+    "human_approval_boundary": "Human approval is not required for this synthetic metadata-only rollback behavior boundary because no sensitive production mutation, client-facing output, external sharing, finance action, or real data operation occurs.",
+    "rollback_behavior": "S17 emits recovery-path and incident-traceability strategy metadata only; it writes no rollback plan, retry queue, compensation record, operator escalation, customer notification, incident trace, observability event, audit event, Hermes evidence, database, storage, UI, runtime route, or product state."
+  },
+  "rollback_strategy_refs": [
+    "RP00.P02.M03.S17.rollback_strategy.retry_metadata_only",
+    "RP00.P02.M03.S17.rollback_strategy.compensation_metadata_only",
+    "RP00.P02.M03.S17.rollback_strategy.operator_escalation_metadata_only",
+    "RP00.P02.M03.S17.rollback_strategy.customer_safe_error_metadata_only",
+    "RP00.P02.M03.S17.rollback_strategy.incident_trace_metadata_only"
+  ],
+  "gate_outcome": "passed_after_evidence_creation"
+}

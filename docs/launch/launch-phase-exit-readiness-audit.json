@@ -1,0 +1,339 @@
+{
+  "schema_version": "law-firm-os.launch-phase-exit-readiness-audit.v0.1",
+  "generated_at": "2026-06-18T15:36:59.257Z",
+  "source_refs": [
+    "workbook/launch-tuw/launch-tuw-ledger.json",
+    "docs/launch/launch-tuw-status-audit.json",
+    "docs/launch/launch-decision-register.md"
+  ],
+  "verdict": "PASS",
+  "boundary": {
+    "records_phase_exit_readiness_only": true,
+    "go_live_approved_by_this_audit": false,
+    "owner_deferrals_approved_by_this_audit": false,
+    "closed_cp_evidence_is_read_only": true
+  },
+  "summary": {
+    "phase_count": 11,
+    "phase_coverage_complete": true,
+    "all_phase_exits_closed_or_owner_deferred": false,
+    "closed_phase_count": 0,
+    "owner_deferred_phase_count": 0,
+    "blocked_phase_count": 11,
+    "missing_evidence_phase_count": 0,
+    "total_work_package_count": 72,
+    "total_blocked_work_package_count": 70,
+    "owner_approved_deferrals_present": false,
+    "coverage_eligible_valid_deferred_rows": 0,
+    "non_coverage_valid_deferred_rows": 0,
+    "phase_exit_deferred_count": 0,
+    "phase_exit_missing_owner_deferral_count": 11
+  },
+  "phases": [
+    {
+      "phase": "PRE",
+      "exit_gate": "PRE-EXIT",
+      "work_package_count": 7,
+      "exit_gate_bound_count": 7,
+      "recorded_count": 1,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [
+        "LT-PRE-W07"
+      ],
+      "blocked_wp_ids": [
+        "LT-PRE-W01",
+        "LT-PRE-W02",
+        "LT-PRE-W03",
+        "LT-PRE-W04",
+        "LT-PRE-W05",
+        "LT-PRE-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-PRE",
+        "PHASE-PRE-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L0",
+      "exit_gate": "L0-EXIT",
+      "work_package_count": 5,
+      "exit_gate_bound_count": 5,
+      "recorded_count": 0,
+      "blocked_count": 5,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L0-W01",
+        "LT-L0-W02",
+        "LT-L0-W03",
+        "LT-L0-W04",
+        "LT-L0-W05"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L0",
+        "PHASE-L0-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L1",
+      "exit_gate": "L1-EXIT",
+      "work_package_count": 10,
+      "exit_gate_bound_count": 10,
+      "recorded_count": 0,
+      "blocked_count": 10,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L1-W01",
+        "LT-L1-W02",
+        "LT-L1-W03",
+        "LT-L1-W04",
+        "LT-L1-W05",
+        "LT-L1-W06",
+        "LT-L1-W07",
+        "LT-L1-W08",
+        "LT-L1-W09",
+        "LT-L1-W10"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L1",
+        "PHASE-L1-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L2",
+      "exit_gate": "L2-EXIT",
+      "work_package_count": 7,
+      "exit_gate_bound_count": 7,
+      "recorded_count": 0,
+      "blocked_count": 7,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L2-W01",
+        "LT-L2-W02",
+        "LT-L2-W03",
+        "LT-L2-W04",
+        "LT-L2-W05",
+        "LT-L2-W06",
+        "LT-L2-W07"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L2",
+        "PHASE-L2-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L3",
+      "exit_gate": "L3-EXIT",
+      "work_package_count": 10,
+      "exit_gate_bound_count": 10,
+      "recorded_count": 0,
+      "blocked_count": 10,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L3-W01",
+        "LT-L3-W02",
+        "LT-L3-W03",
+        "LT-L3-W04",
+        "LT-L3-W05",
+        "LT-L3-W06",
+        "LT-L3-W07",
+        "LT-L3-W08",
+        "LT-L3-W09",
+        "LT-L3-W10"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L3",
+        "PHASE-L3-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L4",
+      "exit_gate": "L4-EXIT",
+      "work_package_count": 6,
+      "exit_gate_bound_count": 6,
+      "recorded_count": 0,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L4-W01",
+        "LT-L4-W02",
+        "LT-L4-W03",
+        "LT-L4-W04",
+        "LT-L4-W05",
+        "LT-L4-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L4",
+        "PHASE-L4-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L5",
+      "exit_gate": "L5-EXIT",
+      "work_package_count": 7,
+      "exit_gate_bound_count": 7,
+      "recorded_count": 0,
+      "blocked_count": 7,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L5-W01",
+        "LT-L5-W02",
+        "LT-L5-W03",
+        "LT-L5-W04",
+        "LT-L5-W05",
+        "LT-L5-W06",
+        "LT-L5-W07"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L5",
+        "PHASE-L5-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L6",
+      "exit_gate": "L6-EXIT",
+      "work_package_count": 6,
+      "exit_gate_bound_count": 6,
+      "recorded_count": 0,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L6-W01",
+        "LT-L6-W02",
+        "LT-L6-W03",
+        "LT-L6-W04",
+        "LT-L6-W05",
+        "LT-L6-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L6",
+        "PHASE-L6-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L7",
+      "exit_gate": "L7-EXIT",
+      "work_package_count": 6,
+      "exit_gate_bound_count": 6,
+      "recorded_count": 0,
+      "blocked_count": 6,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L7-W01",
+        "LT-L7-W02",
+        "LT-L7-W03",
+        "LT-L7-W04",
+        "LT-L7-W05",
+        "LT-L7-W06"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L7",
+        "PHASE-L7-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L8",
+      "exit_gate": "L8-EXIT",
+      "work_package_count": 3,
+      "exit_gate_bound_count": 3,
+      "recorded_count": 1,
+      "blocked_count": 2,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [
+        "LT-L8-W01"
+      ],
+      "blocked_wp_ids": [
+        "LT-L8-W02",
+        "LT-L8-W03"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L8",
+        "PHASE-L8-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    },
+    {
+      "phase": "L9",
+      "exit_gate": "L9-EXIT",
+      "work_package_count": 5,
+      "exit_gate_bound_count": 5,
+      "recorded_count": 0,
+      "blocked_count": 5,
+      "missing_evidence_count": 0,
+      "status": "blocked_missing_owner_approved_deferrals",
+      "recorded_wp_ids": [],
+      "blocked_wp_ids": [
+        "LT-L9-W01",
+        "LT-L9-W02",
+        "LT-L9-W03",
+        "LT-L9-W04",
+        "LT-L9-W05"
+      ],
+      "missing_evidence_wp_ids": [],
+      "accepted_deferral_decision_ids": [
+        "PHASE-L9",
+        "PHASE-L9-EXIT",
+        "COVERAGE-ALL-PHASE-EXITS"
+      ],
+      "covering_decision_id": null,
+      "phase_exit_deferral_coverage_status": "missing_owner_deferral"
+    }
+  ]
+}

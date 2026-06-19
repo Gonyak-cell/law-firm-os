@@ -1,0 +1,144 @@
+{
+  "schema_version": "law-firm-os.launch-tuw.command-evidence.v0.1",
+  "work_package_id": "LT-L3-W08",
+  "title": "SharePoint/OneDrive provisioning and file_ref convention",
+  "phase": "L3",
+  "gate": "G5, L3-EXIT",
+  "created_at": "2026-06-18T13:24:29Z",
+  "status": "blocked_pending_storage_decision_m365_admin_and_sharepoint_provisioning",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "closed_cp_evidence_is_read_only": true,
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false,
+    "waiver_counts_as_valid_review": false,
+    "status": "review_waived_by_user"
+  },
+  "dependency_state": {
+    "LT-PRE-W03": {
+      "status": "blocked_pending_storage_decision",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L1-W02": {
+      "status": "decision_round_brief_blocked_pending_owner_decisions",
+      "classification": "command_evidence_only_blocked"
+    },
+    "LT-L3-W07": {
+      "status": "blocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent",
+      "classification": "standard_five_blocked"
+    }
+  },
+  "current_repo_survey": {
+    "file_ref_convention_exists": false,
+    "sharepoint_provisioning_record_exists": false,
+    "file_ref_roundtrip_report_exists": false,
+    "w08_evidence_file_count": 0,
+    "runtime_sharepoint_file_count": 0,
+    "mat_dec_03_storage_decided": false,
+    "m365_storage_dependency_resolved": false,
+    "sharepoint_site_provisioned": false,
+    "graph_folder_roundtrip_verified": false,
+    "partial_state_prevention_verified": false,
+    "g5_satisfied": false,
+    "l3_exit_satisfied": false
+  },
+  "tuw_evidence": [
+    {
+      "tuw_id": "LT-L3-W08-T01",
+      "title": "Design file_ref convention and matter folder structure from OQ-001",
+      "status": "blocked_waiting_on_mat_dec_03_and_l1_w02_oq001_owner_decisions"
+    },
+    {
+      "tuw_id": "LT-L3-W08-T02",
+      "title": "Provision SharePoint/OneDrive sites and matter folders across three environments",
+      "status": "blocked_waiting_on_t01_and_l3_w07_admin_consent"
+    },
+    {
+      "tuw_id": "LT-L3-W08-T03",
+      "title": "Verify file_ref round trip and upload interruption partial-state prevention",
+      "status": "blocked_waiting_on_t02_provisioned_site_library_and_runtime_file_ref_path"
+    },
+    {
+      "tuw_id": "LT-L3-W08-T04",
+      "title": "Assemble W08 provisioning and G5 evidence",
+      "status": "blocked_waiting_on_t01_t02_t03_outputs",
+      "terminal_tuw": true,
+      "acceptance": {
+        "all_four_tuw_ids_present_in_command_evidence": true,
+        "standard_five_evidence_files_present": true,
+        "file_ref_convention_validated": false,
+        "sharepoint_site_provisioned": false,
+        "file_ref_roundtrip_passed": false,
+        "g5_satisfied": false,
+        "l3_exit_satisfied": false
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dependency_statuses",
+      "command": "jq -r '.work_packages[] | select(.wp_id==\"LT-PRE-W03\" or .wp_id==\"LT-L1-W02\" or .wp_id==\"LT-L3-W07\") | [.wp_id,.evidence.command_status,.evidence.classification] | @tsv' docs/launch/launch-tuw-status-audit.json",
+      "exit_code": 0,
+      "output": [
+        "LT-PRE-W03\tblocked_pending_storage_decision\tcommand_evidence_only_blocked",
+        "LT-L1-W02\tdecision_round_brief_blocked_pending_owner_decisions\tcommand_evidence_only_blocked",
+        "LT-L3-W07\tblocked_pending_m365_admin_graph_scope_entra_registration_and_admin_consent\tstandard_five_blocked"
+      ],
+      "purpose": "Verify W08 predecessor state before claiming blocker evidence."
+    },
+    {
+      "id": "required_w08_docs_presence",
+      "command": "test -f docs/launch/l3/file-ref-convention.md; printf '%s\\n' $?; test -f docs/launch/l3/sharepoint-provisioning-record.md; printf '%s\\n' $?; test -f docs/launch/l3/file-ref-roundtrip-report.md; printf '%s\\n' $?",
+      "exit_code": 0,
+      "output": [
+        "1",
+        "1",
+        "1"
+      ],
+      "purpose": "Verify required W08 convention, provisioning, and roundtrip docs are absent."
+    },
+    {
+      "id": "w08_evidence_file_count",
+      "command": "find docs/launch/l3 docs/goal-closeout/lt-l3-w08 -maxdepth 2 -type f \\( -iname '*file-ref*' -o -iname '*sharepoint*provision*' -o -iname '*onedrive*provision*' -o -iname '*roundtrip*' \\) -print 2>/dev/null | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no W08-specific file_ref or provisioning evidence files exist."
+    },
+    {
+      "id": "runtime_sharepoint_file_count",
+      "command": "find apps packages scripts -maxdepth 5 -type f \\( -iname '*sharepoint*' -o -iname '*onedrive*' -o -iname '*graph*' -o -iname '*file-ref*' -o -iname '*fileref*' \\) -print | wc -l",
+      "exit_code": 0,
+      "output": "0",
+      "purpose": "Verify no runtime SharePoint/OneDrive/Graph/file_ref implementation files exist in apps, packages, or scripts."
+    },
+    {
+      "id": "mat_dec_03_and_storage_contract_blockers",
+      "command": "rg -n \"MAT-DEC-03|storage_decision_resolved|blocked|SharePoint|file_ref|OQ-001\" docs/launch/mat-dec-03-storage-decision-brief.md contracts/email-dms-m365-runtime-contract.json docs/goal-closeout/lt-l3-w05/command-evidence.json docs/goal-closeout/lt-l7-w04/training/handson-environment.md",
+      "exit_code": 0,
+      "output_summary": [
+        "MAT-DEC-03 storage decision is blocked_pending_storage_decision.",
+        "Codex cannot choose SharePoint/OneDrive or object storage on behalf of the launch owner.",
+        "M365 runtime contract has storage_decision_resolved=false and five storage-dependent items blocked.",
+        "Training/hands-on environment keeps file_ref opaque while storage/link policy remains pending."
+      ],
+      "purpose": "Verify W08 storage and file_ref blockers."
+    },
+    {
+      "id": "launch_tuw_ledger",
+      "command": "node workbook/launch-tuw/validate-launch-tuw-ledger.mjs",
+      "exit_code": 0,
+      "summary": "TUW total 344, WP total 72, violations 0, PASS",
+      "writes_product_state": false
+    }
+  ],
+  "blocked_claims": [
+    "This record does not close LT-L3-W08.",
+    "This record does not decide MAT-DEC-03 or OQ-001.",
+    "This record does not create file_ref convention, SharePoint sites, OneDrive folders, or Graph provisioning evidence.",
+    "This record does not verify file_ref upload/resolve/download round trip or partial-state cleanup.",
+    "This record does not unseal M365 storage-dependent runtime items.",
+    "This record does not satisfy G5 or L3-EXIT.",
+    "This record does not treat the user review waiver as valid review evidence."
+  ]
+}

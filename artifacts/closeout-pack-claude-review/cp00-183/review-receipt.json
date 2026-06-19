@@ -1,0 +1,66 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-183",
+  "normalized_at": "2026-06-09T18:03:07.484Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-183/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-183/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-183/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-183/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "d5066487-eef0-4d25-bf31-2942787cf585",
+    "uuid": "7d8f54a5-dd04-4adf-9828-39aada35516d",
+    "total_cost_usd": 2.6600395000000003,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 6341,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-183 (Risk B, 40 units, RP05.P04.M04.S18-RP05.P04.M06.S15) is a clean descriptor-only Matter Core UI-evidence / permission-audit-binding / synthetic-fixture pack. Source inspection via Read/Grep/Glob confirms the production_ready posture is supported: (1) implementation is pure frozen-object construction with no real I/O — grep found no writeFile/fetch/fs/child_process/DOM/neo4j runtime (neo4j appears only in a forbidden-list and a future-provider label); (2) permission/audit leak guards set decision_detail/audit_event_body/unauthorized_count to null with all *_leaked flags false, and are exercised by dedicated CP00-183 tests; (3) synthetic fixture set is 5 surfaces x 6 states = 30 with build_smoke descriptor-only (live_dom_rendered=false, api_handler_executed=false); (4) coverage validator + tests assert unit_count 40 and the exact deliverable (2/4/11/17/4/1/1) and micro (3/22/15) distributions matching the baseline; (5) authority boundary is preserved — Claude is read_only with tools [Read,Grep,Glob], claude_is_final_approval=false, Hermes packet is a deterministic descriptor not embedded product runtime, CitationLedger left to RP06 and Loop to RP18, handoff targets CP00-184/RP05.P04.M06.S16. The pack does not overclaim: manifest/construction-inspection correctly hold production_ready=false / PENDING_REVIEW, enterprise trust is not claimed from local validation, the readiness auth preflight passed with valid non-empty JSON, and no invalid review attempts are recorded as valid evidence. No P0/P1/P2 issues found. One P3 data-quality note: command-evidence.json claude_gate.review_packet.ui_evidence_valid is false while the Hermes evidence packet and the source builder (createMatterCoreCp183ClaudeReviewPacket -> validateMatterCoreCp183UiEvidencePermissionFixture) both yield true; the discrepancy is in the conservative direction and is independently disproven as a real coverage gap by code and tests. This review is one gate only; remaining adjudication, full-suite validation, commit, and human final approval gates still apply and are not bypassed by this PASS.",
+    "findings": [
+      {
+        "id": "CP00-183-P3-01",
+        "severity": "P3",
+        "title": "claude_gate review_packet ui_evidence_valid=false conflicts with Hermes packet and source builder (both true)",
+        "file": "docs/closeout-packs/cp00-183/command-evidence.json",
+        "line": 174,
+        "details": "In command-evidence.json the claude_gate.review_packet.ui_evidence_valid is false, while (a) the sibling hermes_gate.descriptor_packet.ui_evidence_valid is true (line 65) and (b) the source builder createMatterCoreCp183ClaudeReviewPacket (packages/matter/src/validators.js:1602-1631) sets ui_evidence_valid = validateMatterCoreCp183UiEvidencePermissionFixture().valid, which evaluates to true (the contractProjection-dependent checks are guarded by optional chaining and are skipped when called with no argument, and all static section/guard/surface/state/attestation checks pass). The CP00-183 tests (packages/matter/test/model.test.js:1344-1367) also assert validateMatterCoreCp183UiEvidencePermissionFixture(matterContract).valid === true. The false value is therefore inconsistent with the code-of-record. It is in the conservative direction (understates rather than overstates validity) and does not affect any no-write/no-real-data/no-leak boundary, so it is non-blocking; but if unintentional it could confuse downstream consumers that read the embedded packet rather than recomputing it.",
+        "recommendation": "Confirm whether claude_gate.review_packet.ui_evidence_valid=false is an intentional 'pending independent Claude confirmation' marker (in which case document that semantic) or a serialization inconsistency. If the latter, regenerate command-evidence.json so the embedded claude_gate packet faithfully reflects the builder output (ui_evidence_valid=true), aligning it with the hermes_gate packet and the tests.",
+        "post_review_disposition": "open_non_blocking"
+      }
+    ],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 1,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 1
+    }
+  }
+}

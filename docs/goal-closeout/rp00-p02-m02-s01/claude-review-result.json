@@ -1,0 +1,121 @@
+{
+  "subphase_id": "RP00.P02.M02.S01",
+  "source_micro_phase_id": "RP00.P02.M02",
+  "status": "review_completed",
+  "review_execution": {
+    "source": "claude_cli",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "tools_enabled": false,
+    "permission_mode": "dontAsk",
+    "session_id": "1b437421-ff70-4210-b40c-1c06245a223f",
+    "uuid": "62e3eb5d-0f88-4ba8-9043-6741d87d9331",
+    "total_cost_usd": 0.237207,
+    "duration_ms": 108180,
+    "duration_api_ms": 109794,
+    "num_turns": 1,
+    "terminal_reason": "completed",
+    "permission_denials": [],
+    "raw_result_path": "codex_exec_output:claude-rp00-p02-m02-s01-session-1b437421",
+    "reviewed_input": "Provided RP00.P02.M02.S01 implementation diff summary plus validation summary; Claude tools were disabled with --tools \"\".",
+    "non_counted_attempts": [
+      {
+        "session_id": "baa8170b-02aa-483c-be72-ea9558076231",
+        "uuid": "6643ff79-86dc-4a29-b5a0-88e5c46b844a",
+        "reason": "auth/context failure returned is_error=true Not logged in; not used as review evidence"
+      },
+      {
+        "session_id": "ab8662f0-5979-41dd-9e86-f7890c4385c1",
+        "uuid": "78f0aa26-904e-4fd3-a47f-37f4bc1b559d",
+        "reason": "auth/context failure returned is_error=true Not logged in; not used as review evidence"
+      },
+      {
+        "session_id": "94d04a83-d1b4-48d2-a859-faca247a925e",
+        "uuid": "6187d9f1-1a05-4e73-9fa3-66ded61027be",
+        "reason": "health check only; not a review"
+      }
+    ]
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS_WITH_FINDINGS",
+    "blocks_subphase_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0_or_p1": true,
+    "findings": [
+      {
+        "severity": "P1",
+        "title": "Deliverable-specific validator is red until evidence exists",
+        "file": "docs/goal-closeout/rp00-p02-m02-s01",
+        "line": null,
+        "description": "Claude noted rp00:control-plane:validate was still red because closeout evidence had not yet been written.",
+        "recommendation": "Write the deferred closeout evidence files and re-run rp00:control-plane:validate with evidence present.",
+        "status": "fixed_by_closeout_evidence",
+        "disposition": "This evidence set was written, then npm run rp00:control-plane:validate was re-run and passed as the H00 gate command."
+      },
+      {
+        "severity": "P1",
+        "title": "Fail-closed drift checks were not code-confirmable from summary",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude could not confirm from summary that negative tests mutate or omit fields and assert validator failure rather than comparing an object to itself.",
+        "recommendation": "Confirm one failing-path test per high-value drift dimension.",
+        "status": "fixed",
+        "disposition": "Added explicit negative tests and RP00 validator checks for missing handoff context, missing HumanApproval context, missing HumanApproval gate, no-real-data weakening, product-state write weakening, future permission precheck drift, execution, runtime route, and implementation handoff drafting claims."
+      },
+      {
+        "severity": "P1",
+        "title": "HumanApproval boundary enforcement was not code-confirmable from summary",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude noted HumanApproval boundary preservation is a top-stakes legal control-plane invariant and must fail when weakened or omitted.",
+        "recommendation": "Add a failing-path test for weakened or omitted HumanApproval boundary.",
+        "status": "fixed",
+        "disposition": "Added negative tests and RP00 validator checks for missing human_approval_boundary_context, missing human_approval_boundary_preserved gate, and doesNotReplaceHumanApproval=false."
+      },
+      {
+        "severity": "P2",
+        "title": "allow_metadata_only and no-real-data tie should be explicit",
+        "file": "packages/control-plane/src/validators.js",
+        "line": null,
+        "description": "Claude noted metadata-only input and no-real-data should not be merely independent declarations.",
+        "recommendation": "Confirm a test rejects real-data weakening for the handoff contract.",
+        "status": "fixed",
+        "disposition": "Added negative tests and RP00 validator checks for noRealData=false and writesProductState=true alongside the allow_metadata_only decision check."
+      },
+      {
+        "severity": "P2",
+        "title": "Fixture parity should compare meaningful structure",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude cautioned that fixture parity should not compare a snapshot to itself.",
+        "recommendation": "Confirm fixture assertions compare fixture fields to canonical contract constants.",
+        "status": "fixed",
+        "disposition": "Fixture tests compare handoff_context_ids to CONTROL_PLANE_AI_IMPLEMENTATION_HANDOFF_CONTEXT_IDS and check explicit fixture fields against contract constants and expected boundaries."
+      },
+      {
+        "severity": "P3",
+        "title": "Forward refs S02-S06 can rot if literals drift",
+        "file": "packages/control-plane/src/policies.js",
+        "line": null,
+        "description": "Claude noted hardcoded future refs can drift from the plan source.",
+        "recommendation": "Validate forward refs against the plan source or explicit validator expectations.",
+        "status": "fixed",
+        "disposition": "RP00 validator checks each future ref S02-S06 in both contract JSON and module export, and the negative test rejects missing permissionPrecheck."
+      },
+      {
+        "severity": "P3",
+        "title": "Pass counts are not coverage proof",
+        "file": "packages/control-plane/test/service.test.js",
+        "line": null,
+        "description": "Claude cautioned that pass counts alone do not prove invariant coverage.",
+        "recommendation": "Tie pass counts to explicit invariant assertions.",
+        "status": "fixed",
+        "disposition": "Command evidence cites pass counts only with explicit invariant checks for drift, HumanApproval boundary, no-real-data/no-write, no-runtime, and future-ref assertions."
+      }
+    ],
+    "summary": "Claude returned PASS_WITH_FINDINGS from a read-only tools-disabled review. The initial closeout was correctly blocked until evidence and final rp00 validation existed. P1/P2/P3 findings were addressed by additional negative tests, RP00 validator checks, closeout evidence, and final validation.",
+    "residual_risk": "Low after post-review fixes and final validation. The subphase remains metadata-only, no-write, no-runtime, no-service-execution, no implementation handoff drafting, and does not replace human approval."
+  },
+  "production_ready": true
+}

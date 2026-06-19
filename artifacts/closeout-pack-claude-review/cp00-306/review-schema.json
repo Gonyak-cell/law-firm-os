@@ -1,0 +1,135 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "overall_verdict",
+    "blocks_pack_closeout",
+    "blocks_goal_closeout",
+    "no_unresolved_p0",
+    "no_unresolved_p1",
+    "summary",
+    "findings",
+    "finding_counts"
+  ],
+  "properties": {
+    "overall_verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "PASS_WITH_FINDINGS",
+        "BLOCK"
+      ]
+    },
+    "blocks_pack_closeout": {
+      "type": "boolean"
+    },
+    "blocks_goal_closeout": {
+      "type": "boolean"
+    },
+    "no_unresolved_p0": {
+      "type": "boolean"
+    },
+    "no_unresolved_p1": {
+      "type": "boolean"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "title",
+          "file",
+          "line",
+          "details",
+          "recommendation",
+          "post_review_disposition"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "P0",
+              "P1",
+              "P2",
+              "P3"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "details": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "post_review_disposition": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "finding_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "p0",
+        "p1",
+        "p2",
+        "p3",
+        "reported_p0",
+        "reported_p1",
+        "reported_p2",
+        "reported_p3"
+      ],
+      "properties": {
+        "p0": {
+          "type": "integer"
+        },
+        "p1": {
+          "type": "integer"
+        },
+        "p2": {
+          "type": "integer"
+        },
+        "p3": {
+          "type": "integer"
+        },
+        "reported_p0": {
+          "type": "integer"
+        },
+        "reported_p1": {
+          "type": "integer"
+        },
+        "reported_p2": {
+          "type": "integer"
+        },
+        "reported_p3": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

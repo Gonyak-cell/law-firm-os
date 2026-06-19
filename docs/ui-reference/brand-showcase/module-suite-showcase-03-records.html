@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Law Firm OS - Records</title>
+  <link rel="icon" href="./brand-showcase-assets/amic-main.svg">
+  <link rel="stylesheet" href="./brand-showcase-assets/module-suite.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar plane-dark">
+      <div class="topbar-left">
+        <img class="logo-dark" src="./brand-showcase-assets/amic-petra.svg" alt="AMIC PETRA">
+        <span class="product">Law Firm OS</span>
+      </div>
+      <div class="topbar-actions">
+        <button>Import</button>
+        <button>Export</button>
+        <button class="primary">Save</button>
+      </div>
+    </header>
+
+    <section class="screen screen-records">
+      <aside class="rail plane-dark">
+        <div class="rail-title">Records</div>
+        <div class="nav-row active"><span>All</span><span class="count">225</span></div>
+        <div class="nav-row"><span>ERP</span><span class="count">18</span></div>
+        <div class="nav-row"><span>CRM</span><span class="count">42</span></div>
+        <div class="nav-row"><span>HR</span><span class="count">09</span></div>
+        <div class="nav-row"><span>DMS</span><span class="count">156</span></div>
+      </aside>
+
+      <section class="main">
+        <section class="pane plane">
+          <div class="pane-head">
+            <h1>Records</h1>
+            <div class="tabs">
+              <button class="active">All</button>
+              <button>Open</button>
+              <button>Hold</button>
+            </div>
+          </div>
+          <div class="compact-metrics">
+            <div class="metric"><span>ERP</span><strong>18</strong></div>
+            <div class="metric"><span>CRM</span><strong>42</strong></div>
+            <div class="metric"><span>HR</span><strong>09</strong></div>
+            <div class="metric"><span>DMS</span><strong>156</strong></div>
+          </div>
+        </section>
+
+        <section class="matrix">
+          <section class="pane plane">
+            <div class="pane-head"><h2>Index</h2></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>Module</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="code">ERP-018</td><td>ERP</td><td>Invoice batch</td><td><span class="status">Open</span></td></tr>
+                  <tr><td class="code">CRM-042</td><td>CRM</td><td>Client renewal</td><td><span class="status">Open</span></td></tr>
+                  <tr><td class="code">HR-009</td><td>HR</td><td>Capacity map</td><td><span class="status">Hold</span></td></tr>
+                  <tr><td class="code">DMS-156</td><td>DMS</td><td>Folder lock</td><td><span class="status">Done</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="pane plane">
+            <div class="pane-head"><h2>Detail</h2></div>
+            <div class="form-grid">
+              <div class="field"><label>Module</label><div>ERP</div></div>
+              <div class="field"><label>Status</label><div>Open</div></div>
+              <div class="field"><label>Owner</label><div>조우상</div></div>
+              <div class="field"><label>Linked DMS</label><div>16 files</div></div>
+              <div class="field"><label>CRM Link</label><div>Renewal</div></div>
+              <div class="field"><label>HR Link</label><div>Capacity</div></div>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <aside class="side">
+        <section class="pane plane">
+          <div class="pane-head"><h3>Locks</h3></div>
+          <div class="list">
+            <div class="list-row"><div class="line-top"><strong>DMS-156</strong><small>Done</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>ERP-018</strong><small>Open</small></div></div>
+            <div class="list-row"><div class="line-top"><strong>HR-009</strong><small>Hold</small></div></div>
+          </div>
+        </section>
+        <section class="pane plane-dark pane-dark">
+          <div class="pane-head"><h3>Audit</h3></div>
+          <div class="list">
+            <div class="list-row"><div class="line-top"><strong>12:26</strong><small>ERP</small></div><div class="line-sub">synced</div></div>
+            <div class="list-row"><div class="line-top"><strong>10:48</strong><small>CRM</small></div><div class="line-sub">updated</div></div>
+            <div class="list-row"><div class="line-top"><strong>09:12</strong><small>DMS</small></div><div class="line-sub">locked</div></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

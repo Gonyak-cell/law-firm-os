@@ -1,0 +1,37 @@
+{
+  "subphase_id": "RP00.P02.M03.S13",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Validation error mapping",
+  "verdict": "PASS",
+  "production_ready": true,
+  "inspected_at": "2026-06-05T10:53:08Z",
+  "control_plane_hermes_validation_error_mapping_verified": true,
+  "verified_behaviors": [
+    "Consumes RP00.P02.M03.S12 Hermes Validation Persistence boundary results only after validating the S12 result shape, hermes_validation entrypoint, S12 marker, allow_metadata_only decision, persistence_boundary_applied flag, persistence_receipt, audit_event_ref, and persistence_boundary_ref.",
+    "Emits a frozen metadata-only validation error mapping receipt with tenant, actor, object, permission decision, audit event, persistence boundary, persistence scope, validation error mapping ref, validation error mapping scope, working behavior, effect, and next-subphase fields.",
+    "Records no runtime error mapping, exception translation, or error-record writes while preserving a synthetic metadata-only validation error mapping receipt.",
+    "Carries S02 through S12, M00, permission, audit, TEN-001 through TEN-008, validation context, and acceptance gate references.",
+    "Rejects unsafe validation-error-mapping, runtime error mapping, exception translation, error-store, persistence-store, database, storage, product-state, unknown, runtime, AuthZ, Hermes execution, Hermes evidence, audit write, idempotency-store write, lock-store write, UI, tenant lifecycle mutation, requirement trace bypass, real-data, review-bypass, and product-write claims fail-closed.",
+    "Does not execute service logic, create runtime routes, append audit ledgers, write audit events, mutate tenant lifecycle state, run Hermes validation, create Hermes evidence, evaluate runtime permissions, call AuthZ, use real data, persist idempotency records, acquire locks, persist lock records, write persistence records, map runtime errors, translate runtime exceptions, write error records, write databases, write storage, persist product state, create UI, or write product state.",
+    "Does not complete RP00.P02.M03 and hands off to RP00.P02.M03.S14.",
+    "RP00 validator cross-checks the S13 terminal flag and successor against docs/weighted-implementation-ledger.json and live-executes positive and negative S13 precheck paths."
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s13/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s13/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s13/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s13/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s13/construction-inspection.json"
+  ],
+  "claude_findings": {
+    "p0_count": 0,
+    "p0_status": "none",
+    "p1_count": 0,
+    "p1_status": "none",
+    "p2_count": 0,
+    "p2_status": "fixed_or_deferred",
+    "p3_count": 1,
+    "p3_status": "fixed_by_closeout_evidence"
+  },
+  "human_acceptance_or_explicit_next_goal_boundary": "Subphase RP00.P02.M03.S13 is production_ready as a non-terminal validation error mapping and explicitly hands off to RP00.P02.M03.S14 Review-required routing."
+}

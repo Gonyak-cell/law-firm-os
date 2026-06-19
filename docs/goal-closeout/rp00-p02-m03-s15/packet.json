@@ -1,0 +1,66 @@
+{
+  "subphase_id": "RP00.P02.M03.S15",
+  "source_micro_phase_id": "RP00.P02.M03",
+  "title": "Approval-required routing",
+  "status": "production_ready",
+  "created_at": "2026-06-05T11:47:39Z",
+  "deliverable_type": "ui",
+  "implementation_summary": [
+    "Added control-plane Hermes Validation approval-required routing policy, result fields, prechecker, getter, and precheck behavior.",
+    "The S15 precheck consumes the S14 review-required routing result and emits a frozen synthetic metadata-only approval-required routing receipt.",
+    "The boundary explicitly forbids approval queue writes, approval assignment writes, approval notifications, approval record writes, human approval record writes, approval UI creation, runtime Claude review invocation, review queue writes, service execution, runtime route creation, Hermes execution/evidence creation, audit writes, persistence, database/storage writes, and product-state writes.",
+    "The S15 result keeps RP00.P02.M03 open and hands off to RP00.P02.M03.S16 Blocked-claim output."
+  ],
+  "changed_surfaces": [
+    "contracts/control-plane-contract.json",
+    "packages/control-plane/README.md",
+    "packages/control-plane/fixtures/synthetic-control-plane.json",
+    "packages/control-plane/src/policies.js",
+    "packages/control-plane/src/service.js",
+    "packages/control-plane/src/validators.js",
+    "packages/control-plane/test/service.test.js",
+    "scripts/validate-rp00-control-plane-contract.mjs"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/rp00-p02-m03-s15/packet.json",
+    "docs/goal-closeout/rp00-p02-m03-s15/command-evidence.json",
+    "docs/goal-closeout/rp00-p02-m03-s15/claude-review-result.json",
+    "docs/goal-closeout/rp00-p02-m03-s15/adjudication.md",
+    "docs/goal-closeout/rp00-p02-m03-s15/construction-inspection.json"
+  ],
+  "local_validation_summary": {
+    "node_check": "passed",
+    "service_test_count": 199,
+    "full_test_count": 283,
+    "requirements_count": 227,
+    "weighted_implementation_subphase_count": 54355,
+    "fullplan_release_program_count": 30,
+    "fullplan_micro_phase_count": 3300,
+    "pre_closeout_rp00_gate_status": "failed_only_for_missing_s15_evidence_files"
+  },
+  "claude_review": {
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "permission_mode": "dontAsk",
+    "read_only": true,
+    "session_id": "9a481601-9f2d-430a-8cee-c2c2a0a2279d",
+    "uuid": "95cdf3bf-c240-4456-a30f-dcd684cdbc78",
+    "implementation_verdict": "PASS",
+    "production_ready_verdict_before_evidence": "NO-GO",
+    "production_ready_verdict_after_adjudication": "GO_AFTER_EVIDENCE_AND_FINAL_GATE",
+    "p0": 0,
+    "p1": 1,
+    "p2": 1,
+    "p3": 1
+  },
+  "adjudication_summary": {
+    "p1_status": "accepted_and_fixed_by_closeout_evidence_plus_final_rp00_gate",
+    "p2_status": "accepted_and_fixed_by_closeout_evidence_plus_final_rp00_gate",
+    "p3_status": "informational_no_code_change",
+    "unresolved_p0": 0,
+    "unresolved_p1": 0,
+    "unresolved_p2": 0
+  },
+  "production_ready": true,
+  "next_subphase": "RP00.P02.M03.S16"
+}

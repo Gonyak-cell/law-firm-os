@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-276",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-10T20:44:33.137Z",
+  "finished_at": "2026-06-10T20:48:39.541Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":245634,\"duration_api_ms\":245963,\"ttft_ms\":3549,\"num_turns\":31,\"result\":\"Review complete. **Verdict: PASS_WITH_FINDINGS** — does not block pack or goal closeout; no unresolved P0/P1.\\n\\nCP00-276's descriptor-only service slice is sound: scope/coverage reconciles across contract, manifest, and plan; the `production_ready=false`/pending posture is honest (no overclaim); no-write/no-real-data boundary holds with zero side-effecting code; Claude stays read-only and non-final; Hermes is deterministic control-plane evidence only. The single P3 is an optional maintainability nit (CP276 case set reuses the CP275 row-extras constant) with no correctness or boundary impact. Human final approval for the enterprise trust claim remains required outside this review.\",\"stop_reason\":\"end_turn\",\"session_id\":\"540cf056-9c47-4f7d-819f-f1a9c433abc1\",\"total_cost_usd\":1.8900767500000002,\"usage\":{\"input_tokens\":28,\"cache_creation_input_tokens\":115441,\"cache_read_input_tokens\":1369327,\"output_tokens\":19303,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":115441,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":303,\"cache_read_input_tokens\":149569,\"cache_creation_input_tokens\":5457,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":5457},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1092,\"outputTokens\":20,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0011920000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":28,\"outputTokens\":19303,\"cacheReadInputTokens\":1369327,\"cacheCreationInputTokens\":115441,\"webSearchRequests\":0,\"costUSD\":1.8888847500000001,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS_WITH_FINDINGS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-276 (RP08 email-dms-core service slice, risk B, 40 units, RP08.P02.M03.S01-RP08.P02.M04.S18) passes independent read-only review. Contract current_pack, manifest, plan snapshot, and closeout-pack-plan.json all agree on pack identity, unit count, range, deliverable distribution (contract2/impl18/security4/ui6/claude2/recovery4/test4=40), and micro-title split (22/18); validators.js coverage logic enforces these. The pack-level production_ready claim is honestly FALSE (status implemented_pending_review / pending final closeout); the Hermes production_ready_candidate:true is a distinct coverage+slice-valid candidate signal, not a final readiness assertion, so there is no overclaim. No-write/no-real-data boundary holds: zero side-effecting operations in packages/email-dms/src (no writeFile/fetch/exec/process.env/http/child_process), every result Object.frozen with no_real_data:true and all runtime-dispatch/persistence/leak flags false, and validateEmailDmsCoreCp276ServiceSliceDescriptor enforces descriptor-only, customer-safe, no-raw-payload, deny-over-allow, and no-leak guards across both sections. Claude remains a read-only reviewer and not final approver (read_only:true, claude_is_final_approval:false, tools Read/Grep/Glob, forbidden_review_evidence enumerated, attestation promotes_claude_to_final_approval:false and claims_enterprise_trust_from_local_validation:false). Hermes patterns are used only as deterministic control-plane evidence (emits_hermes_runtime_receipt:false, hermes_runtime_embedded_in_product:false). Review-evidence integrity is sound: readiness ready, auth preflight passed with 1444-byte valid-JSON stdout, no forbidden tools, summary-only correctly prohibited, source inspected via read tools. Unrelated dirty files (LDIP invalid-attempt JSON, .docx, handoff doc) are correctly excluded from pack scope. One non-blocking P3 maintainability observation only. Human final approval for the enterprise trust claim remains required and is outside this read-only review.\",\"findings\":[{\"id\":\"CP276-P3-01\",\"severity\":\"P3\",\"title\":\"Service-slice case set reuses CP275 row-extras constant instead of a pack-local CP276 constant\",\"file\":\"packages/email-dms/src/service.js\",\"line\":679,\"details\":\"createEmailDmsCoreCp276ServiceSliceCaseSet builds its rows by spreading EMAIL_DMS_CORE_CP275_ROW_EXTRAS[key] rather than a dedicated EMAIL_DMS_CORE_CP276_ROW_EXTRAS. This is functionally correct and fully validated: the CP276 M03/M04 service sections use the identical service row titles as CP275's P02 service sections, all required guard fields (deny_over_allow_enforced, creates_database_rows:false, dispatches_integration_smoke_runtime:false, persists_idempotency_key:false, acquires_runtime_lock:false, etc.) resolve correctly, validateEmailDmsCoreCp276ServiceSliceDescriptor passes, and model.test.js CP00-276 assertions (lines 314-333) pass. The only effect is a maintainability coupling: a future divergence between CP275 and CP276 service-row requirements could be silently inherited because CP276 has no own row-extras source. CP276 also intentionally omits the documentation_entry/ownership_drift/fixture keys that do not apply to service sections, which is consistent with its required_no_leak_guards.\",\"recommendation\":\"Optional, non-blocking: introduce an EMAIL_DMS_CORE_CP276_ROW_EXTRAS (even if defined as a spread of the CP275 service keys) so each pack owns its row-shape source and future divergence is explicit. No change required for CP00-276 closeout.\",\"post_review_disposition\":\"Recorded as non-blocking maintainability observation; does not affect descriptor-only correctness, no-write/no-real-data boundary, authority boundary, or the production_ready=false posture. No remediation required before pack closeout.\"}],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":1,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":1}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"a0f948d6-234a-400c-89f2-7fd0a20807ae\"}\n",
+  "stderr": "",
+  "stdout_bytes": 6173,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "540cf056-9c47-4f7d-819f-f1a9c433abc1",
+    "uuid": "a0f948d6-234a-400c-89f2-7fd0a20807ae",
+    "total_cost_usd": 1.8900767500000002,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

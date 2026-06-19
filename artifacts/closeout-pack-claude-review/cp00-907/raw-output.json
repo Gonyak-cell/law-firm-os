@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-raw-output.v0.1",
+  "pack_id": "CP00-907",
+  "runner": "scripts/run-closeout-pack-claude-review.mjs",
+  "started_at": "2026-06-17T16:28:21.743Z",
+  "finished_at": "2026-06-17T16:32:29.986Z",
+  "command": "claude",
+  "args": [
+    "-p",
+    "<prompt.txt content>",
+    "--model",
+    "claude-opus-4-8",
+    "--effort",
+    "max",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "Read,Grep,Glob",
+    "--json-schema",
+    "<review-schema.json content>",
+    "--output-format",
+    "json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"api_error_status\":null,\"duration_ms\":246634,\"duration_api_ms\":247194,\"ttft_ms\":3997,\"num_turns\":41,\"result\":\"Review complete. **Verdict: PASS** — no findings (0 P0/P1/P2/P3).\\n\\nCP00-907 is a sound descriptor-only HRX LeaveWorkflow→AttendanceWorkflow bridge pack: implementation, tests, validators, and the generated contract are mutually consistent and enforce all no-runtime/no-write/no-real-data boundaries; authority boundary (Claude read-only, Hermes control-plane only) is correct; CP178+ review-evidence hardening checks pass. The pending/false states in the closeout artifacts are the expected pre-review template that this review gates, so they do not block. Nothing blocks pack or CP-goal closeout.\",\"stop_reason\":\"end_turn\",\"session_id\":\"3742fd48-075c-4742-beb5-e057d161d991\",\"total_cost_usd\":1.615739,\"usage\":{\"input_tokens\":46,\"cache_creation_input_tokens\":89888,\"cache_read_input_tokens\":1234522,\"output_tokens\":17409,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":89888,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":276,\"cache_read_input_tokens\":86921,\"cache_creation_input_tokens\":3502,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":3502},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-haiku-4-5-20251001\":{\"inputTokens\":1118,\"outputTokens\":21,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.0012230000000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000},\"claude-opus-4-8\":{\"inputTokens\":46,\"outputTokens\":17409,\"cacheReadInputTokens\":1234522,\"cacheCreationInputTokens\":89888,\"webSearchRequests\":0,\"costUSD\":1.614516,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"structured_output\":{\"overall_verdict\":\"PASS\",\"blocks_pack_closeout\":false,\"blocks_goal_closeout\":false,\"no_unresolved_p0\":true,\"no_unresolved_p1\":true,\"summary\":\"CP00-907 (risk A, 10 units, RP30.P02.M01.S06-RP30.P02.M02.S02) is a clean descriptor-only continuation of the embedded HRX People/HR evidence track, binding the LeaveWorkflow tail (8 rows) into the AttendanceWorkflow foundation (2 rows). Verified entirely through read-only inspection: (1) the pack is correctly positioned as the active live pack (closeout-pack-plan.json live_next_unit_id RP30.P02.M01.S06 / generated_start_pack_id CP00-907; binding chain CP906->CP907->CP908 intact); (2) the implementation (registry.js createHrxCp907LeaveAttendanceWorkflowBridgeDescriptor) is descriptor-only with every runtime/write/real-data flag false, HRX_NO_WRITE_ATTESTATION spread in, and no fs-write/fetch/child_process usage anywhere in packages/hrx/src; (3) validators.js enforces coverage distribution, per-row leave/attendance runtime+write+real-data boundary drift, baseline decisions, Hermes emits_runtime_receipt=false, and Claude read_only=true/not-final-approver; (4) model.test.js asserts the 8/2 distribution, closed leave+attendance runtime, and that the committed contract JSON projection matches with zero validation errors; (5) authority boundary is correct -- Claude remains read-only independent reviewer (not final approver), Hermes H30 is a deterministic control-plane review gate not product runtime, and the pack explicitly defers runtime/enterprise-trust claims; (6) CP178+ hardening is satisfied (auth preflight passed with valid non-empty JSON, no forbidden tools, schema present, no invalid prior attempts). The pending/false states in the manifest, command-evidence, adjudication, and construction-inspection are the expected pre-review template state that this review gates. The full validation ladder is documented to be re-run before commit; substantive correctness is confirmed by inspection of source, tests, validators, and the generated contract. No production_ready overclaim, no real data, no writes, no runtime opening. Pack supports closeout. blocks_goal_closeout=false because this CP makes no runtime or enterprise-trust claim and Claude's non-final-approval boundary is the expected, out-of-receipt authority boundary.\",\"findings\":[],\"finding_counts\":{\"p0\":0,\"p1\":0,\"p2\":0,\"p3\":0,\"reported_p0\":0,\"reported_p1\":0,\"reported_p2\":0,\"reported_p3\":0}},\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"a5252124-e19f-4c0f-aada-cf9dd1f6b2a8\"}\n",
+  "stderr": "",
+  "stdout_bytes": 4442,
+  "stderr_bytes": 0,
+  "claude_cli": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "session_id": "3742fd48-075c-4742-beb5-e057d161d991",
+    "uuid": "a5252124-e19f-4c0f-aada-cf9dd1f6b2a8",
+    "total_cost_usd": 1.615739,
+    "permission_denials": [],
+    "terminal_reason": "completed"
+  }
+}

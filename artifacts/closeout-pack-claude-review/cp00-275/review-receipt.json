@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-275",
+  "normalized_at": "2026-06-10T20:39:12.622Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-275/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-275/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-275/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-275/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "4f8308b9-59b9-4802-8217-fb5c16ac8845",
+    "uuid": "9eb88642-b347-4fd8-9654-4549601f1810",
+    "total_cost_usd": 2.01279825,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 3974,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-275 (Risk C, 150 units, RP08.P01.M06.S05–RP08.P02.M02.S22) is a clean descriptor-only pack that closes the RP08.P01 email-dms-core model/storage tail (M06 fixtures, M07–M10 Test/Hermes/Claude/Closeout) and opens the RP08.P02 service foundation (Scope Inventory, Contract Draft, Type And Shape Definition). Source inspection via Read/Grep/Glob across all eight in-scope files (contract JSON, README, registry/service/validators/index, model test, validation script) confirms full alignment on the CP00-275 binding and preservation of every no-write/no-runtime/no-real-data boundary. (1) The pack-level production_ready claim is correctly supported and not over-stated: command-evidence reports production_ready=false with status implementation_and_plan_gates_passed_pending_final_closeout, no_real_data=true, writes_product_state=false, all ~20 local/Hermes commands exit 0, and Hermes gate H08 passed; the binding's production_ready_flag is a descriptor verification string, not an enterprise trust claim, and final closeout remains post-review human-gated. (2) CP178+ review hardening holds: readiness auth_preflight passed (exit 0, 1445-byte valid JSON, zero errors/warnings), no zero-byte/malformed/fenced/tool-call-shaped evidence, forbidden_review_evidence enforced in the registry, and validation-report confirms forbidden_tools_present=false with read-tool source inspection (summary-only prohibited for this Risk C / security-audit / review-evidence pack). (3) Claude authority boundary preserved: authority_boundary objects across service, validators, and tests assert claude_is_final_approval=false, local_validation_claims_enterprise_trust=false, and human_final_approval_required_for_runtime_opening=true. (4) Hermes patterns are confined to deterministic control-plane review packet/receipt handling (descriptor_only=true, hermes_runtime_embedded_in_product=false), not product runtime execution. No P0/P1/P2/P3 findings; the pack does not block pack or goal closeout.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

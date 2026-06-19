@@ -1,0 +1,32 @@
+{
+  "work_package_id": "LT-L9-W02",
+  "title": "KPI baseline measurement",
+  "created_at": "2026-06-18T12:21:08Z",
+  "status": "blocked_kpi_baseline_templates_recorded",
+  "artifacts": [
+    "docs/launch/kpi-baseline-data.json",
+    "docs/launch/kpi-baseline-report.md"
+  ],
+  "evidence_files": [
+    "docs/goal-closeout/lt-l9-w02/packet.json",
+    "docs/goal-closeout/lt-l9-w02/command-evidence.json",
+    "docs/goal-closeout/lt-l9-w02/claude-review-result.json",
+    "docs/goal-closeout/lt-l9-w02/adjudication.md",
+    "docs/goal-closeout/lt-l9-w02/construction-inspection.json"
+  ],
+  "current_status": {
+    "metric_count": 7,
+    "week_count": 4,
+    "post_launch_data_collected": false,
+    "report_approved": false
+  },
+  "review_policy": {
+    "full_claude_review": "waived_by_user",
+    "valid_review_evidence": false
+  },
+  "terminal_tuw": "LT-L9-W02-T02",
+  "gate_binding": [
+    "L9-EXIT"
+  ],
+  "phase": "L9"
+}

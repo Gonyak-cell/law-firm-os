@@ -1,0 +1,55 @@
+{
+  "schema_version": "law-firm-os.closeout-pack-claude-review-receipt.v0.1",
+  "pack_id": "CP00-770",
+  "normalized_at": "2026-06-15T15:50:55.276Z",
+  "status": "valid_review",
+  "valid_review": true,
+  "closeout_eligible": true,
+  "invalid_reason": null,
+  "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-770/review-baseline.json",
+  "request_ref": "artifacts/closeout-pack-claude-review/cp00-770/review-request.json",
+  "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-770/readiness-report.json",
+  "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-770/raw-output.json",
+  "review_execution": {
+    "source": "claude_cli",
+    "runner": "scripts/run-closeout-pack-claude-review.mjs",
+    "model": "claude-opus-4-8",
+    "effort": "max",
+    "read_only": true,
+    "permission_mode": "dontAsk",
+    "tools": "Read,Grep,Glob",
+    "output_format": "json",
+    "json_schema": true,
+    "status": 0,
+    "signal": null,
+    "session_id": "bb6f7ed8-9fc0-4d94-ac48-c94768c11a95",
+    "uuid": "205590f5-9269-41f7-9ed4-c7bd3928826e",
+    "total_cost_usd": 2.435373,
+    "permission_denials": []
+  },
+  "raw_output": {
+    "stdout_bytes": 4998,
+    "stderr_bytes": 0,
+    "api_error_status": null,
+    "terminal_reason": "completed"
+  },
+  "parsed_review": {
+    "overall_verdict": "PASS",
+    "blocks_pack_closeout": false,
+    "blocks_goal_closeout": false,
+    "no_unresolved_p0": true,
+    "no_unresolved_p1": true,
+    "summary": "CP00-770 (Migration Platform fixture implementation, risk B, 40 units, RP25.P05.M02.S15-RP25.P05.M04.S12) passes hardened read-only review. The CP770 binding and requirements in registry.js match the pack baseline exactly (risk B, 40 units, range, next CP00-771/RP25.P05.M04.S13, deliverable distribution test:6/hermes_evidence:2/implementation:13/fixture:13/claude_review:2/security_audit:4, micro-title distribution 6/22/12); a hand-count of the 40 included units confirms the distribution. service.js generators (case set, descriptor, Hermes evidence, Claude packet, closeout handoff) follow the consistent descriptor-only pattern and apply MIGRATION_PLATFORM_NO_WRITE_ATTESTATION; validators.js coverage and descriptor validators enforce descriptor-only output, no source-system/import runtime opening, no sensitive payloads, no cross-tenant access, no audit-body/permission-decision leak, no unverified-knowledge creation, no replay execution, and Hermes/Claude gate plus handoff integrity. import-plan.js and mappers.js are descriptor-only/no-write and require human mapping approval; index.js re-exports cleanly; README CP00-770 section is accurate. model.test.js contains meaningful CP00-770 assertions (coverage deepEqual empty errors, descriptor validation, authority boundary claude_is_final_approval=false and runtime_opening_pack_id=CP00-771, runtime-closed flags, latest contract projection). command-evidence.json shows all required validation commands (closeout-pack-plan:validate, closeout-pack:validate, npm test, validate, spec:requirements:validate, weighted:validate, fullplan:validate, goal:closeout:validate, rp00:control-plane:validate, git diff --check) at exit_code 0, status passed_pending_hardened_review. No-write/no-real-data boundaries hold; Hermes is used only for deterministic descriptor-only review packet/receipt handling, not product runtime; Claude remains read-only and non-final. The pack does not prematurely claim production_ready (manifest production_ready=false, runtime_ready=false, inspection verdict PENDING_REVIEW) and correctly gates promotion behind this review with human final approval reserved for enterprise-trust/runtime opening; the descriptor-only production_ready_flag is appropriately scoped. CP178+ evidence hardening is intact: the pre-review placeholder (0-byte stdout) is correctly not counted as a valid receipt and readiness auth-preflight passed. Changed-file scope correctly separates active pack refs from unrelated dirty files with no active untracked implementation files omitted. No P0-P3 findings.",
+    "findings": [],
+    "finding_counts": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0,
+      "reported_p0": 0,
+      "reported_p1": 0,
+      "reported_p2": 0,
+      "reported_p3": 0
+    }
+  }
+}

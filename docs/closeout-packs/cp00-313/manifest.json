@@ -1,0 +1,619 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-313",
+  "planned_pack_id": "CP00-313",
+  "status": "production_ready",
+  "production_ready": true,
+  "production_ready_flag": "crm_core_failure_slice_descriptor_verified",
+  "program_id": "RP09",
+  "planned_risk_class": "A",
+  "risk_class": "A",
+  "planned_unit_count": 10,
+  "unit_count": 10,
+  "primary_subphase_id": "RP09.P07.M04.S06",
+  "next_subphase": "RP09.P07.M04.S07",
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-313",
+    "planned_pack_id": "CP00-313",
+    "title": "CP00-313 RP09.P07.M03.S19-RP09.P07.M04.S06 generated_from_weighted_implementation_ledger",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP09.P07.M03.S19",
+      "last_unit_id": "RP09.P07.M04.S06",
+      "description": "RP09.P07.M03.S19-RP09.P07.M04.S06"
+    },
+    "source": "generated_from_weighted_implementation_ledger",
+    "generated": true,
+    "generation_rule_version": "law-firm-os.closeout-pack-plan.generator.v1",
+    "source_ledger_sha": "13c7ed65e83631946ea7fae75c4d53a6429b2b41576fe099027dfaffda91fa32",
+    "renumbering_policy": "Pack IDs are monotonic after the latest live closeout pack. If a requested locked queue skips live-open ledger units, live-open units are inserted first and requested packs are shifted with correction_reason.",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP09.P07.M03.S19",
+        "title": "Audit failure hint",
+        "source_micro_phase_id": "RP09.P07.M03",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "security_audit"
+      },
+      {
+        "id": "RP09.P07.M03.S20",
+        "title": "Hermes failure evidence",
+        "source_micro_phase_id": "RP09.P07.M03",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "hermes_evidence"
+      },
+      {
+        "id": "RP09.P07.M03.S21",
+        "title": "Claude edge-case prompt",
+        "source_micro_phase_id": "RP09.P07.M03",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP09.P07.M03.S22",
+        "title": "Human escalation note",
+        "source_micro_phase_id": "RP09.P07.M03",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M03",
+        "micro_title": "Primary Implementation Slice",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP09.P07.M04.S01",
+        "title": "Failure taxonomy",
+        "source_micro_phase_id": "RP09.P07.M04",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP09.P07.M04.S02",
+        "title": "Missing tenant failure",
+        "source_micro_phase_id": "RP09.P07.M04",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP09.P07.M04.S03",
+        "title": "Missing actor failure",
+        "source_micro_phase_id": "RP09.P07.M04",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP09.P07.M04.S04",
+        "title": "Missing Matter failure",
+        "source_micro_phase_id": "RP09.P07.M04",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP09.P07.M04.S05",
+        "title": "Missing resource failure",
+        "source_micro_phase_id": "RP09.P07.M04",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      },
+      {
+        "id": "RP09.P07.M04.S06",
+        "title": "Unknown action failure",
+        "source_micro_phase_id": "RP09.P07.M04",
+        "program_id": "RP09",
+        "phase_id": "RP09.P07",
+        "micro_id": "M04",
+        "micro_title": "Secondary Workflow Slice",
+        "deliverable_type": "failure_recovery"
+      }
+    ]
+  },
+  "included_units": [
+    {
+      "id": "RP09.P07.M03.S19",
+      "title": "Audit failure hint",
+      "source_micro_phase_id": "RP09.P07.M03",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "security_audit",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M03.S20",
+      "title": "Hermes failure evidence",
+      "source_micro_phase_id": "RP09.P07.M03",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "hermes_evidence",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M03.S21",
+      "title": "Claude edge-case prompt",
+      "source_micro_phase_id": "RP09.P07.M03",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M03.S22",
+      "title": "Human escalation note",
+      "source_micro_phase_id": "RP09.P07.M03",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M03",
+      "micro_title": "Primary Implementation Slice",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M04.S01",
+      "title": "Failure taxonomy",
+      "source_micro_phase_id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M04.S02",
+      "title": "Missing tenant failure",
+      "source_micro_phase_id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M04.S03",
+      "title": "Missing actor failure",
+      "source_micro_phase_id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M04.S04",
+      "title": "Missing Matter failure",
+      "source_micro_phase_id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M04.S05",
+      "title": "Missing resource failure",
+      "source_micro_phase_id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    },
+    {
+      "id": "RP09.P07.M04.S06",
+      "title": "Unknown action failure",
+      "source_micro_phase_id": "RP09.P07.M04",
+      "program_id": "RP09",
+      "phase_id": "RP09.P07",
+      "micro_id": "M04",
+      "micro_title": "Secondary Workflow Slice",
+      "deliverable_type": "failure_recovery",
+      "risk_class": "A",
+      "status": "production_ready",
+      "implementation_refs": [
+        "contracts/crm-core-contract.json",
+        "packages/crm/README.md",
+        "packages/crm/src/index.js",
+        "packages/crm/src/registry.js",
+        "packages/crm/src/service.js",
+        "packages/crm/src/validators.js",
+        "packages/crm/test/model.test.js",
+        "scripts/validate-rp09-crm-core-contract.mjs"
+      ],
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-313/manifest.json",
+        "docs/closeout-packs/cp00-313/command-evidence.json",
+        "docs/closeout-packs/cp00-313/claude-review-result.json",
+        "docs/closeout-packs/cp00-313/adjudication.md",
+        "docs/closeout-packs/cp00-313/construction-inspection.json"
+      ]
+    }
+  ],
+  "implementation_summary": {
+    "summary": "CP00-313 implements descriptor-only coverage of the RP09.P07.M03 primary failure tail (audit failure hint, Hermes failure evidence, Claude edge-case prompt, human escalation note) and the M04 secondary workflow head (failure taxonomy, missing tenant/actor/matter/resource failures, unknown action failure) across two sections over 10 planned rows with a pack-local row-extras constant, Hermes evidence (H09), Claude review packet (C09), and CP00-314 handoff, without opening rollback/retry runtime, state writes, object storage, command runtime execution, Hermes runtime receipts, Citation Ledger, or Loop behavior.",
+    "source_refs": [
+      "contracts/crm-core-contract.json",
+      "packages/crm/README.md",
+      "packages/crm/src/index.js",
+      "packages/crm/src/registry.js",
+      "packages/crm/src/service.js",
+      "packages/crm/src/validators.js",
+      "packages/crm/test/model.test.js",
+      "scripts/validate-rp09-crm-core-contract.mjs"
+    ],
+    "descriptor_only": true,
+    "synthetic_only": true,
+    "no_real_data_loading": true,
+    "no_crm_runtime": true,
+    "no_campaign_runtime": true,
+    "no_proposal_runtime": true,
+    "no_referral_runtime": true,
+    "no_integration_smoke_runtime": true,
+    "no_ui_runtime_execution": true,
+    "no_ai_runtime_dispatch": true,
+    "no_runtime_permission_or_audit_evaluation": true,
+    "no_audit_event_write": true,
+    "no_silent_success_detected": true,
+    "deny_over_allow_enforced": true,
+    "no_rollback_runtime": true,
+    "no_retry_runtime": true,
+    "no_runtime_lock_acquisition": true,
+    "no_object_storage_runtime": true,
+    "no_citation_ledger_runtime": true,
+    "no_loop_engine": true,
+    "no_command_runtime_execution": true,
+    "claude_not_final_approver": true,
+    "enterprise_trust_not_claimed_from_local_validation": true,
+    "no_runtime_service_dispatch": true,
+    "no_hermes_runtime_receipt": true,
+    "no_state_transition_write": true,
+    "no_idempotency_key_persistence": true,
+    "no_workflow_attempt_persistence": true,
+    "unauthorized_data_omitted": true,
+    "no_cross_tenant_access": true,
+    "no_permission_decision_detail_leak": true,
+    "no_audit_hint_detail_leak": true,
+    "no_blocked_claim_detail_leak": true,
+    "no_hermes_packet_body_leak": true,
+    "no_raw_payload_leak": true
+  },
+  "evidence_refs": [
+    "docs/closeout-packs/cp00-313/manifest.json",
+    "docs/closeout-packs/cp00-313/command-evidence.json",
+    "docs/closeout-packs/cp00-313/claude-review-result.json",
+    "docs/closeout-packs/cp00-313/adjudication.md",
+    "docs/closeout-packs/cp00-313/construction-inspection.json"
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-313/manifest.json",
+    "docs/closeout-packs/cp00-313/command-evidence.json",
+    "docs/closeout-packs/cp00-313/claude-review-result.json",
+    "docs/closeout-packs/cp00-313/adjudication.md",
+    "docs/closeout-packs/cp00-313/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "active_pack_required_untracked_files": [],
+    "unrelated_dirty_files_preserved": [
+      "\"Law_Firm_OS_Enterprise_SaaS_\\354\\202\\254\\354\\226\\221\\353\\252\\205\\354\\204\\270\\354\\204\\234_v2.0.docx\"",
+      "docs/ldip-integration/claude-review-results/c-ldip-01-invalid-attempt-01.json"
+    ]
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "hardening_sequence": [
+      "baseline",
+      "readiness",
+      "read_only_claude_run_raw_capture",
+      "normalize",
+      "receipt_validate",
+      "finding_adjudication",
+      "construction_inspection",
+      "final_closeout_validation",
+      "commit"
+    ],
+    "valid_review_receipts": [
+      "artifacts/closeout-pack-claude-review/cp00-313/review-receipt.json"
+    ],
+    "invalid_review_attempts": [],
+    "review_receipt_ref": "artifacts/closeout-pack-claude-review/cp00-313/review-receipt.json",
+    "review_execution": {
+      "source": "claude_cli",
+      "runner": "scripts/run-closeout-pack-claude-review.mjs",
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "read_only": true,
+      "permission_mode": "dontAsk",
+      "tools": "Read,Grep,Glob",
+      "output_format": "json",
+      "json_schema": true,
+      "status": 0,
+      "signal": null,
+      "session_id": "d56a7d28-609c-487f-a226-d0a2417d4e25",
+      "uuid": "e75fba36-0403-4e9e-932f-d2946f64ae40",
+      "total_cost_usd": 2.5797100000000004,
+      "permission_denials": []
+    },
+    "parsed_review": {
+      "overall_verdict": "PASS_WITH_FINDINGS",
+      "blocks_pack_closeout": false,
+      "blocks_goal_closeout": false,
+      "no_unresolved_p0": true,
+      "no_unresolved_p1": true,
+      "summary": "CP00-313 is a descriptor-only CRM-core failure-slice pack (RP09.P07.M03.S19-RP09.P07.M04.S06, risk A, 10 units) closing the M03 primary failure tail and opening the M04 secondary workflow head. Reviewed via Read/Grep/Glob only. Identity, risk class, unit count, range, upstream/next and gates (H09/C09) are consistent across the registry binding (packages/crm/src/registry.js:253), manifest, review baseline, closeout-pack-plan.json:410, next-pack-queue, and the persisted contract (contracts/crm-core-contract.json:16). Coverage/distribution match the planned deliverable distribution {security_audit:1, hermes_evidence:1, claude_review:1, implementation:1, failure_recovery:6} and micro-title split {Primary:4, Secondary:6}; required section rows enumerate all 10 unit titles (registry.js:1496). The descriptor (service.js:2134) and case set are pure Object.freeze data with a complete no-write/no-real-data attestation (no DB writes, no object storage, no Hermes runtime receipt, no rollback/retry/command runtime). Failure-specific guards are enforced and tested: audit-failure-hint detail excluded, no Hermes runtime receipt, Claude final-approval not claimed, human escalation route required before runtime, and missing-context/unknown-action outcomes rejected_customer_safe (validators.js:3176; model.test.js:951-998; validate-rp09-crm-core-contract.mjs:346-811). All 7 required public exports exist and are surfaced via index.js export *. Authority boundary holds: Claude is a read-only reviewer (allowed_tools Read/Grep/Glob), not final approver; enterprise trust is not claimed from local validation; human final approval gates runtime opening at CP00-314. CP178+ review-hardening blockers are encoded in forbidden_review_evidence (registry.js:457) and mirrored in the contract claude_packet; the readiness auth preflight passed with non-zero, well-formed JSON stdout. command-evidence.json records all implementation, contract, plan, and repo-wide validation commands plus git diff --check at exit 0, with Hermes gate H09 passed. Pack-level production_ready is correctly FALSE (implemented_pending_review); post-review artifacts (claude-review-result.json, adjudication.md, construction-inspection.json) are pending by design per the hardening sequence and are not expected to exist at read-only review time. No P0/P1 issues. One P3 cosmetic note on the generated changed-file-scope helper. Recommend the pack proceed through adjudication/construction-inspection toward closeout; promotion of any enterprise-trust/production-ready claim remains a human decision.",
+      "findings": [
+        {
+          "id": "CP313-P3-001",
+          "severity": "P3",
+          "title": "changed-file-scope lists the active pack's own doc dir under unrelated_dirty_files_preserved",
+          "file": "artifacts/closeout-pack-claude-review/cp00-313/changed-file-scope.json",
+          "line": 103,
+          "details": "docs/closeout-packs/cp00-313/ and docs/closeout-pack-plan/new-session-handoff.md appear in BOTH untracked_implementation_files (lines 95-98) and unrelated_dirty_files_preserved (lines 100-105). The cp00-313 evidence directory is the active pack's own output, so labeling it 'unrelated' is a misnomer. The pack manifest's own worktree_transition_policy.unrelated_dirty_files_preserved (docs/closeout-packs/cp00-313/manifest.json:528-531) is cleaner, listing only the unrelated docx and the c-ldip-01 invalid-attempt JSON. This is a redundancy/naming inconsistency in an auto-generated review-scope helper; the underlying field appears to enumerate all preserved (non-reverted) untracked paths rather than strictly unrelated ones.",
+          "recommendation": "Clarify the generator semantics (e.g., rename to preserved_untracked_files) or exclude active-pack paths from unrelated_dirty_files_preserved so the active pack's evidence directory is not classified as unrelated. No code or boundary change required.",
+          "post_review_disposition": "Non-blocking cosmetic bookkeeping in a generated review-scope artifact. Does not affect pack scope, implementation, tests, validation gates, no-write/no-real-data boundaries, or the production_ready posture. Safe to defer."
+        }
+      ],
+      "finding_counts": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "p3": 1,
+        "reported_p0": 0,
+        "reported_p1": 0,
+        "reported_p2": 0,
+        "reported_p3": 1
+      }
+    }
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-313 crm core failure slice descriptor pack"
+  },
+  "live_closeout_snapshot": {
+    "goal_closeout_dirs": 110,
+    "goal_closeout_dirs_with_required_artifacts": 110,
+    "remaining_by_closeout_dir_proxy": 55146
+  },
+  "review_hardening": {
+    "baseline_ref": "artifacts/closeout-pack-claude-review/cp00-313/review-baseline.json",
+    "readiness_ref": "artifacts/closeout-pack-claude-review/cp00-313/readiness-report.json",
+    "raw_output_ref": "artifacts/closeout-pack-claude-review/cp00-313/raw-output.json",
+    "receipt_ref": "artifacts/closeout-pack-claude-review/cp00-313/review-receipt.json",
+    "invalid_attempts_preserved": []
+  }
+}

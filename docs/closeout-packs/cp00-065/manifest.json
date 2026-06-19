@@ -1,0 +1,549 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.v0.1",
+  "pack_id": "CP00-065",
+  "planned_pack_id": "CP00-065",
+  "requested_pack_id": "CP00-064",
+  "planned_risk_class": "A",
+  "planned_unit_count": 10,
+  "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+  "deviation_from_plan": false,
+  "correction_reason": "requested CP00-064 shifted to CP00-065 by live sequential cursor",
+  "title": "Control-plane Synthetic Fixture Permission And Audit Binding boundary pack",
+  "status": "production_ready",
+  "production_ready": true,
+  "created_at": "2026-06-07T07:23:52.887Z",
+  "completed_at": "2026-06-07T07:23:52.887Z",
+  "program_id": "RP00",
+  "program_title": "Product Constitution And AI Control Plane",
+  "risk_class": "A",
+  "risk_reason": "Closes the planned CP00-065 Risk A Synthetic Fixture Permission And Audit Binding metadata boundary for RP00.P05.M05.S01-RP00.P05.M05.S10. The pack binds base tenant/user/matter/document fixtures plus primary, secondary, review-required, denied, cross-tenant, and missing-context cases over the CP00-064 evidence fixture handoff result without runtime fixture generation, runtime test execution, test runner calls, golden fixture generation or persistence, golden catalog writes, unit-test contract writes, permission engine execution, AuthZ evaluation, security trimming, audit ledger/event writes, review queue writes, database/storage/idempotency/lock writes, product-state mutation, raw permission policy exposure, internal audit payload exposure, real data, credentials, or secrets.",
+  "primary_subphase_id": "RP00.P05.M05.S10",
+  "production_ready_flag": "control_plane_synthetic_fixture_permission_audit_binding_verified",
+  "unit_count": 10,
+  "source_micro_phase_id": "RP00.P05.M05",
+  "source_micro_phase_completed": false,
+  "phase_completed": false,
+  "next_subphase": "RP00.P05.M05.S11",
+  "included_units": [
+    {
+      "id": "RP00.P05.M05.S01",
+      "title": "Base tenant fixture",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S02",
+      "title": "Base user fixture",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S03",
+      "title": "Base matter fixture",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S04",
+      "title": "Base document fixture",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S05",
+      "title": "Primary golden case",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S06",
+      "title": "Secondary golden case",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "fixture",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S07",
+      "title": "Review-required case",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "claude_review",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S08",
+      "title": "Denied case",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S09",
+      "title": "Cross-tenant case",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    },
+    {
+      "id": "RP00.P05.M05.S10",
+      "title": "Missing context case",
+      "source_micro_phase_id": "RP00.P05.M05",
+      "program_id": "RP00",
+      "phase_id": "RP00.P05",
+      "micro_id": "M05",
+      "micro_title": "Permission And Audit Binding",
+      "deliverable_type": "implementation",
+      "risk_class": "A",
+      "status": "production_ready",
+      "evidence_refs": [
+        "docs/closeout-packs/cp00-065/manifest.json",
+        "docs/closeout-packs/cp00-065/command-evidence.json",
+        "docs/closeout-packs/cp00-065/claude-review-result.json",
+        "docs/closeout-packs/cp00-065/adjudication.md",
+        "docs/closeout-packs/cp00-065/construction-inspection.json"
+      ],
+      "implementation_refs": [
+        "contracts/control-plane-contract.json",
+        "packages/control-plane/README.md",
+        "packages/control-plane/fixtures/synthetic-control-plane.json",
+        "packages/control-plane/src/policies.js",
+        "packages/control-plane/src/service.js",
+        "packages/control-plane/src/validators.js",
+        "packages/control-plane/test/service.test.js",
+        "scripts/validate-rp00-control-plane-contract.mjs"
+      ],
+      "production_ready": true,
+      "no_real_data": true,
+      "writes_product_state": false
+    }
+  ],
+  "required_pack_artifacts": [
+    "docs/closeout-packs/cp00-065/manifest.json",
+    "docs/closeout-packs/cp00-065/command-evidence.json",
+    "docs/closeout-packs/cp00-065/claude-review-result.json",
+    "docs/closeout-packs/cp00-065/adjudication.md",
+    "docs/closeout-packs/cp00-065/construction-inspection.json"
+  ],
+  "plan_totals": {
+    "law_firm_os_units": 54355,
+    "hrx_embedded_people_units": 901,
+    "expanded_total_units": 55256,
+    "hrx_product_boundary": "embedded_people_hr_evidence_module_inside_law_firm_os"
+  },
+  "pack_count_policy": {
+    "estimated_total_packs_approx": 1000,
+    "estimated_range_min": 760,
+    "estimated_range_max": 1295,
+    "not_equal_distribution": true,
+    "not_1000_units_per_pack": true,
+    "do_not_calculate_pack_size_as_total_units_divided_by_1000": true,
+    "risk_class_unit_ranges": {
+      "A": {
+        "min_units": 1,
+        "max_units": 10
+      },
+      "B": {
+        "min_units": 10,
+        "max_units": 40
+      },
+      "C": {
+        "min_units": 40,
+        "max_units": 150
+      }
+    }
+  },
+  "plan_binding_snapshot": {
+    "pack_id": "CP00-065",
+    "planned_pack_id": "CP00-065",
+    "requested_pack_id": "CP00-064",
+    "title": "CP00-065 RP00.P05.M05.S01-RP00.P05.M05.S10 requested_locked_queue",
+    "risk_class": "A",
+    "planned_risk_class": "A",
+    "planned_unit_count": 10,
+    "unit_count": 10,
+    "range": {
+      "first_unit_id": "RP00.P05.M05.S01",
+      "last_unit_id": "RP00.P05.M05.S10",
+      "description": "RP00.P05.M05.S01-S10"
+    },
+    "source": "requested_locked_queue",
+    "generated": false,
+    "requested_unit_count": 10,
+    "correction_reason": "requested CP00-064 shifted to CP00-065 by live sequential cursor",
+    "within_default_risk_range": true,
+    "plan_ref": "docs/closeout-pack-plan/closeout-pack-plan.json",
+    "deviation_from_plan": false,
+    "included_units": [
+      {
+        "id": "RP00.P05.M05.S01",
+        "title": "Base tenant fixture",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP00.P05.M05.S02",
+        "title": "Base user fixture",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP00.P05.M05.S03",
+        "title": "Base matter fixture",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP00.P05.M05.S04",
+        "title": "Base document fixture",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP00.P05.M05.S05",
+        "title": "Primary golden case",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP00.P05.M05.S06",
+        "title": "Secondary golden case",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "fixture"
+      },
+      {
+        "id": "RP00.P05.M05.S07",
+        "title": "Review-required case",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "claude_review"
+      },
+      {
+        "id": "RP00.P05.M05.S08",
+        "title": "Denied case",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P05.M05.S09",
+        "title": "Cross-tenant case",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      },
+      {
+        "id": "RP00.P05.M05.S10",
+        "title": "Missing context case",
+        "source_micro_phase_id": "RP00.P05.M05",
+        "program_id": "RP00",
+        "phase_id": "RP00.P05",
+        "micro_id": "M05",
+        "micro_title": "Permission And Audit Binding",
+        "deliverable_type": "implementation"
+      }
+    ]
+  },
+  "worktree_transition_policy": {
+    "do_not_revert_existing_changes": true,
+    "legacy_individual_closeout_evidence_preserved": true,
+    "new_primary_completion_unit": "closeout_pack",
+    "dirty_worktree_handling": "preserve_existing_untracked_.DS_Store_and_Law_Firm_OS_UI"
+  },
+  "pack_level_claude_review": {
+    "required_model": "claude-opus-4-8",
+    "required_effort": "max",
+    "required_mode": "read_only",
+    "exactly_one_valid_pack_review_required": true,
+    "status": "review_completed",
+    "valid_review_ref": "docs/closeout-packs/cp00-065/claude-review-result.json",
+    "invalid_attempts_recorded": 1
+  },
+  "closeout_gates": {
+    "implementation": "passed",
+    "tests": "passed",
+    "hermes_evidence": "passed",
+    "claude_review": "passed",
+    "finding_adjudication": "passed",
+    "construction_inspection": "passed",
+    "included_units_production_ready": true,
+    "commit_required": true
+  },
+  "commit_policy": {
+    "required": true,
+    "message": "Close CP00-065 synthetic fixture permission audit binding pack"
+  },
+  "implementation_summary": {
+    "implemented_surface": "ControlPlaneSyntheticFixturePermissionAuditBinding",
+    "implemented_slice": "control_plane_synthetic_fixture_permission_audit_binding",
+    "policy_ref": "CONTROL_PLANE_SYNTHETIC_FIXTURE_PERMISSION_AUDIT_BINDING_POLICY",
+    "module_ref": "CONTROL_PLANE_SYNTHETIC_FIXTURE_PERMISSION_AUDIT_BINDING_MODULE",
+    "assembler_ref": "assembleControlPlaneSyntheticFixturePermissionAuditBinding",
+    "validator_refs": [
+      "assertControlPlaneSyntheticFixturePermissionAuditBindingPolicy",
+      "assertControlPlaneSyntheticFixturePermissionAuditBindingResult"
+    ],
+    "fixture_ref": "control_plane_synthetic_fixture_permission_audit_binding"
+  }
+}

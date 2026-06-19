@@ -1,0 +1,150 @@
+{
+  "schema_version": "law-firm-os.product-contract.v0.1",
+  "product": {
+    "id": "law-firm-os",
+    "name": "Law Firm OS",
+    "spec_version": "0.1",
+    "spec_date": "2026-06-03",
+    "definition": "Matter-first integrated operating platform for CRM, Intake, Matter, DMS, Billing, Settlement, Audit, Permission, and AI Governance."
+  },
+  "architecture": {
+    "style": "modular_monolith_first",
+    "frontend": "Next.js / React candidate",
+    "backend": "NestJS or FastAPI candidate",
+    "metadata_db": "PostgreSQL",
+    "object_storage": "S3-compatible or Azure Blob",
+    "search": "OpenSearch or Elasticsearch",
+    "vector_index": "pgvector, Qdrant, or Weaviate candidate"
+  },
+  "shared_core": [
+    "Tenant",
+    "User",
+    "Group",
+    "Role",
+    "Permission",
+    "Policy",
+    "AuditEvent",
+    "Workflow",
+    "Notification",
+    "IntegrationAccount"
+  ],
+  "principles": [
+    "matter_first",
+    "client_lifecycle_first",
+    "dms_as_knowledge_layer",
+    "master_data_unification",
+    "metadata_first",
+    "security_by_default",
+    "permission_unified",
+    "audit_everything",
+    "version_safe_dms",
+    "finance_controlled",
+    "crm_flexible",
+    "ai_grounded",
+    "tenant_isolated",
+    "integration_ready",
+    "modular_but_integrated"
+  ],
+  "modules": [
+    {
+      "id": "core-platform",
+      "name": "Core Platform",
+      "owns": ["Tenant", "User", "Group", "Role", "Permission", "Policy", "AuditEvent", "Workflow", "Notification", "IntegrationAccount"],
+      "priority": "P0"
+    },
+    {
+      "id": "master-data",
+      "name": "Master Data",
+      "owns": ["Entity", "Organization", "Person", "ContactPoint", "Relationship", "ClientProfile", "BillingEntity", "MatterParty", "ConflictAlias"],
+      "priority": "P0"
+    },
+    {
+      "id": "matter-core",
+      "name": "Matter Core",
+      "owns": ["Matter", "MatterMember", "MatterTask", "MatterCalendarEvent", "Checklist", "MatterStatusHistory"],
+      "priority": "P0"
+    },
+    {
+      "id": "legal-workspace-dms",
+      "name": "Legal Workspace / DMS",
+      "owns": ["Workspace", "Folder", "Document", "DocumentVersion", "FileObject", "Rendition", "ExtractedText", "OCRResult", "Email", "EmailThread", "Attachment", "Clause", "DocumentRelation", "DocumentCollection", "RetentionLabel", "LegalHold"],
+      "priority": "P0"
+    },
+    {
+      "id": "billing-finance",
+      "name": "Billing & Finance",
+      "owns": ["RateCard", "TimeEntry", "Expense", "Disbursement", "Vendor", "ProformaInvoice", "Invoice", "TaxInvoice", "Payment", "BankTransaction", "CardTransaction", "Account", "JournalEntry", "ARRecord", "WriteOff", "RetainerAccount"],
+      "priority": "P0"
+    },
+    {
+      "id": "client-growth-crm",
+      "name": "Client Growth / CRM",
+      "owns": ["Lead", "Opportunity", "Proposal", "Activity", "Referral", "OriginationCredit", "Campaign", "CampaignMember", "AccountPlan", "LostReason"],
+      "priority": "P1"
+    },
+    {
+      "id": "intake-engagement",
+      "name": "Intake & Engagement",
+      "owns": ["ConflictCheck", "ConflictHit", "Waiver", "Engagement", "FeeArrangement"],
+      "priority": "P1"
+    },
+    {
+      "id": "partner-settlement",
+      "name": "Partner Settlement",
+      "owns": ["SettlementRule", "SettlementRun", "SettlementLine", "PartnerAllocation", "TeamAllocation", "OriginationSplit", "WorkingCredit", "SettlementApproval", "SettlementDocument"],
+      "priority": "P1"
+    },
+    {
+      "id": "legal-knowledge-ai",
+      "name": "Legal Knowledge AI",
+      "owns": ["AIJob", "AIQuery", "AIRetrievalSet", "AIOutput", "AICitation", "AIModelPolicy", "Embedding", "KnowledgeGraphNode", "KnowledgeGraphEdge", "AIReviewStatus"],
+      "priority": "P2"
+    }
+  ],
+  "invariants": [
+    {
+      "id": "matter_first_required",
+      "description": "DMS, Billing, Settlement, and AI objects must be traceable to Matter where applicable.",
+      "required": true
+    },
+    {
+      "id": "single_client_matter_identity",
+      "description": "CRM, DMS, Billing, and Analytics must not create separate Client or Matter identity systems.",
+      "required": true
+    },
+    {
+      "id": "dms_independent_layer",
+      "description": "Documents and emails are owned by DMS, while CRM, Matter, and Billing reference Document IDs.",
+      "required": true
+    },
+    {
+      "id": "deny_over_allow",
+      "description": "Legal hold, ethical wall, object restriction, and deny rules override allow rules.",
+      "required": true
+    },
+    {
+      "id": "audit_required",
+      "description": "Document access, permission change, billing change, settlement run, export, and AI access must create audit events.",
+      "required": true
+    },
+    {
+      "id": "ai_grounded_in_versions",
+      "description": "AI output must cite document_id, version_id, page or clause where applicable.",
+      "required": true
+    },
+    {
+      "id": "human_review_for_ai_final_outputs",
+      "description": "AI-generated legal, client-facing, billing, and settlement outputs require human review before finalization.",
+      "required": true
+    }
+  ],
+  "mvp_sequence": [
+    "Core + Matter + DMS Core",
+    "Time/Billing/Expense",
+    "CRM/Intake/Conflict",
+    "Email/Office Native DMS",
+    "Settlement/Analytics/Governance",
+    "AI Legal Knowledge"
+  ]
+}
+

@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-firm-os.closeout-pack.command-evidence.v0.1",
+  "pack_id": "CP00-030",
+  "subphase_id": "RP00.P02.M07.S02",
+  "status": "passed",
+  "production_ready": true,
+  "captured_at": "2026-06-06T16:11:21Z",
+  "no_real_data": true,
+  "writes_product_state": false,
+  "gate_outcome": "passed_after_pack_evidence_creation",
+  "blocked_claims": [
+    "execute_tests",
+    "generate_golden_fixture",
+    "persist_golden_fixture",
+    "write_database",
+    "write_storage",
+    "persist_product_state",
+    "execute_service_logic",
+    "create_runtime_route",
+    "real_matter_data",
+    "secret_or_credential_input",
+    "mutate_golden_case_catalog",
+    "mutate_unit_test_contract",
+    "unknown_claim"
+  ],
+  "notes": [
+    "No real client, matter, document, billing, settlement, credential, or secret data was used.",
+    "CP00-030 is a metadata-only request normalization pack: it normalizes the Test And Golden Case Set S02 request after CP00-029/S01 and RP00.P02.M06.S11 while refusing test execution, golden fixture generation, golden fixture persistence, runtime route creation, service logic execution, database writes, storage writes, and product-state persistence.",
+    "A preliminary RP00 validation run before evidence creation failed only because docs/closeout-packs/cp00-030 evidence files did not exist yet.",
+    "The completed read-only Claude run is the single valid pack-level review for CP00-030; raw verdict was approve_with_conditions, and all P1/P2 items are resolved or adjudicated by this pack evidence, strengthened negative tests, and final validation."
+  ],
+  "evidence_summary": {
+    "implementation": "RP00.P02.M07.S02 request normalization policy, normalizer, validators, fixture mirror, README entry, contract ledger row, and RP00 validator coverage were added.",
+    "tests": "Control-plane service tests include policy binding, frozen metadata normalization, unsafe input fail-closed coverage, normalizer no-write handoff, fixture mirror checks, and derived S01 service_entrypoint_contract_ref pinning.",
+    "hermes_evidence": "H00 command ids rp00_control_plane_contract_validate and spec_requirement_validate are represented in the final command evidence.",
+    "claude_review_dependency": "C00 actual claude-opus-4-8 max read-only review required before production_ready",
+    "human_approval_boundary": "Human approval remains outside this metadata-only S02 normalization pack; the explicit next goal boundary is RP00.P02.M07.S03 tenant boundary precheck."
+  },
+  "hermes_gate": {
+    "id": "H00",
+    "status": "passed",
+    "command_ids": [
+      "rp00_control_plane_contract_validate",
+      "spec_requirement_validate"
+    ]
+  },
+  "preliminary_expected_failures": [
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 1,
+      "expected": true,
+      "summary": "Pre-evidence RP00 validation failed only because docs/closeout-packs/cp00-030 evidence files did not exist yet."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --check packages/control-plane/src/policies.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/service.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/src/validators.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check packages/control-plane/test/service.test.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check scripts/validate-rp00-control-plane-contract.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test packages/control-plane/test/service.test.js",
+      "exit_code": 0,
+      "summary": "488 tests passed after CP00-030 implementation and post-review P2 negative coverage strengthening."
+    },
+    {
+      "command": "claude --no-session-persistence -p --model claude-opus-4-8 --effort max --permission-mode bypassPermissions --system-prompt \"read-only pack-level code reviewer\" --output-format text --max-budget-usd 5",
+      "exit_code": 0,
+      "summary": "Single valid pack-level read-only review completed; raw verdict approve_with_conditions, raw findings P0=0/P1=1/P2=1/P3=3, unresolved after adjudication P0=0/P1=0/P2=0."
+    },
+    {
+      "command": "node --check scripts/validate-closeout-pack.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run closeout-pack:validate",
+      "exit_code": 0,
+      "summary": "Final Closeout Pack validation passed for CP00-001 through CP00-030."
+    },
+    {
+      "command": "npm run goal:closeout:validate",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "summary": "Full test suite passed after CP00-030."
+    },
+    {
+      "command": "npm run validate",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run spec:requirements:validate",
+      "exit_code": 0,
+      "summary": "Spec requirement ledger validation passed with current repo requirement_count."
+    },
+    {
+      "command": "npm run weighted:validate",
+      "exit_code": 0,
+      "summary": "Weighted implementation ledger validation passed with 54355 implementation subphases."
+    },
+    {
+      "command": "npm run fullplan:validate",
+      "exit_code": 0,
+      "summary": "Full microphase plan validation passed with 3300 micro phases."
+    },
+    {
+      "command": "npm run rp00:control-plane:validate",
+      "exit_code": 0,
+      "summary": "RP00 control-plane contract validation passed for RP00.P02.M07.S02 after CP00-030 evidence finalization."
+    }
+  ]
+}
